@@ -1,0 +1,72 @@
+#editorMenu{
+  height: 650px;
+  overflow: scroll;
+}
+
+#editorToolbar{
+  list-style-type: none;
+  text-align: left;
+  background-color: #e8e8e8;
+  border: 1px solid #ccc;
+}
+
+#editorToolbar li{
+  display: inline-block;
+  padding: 2px 5px 2px 10px;
+  border-right: 1px solid #ccc;
+}
+#editorToolbar li.command:hover{
+  text-decoration: underline;
+  cursor: pointer;
+}
+#editorToolbar li img{
+  width: 16px;
+  height: 16px;
+}
+
+#editorContainer{
+  text-align: left;
+  min-height: 600px;
+}
+
+#editor_title{
+  background-color: #e8e8e8;
+  margin-bottom: 2px;
+}
+
+#editor{
+  margin: 0px;
+  position: relative;
+  top: 0px;
+  bottom: Opx;
+  left: 0px;
+  right: 0px;
+  min-height: 600px;
+}
+
+#editor_new_selectFolder{
+  min-height: 50px;
+  font-size: 11px;
+  margin-left: 50px;
+}
+
+.editor_submenu{
+  display: none;
+  border: 1px solid #ccc;
+  position: absolute;
+  left: 20px;
+  top: 50px;
+  text-align: left;
+  z-index: 999;
+  background-color: #fff;
+  padding: 10px;
+}
+
+#editor_shortcuts{
+  height: 400px;
+  overflow: scroll;
+}
+#editor_shortcuts th{
+  font-weight: bold;
+  text-align: center;
+}

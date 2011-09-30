@@ -1,0 +1,4 @@
+
+.ui-jqgrid tr.jqgrow td:first-child{ white-space: pre; }
+.ui-jqgrid tr.jqgrow td {display: table-cell; font-weight: normal; overflow: hidden; white-space: normal; height: 44px; padding: 0 2px 0 2px;border-bottom-width: 1px; border-bottom-color: inherit; border-bottom-style: solid;}
+.ui-jqgrid tr.jqgrow td p {max-height: 44px; margin: 0px; padding: 0px; overflow: hidden;}

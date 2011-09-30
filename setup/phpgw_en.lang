@@ -1,0 +1,5 @@
+bad_date_format	alixcrf_dev	en	The answer to "<b>%1</b>" is a misformatted date (dd-mm-yyyy expected)
+bad_time_format	alixcrf_dev	en	The answer to "<b>%1</b>" is a misformatted time (HH:MM expected)
+bad_datetime_format	alixcrf_dev	en	The answer to "<b>%1</b>" is a misformatted date
+bad_numeric_format	alixcrf_dev	en	The answer to "<b>%1</b>" is not numeric
+bad_integer_format	alixcrf_dev	en	The answer to "<b>%1</b>" is not a valid integer

@@ -1,0 +1,991 @@
+@import url('editor.css');
+@import url('helpers.css');
+
+#topmenu{
+  display:none;
+}
+
+.divSidebox 
+{
+   position:relative;
+   border: #9c9c9c 1px solid;
+/*   min-width : 125px;*/
+}
+
+body,td{
+  font-size:11;
+}
+
+.divSideboxHeader,.divLoginboxHeader 
+{
+
+	font: bold 12px Verdana, Arial, Helvetica, sans-serif;
+  color: white;
+  background: black url(images/fond_boitemenu_noir.png) repeat-x center left;
+  margin-bottom: 10px; /*bottom spacing between header and rest of content*/
+  text-transform: uppercase;
+  padding: 4px 0 4px 7px; /*header text is indented 10px*/
+  margin-top:0;
+}
+
+
+.inactiveButton{
+  opacity: 0.3;
+  filter:alpha(opacity=30);
+}
+.inactiveButton a:hover{
+  text-decoration: none;
+}
+
+#divAppboxHeader{
+  display:none;
+}
+
+#divAppboxHeader{
+  display:none;
+}
+
+#divAppbox{
+  padding : 0px;
+  border-width : 0px;
+}
+
+a.textSidebox
+{
+	border-top: 0;
+	font-weight:bold;
+}
+
+.textSidebox
+{
+	padding-top:3px;
+	padding-bottom:3px;
+	border-top: solid #aaaaaa 1px;
+}
+/* 
+ ** make the sidebox entries consistently start with a capital letter 
+ */
+.textSidebox:first-letter {
+	text-transform:uppercase;
+}
+
+.sideboxSpace
+{
+	height:9px;
+}
+
+a:link,a:visited
+{
+	cursor:pointer;
+	color: #4a9fa4; 
+	text-decoration: none;
+}
+
+a:hover,a:active
+{
+	cursor:pointer;
+	color: #D80000;
+	text-decoration: underline;
+}
+
+#tdAppbox
+{
+	background-color:white;
+	padding:0px;
+	width: 100%;
+}
+
+#divAppIconBar{
+ background-image : none; 
+ display:none;
+}
+
+#divLogo{
+  display:none;
+}
+
+#divStatusBar{
+  display:none;
+}
+
+.tabloGris {
+	border:1px solid #AAAAAA;
+	margin-top:3px;
+	margin-bottom:3px;
+}
+
+.tabloGris th{
+  padding:4px;
+}
+
+.tabloGrisTitle{
+	font-weight:bold;
+	vertical-align:middle;
+	color: #564B47;
+	border-bottom:1px solid #C7CACD;
+	background:#E4E4E4;
+	font-size:1.2em;
+}
+.tabloGrisValue{
+	font-weight:bold;
+	text-align:center;
+	vertical-align:middle;
+	color:#ffffff;
+	border-bottom:1px solid #C7CACD;
+	background:#969696;
+	width:50px;
+}
+.tabloGris td,th {
+	border-bottom:1px solid #C7CACD;
+	border-left:1px solid #C7CACD;
+}
+
+.tabloGris td.value{                               
+ 	text-align:center;
+}
+
+#mainForm{
+  position:relative;
+  float:left;
+  width:73%;
+  text-align:center;
+}
+
+#mainFormOnly{
+  position:relative;
+  width:98%;
+  text-align:center;
+  clear: both;
+}
+
+#formMenu{
+  position:relative;
+  clear:both;
+  float:left;
+  width:24%;
+  margin-left: 5px;
+
+  /*width:300px;*/
+}
+
+#formErrors{
+  position:relative;
+  clear:both;
+  float:left;
+  width:20%;
+}
+
+
+/*********************************** Liste des patients ***********************************/
+/*
+#SubjectsList{
+  display: block;
+  text-align: center;
+  width: 100%;
+  height: 500px;
+  overflow: scroll;
+}
+#SubjectsList table{
+  width: 700px;
+  border-collapse: collapse;
+}
+#SubjectsList table tr{
+  cursor: pointer;
+  height: 20px;
+}
+#SubjectsList table tr.row_on{
+  background-color: #bbb;
+}
+#SubjectsList table tr:hover, tr.row_on:hover{
+  background-color: #f4b525;
+}
+*/
+
+#listSubjects tr{
+  height: 18px;
+}
+
+#listSubjects tr.jqgrow td{
+  height: 18px;
+}
+
+/*********************************** Champs de saise ***********************************/
+.ItemDataInput{
+  text-align:left;
+  vertical-align:bottom;
+}
+
+.ItemDataInputZone{
+  min-width: 20px;
+  background-color: #eee;
+}
+
+.ItemDataInputZoneEmpty{
+  background-image: url(images/hash_7.png);
+}
+
+/*********************************** ItemGroup ***********************************/
+/*Titre*/
+div#Form h3{
+  background-color: #0060AD;
+  border: 0px solid #53A1C4;
+  color: white;
+}
+
+/*Tableau des réponses*/
+table.ItemGroup{
+  /*
+  border: 1px solid #ccc;
+  width: 100%;
+  margin: 2px; 0px;
+  */
+}
+
+/*ItemGroup en ligne*/
+div.itemGroupLine{
+  min-height: 20px;
+}
+div.itemGroupLine:hover{
+  cursor: pointer;
+  background-color: #f4b525;
+}
+
+/*********************************** Menu : Formulaires ***********************************/
+
+.FormTitle{
+  position: relative;
+}
+
+.FormLock { display: inline-block; background-repeat: no-repeat; }
+.FormLock { width: 16px; }
+.FormLock { position: absolute; right: .5em; top: 50%; margin-top: -8px;z-index:10 }
+.FormLockFILLED,.FormLockEMPTY{
+  background-image: url(images/lock_open_12.png);
+}
+.FormLockFROZEN{
+  background-image: url(images/lock_12.png);
+}
+
+.FormPostIt { display: inline-block; text-indent: -99999px; overflow: hidden; background-repeat: no-repeat; }
+.FormPostIt { width: 32px; height: 100%; background-image: none; }
+.FormPostIt { position: absolute; right: .5em; top: 50%; margin-top: -8px; }
+.FormPostItPresent{
+  background-image: url(images/postit_12.png);
+}
+
+.FormDeviation { display: inline-block; text-indent: -99999px; overflow: hidden; background-repeat: no-repeat; }
+.FormDeviation { width: 48px; height: 100%; background-image: none; }
+.FormDeviation { position: absolute; right: .5em; top: 50%; margin-top: -8px; }
+.FormDeviationPresent{
+  background-image: url(images/delta_12.png);
+}
+
+.FormStatus{
+  width:16px;
+  margin-right: 2px;
+}
+.FormStatusEMPTY{
+  background-color: #cccccc;
+}
+.FormStatusPARTIAL{
+  background-color: #C5541C;
+}
+.FormStatusINCONSISTENT{
+  background-color: #B02B08;
+}
+.FormStatusFILLED{
+  background-color: #58B208;
+}
+
+.FormStatusFROZEN{
+  background-color: #58B208;
+}
+/*********************************** Menu : Visites ***********************************/
+
+.StudyEventStatus { display: block; text-indent: -99999px; overflow: hidden; background-repeat: no-repeat; }
+.StudyEventStatus { width: 16px; height: 16px; background-image: url(images/circle_lightgray_16.png); }
+.StudyEventStatus { position: absolute; left: .5em; top: 50%; margin-top: -8px; }
+.StudyEventStatusEMPTY{
+  background-image: url(images/circle_lightgray_16.png)
+}
+.StudyEventStatusPARTIAL{
+  background-image: url(images/circle_orange_16.png)
+}
+.StudyEventStatusINCONSISTENT{
+  background-image: url(images/circle_red_16.png)
+}
+.StudyEventStatusFILLED{
+  background-image: url(images/circle_green_16.png)
+}
+.StudyEventStatusFROZEN{
+  background-image: url(images/lock_16.png)
+}
+
+/*********************************** L‚gende ***********************************/
+#formDeviation{
+  background-color: #ffff00;
+  border: 1px solid #000000;
+}
+
+/*********************************** L‚gende ***********************************/
+.legend-subtitle{
+  font-size: 10px;
+}
+
+.legend-description{
+  font-size: 10px;
+  padding: 2px;
+  vertical-align: middle;
+  border-top-width: 0px !important;
+}
+
+.legend-description img{
+  margin-right: 5px;
+}
+
+
+/*********************************** Deviations ***********************************/
+#formDeviations{
+  list-style-type: none;
+  list-style-position: inside;
+}
+.Deviation {
+  display: list-item;
+  font-size: 11px;
+  text-align: left;
+  margin: 3px 0px;
+  padding: 5px 20px 5px 30px;
+  color: #FF0;
+  background-image: none;
+  background-repeat: no-repeat;
+  background-position: 5px center;
+  
+  background-color: #555;
+  border-bottom: 1px solid #000;
+  border-top: 1px solid #000;
+  background-image: url('./images/delta_16.png');
+}
+
+.DeviationEditButtons{
+  float: right;
+  text-align: center;
+  margin-top: -5px; /* icones */ /*Le QueryType a un padding-top de 5px*/
+}
+
+.DeviationForm{
+  display: none; /*invisible par d‚faut*/
+  background-color: #eee;
+  border: 1px solid #333;
+}
+.DeviationFormHeader{
+  background-color: #333;
+  color: #fff;
+  font-weight: bold;
+}
+.DeviationFormContent{
+  text-align: left;
+}
+.DeviationFormContent > div > b{
+  display: inline-block;
+  width: 120px;
+}
+.DeviationFormContent > div:not(:last-child){ /*un cours de css ? tous les div qui sont enfants imm‚diats d'un ‚l‚ment de classe DeviationFormContent, sauf le dernier*/
+  border-bottom: 1px solid #ccc;
+  padding: 2px;
+}
+
+.DeviationFormButtons{
+  margin-top : 5px;
+  text-align: center;
+}
+.DeviationFormButtons button{
+  width : 70px;
+  margin:10px;
+}
+
+/*********************************** Module de gestion des deviations ***********************************/
+
+#deviationsFilters{
+  text-align: left;
+  padding: 0px;
+}
+#deviationsFiltersList{
+  list-style-type: none;
+  margin: 0px;
+  padding: 0px;
+  height: 32px;
+  white-space: nowrap;
+}
+#deviationsFiltersList > li{
+  display: inline-block;
+  vertical-align: top;
+  border-right: 1px solid #aaa;
+  padding: 5px;
+  height: 32px;
+}
+#deviationsFiltersList ul{
+  display: inline-block;
+  list-style-type: none;
+  padding: 0px;
+}
+#deviationsFiltersList ul li{
+  list-style-type: none;
+  display: inline-block;
+  padding-left: 10px;
+}
+
+.ui-widget-content.listDeviationsHistoryRow{
+  background-image: none;
+  background-color: #479a9c;
+  color: #fff;
+}
+.ui-widget-content.listDeviationsHistoryRow:hover, .ui-widget-content.listDeviationsHistoryRow.ui-state-highlight{
+  background-image: url('./images/ui-bg_glass_queryRow.png');
+  background-color: #479a9c;
+  color: #fff;
+}
+
+/*********************************** Queries ***********************************/
+
+/*.QueryType {border: 1px solid #000000; background: #fef1ec url(images/ui-bg_glass_95_fef1ec_1x400.png) 50% 50% repeat-x; color: #cd0a0a; }
+.QueryType { -moz-border-radius: 4px; -webkit-border-radius: 4px; border-radius: 4px; }*/
+#formQueries{
+  list-style-type: none;
+  list-style-position: inside;
+}
+.QueryType {
+  display: list-item;
+  font-size: 11px;
+  text-align: left;
+  margin: 3px 0px;
+  padding: 5px 20px 5px 30px;
+  color: #141414;
+  background-image: none;
+  background-repeat: no-repeat;
+  background-position: 5px center;
+}
+.QueryTypeCM{
+  background-color: #FBB4A9;
+  border-bottom: 1px solid #D85440;
+  border-top: 1px solid #D85440;
+  background-image: url('./images/type_error_lightred_16.png');
+}
+.QueryTypeHC{
+  background-color: #FFF28F;
+  border-bottom: 1px solid #FFB724;
+  border-top: 1px solid #FFB724;
+  background-image: url('./images/type_warning_light_16.png');
+}
+.QueryTypeSC{
+  background-color: #a3c8f2;
+  border-bottom: 1px solid #196ac6;
+  border-top: 1px solid #196ac6;
+  background-image: url('./images/type_info_lightblue_16.png');
+}
+.QueryStatusR{ /*Resolved*/
+  background-image: url('./images/bubble_orange_16.png');
+}
+.QueryStatusP{ /*Resolution proposed*/
+  background-image: url('./images/bubble_blue_16.png');
+}
+.QueryStatusA{ /*Confirmed*/
+  background-image: url('./images/bubble_green_16.png');
+}
+.QueryStatusO.imageOnly{ /*affichage d'une icone dans le module uniquement*/
+  background-image: url('./images/circle_red_16.png');
+}
+.QueryStatusC.imageOnly{ /*affichage d'une icone dans le module uniquement*/
+  background-image: url('./images/circle_lightgray_16.png');
+}
+.QueryStatusO.QueryOriginM{ /*Open Manual*/ /*laisser dans ce CSS aprŠs la d‚claration .QueryStatusO.imageOnly*/
+  background-image: url('./images/bubble_red_16.png');
+}
+
+.QueryForm{
+  display: none; /*invisible par d‚faut*/
+  background-color: #eee;
+  border: 1px solid #333;
+}
+.QueryFormHeader{
+  background-color: #333;
+  color: #fff;
+  font-weight: bold;
+}
+.QueryFormContent{
+  text-align: left;
+}
+.QueryFormContent > div > b{
+  display: inline-block;
+  width: 120px;
+}
+.QueryFormContent > div:not(:last-child){ /*un cours de css ? tous les div qui sont enfants imm‚diats d'un ‚l‚ment de classe QueryFormContent, sauf le dernier*/
+  border-bottom: 1px solid #ccc;
+  padding: 2px;
+}
+.QueryFormContent > div:nth-child(4){
+  border-bottom: 1px solid #333;
+}
+
+.QueryFormButtons{
+  margin-top : 5px;
+  text-align: center;
+}
+.QueryFormButtons button{
+  width : 70px;
+  margin:10px;
+}
+
+.QueryEditButtons{
+  float: right;
+  text-align: center;
+  /*margin-top: -4px;*/ /* textes */ /*Le QueryType a un padding-top de 5px*/
+  margin-top: -5px; /* icones */ /*Le QueryType a un padding-top de 5px*/
+}
+
+.ItemIdentifier{
+  background-color: #f00;
+  color: #fff;
+}
+
+/*Queries manuelles (bouton sur la ligne d'une valeur)*/
+.ItemDataQuery{
+  padding-left: 5px;
+}
+
+/*********************************** Liste des patients ***********************************/
+
+.imageStatus{
+  background-image: none;
+}
+.imageStatusEMPTY{
+  background-image: url('./images/circle_lightgray_16.png')
+}
+.imageStatusPARTIAL{
+  background-image: url('./images/circle_orange_16.png')
+}
+.imageStatusINCONSISTENT{
+  background-image: url('./images/circle_red_16.png')
+}
+.imageStatusFILLED{
+  background-image: url('./images/circle_green_16.png')
+}
+.imageStatusFROZEN{
+  background-image: url('./images/lock_16.png')
+}
+/*********************************** Module de gestion des queries ***********************************/
+
+.ArrowRight{
+  background-image: url('./images/expand_right.gif');
+}
+.ArrowLeft{
+  background-image: url('./images/collapse_left.gif');
+}
+
+.imageEdit{
+  background-image: url('./images/pencil_16.png');
+}
+.imageFindIn{
+  background-image: url('./images/find_in_16.png');
+}
+.imageHistory{
+  background-image: url('./images/history_16.png');
+}
+.imageHistoryClose{
+  background-image: url('./images/history_close_16.png');
+}
+.imageZoom{
+  background-image: url('./images/zoom_16.png');
+}
+
+.imageOnly{
+  display: inline-block;
+  background-color: #fff;
+  background-color: transparent;
+  border: none;
+}
+.image16{
+  width: 16px;
+  height: 16px;
+}
+
+.pointer{
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.hidden{
+  display: none;
+}
+
+#queriesFilters{
+  text-align: left;
+  padding: 0px;
+}
+#queriesFiltersList{
+  list-style-type: none;
+  margin: 0px;
+  padding: 0px;
+  height: 32px;
+  white-space: nowrap;
+}
+#queriesFiltersList > li{
+  display: inline-block;
+  vertical-align: top;
+  border-right: 1px solid #aaa;
+  padding: 5px;
+  height: 32px;
+}
+#queriesFiltersList ul{
+  display: inline-block;
+  list-style-type: none;
+  padding: 0px;
+}
+#queriesFiltersList ul li{
+  list-style-type: none;
+  display: inline-block;
+  padding-left: 10px;
+}
+
+.ui-widget-content.listQueriesHistoryRow{
+  background-image: none;
+  background-color: #479a9c;
+  color: #fff;
+}
+.ui-widget-content.listQueriesHistoryRow:hover, .ui-widget-content.listQueriesHistoryRow.ui-state-highlight{
+  background-image: url('./images/ui-bg_glass_queryRow.png');
+  background-color: #479a9c;
+  color: #fff;
+}
+
+/*********************************** Boite info Utilisateur ***********************************/
+#userProfileInfo{
+  background-color: #e0e0e0;
+  border: 1px solid #cccccc;
+}
+
+/*********************************** Boite … outils ***********************************/
+.ToolBox{
+  background-color: #e0e0e0;
+  border: 1px solid #4A9FA4;
+  min-width: 50px;
+  float: right;
+  padding: 3px;
+}
+
+.ToolBoxOneButton{
+  background-color: transparent;
+  border-width: 0px;
+  min-width: 0px;
+  padding: 0px;
+}
+
+
+/*********************************** Post It ***********************************/
+
+.PostIt{
+  /*min-width: 100px;
+  min-height: 100px;*/
+  /*width: 145px;*/
+  background-color: yellow;
+  background-image: url('images/postit_bg_yellow.png');
+  background-repeat: repeat-x;
+  border: 1px solid orange;
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  z-index: 10;
+}
+
+.PostItClicked{ /*ensure post-it that has been clicked is visible over the others*/
+  z-index: 11;
+  opacity: 0.92;
+}
+
+/*Statuts … l'enregistrement ajax*/
+.PostItBeingSaved{
+  border-color: green;
+}
+.PostItNotSaved{
+  border-color: red;
+}
+
+.PostIt textarea{
+  background-color: transparent;
+  border-width: 0px;
+}
+
+.PostItHeader{
+  background-color: orange;
+  color: white;
+  font-weight: bold;
+  text-align: center;
+}
+.PostItHeader:hover{
+  cursor: pointer;
+}
+.PostItHeader img{
+  float: right;
+}
+
+.DroppableZone{
+  background-color: yellow;
+}
+.DroppedZone{
+  background-color: orange;
+}
+
+/*********************************** Audit Trail ***********************************/
+
+/*Tableau de l'audit trail*/
+.AuditTrail{
+  border-collapse: collapse;
+  width: 100%;
+}
+
+/*Lignes de l'audit trail*/
+.AuditTrailRow{
+  border-bottom: 1px solid #ccc;
+}
+.AuditTrailRow td{
+  padding: 2px;
+}
+
+/*Ligne de changement de valeur*/
+.AuditValue{
+}
+.AuditValueInsert{ /*Insertion de valeur*/
+}
+.AuditValueUpdate{ /*Mise à jour de valeur*/
+}
+.AuditValueRemove{ /*Suppression de valeur*/
+}
+
+/*Lignes de queries*/
+.AuditQuery{
+}
+.AuditQueryC{ /*Fermeture de querie*/
+  background-color: #27e86e;
+}
+.AuditQueryA{ /*Confirmation de querie*/
+  background-color: #b5dfb5;
+}
+.AuditQueryR{ /*R‚solution de querie*/
+  background-color: #ffdfa1;
+}
+.AuditQueryP{ /*proposition de r‚solution de querie*/
+  background-color: #c3c3e9;
+}
+.AuditQueryO{ /*Ouverture de querie*/
+  background-color: #FBB4A9;
+}
+
+/*Lignes de deviations*/
+.AuditDeviation{
+}
+.AuditDeviationC{ /*Fermeture de deviation*/
+  background-color: #777;
+  color: yellow;
+}
+.AuditDeviationO{ /*Ouverture de deviation*/
+  background-color: #555;
+  color: yellow;
+}
+.AuditDeviationU{ /*Modification de deviation*/
+  background-color: #555;
+  color: yellow;
+}
+
+
+/*********************************** Dashboard : Menu ***********************************/
+#dashboardMenu{
+  position:relative;
+  clear:both;
+  float:left;
+  width:24%;
+  margin-left: 5px;
+  min-height: 500px;
+}
+
+#dashboardMenu a{
+  width: 100%;
+  text-align: left;
+}
+
+
+#dashboardContent{
+  position:relative;
+  float:left;
+  width:73%;
+  text-align:center;
+  min-height: 500px;
+}
+
+
+/*********************************** Documents : Menu ***********************************/
+#documentsMenu{
+  position:relative;
+  clear:both;
+  float:left;
+  width:97%;
+  margin-left: 5px;
+  min-height: 500px;
+}
+
+#documentsMenu a{
+  width: 100%;
+  text-align: left;
+}
+
+
+/*********************************** Grid - Liste des utilisateurs ***********************************/
+.ui-grid-users { width: 500px; padding: .4em;  background-image: none; }
+.ui-grid-users .ui-grid-content { width: 100%; border-collapse: collapse; }
+.ui-grid-users table tbody td, .ui-grid .ui-grid-header, .ui-grid table thead a { padding: .4em;  }
+.ui-grid-users table tbody td {  text-align: right; font-weight: normal;  }
+.ui-grid-users .ui-grid-header, .ui-grid .ui-grid-footer { padding: .8em .4em; text-align: center; }
+.ui-grid-users .ui-grid-footer { background-image: none; font-weight: normal; text-align: left; }
+.ui-grid-users table thead a { display: block;  }
+.ui-grid-users .ui-icon { float: right; }
+.ui-grid-users .ui-grid-paging { float: right; }
+.ui-grid-users .ui-grid-paging-prev { float: left; width: 16px; height: 16px; }
+.ui-grid-users .ui-grid-paging-next { float: right; width: 16px; height: 16px; }
+.ui-grid-users .ui-grid-results {  }
+
+/*********************************** Grid - Liste des queries ***********************************/
+.ui-grid-queries { width: 100%; padding: .4em; }
+
+fieldset {
+  padding: 1em;
+  }
+
+.ItemDataRequired{
+  margin-top:3px;
+  color:red;
+  
+  float: right;
+  margin-right: 5px;
+}
+    
+.ItemDataLabel{
+  text-align:left;
+  font-weight:bold;
+}
+
+.underCondition{
+  font-weight:normal;
+  padding-left:10px;
+}
+
+.ItemDataAnnot{
+  width:50px; 
+  text-align:right; 
+  /*border-left:1px solid #dddddd;*/
+}
+
+.ItemDataAudit{
+  width:50px; 
+  text-align:left; 
+  /*border-right:1px solid #dddddd;*/
+}
+
+
+table.ItemGroup{
+  background-color:white;
+  min-width:95%;
+}
+
+
+.ItemGroup td{
+  border-bottom : 1px solid #dddddd;
+  
+}
+
+.optionalText{
+  color:green;
+}
+
+#ActionsButtons{
+  margin-top : 15px;
+}
+#ActionsButtons button{
+ width : 70px;
+ margin:10px;
+}
+
+/* Creation d'un centre / ajout d'un profile
+------------------------------*/
+form#createSite label, form#createSite input { display:block; }
+form#createSite input.text { margin-bottom:12px; width:95%; padding: .4em; }
+
+form#addProfile label, form#addProfile input { display:block; }
+form#addProfile input.text { margin-bottom:12px; width:95%; padding: .4em; }
+
+/* TOOLBAR*/
+
+#toolbar_ico ul{
+  list-style-type: none;
+ /* padding:10px 20px;*/
+}
+
+#toolbar_ico ul li{
+  float:left;
+  width:120px;
+  text-align:center;
+}
+
+.itemGroupHeadLine{
+  clear:both;
+  text-align:left;
+}
+
+.itemGroupHeadLine div{
+  float:left;
+  width:100px;
+}
+
+.itemGroupLine{
+  clear:both;
+  text-align:left;
+}
+
+/*
+.itemGroupLine div{
+  float:left;
+  width:100px;
+}
+*/
+.itemGroupLine div {
+  width: 100px;
+  display: inline-block;
+  vertical-align: top;
+  overflow: hidden;
+}
+
+.TransactionTypeRemove div{
+  text-decoration: line-through;
+}
+
+.TransactionTypeRemove item{
+  text-decoration: line-through;
+}
+
+.TransactionTypeRemove{
+  text-decoration: line-through;
+}
+
+#divFrmPasswd{
+  text-align:left;  
+}
+
+#frmPreferences{
+  text-align:left;
+}
+
+.pagination{
+  width:250px;
+  padding-top:20px;
+  /*margin-left:100px;*/
+  /*text-align:center;*/
+  display:inline;  
+}
