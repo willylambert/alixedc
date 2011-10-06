@@ -446,6 +446,7 @@ function closeQuery($queryId,$userId,$profileId){
                           FRMOID='$FormOID' AND
                           FRMRK='$FormRepeatKey' AND
                           ISLAST='Y' AND
+                          ISMANUAL='N' AND
                           QUERYSTATUS<>'C' AND
                           $where";
     $GLOBALS['egw']->db->query($sql);

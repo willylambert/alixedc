@@ -98,20 +98,16 @@ class bosubjects extends CommonFunctions
       $SubjectKey = substr($subjectContainer, 0, -6);
       try{
         $this->addLog(__METHOD__."() Adding Subject $SubjectKey",TRACE);
-        $xquery = "let \$FileOID := collection('$SubjectKey.dbxml')/odm:ODM/@FileOID
-                   return
-                         <result FileOID='{\$FileOID}' />";
-        $results = $this->m_ctrl->socdiscoo($SubjectKey,true)->query($xquery);
-        $this->addLog(__METHOD__."() Query OK $SubjectKey",TRACE);
-        if((string)$results[0]['FileOID'] == '') throw new Exception("Cannot find collection('$SubjectKey.dbxml')/odm:ODM/@FileOID");
-      
-        $this->addLog(__METHOD__."() > updateSubjectInList",TRACE);
+
+        //We only need to lock one subject
+        $this->m_ctrl->socdiscoo($SubjectKey,true);
+        
         $this->updateSubjectInList($SubjectKey, $DOMList, $isNewList);
         $isNewList = false;
         $DOMList = false;
         $i++;
       }catch(xmlexception $e){
-        $this->addLog($e->getMessage(),WARN);
+        $this->addLog($e->getMessage(),FATAL);
       }
     }
   }
