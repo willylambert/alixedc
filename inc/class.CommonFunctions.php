@@ -48,6 +48,9 @@ class CommonFunctions{
   //Unique point d'accès aux instances des classes boXXXXX et uiXXXXX
   public $m_ctrl;
   
+  public $m_user;
+  public $m_lang;
+  
 /****************************************************/
 //Méthodes Publiques
 /****************************************************/
@@ -63,10 +66,16 @@ class CommonFunctions{
     }
     $this->m_user = $userId;
     $this->m_ctrl = $ctrlRef;
-    
-    if (defined('EGW_INCLUDE_ROOT')) {
-      require_once(dirname(__FILE__). "/../custom/".$this->m_tblConfig['METADATAVERSION']."/inc/hookFunctions.php"); 
+    if(isset($GLOBALS['egw_info']['user']['preferences']['common']['lang'])){
+      $this->m_lang = $GLOBALS['egw_info']['user']['preferences']['common']['lang'];
+    }else{
+      $this->m_lang = "en";
     }
+    if (defined('EGW_INCLUDE_ROOT')) {
+      require_once(EGW_INCLUDE_ROOT . "/".$GLOBALS['egw_info']['flags']['currentapp']."/custom/".$this->m_tblConfig['METADATAVERSION']."/inc/hookFunctions.php"); 
+    }
+
+  
   }
 
   //Destructeur
@@ -92,27 +101,38 @@ class CommonFunctions{
   }
   
   public function addLog($message,$level){
-    if($this->m_tblConfig['LOG_FILE']==""){
-      $this->dumpPre(debug_backtrace());
-    }
     if($level>=$this->m_tblConfig['LOG_LEVEL']){
       $timeOffset = microtime(true) - $_SERVER['REQUEST_TIME']; 
       $dt = date('c') . " " . substr($timeOffset,0,7);
       error_log("$dt " . $message . "\n",3,$this->m_tblConfig['LOG_FILE']);
       if($level>=ERROR){
-        mail($this->m_tblConfig['EMAIL_ERROR'],"ETUDE (".$_SERVER['SERVER_NAME'].") ERROR/FATAL : {$this->m_user}@$dt",$message);
+        $message .= "\nrequest = " . $this->dumpRet($_REQUEST);
+        mail($this->m_tblConfig['EMAIL_ERROR'],"ETUDE (".$this->m_tblConfig['APP_NAME'].") ERROR/FATAL : {$this->m_user}@$dt",$message);
         if($level==FATAL){
           die("<pre>$message</pre>");
         }
       }
       if($message=="socdiscoo::destruct()" && $this->m_tblConfig['LOG_LONG_EXECUTION']){
         if($timeOffset>$this->m_tblConfig['LONG_EXECUTION_VALUE']){
-          mail($this->m_tblConfig['EMAIL_ERROR'],"ETUDE (".$this->m_tblConfig['APP_NAME'].") LONG EXECUTION : {$this->m_user}@$dt","execution time = ".substr($timeOffset,0,7) . "s @{$this->m_user}@$dt");
+          mail($this->m_tblConfig['EMAIL_ERROR'],"ETUDE (".$this->m_tblConfig['APP_NAME'].") LONG EXECUTION : {$this->m_user}@$dt","execution time = ".substr($timeOffset,0,7) . "s @{$this->m_user}@$dt\n\nRequest = " . $this->dumpRet($_REQUEST));
         }
       }
     }
   }
 
+  public function setUserId(){
+          $this->m_user = "WLT";
+  }
+
+/*
+@desc retourne le login, identifiant de connexion, de l'utilisateur connecté
+@return string login
+@author tpi
+*/
+  public function getUserId(){
+    return $this->m_user;   
+  }
+  
   /**
   *@desc Retourne la string currentapp utilisé dans la base de données egroupware pour différencier les différentes instances du module de CRF
   *      Si le mode test est activé, un suffixe peut être ajouté en fonction du paramètre $bIncludeTestModeSuffix
@@ -124,7 +144,7 @@ class CommonFunctions{
     $currentApp = $GLOBALS['egw_info']['flags']['currentapp'];
 
     if($bIncludeTestModeSuffix){
-      if($_SESSION[$currentApp]['testmode']){
+      if(isset($_SESSION[$currentApp]['testmode']) && $_SESSION[$currentApp]['testmode']){
         $currentApp .= "_test";
       }
     }

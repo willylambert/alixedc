@@ -165,6 +165,13 @@ public function checkFormData(){
     $where = $GLOBALS['egw']->accounts->id2name($GLOBALS['egw_info']['user']['account_primary_group']);
     $why = "";
   
+    //We need to have all items filled
+    if($MetaDataVersion=="" || $SubjectKey=="" || $StudyEventOID=="" || $StudyEventRepeatKey=="" ||
+       $FormOID=="" || $FormRepeatKey=="" || $ItemGroupOID=="" || $ItemGroupRepeatKey==""){
+      $this->addlog(__METHOD__ ." : missing variables : $MetaDataVersion || $SubjectKey || $StudyEventOID || $StudyEventRepeatKey ||
+       $FormOID || $FormRepeatKey || $ItemGroupOID || $ItemGroupRepeatKey",FATAL);       
+    } 
+  
     //Do we need to create a new patient ? if yes, we need to browser the entire patient collection
     if($SubjectKey=="BLANK"){
       $this->m_ctrl->socdiscoo();
@@ -977,90 +984,7 @@ public function checkFormData(){
     
     echo json_encode($queries);
   }
-
- /*
- *@desc méthode ajax, exporte les queries dans le document retourné (xslx)
- *@return file
- *@author tpi
- */
- /*
-  public function getQueriesExport(){
-    $this->addlog(__METHOD__." : _POST=".$this->dumpRet($_POST),TRACE);
-    
-    $dbg=false;
-    
-    //headers
-    header('Content-type: application/pdf');
-    header('Content-Disposition: attachment; filename="queries.xlsx"');
-    
-    //Multibyte function overloading in PHP must be disabled for string functions (mais la valeur de mbstring.func_overload ne peut pas être modifiée en dehors du php.ini)
-    //Multibyte function overloading check commented in Autoloader.php
-    ini_set('mbstring.internal_encoding', 'ISO-8859-1');
-    
-    // Error reporting
-    //error_reporting(E_ALL);
-    
-    date_default_timezone_set('Europe/London');
-    
-    // PHPExcel
-    require_once dirname(__FILE__) .'/PHPExcel.php';
-    
-    
-    // Create new PHPExcel object
-    if($dbg)echo date('H:i:s') . " Create new PHPExcel object\n";
-    $objPHPExcel = new PHPExcel();
-    
-    // Set properties
-    if($dbg)echo date('H:i:s') . " Set properties\n";
-    $objPHPExcel->getProperties()->setCreator("Business & Decision Life Sciences")
-    							 ->setLastModifiedBy("Business & Decision Life Sciences")
-    							 ->setTitle($configEtude["APP_NAME"])
-    							 ->setSubject("Queries")
-    							 ->setDescription("Queries Excel 2007 export")
-    							 ->setKeywords("queries export ".$configEtude["APP_NAME"])
-    							 ->setCategory("export file");
-    
-    
-    // Add some data
-    if($dbg)echo date('H:i:s') . " Add some data\n";
-    $columns = array("Date", "Site", "Subject", "Visit", "Form", "Section", "Item", "Description", "Type", "Comment", "Status", "URL");
-    foreach($columns as $key => $column){
-      $objPHPExcel->setActiveSheetIndex(0)->setCellValue(chr($key+65).'1', $column);
-    }
-    
-    // Miscellaneous glyphs, UTF-8
-    $objPHPExcel->setActiveSheetIndex(0)
-                ->setCellValue('A4', 'Miscellaneous glyphs')
-                ->setCellValue('A5', 'éàèùâêîôûëïüÿäöüç');
-    
-    // Rename sheet
-    if($dbg)echo date('H:i:s') . " Rename sheet\n";
-    $objPHPExcel->getActiveSheet()->setTitle('Simple');
-    
-    
-    // Set active sheet index to the first sheet, so Excel opens this as the first sheet
-    $objPHPExcel->setActiveSheetIndex(0);
-    
-    
-    // Save Excel 2007 file
-    if($dbg)echo date('H:i:s') . " Write to Excel2007 format\n";
-    $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
-    $objWriter->save("queries.xlsx");
-    
-    
-    // Echo memory peak usage
-    if($dbg)echo date('H:i:s') . " Peak memory usage: " . (memory_get_peak_usage(true) / 1024 / 1024) . " MB\r\n";
-    
-    // Echo done
-    if($dbg)echo date('H:i:s') . " Done writing file.\r\n";
-    
-    //Output
-    readfile('queries.xlsx');
-    
-    exit(0);
-  }
-*/
-
+ 
  /*
  *@desc méthode ajax, reçoit en paramètre les données d'une deviation à créer (création manuelle)
  *@return ''

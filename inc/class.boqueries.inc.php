@@ -22,12 +22,6 @@
     
 require_once("class.CommonFunctions.php");
 
-define("ODM_NAMESPACE","http://www.cdisc.org/ns/odm/v1.3");
-
-/*
-@desc classe de gestion des droits utilisateurs
-@author wlt
-*/
 class boqueries extends CommonFunctions
 {
    
@@ -311,16 +305,18 @@ function closeQuery($queryId,$userId,$profileId){
             WHERE CURRENTAPP='".$this->getCurrentApp(true)."'";
     
     //Liste des centres autorisés pour l'utilisateur courant
-    $userProfiles = $this->m_ctrl->boacl()->getUserProfiles();
-    $sql .= " AND SITEID IN (";
-    $iProfile = 0;
-    foreach($userProfiles as $userProfile){
-      if($iProfile>0) $sql .= ",";
-      $sql .= "'". $userProfile['siteId'] ."'";
-      $iProfile++;
+    if($this->m_ctrl->boacl()->existUserProfileId("SPO")==false && $SubjectKey==""){
+      $userProfiles = $this->m_ctrl->boacl()->getUserProfiles();
+      $sql .= " AND SITEID IN (";
+      $iProfile = 0;
+      foreach($userProfiles as $userProfile){
+        if($iProfile>0) $sql .= ",";
+        $sql .= "'". $userProfile['siteId'] ."'";
+        $iProfile++;
+      }
+      $sql .= ")";
     }
-    $sql .= ")";
-
+    
     if($where!=""){
       $sql .= " AND ($where)";
     }
@@ -363,7 +359,7 @@ function closeQuery($queryId,$userId,$profileId){
 
     if($queryStatus!=""){
       $queryStatuses = explode(",", $queryStatus);
-      $sqlStatus .= "";
+      $sqlStatus = "";
       foreach($queryStatuses as $qS){
         if($sqlStatus!="") $sqlStatus .= " OR ";
         $sqlStatus .= "QUERYSTATUS='$qS'";
@@ -548,7 +544,6 @@ function closeQuery($queryId,$userId,$profileId){
     
     $userId = $this->m_ctrl->boacl()->getUserId(); 
     $siteId = substr($SubjectKey, 0, 2);
-    $profileId = $this->m_ctrl->boacl()->getUserProfileId("",$siteId);
 
     if($isManual){
       $cIsManual = "Y";
@@ -674,11 +669,11 @@ function closeQuery($queryId,$userId,$profileId){
       $GLOBALS['egw']->db->query($sql);
   
       $sql = "INSERT INTO egw_alix_queries(CURRENTAPP,SITEID,SUBJKEY,SEOID,SERK,FRMOID,FRMRK,IGOID,IGRK,POSITION,ITEMOID,
-                                            LABEL,ITEMTITLE,ISMANUAL,BYWHO,BYWHOGROUP,UPDATEDT,
+                                            LABEL,ITEMTITLE,ISMANUAL,BYWHO,UPDATEDT,
                                             QUERYTYPE,QUERYSTATUS,ANSWER,ISLAST,VALUE,DECODE,CONTEXTKEY)
              VALUES('".$this->getCurrentApp(true)."',
                     '$siteId','$SubjectKey','$StudyEventOID','$StudyEventRepeatKey','$FormOID','$FormRepeatKey','".$query['ItemGroupOID']."','".$query['ItemGroupRepeatKey']."',
-                    '".$query['Position']."','".$query['ItemOID']."','".addslashes($query['Description'])."','".addslashes($query['Title'])."','$cIsManual','$userId','$profileId',now(),'".$query['Type']."','".$queryStatus."','".addslashes($answer)."','Y','".$query['Value']."','".addslashes($query['Decode'])."','".$query['ContextKey']."')";
+                    '".$query['Position']."','".$query['ItemOID']."','".addslashes($query['Description'])."','".addslashes($query['Title'])."','$cIsManual','$userId',now(),'".$query['Type']."','".$queryStatus."','".addslashes($answer)."','Y','".$query['Value']."','".addslashes($query['Decode'])."','".$query['ContextKey']."')";
       $this->addLog(__METHOD__." : sql = ".$sql,TRACE);
       $GLOBALS['egw']->db->query($sql);
       
@@ -698,7 +693,6 @@ function closeQuery($queryId,$userId,$profileId){
                     'ITEMTITLE'=>$query['Title'],
                     'ISMANUAL'=>$cIsManual,
                     'BYWHO'=>$userId,
-                    'BYWHOGROUP'=>$profileId,
                     'UPDATEDT'=>date("Y-m-d H:i:s"),
                     'QUERYTYPE'=>$query['Type'],
                     'QUERYSTATUS'=>$queryStatus,

@@ -95,9 +95,9 @@ function loadAlixCRFjs(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepe
   $("#btnAddItemGroup").click(function(){
     ItemGroupOID = $(this).attr("itemgroupoid");
     newIGRK = 0;
-    //Recherche du nouveau ItemGroupRepeatKey
-    newIGRK = $("form[name='"+ItemGroupOID+"']").first().find("input[name='NewItemGroupRepeatKey']").val();
     
+    //Recherche du nouveau ItemGroupRepeatKey
+    newIGRK = $("form[name='"+ItemGroupOID+"']").first().find("input[name='NewItemGroupRepeatKey']").val();   
     newForm = $("form[name='"+ItemGroupOID+"']").first().clone();
     sourceIGRK = newForm.find("input[name='ItemGroupRepeatKey']").val(); 
     newForm.find("input[name='ItemGroupRepeatKey']").val(newIGRK);
@@ -296,8 +296,7 @@ function initDyn(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,
                       IGOID = $(this).closest("form").attr('name'); 
                       if(typeof(IGOID)=="undefined"){
                         IGOID = $(this).closest("table").attr('name');  
-                      }
-                                          
+                      }                                        
                       if(typeof(updateUI) == 'function') {
                         updateUI(this,false,IGOID,IGRK);
                       }
@@ -422,7 +421,7 @@ function saveAllItemGroup(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventR
   $("form").each( 
     function(index){
       //Cas des formulaires templates d'ajout
-      if($(this).attr("donotsave")!="true"){
+      //if($(this).attr("donotsave")!="true"){
         dataString = $(this).serialize();
         if(dataString!=$(this).data('initials_values') ||
            index==$("form").length-1 )
@@ -485,7 +484,7 @@ function saveAllItemGroup(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventR
               }
             });
         }
-      }
+     // }
     }
   );
   $("#dialog-modal-save").dialog("close");

@@ -100,10 +100,6 @@ class boexport extends CommonFunctions
       $ItemGroupOID = (string)$ItemGroupDef['OID'];
       
       if(isset($this->m_tblConfig[$exportIndex][$ItemGroupOID])){
-        
-        foreach($this->m_tblConfig['EXPORT']['TYPE'][$type]['contextVars'] as $contextVar => $infos){
-          //fputcsv($fp, array_merge(array($this->m_tblConfig[$exportIndex][$ItemGroupOID]['FILEDEST'],$contextVar),$infos),';');
-        } 
 
         foreach($ItemGroupDef as $ItemDef){
           $ItemOID = (string)$ItemDef['OID'];
@@ -140,12 +136,38 @@ class boexport extends CommonFunctions
     $line = array('CODELIST','VALUE','DECODE');
     fputcsv($fp, $line,';');
     
+    //sas format file
+    $procSasFormat = "
+/*************************************************************************************/
+/*************************************************************************************/
+/** General information                                                             **/
+/** -------------------                                                             **/
+/** Program : importFormat.sas                                                            **/
+/** Project : ".$this->m_tblConfig['CODE_PROJET'] . " " . $this->m_tblConfig['APP_NAME'] ."**/
+/** Client  : ".$this->m_tblConfig['CLIENT']."                                      **/
+/** Version : SAS V9                                                                **/
+/** Author  : WLT                                                                   **/
+/** Date    : ".date("d/m/Y")."                                                **/
+/*************************************************************************************/
+/** Description                                                                     **/
+/** -----------                                                                     **/
+/**   IMPORT of eCRF Data in CDISC ODM format into SAS                              **/
+/**                                                                                 **/
+/*************************************************************************************/
+/** Modifications                                                                   **/
+/** -------------                                                                   **/
+/** Date     | Author | Explications                                                **/
+/**                                                                                 **/
+/**                                                                                 **/
+/*************************************************************************************/
+/*************************************************************************************/"; 
+   
     $query = "
              let \$MetaDataVersion := doc('MetaDataVersion.dbxml/{$this->m_tblConfig["METADATAVERSION"]}')/odm:ODM/odm:Study/odm:MetaDataVersion
                 
              for \$CodeList in \$MetaDataVersion/odm:CodeList
               return
-                <CodeList OID='{\$CodeList/@OID}'>
+                <CodeList OID='{\$CodeList/@OID}' DataType='{\$CodeList/@DataType}'>
                   {
                   for \$CodeListItem in \$CodeList/odm:CodeListItem
                   let \$Value := \$CodeListItem/@CodedValue
@@ -163,16 +185,37 @@ class boexport extends CommonFunctions
       $this->addLog("Erreur : export() => $str",FATAL);
       die($str);
     }         
-    
+      $procSasFormat .= "
+proc format;
+";    
     foreach($Codelists as $Codelist){
       $CodelistOID = (string)$Codelist['OID'];
+      $DataType = (string)$Codelist['DataType'];
       if(in_array($CodelistOID,$tblCodeList)){
+        //We remove the $ character
+        $CodelistOID = str_replace(".\$","_",$CodelistOID);
+      $procSasFormat .= "
+  value ".($DataType=="string"?"\$":"")." $CodelistOID";
         foreach($Codelist as $CodeListItem){
           $line = array($CodelistOID,$CodeListItem['Value'],$CodeListItem['Decode']);
-          fputcsv($fp, $line,';');  
+          fputcsv($fp, $line,';');
+          $sasCodeListValue = (string)$CodeListItem['Value'];
+          if($DataType=="string"){
+            $sasCodeListValue = "\"" . $sasCodeListValue . "\"";  
+          }
+          $sasCodeListDecode = (string)$CodeListItem['Decode'];
+          $procSasFormat .= "
+  $sasCodeListValue = \"$sasCodeListDecode\"";
         }
+          $procSasFormat .= "
+;
+";        
       }
     }
+
+          $procSasFormat .= "
+
+run;";   
     
     fclose($fp);
     
@@ -218,6 +261,37 @@ class boexport extends CommonFunctions
       }
     }
 
+    //Préparation du fichier Macro SAS
+    $procSAS = "
+/*************************************************************************************/
+/*************************************************************************************/
+/** General information                                                             **/
+/** -------------------                                                             **/
+/** Program : import.sas                                                            **/
+/** Project : ".$this->m_tblConfig['CODE_PROJET'] . " " . $this->m_tblConfig['APP_NAME'] ."**/
+/** Client  : ".$this->m_tblConfig['CLIENT']."                                      **/
+/** Version : SAS V9                                                                **/
+/** Author  : WLT                                                                   **/
+/** Date    : ".date("d/m/Y")."                                                **/
+/*************************************************************************************/
+/** Description                                                                     **/
+/** -----------                                                                     **/
+/**   IMPORT of eCRF Data in CDISC ODM format into SAS                              **/
+/**                                                                                 **/
+/*************************************************************************************/
+/** Modifications                                                                   **/
+/** -------------                                                                   **/
+/** Date     | Author | Explications                                                **/
+/**                                                                                 **/
+/**                                                                                 **/
+/*************************************************************************************/
+/*************************************************************************************/
+
+%let PATH_TO_CSV=PATH_TO_CSV_WITHOUT_ENDING_SLASH;
+
+%include \"&PATH_TO_CSV\\importFormat.sas\";
+";
+
     //Boucle sur les itemgroup, traitement des tables 
     //non poolées horizontalement (les pools verticaux sont gérés ici)
     //Les tables poolées horizontalement sont stockées dans le table TblPoolH pour utilisation en deuxième temps
@@ -238,15 +312,22 @@ class boexport extends CommonFunctions
           //2 minutes par ItemGroup
           set_time_limit(240);
           
-          echo "<br/>Export en cours de $ItemGroupOID...";
+          echo "<br/>Exporting $ItemGroupOID...";
           flush();
           
           //Lecture des metadatas - pour connaitre les champs
           $query = "let \$ItemGroupDef := doc('MetaDataVersion.dbxml/{$this->m_tblConfig["METADATAVERSION"]}')/odm:ODM/odm:Study/odm:MetaDataVersion/odm:ItemGroupDef[@OID='$ItemGroupOID']
                     for \$ItemRef in \$ItemGroupDef/odm:ItemRef
                     let \$ItemDef := doc('MetaDataVersion.dbxml/{$this->m_tblConfig["METADATAVERSION"]}')/odm:ODM/odm:Study/odm:MetaDataVersion/odm:ItemDef[@OID=\$ItemRef/@ItemOID]
+                    
                     return
-                      <ItemRef ItemOID='{\$ItemRef/@ItemOID}' Name='{\$ItemDef/@SASFieldName}'/>";
+                      <ItemRef ItemOID='{\$ItemRef/@ItemOID}' 
+                               Name='{\$ItemDef/@SASFieldName}' 
+                               DataType='{\$ItemDef/@DataType}' 
+                               CodeListOID='{\$ItemDef/odm:CodeListRef/@CodeListOID}'
+                               Label='{\$ItemDef/odm:Question/odm:TranslatedText[@xml:lang='".$this->m_lang."']/string()}'
+                               Length='{\$ItemDef/@Length}'
+                               SignificantDigits='{\$ItemDef/@SignificantDigits}'/>";
           try{
             $tblItemRef = $this->m_ctrl->socdiscoo()->query($query);
           }catch(xmlexception $e){
@@ -260,6 +341,22 @@ class boexport extends CommonFunctions
           $fexists = file_exists($filename);
           $fp = fopen($filename, 'a+');
           
+          $procSAS .= " 
+
+  data $destFile;
+  infile \"&PATH_TO_CSV\\$destFile.csv\" 
+  delimiter = ';' MISSOVER DSD lrecl=32767 firstobs=2;
+    
+    INPUT";
+          
+          $procSASformat = "
+                              
+    Format ";
+          
+          $procSASlabel = "
+                   
+    Label ";
+              
           //Ligne d'entete - noms des champs
           if($fexists==false){
             $tblHeadLine = array();
@@ -267,25 +364,79 @@ class boexport extends CommonFunctions
             $line = array();
             foreach($this->m_tblConfig['EXPORT']['TYPE'][$type]['contextVars'] as $contextVar => $infos){
               $line[] = $contextVar;  
+              $procSAS .= "
+       $contextVar";
+                  
+              if($infos['type']=="string" || $infos['type']==="text"){
+                $procSAS .= " \$ ";
+              }
+                             
+              if($infos['codelist']!=""){
+                //We remove the $ character
+                $CodelistOID = str_replace(".\$","_",$infos['codelist']);
+                $procSASformat .= $contextVar . " " . $CodelistOID. ".
+       ";
+              }else{
+                $procSASformat .= $contextVar . " " . $this->getSasFormat($infos['type'],
+                                                                          $infos['length'],
+                                                                          $infos['significantDigits']) . "
+       ";
+              }
+              $procSASlabel .= $contextVar . "= \"" . $infos['name'] . "\" 
+       ";
             }
     
             //The headline fields could be customised
             if($tblCustomHeadLine==null){          
               foreach($tblItemRef as $ItemRef){
                 $OID = (string)$ItemRef['ItemOID'];
+                $SASName = (string)$ItemRef['Name'];
                 if(!is_array($tblFields) || in_array($OID,$tblFields)){
-                  $line[] = $ItemRef['Name']; 
+                  $line[] = $SASName;                 
                 }
               }
             }else{
               foreach($tblCustomHeadLine as $SasName){
-                $line[] = $SasName;  
+                $line[] = $SasName;
               }
             }
             
             $colNum = 0;
+
             foreach($line as $col){
               $tblHeadLine["$col"] = $colNum;
+
+              $bItemFind = false;
+              $i=0;
+              while($bItemFind==false && $i<count($tblItemRef)){
+                if((string)($tblItemRef[$i]['Name'])==$col){
+                  $DataType = (string)($tblItemRef[$i]['DataType']);
+                  $CodeListOID = (string)($tblItemRef[$i]['CodeListOID']); 
+                  if($DataType=="string" || $DataType=="text" || $DataType=="partialDate" || $DataType=="partialTime"){
+                    $procSAS .= "
+       $col \$";
+                  }else{
+                    $procSAS .= "
+       $col";
+                  }
+                  
+                  if($CodeListOID!=""){
+                    //We remove the $ character
+                    $CodeListOID = str_replace(".\$","_",$CodeListOID);
+                    $procSASformat .= $col . " " . $CodeListOID . ".
+       ";
+                  }else{
+                    $procSASformat .= $col . " " . $this->getSasFormat($DataType,
+                                                          (string)($tblItemRef[$i]['Length']),
+                                                          (string)($tblItemRef[$i]['SignificantDigits'])) . "
+       ";
+                  }
+                  $procSASlabel .= $col . "= \"" . (string)($tblItemRef[$i]['Label']) . "\" 
+       ";
+                  $bItemFind = true;    
+                }
+                $i++;  
+              }             
               $colNum++;
             }
             fputcsv($fp, $line,';');     
@@ -300,7 +451,10 @@ class boexport extends CommonFunctions
               }
             }
           }
-          //$subjCol = "collection('0703.dbxml')";
+          
+          $procSAS .= "\n;" . $procSASformat . "\n;" . $procSASlabel . "\n; \nrun;";
+          
+          $subjCol = "collection('0703.dbxml')";
           //Data extraction
           $query = "
                     let \$SubjectData := $subjCol/odm:ODM/odm:ClinicalData/odm:SubjectData[@SubjectKey!='BLANK']
@@ -416,7 +570,13 @@ class boexport extends CommonFunctions
                 for \$ItemRef in \$ItemGroupDef/odm:ItemRef
                 let \$ItemDef := doc('MetaDataVersion.dbxml/{$this->m_tblConfig["METADATAVERSION"]}')/odm:ODM/odm:Study/odm:MetaDataVersion/odm:ItemDef[@OID=\$ItemRef/@ItemOID]
                 return
-                  <ItemRef ItemOID='{\$ItemRef/@ItemOID}' Name='{\$ItemDef/@SASFieldName}'/>";
+                  <ItemRef ItemOID='{\$ItemRef/@ItemOID}' 
+                           Name='{\$ItemDef/@SASFieldName}'
+                           DataType='{\$ItemDef/@DataType}' 
+                           CodeListOID='{\$ItemDef/odm:CodeListRef/@CodeListOID}'
+                           Label='{\$ItemDef/odm:Question/odm:TranslatedText[@xml:lang='".$this->m_lang."']/string()}'
+                           Length='{\$ItemDef/@Length}'
+                           SignificantDigits='{\$ItemDef/@SignificantDigits}'/>";
       try{
         $tblItemRef = $this->m_ctrl->socdiscoo()->query($query);
       }catch(xmlexception $e){
@@ -424,7 +584,23 @@ class boexport extends CommonFunctions
         $this->addLog("Erreur : export() => $str",FATAL);
         die($str);
       } 
-                      
+      
+      $procSAS .= " 
+
+data $destFile;
+infile \"&PATH_TO_CSV\\$destFile.csv\" 
+delimiter = ';' MISSOVER DSD lrecl=32767 firstobs=2;
+
+  INPUT
+    ";
+
+      $procSASformat = "
+                              
+    Format ";
+          
+      $procSASlabel = "
+                   
+    Label ";                      
       //Creation du fichier csv destination
       $filename = $tmp.'/'.$uid."/$destFile.csv";
       $fexists = file_exists($filename);
@@ -436,16 +612,70 @@ class boexport extends CommonFunctions
         $line = array();
         foreach($this->m_tblConfig['EXPORT']['TYPE'][$type]['contextVars'] as $contextVar => $infos){
           $line[] = $contextVar;  
+          $procSAS .= "
+       $contextVar";
+              
+          if($infos['type']=="string" || $infos['type']==="text"){
+            $procSAS .= " \$ ";
+          }
+                         
+          if($infos['codelist']!=""){
+            //We remove the $ character
+            $CodelistOID = str_replace(".\$","_",$infos['codelist']);    
+            $procSASformat .= $contextVar . " " . $CodelistOID . "
+       ";
+          }else{
+            $procSASformat .= $contextVar . " " . $this->getSasFormat($infos['type'],
+                                                                   $infos['length'],
+                                                                   $infos['significantDigits']) . "
+       ";
+          }
+          $procSASlabel .= $contextVar . " = \"" . $infos['name'] . "\" 
+       ";
         }  
+
         foreach($tblItemRef as $ItemRef){
           $OID = (string)$ItemRef['ItemOID'];
           if(count($tblFields)==0 || in_array($OID,$tblFields)){
-            $line[] = $ItemRef['Name']; 
+            $line[] = (string)$ItemRef['Name']; 
             $colNum++;
+            
+            $procSAS .= "
+       ".(string)$ItemRef['Name'];
+            
+            $bItemFind = false;
+            $i=0;              
+            while($bItemFind==false && $i<count($tblItemRef)){
+              if((string)($tblItemRef[$i]['Name'])==(string)$ItemRef['Name']){
+                $DataType = (string)($tblItemRef[$i]['DataType']);
+                $CodeListOID = (string)($tblItemRef[$i]['CodeListOID']);
+                $SASName = (string)$ItemRef['Name']; 
+                if($DataType=="string" || $DataType=="text" || $DataType=="partialDate" || $DataType=="partialTime"){
+                  $procSAS .= " \$ ";
+                }
+                if($CodeListOID!=""){
+                  //We remove the $ character
+                  $CodeListOID = str_replace(".\$","_",$CodeListOID);    
+                  $procSASformat .= $SASName . " " . $CodeListOID . ".
+       ";
+                }else{
+                  $procSASformat .= $SASName . " " . $this->getSasFormat($DataType,
+                                                        (string)($tblItemRef[$i]['Length']),
+                                                        (string)($tblItemRef[$i]['SignificantDigits'])) . "
+       ";
+                }
+                $procSASlabel .= $SASName . " = \"" . (string)($tblItemRef[$i]['Label']) . "\" 
+         ";
+                $bItemFind = true;    
+              }
+              $i++;  
+            }
           }
         }
         fputcsv($fp, $line,';');     
       }
+
+      $procSAS .= "\n;" . $procSASformat . "\n;" . $procSASlabel . "\n; \nrun;";
  
       $query = "
                 let \$SubjectData := $subjCol/odm:ODM/odm:ClinicalData/odm:SubjectData[@SubjectKey!='BLANK']
@@ -532,6 +762,9 @@ class boexport extends CommonFunctions
       flush();  
     }
     
+    file_put_contents($tmp.'/'.$uid . '/import.sas',$procSAS);
+    file_put_contents($tmp.'/'.$uid . '/importFormat.sas',$procSasFormat);
+    
     $dsmbFileName = $type."_".date('Y_m_d_H_i').".zip";
     $dsmbFile = $this->m_tblConfig["EXPORT_BASE_PATH"] . $dsmbFileName;
     
@@ -585,5 +818,44 @@ class boexport extends CommonFunctions
     header("Content-Transfer-Encoding: binary");
     
     readfile($filepath);
-  }  
+  } 
+  
+  /*                    
+  @param string DataType : ODM itemDef DataType : string, text, integer, float,datetime,date,partialDate,partialTime
+  @return string sas format to be inserted in the SAS Import Macro
+  @author wlt
+  */
+  private function getSasFormat($DataType,$Length,$SignificantDigits){
+    $sasFormat = "";
+    switch($DataType){
+      case "string" :
+      case "text" :
+        $sasFormat = "\$CHAR" . $Length .  ".";
+        break;
+      case "integer" :
+        $sasFormat =  $Length . ".";
+        break;
+      case "float" : 
+        $sasFormat = $Length . "." . $SignificantDigits . ".";
+        break;
+      case "date" :
+        $sasFormat = "is8601da.";
+        break;
+      case "partialDate" :
+        $sasFormat = "\$CHAR19.";
+        break;
+      case "time" :
+        $sasFormat = "is8601tm.";
+        break;
+      case "partialTime" :
+        $sasFormat = "\$CHAR10.";
+        break;  
+      case "datetime" :
+        $sasFormat = "is8601dt.";
+        break;
+      default :
+        $this->addLog("boexport::getSasFormat() => Unkown datatype $DataType",FATAL);
+    }     
+    return $sasFormat;
+  } 
 }

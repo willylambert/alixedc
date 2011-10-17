@@ -82,7 +82,7 @@ class ajax extends CommonFunctions
 *@author : wlt
 */
 public function removeItemGroupData(){
-  $this->addlog(__METHOD__ ." : _POST=".$this->dumpRet($_POST),TRACE);  
+  $this->addlog(__METHOD__ ." : _POST=".$this->dumpRet($_POST),INFO);  
 
   //Extraction des paramètres
   $MetaDataVersion = $_POST['MetaDataVersionOID'];
@@ -103,7 +103,7 @@ public function removeItemGroupData(){
 *@author : wlt
 */
 public function removeFormData(){
-  $this->addlog(__METHOD__ ." : _POST=".$this->dumpRet($_POST),TRACE);  
+  $this->addlog(__METHOD__ ." : _POST=".$this->dumpRet($_POST),INFO);  
 
   //Extraction des paramètres
   $MetaDataVersion = $_POST['MetaDataVersionOID'];
@@ -124,7 +124,7 @@ public function removeFormData(){
 @author wlt      
 */  
 public function checkFormData(){
-    $this->addLog(__METHOD__ ." : _POST=".$this->dumpRet($_POST),TRACE); 
+    $this->addLog(__METHOD__ ,INFO); 
     
     //Extraction des paramètres
     $SubjectKey = $_POST['SubjectKey'];
@@ -145,7 +145,7 @@ public function checkFormData(){
  *@author wlt
  */
   public function saveItemGroupData(){
-    $this->addlog(__METHOD__ ." : _POST=".$this->dumpRet($_POST),TRACE);  
+    $this->addlog(__METHOD__ ." : _POST=".$this->dumpRet($_POST),INFO);  
   
     //Tableau de retour
     $tblRet = array();
@@ -207,7 +207,7 @@ public function checkFormData(){
  *@author tpi
  */
   public function getDeviation(){
-    $this->addlog(__METHOD__ ." : _POST=".$this->dumpRet($_POST),TRACE);  
+    $this->addlog(__METHOD__ ,INFO);  
   
     //Extraction des paramètres
     $DeviationId = $_POST['DeviationId'];
@@ -224,7 +224,7 @@ public function checkFormData(){
  *@author tpi
  */
   public function getDeviationsFormList(){
-    $this->addlog(__METHOD__ ." : _POST=".$this->dumpRet($_POST),TRACE);  
+    $this->addlog(__METHOD__ ,INFO);  
   
     //Extraction des paramètres
     $SubjectKey = $_POST['SubjectKey'];
@@ -242,7 +242,7 @@ public function checkFormData(){
  *@author tpi
  */
   public function getDeviationsList(){
-    $this->addlog(__METHOD__ ." : _POST=".$this->dumpRet($_POST),TRACE);  
+    $this->addlog(__METHOD__,INFO);  
   
     //Extraction des paramètres
     $SubjectKey = "";
@@ -277,7 +277,7 @@ public function checkFormData(){
  *@author tpi
  */
   public function getDeviationsDataList(){
-    $this->addlog(__METHOD__ ." : _REQUEST=".$this->dumpRet($_REQUEST),TRACE);  
+    $this->addlog(__METHOD__ ,INFO);  
   
     //Extraction des paramètres       
     $MetaDataVersion = "1.0.0";
@@ -526,7 +526,7 @@ public function checkFormData(){
  *@author tpi
  */
   public function getDeviationHistory(){
-    $this->addlog(__METHOD__." : _POST=".$this->dumpRet($_POST),TRACE);
+    $this->addlog(__METHOD__,INFO);
     
     //Extraction des paramètres
     $DEVIATIONID = "";
@@ -626,7 +626,7 @@ public function checkFormData(){
  *@author tpi
  */
   public function getQuery(){
-    $this->addlog(__METHOD__ ." : _POST=".$this->dumpRet($_POST),TRACE);  
+    $this->addlog(__METHOD__,INFO);  
   
     //Extraction des paramètres
     $QueryId = $_POST['QueryId'];
@@ -643,7 +643,7 @@ public function checkFormData(){
  *@author tpi
  */
   public function getQueriesList(){
-    $this->addlog(__METHOD__ ." : _REQUEST=".$this->dumpRet($_REQUEST),TRACE);  
+    $this->addlog(__METHOD__,INFO);  
   
     //Extraction des paramètres
     $SubjectKey = "";
@@ -680,7 +680,7 @@ public function checkFormData(){
  *@author tpi
  */
   public function getQueriesDataList(){
-    $this->addlog(__METHOD__ ." : _REQUEST=".$this->dumpRet($_REQUEST),TRACE);  
+    $this->addlog(__METHOD__,INFO);  
   
     //Extraction des paramètres       
     $MetaDataVersion = "1.0.0";
@@ -941,7 +941,7 @@ public function checkFormData(){
  *@author tpi
  */
   public function getQueryHistory(){
-    $this->addlog(__METHOD__." : _POST=".$this->dumpRet($_POST),TRACE);
+    $this->addlog(__METHOD__,INFO);
     
     //Extraction des paramètres
     $QUERYID = "";
@@ -991,7 +991,7 @@ public function checkFormData(){
  *@author tpi
  */
   public function addDeviation(){
-    $this->addlog(__METHOD__." : _POST=".$this->dumpRet($_POST),TRACE);
+    $this->addlog(__METHOD__." : _POST=".$this->dumpRet($_POST),INFO);
     
     //Extraction des paramètres
     $Description = utf8_encode($_POST['DESCRIPTION']);
@@ -1024,7 +1024,7 @@ public function checkFormData(){
  *@author tpi
  */
   public function updateDeviation(){
-    $this->addlog(__METHOD__." : _POST=".$this->dumpRet($_POST),TRACE);
+    $this->addlog(__METHOD__." : _POST=".$this->dumpRet($_POST),INFO);
     
     //Extraction des paramètres
     $DEVIATIONID = $_POST['DEVIATIONID'];
@@ -1067,7 +1067,7 @@ public function checkFormData(){
  *@author tpi,wlt
  */
   public function updateQuery(){
-    $this->addlog(__METHOD__." : _POST=".$this->dumpRet($_POST),TRACE);
+    $this->addlog(__METHOD__." : _POST=".$this->dumpRet($_POST),INFO);
     
     //Extraction des paramètres
     $QUERYID = $_POST['QUERYID'];
@@ -1124,7 +1124,7 @@ public function checkFormData(){
  *@author tpi
  */
   public function addQuery(){
-    $this->addlog(__METHOD__." : _POST=".$this->dumpRet($_POST),TRACE);
+    $this->addlog(__METHOD__." : _POST=".$this->dumpRet($_POST),INFO);
     
     //Extraction des paramètres
     $Description = utf8_encode($_POST['LABEL']);
@@ -1192,7 +1192,7 @@ public function checkFormData(){
 
   public function getAuditTrail(){
     try{
-      $this->addlog(__METHOD__." : _POST=".$this->dumpRet($_POST),TRACE);  
+      $this->addlog(__METHOD__." : _POST=".$this->dumpRet($_POST),INFO);  
     
       //Extraction des paramètres
       $SubjectKey = $_POST['SubjectKey'];
@@ -1482,7 +1482,7 @@ public function checkFormData(){
  *@author tpi
  */
   public function getSubjectsDataList(){
-    $this->addlog(__METHOD__ ." : _REQUEST=".$this->dumpRet($_REQUEST),TRACE);  
+    $this->addlog(__METHOD__ ,INFO);  
   
     //Extraction des paramètres       
     $MetaDataVersion = "1.0.0";
@@ -1663,7 +1663,7 @@ public function checkFormData(){
  *@author tpi
  */
   public function savePostIt(){
-    $this->addlog(__METHOD__ ." : _POST=".$this->dumpRet($_POST),TRACE);  
+    $this->addlog(__METHOD__ ." : _POST=".$this->dumpRet($_POST),INFO);  
   
     //Tableau de retour
     $tblRet = array();
@@ -1693,7 +1693,7 @@ public function checkFormData(){
  *@author tpi
  */
   public function getPostItFormList(){
-    $this->addlog(__METHOD__ ." : _POST=".$this->dumpRet($_POST),TRACE);  
+    $this->addlog(__METHOD__,INFO);  
   
     //Extraction des paramètres
     $SubjectKey = $_POST['SubjectKey'];
@@ -1710,7 +1710,7 @@ public function checkFormData(){
  *@author tpi
  */
   public function deletePostIt(){
-    $this->addlog(__METHOD__ ." : _POST=".$this->dumpRet($_POST),TRACE);  
+    $this->addlog(__METHOD__ ." : _POST=".$this->dumpRet($_POST),INFO);  
   
     //Tableau de retour
     $tblRet = array();
@@ -1737,7 +1737,7 @@ public function checkFormData(){
  *@author tpi
  */
   public function getPostItList(){
-    $this->addlog(__METHOD__ ." : _POST=".$this->dumpRet($_POST),TRACE);  
+    $this->addlog(__METHOD__ ,INFO);  
   
     //Tableau de retour
     $tblRet = array();
@@ -1761,7 +1761,7 @@ public function checkFormData(){
  *@author tpi
  */
   public function getFormDataList(){
-    $this->addlog(__METHOD__ ." : _POST=".$this->dumpRet($_POST),TRACE);  
+    $this->addlog(__METHOD__,INFO);  
   
     //Tableau de retour
     $tblRet = array();

@@ -41,7 +41,7 @@ class socdiscoo extends CommonFunctions
   function socdiscoo($tblConfig,$SubjectKey)
   {                
       CommonFunctions::__construct($tblConfig,null);
-      $this->addLog("socdiscoo->socdiscoo(,$SubjectKey)",INFO);
+      $this->addLog("socdiscoo->socdiscoo('$SubjectKey')",INFO);
       
       $this->m_tblLocks = array();
                   
@@ -64,7 +64,7 @@ class socdiscoo extends CommonFunctions
     $this->m_mgr = new XmlManager();
     
     //Gestion du mode test
-    if(isset($_SESSION) && $_SESSION[$this->getCurrentApp(false)]['testmode']){
+    if(isset($_SESSION[$this->getCurrentApp(false)]['testmode']) && $_SESSION[$this->getCurrentApp(false)]['testmode']){
       $this->m_dbxmlPath = $this->m_tblConfig["DBXML_BASE_DEMO_PATH"];
     }else{
       $this->m_dbxmlPath = $this->m_tblConfig["DBXML_BASE_PATH"];
@@ -86,13 +86,12 @@ class socdiscoo extends CommonFunctions
       $this->m_clinicalCollection .= "collection('" . $SubjectKey . ".dbxml')";
     }else{
       //we open all patients containers
-      foreach($this->getSubjectsContainers() as $container){
-        if($this->m_clinicalCollection != "("){
-          $this->m_clinicalCollection .= " | ";
-        }
-        $this->m_clinicalCollection .= "collection('" . $container . "')";
-        $this->initDB($container,$this->m_dbxmlPath,false);
+      $this->m_subjectsContainers = $this->listSubjectsContainers();
+      foreach($this->m_subjectsContainers as $container){
+        $this->m_clinicalCollection .= "collection('" . $container . "') | ";
+        $this->initDB($container,$this->m_dbxmlPath,false); 
       }
+      $this->m_clinicalCollection = substr($this->m_clinicalCollection,0,-2);
     }
     $this->initDB('MetaDataVersion.dbxml',$this->m_dbxmlPath,false);
     $this->initDB('BLANK.dbxml',$this->m_dbxmlPath,false);
@@ -157,7 +156,7 @@ class socdiscoo extends CommonFunctions
   */   
   function query($query, $useSimpleXML = true, $raw = false) 
   {
-    $this->addLog("socdiscoo->query($query,$useSimpleXML,$raw,$lockSubject)",TRACE);
+    $this->addLog("socdiscoo->query($query,$useSimpleXML,$raw)",TRACE);
     
     try{
       if($raw)
@@ -390,10 +389,23 @@ class socdiscoo extends CommonFunctions
   }
 
   /*
+    Return lock status for a given dbxml file
+    @param string $dbxmlFile dbxml filename
+    @return int LOCK_EX (write) (2) or LOCK_SH (read) (1) or false if not current lock
+    @author wlt
+  */
+  public function getLockStatus($dbxmlFile){
+    if(isset($this->m_tblLock["$dbxmlFile"])){
+      return $this->m_tblLock["$dbxmlFile"]["LOCK_TYPE"];
+    }else{
+      return false;
+    }   
+  }
+
+  /*
     Acquire a lock on a subject
     @param string $dbxmlFile dbxml filename to lock
     @param int $lockType LOCK_EX (write) or LOCK_SH (read)
-    @return handle on file locked - to be passed to the releaseLock function
     @author wlt
   */
   public function lock($dbxmlFile,$lockType){
@@ -403,7 +415,6 @@ class socdiscoo extends CommonFunctions
 
     //If in this thread we have an ongoing read lock, we upgrade it to a write lock
     if(isset($this->m_tblLock["$dbxmlFile"])){
-      $this->addLog("socdiscoo()->lock() : Upgrade lock from read to write",TRACE);
       if($this->m_tblLock["$dbxmlFile"]["LOCK_TYPE"]==LOCK_SH && $lockType==LOCK_EX){
         $this->unlock($dbxmlFile);
       } 
@@ -413,9 +424,8 @@ class socdiscoo extends CommonFunctions
     if(!isset($this->m_tblLock["$dbxmlFile"])){    
       //c => Open the file for writing only. If the file does not exist, it is created. 
       $lockFileHandle = fopen($lockFile, 'c');
-      
+       
       $start_time = microtime(true);
-      $this->addLog("socdiscoo()->lock($dbxmlFile,$lockType) : Getting lock...",TRACE);
       if(!flock($lockFileHandle, $lockType)){
         $this->addLog("socdiscoo()->lock($lockFile) => Unable to get lock",FATAL);
       }    
@@ -423,8 +433,7 @@ class socdiscoo extends CommonFunctions
       fwrite($lockFileHandle,$this->m_user . "@" . date("c") . " : " . $lockType);
       
       $stop_time = microtime(true);
-      $this->addLog("socdiscoo()->lock() : Lock acquired in " . ($stop_time - $start_time) . " s",TRACE);
-      
+  
       //Store lock
       $this->m_tblLock["$dbxmlFile"] = array("LOCK_TYPE" => $lockType, "LOCK_HANDLE" => $lockFileHandle);
   
@@ -436,8 +445,6 @@ class socdiscoo extends CommonFunctions
         $GLOBALS['egw']->db->query($sql);
       }
     }   
-    
-    return $lockFileHandle;  
   }
 
   /*
@@ -449,7 +456,6 @@ class socdiscoo extends CommonFunctions
     $this->addLog("socdiscoo()->unlock($dbxmlFile)",TRACE);
 
     if(isset($this->m_tblLock["$dbxmlFile"])){    
-      $this->addLog("socdiscoo()->unlock(): Lock detected, releasing...",TRACE);
       if(!flock($this->m_tblLock["$dbxmlFile"]["LOCK_HANDLE"], LOCK_UN)){
         $this->addLog("socdiscoo()->releaseLock() => Unable to latch lock",FATAL);
       }else{
@@ -491,7 +497,6 @@ class socdiscoo extends CommonFunctions
             $flags = DB_CREATE | DB_EXCL;
             $this->m_con[$containerName] = $this->m_mgr->createContainer($dbxmlPath . $containerName, $flags);
             $this->setIndexes($containerName);
-            unset($this->m_subjectsContainers);
           }catch(xmlexception $e){
             $this->addLog("socdiscoo->initDB() => xmlexception : " . $e->getMessage() ." (". __METHOD__ .")",FATAL);
             throw($e);            
@@ -507,7 +512,7 @@ class socdiscoo extends CommonFunctions
 /* return containers file
 @return array of string 
 */
-private function listSubjectsContainers(){
+public function listSubjectsContainers(){
     // create an array to hold directory list
     $results = array();
 

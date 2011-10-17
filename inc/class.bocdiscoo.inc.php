@@ -801,7 +801,6 @@ class bocdiscoo extends CommonFunctions
               $errors[] = array('desc' => $desc,'type' => 'badformat','ItemOID' => $ItemOID,'ItemGroupRepeatKey'=>$ItemGroupRepeatKey);
             }
             break;
-
         }
       }
     }
@@ -907,7 +906,7 @@ class bocdiscoo extends CommonFunctions
         
         if($ctrlResult[0]->Result=='true'){
           //La CollectionException a joué on supprime l'erreur
-          $this->addLog("bocdiscoo->checkFormMandatory() : " . $error['ItemOID'] . " n'est plus obligatoire : $key",INFO);
+          $this->addLog("bocdiscoo->checkFormMandatory() : " . $error['ItemOID'] . " n'est plus obligatoire",INFO);
         }else{
           //Extraction de(s) decode(s)
           //On doit passer par un eval pour gérer les décodes multiples, que l'on passe en param de la func sprintf()
@@ -1252,7 +1251,7 @@ class bocdiscoo extends CommonFunctions
     ";
     
     try{
-      $doc = $this->m_ctrl->socdiscoo($this->m_modeRW)->query($query);
+      $doc = $this->m_ctrl->socdiscoo($SubjectKey)->query($query);
     }catch(xmlexception $e){
       $str = "Erreur de la requete : " . $e->getMessage() . "<br/><br/>" . $query . "</html> (". __METHOD__ .")";
       $this->addLog($str,FATAL);
@@ -1486,7 +1485,7 @@ class bocdiscoo extends CommonFunctions
     }
     return $ItemGroupData;
   }
-
+  
   /* return the number of itemgroupdata for specified parameters - included Removed ItemGroupData
   */
   public function getItemGroupDataCount($SubjectKey,$StudyEventOID="",$StudyEventRepeatKey="",$FormOID="",$FormRepeatKey="")
@@ -2300,8 +2299,6 @@ class bocdiscoo extends CommonFunctions
       $testExprDecode = str_replace("')","'),' ','¤')",$testExprDecode,$nbDecodeCall2);
 
       $testExprDecode = str_replace("compareDate(","local:compareDate(",$testExprDecode);   
-      //On ajoute ce qu'il nous faut pour aller récuperer le decode
-      $testXQuery = $macros;
       
       $testExprDecode = "
             <Decode>
@@ -2309,13 +2306,10 @@ class bocdiscoo extends CommonFunctions
               $testExprDecode
             }
             </Decode>";
-
-    }else{
-      $testXQuery = "$macros";
     }
     
     //Création de la requête de test pour l'ItemData en cours
-    $testXQuery .= "
+    $testXQuery = "
       let \$StudyEventOID := '$StudyEventOID'
       let \$StudyEventRepeatKey := '$StudyEventRepeatKey'
       let \$FormOID := '$FormOID'
@@ -2399,7 +2393,7 @@ class bocdiscoo extends CommonFunctions
     try
     {
       $this->addLog("bocdiscoo->saveItemGroupData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$formVars,$who,$where,$why,$fillst)",INFO);
-      $this->addLog("$formVars = " . $this->dumpRet($formVars),INFO);
+      $this->addLog("$formVars = " . $this->dumpRet($formVars),TRACE);
       
       //Le document de notre patient (c'est un DOMDocument)
       try{
@@ -2756,7 +2750,7 @@ class bocdiscoo extends CommonFunctions
       $hasModif = false;
       foreach($results as $ItemGroupRef){
         //$bFormVarsIsAlreadyDecoded = true en cas d'import du coding, pour ne pas effacer les champs non présent dans l'import
-        if($this->addItemData($IG,$ItemGroupRef,$formVars,$tblFilledVar,$subj,$AuditRecordID,!$bFormVarsIsAlreadyDecoded)){
+        if($this->addItemData($IG,$ItemGroupRef,$formVars,&$tblFilledVar,$subj,$AuditRecordID,!$bFormVarsIsAlreadyDecoded)){
           $hasModif = true;
         }
       }

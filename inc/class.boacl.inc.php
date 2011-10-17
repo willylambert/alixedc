@@ -22,8 +22,6 @@
     
 require_once("class.CommonFunctions.php");
 
-define("ODM_NAMESPACE","http://www.cdisc.org/ns/odm/v1.3");
-
 /*
 @desc classe de gestion des droits utilisateurs
 @author wlt
@@ -33,9 +31,9 @@ class boacl extends CommonFunctions
   //Variables mise en cache
 
   //Constructeur
-  function boacl($tblConfig,$ctrlRef)
+  function __construct($tblConfig,$ctrlRef)
   {
-      CommonFunctions::__construct($tblConfig,$ctrlRef);
+      parent::__construct($tblConfig,$ctrlRef);
   }
 
 /**************************************************** Accesseurs User/Profile ****************************************************/
@@ -63,15 +61,6 @@ class boacl extends CommonFunctions
   }
   
 /*
-@desc retourne le login, identifiant de connexion, de l'utilisateur connecté
-@return string login
-@author tpi
-*/
-  public function getUserId(){
-    return $GLOBALS['egw']->accounts->data['account_lid'];   
-  }
-
-/*
 @desc retourne les infos de l'utilisateur connecté
 @return array(login,fullname,lastlogin)
 @author wlt
@@ -86,24 +75,36 @@ class boacl extends CommonFunctions
 
 /*
 @desc retourne le profileId par défaut de l'utlisateur spécifié (utilisateur connecté si non spécifié) dans le site spécifié (profile par défaut si le siteId n'est pas précisé)
-@return string profileId (ARC, INV, DM)
+@return string profileId (ARC, INV, DM)  or false if no profile found
 @author tpi
 */ 
   public function getUserProfileId($userId="", $siteId=""){
     $userProfile = $this->getUserProfile($userId,$siteId);
-    return $userProfile['profileId'];
+    if($userProfile===false){
+      if($this->m_user=="CLI"){
+        return "DM";
+      }else{
+        return false; //No profile found
+      }
+    }else{
+      return $userProfile['profileId'];
+    }
   }
   
 /*
 @desc retourne le profile de l'utlisateur spécifié (utilisateur connecté si non spécifié) dans le site spécifié (profile par défaut si le siteId n'est pas précisé)
-@return array(siteId,sitename,siteCountry,profileId,defaultProfile)
+@return array(siteId,sitename,siteCountry,profileId,defaultProfile) or false if no profile found
 @author tpi
 */ 
   public function getUserProfile($userId="", $siteId=""){
     $bDefault = false;
     if($siteId=="") $bDefault = true;
     $userProfiles = $this->getUserProfiles($userId,$siteId,$bDefault);
-    return $userProfiles[0]; //normalement une seule ligne dans le tableau ! soit c'est le profil par défaut (un seul autorisé en base), soit c'est le profile sur le siteId spécifié (un seul autorisé en base)
+    if(count($userProfiles)>0){
+      return $userProfiles[0]; //normalement une seule ligne dans le tableau ! soit c'est le profil par défaut (un seul autorisé en base), soit c'est le profile sur le siteId spécifié (un seul autorisé en base)
+    }else{
+      return false;
+    }
   }
   
 /*
@@ -142,7 +143,7 @@ class boacl extends CommonFunctions
                         'checkOnSave'=>$GLOBALS['egw']->db->f('CHECKONSAVE'),
                         'profileId'=>$GLOBALS['egw']->db->f('PROFILEID'),
                         'defaultProfile'=>$GLOBALS['egw']->db->f('DEFAULTPROFILE'),
-                        );
+                       );
     } 
     
     return $tblRet;

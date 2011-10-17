@@ -55,14 +55,10 @@ class uietude extends CommonFunctions
     CommonFunctions::__construct($configEtude,null);
 
     $this->addLog("******************************NEW REQUEST******************************",INFO);
+    $this->addLog($_SERVER['HTTP_USER_AGENT'],INFO);
     $this->addLog("uietude->uietude() : user=".$GLOBALS['egw_info']['user']['userid'],TRACE);
         
     $GLOBALS['egw_info']['flags']['app_header'] = $this->m_tblConfig['APP_NAME'];
-    
-    //En provenance du menu, en ayant cliqué sur un lien. le titre à afficher est passé en $_GET
-    if(isset($_GET['title'])){
-      $GLOBALS['egw_info']['flags']['app_header'] .= "&nbsp;" . urldecode($_GET['title']);
-    }
     
     //Controleur d'instanciation
     $this->m_ctrl = new instanciation();
@@ -70,7 +66,10 @@ class uietude extends CommonFunctions
     //If the user quit a CRF page, we need to update subject info in the subject list
     if(isset($_GET['updateSubjectEntry'])){
       $SubjectKey = $_GET['updateSubjectEntry'];
-      $this->m_ctrl->bosubjects()->updateSubjectsList($SubjectKey);
+      //Update only if there is no current lock on SubjectList - Otherwise the update will me made later (nightly at worse)
+      if($this->m_ctrl->socdiscoo($SubjectKey)->getLockStatus("SubjectsList.dbxml")===false){
+        $this->m_ctrl->bosubjects()->updateSubjectsList($SubjectKey);
+      }
     }
   }
  
@@ -247,9 +246,9 @@ class uietude extends CommonFunctions
         $FormRepeatKey = $_GET['FormRepeatKey'];
         $formStatus = $_GET['FormStatus'];
         if($formStatus=="FILLED"){
-          $bLock = true; //on demande le gel du formulaire
+          $bLock = true; //freeze asked
         }else{
-          $bLock = false; //on demande le degel du formulaire
+          $bLock = false; //unfreeze
         }
         
         //On commence par modifier les statuts des itemgroups demandés

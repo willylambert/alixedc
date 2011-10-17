@@ -219,6 +219,13 @@ class uisubject extends CommonFunctions
         $bCheckFormData = "true";
       }
       
+      //May be override by the config.inc.php file
+      if(isset($this->m_tblConfig['FORM_DO_NOT_CHECK'][$FormOID]) && $this->m_tblConfig['FORM_DO_NOT_CHECK'][$FormOID]==true){
+        $bCheckFormData = "false";
+      }else{
+        $bCheckFormData = "true";
+      }      
+      
       //variable ajoutée aux URLs Javascript afin de forcer le rechargement coté navigateur
       $jsVersion = $this->m_tblConfig['JS_VERSION'];
         
