@@ -123,7 +123,6 @@ class socdiscoo extends CommonFunctions
      {
       $this->addLog("socdiscoo->__closeContext() : $containerName",TRACE);
       unset($this->con[$containerName]);
-      $this->unlock($containerName); 
      } 
      
      unset($this->m_mgr);
@@ -144,7 +143,6 @@ class socdiscoo extends CommonFunctions
     else
     {
       $xmlResult = new DOMDocument();
-      $xmlResult->preserveWhiteSpace = false; //TPI 20110829 => help creating a well formated XML for edition
       $xmlResult->loadXML($this->m_con[$containerName]->getDocument($name)->getContentAsString());
     }
     return $xmlResult;
@@ -238,7 +236,6 @@ class socdiscoo extends CommonFunctions
       //Lock container in write mode
       $this->lock($containerName,LOCK_EX);
       $this->m_con[$containerName]->putDocument($fileOID,$xml->saveXML()); //Insertion
-      $this->unlock($containerName);
     }
     catch(xmlexception $e)
     {
@@ -259,34 +256,12 @@ class socdiscoo extends CommonFunctions
       $this->addLog("deleteDocument sur $containerName de $name",TRACE);
       $this->lock($containerName,LOCK_EX);
       $this->m_con[$containerName]->deleteDocument($name); //Suppression
-      $this->unlock($containerName);
     }
     catch(xmlexception $e)
     {
       $this->addLog("Erreur deleteDocument sur $containerName de $name (". __METHOD__ .")",FATAL);
       throw new Exception("Erreur dans  deleteDocument pour $name");
-    }
-    
-    //was the container dedicated to the file (1 container / 1 file) ? => container deletion
-    if(substr($containerName, 0, -6) == $name){
-      $this->deleteContainer($containerName);
-    }
-  }
-
-  //Delete the specified container
-  function deleteContainer($containerName)
-  {
-    try{
-      $this->lock($containerName,LOCK_EX);
-      unset($this->con[$containerName]);
-      $filename = $this->m_dbxmlPath . $containerName;
-      unlink($filename);
-      $this->unlock($containerName);
-      unset($this->m_subjectsContainers);
-    }catch(Exception $e){
-      $this->addLog("Error while deleting container '$containerName' (". __METHOD__ .")",FATAL);
-      throw new Exception("Error while deleting container '$containerName'");
-    }
+    } 
   }
 
   private function setIndexes($containerName){
@@ -370,36 +345,21 @@ class socdiscoo extends CommonFunctions
 
         //By security - we save the XML file on hard drive
         $xml->save($this->m_tblConfig["CDISCOO_PATH"] . "/xml/$fileOID" . ".xml");
-        
-        $this->unlock($containerName);
+        if($this->m_user!="CLI"){
+          chmod($this->m_tblConfig["CDISCOO_PATH"] . "/xml/$fileOID" . ".xml",664);
+        }
       }
       else
       {
         unset($document);
-        $this->unlock($containerName);
         $this->addLog("Erreur replaceDocument sur $containerName de $fileOID : le document xml est vide (". __METHOD__ .")",FATAL);
         throw new Exception("Erreur dans replaceDocument pour FileOID $fileOID : le document xml est vide");
       }
     }catch(xmlexception $e){
       unset($document);
-      $this->unlock($containerName);
       $this->addLog("Erreur replaceDocument sur $containerName de $fileOID (". __METHOD__ .") " . $e->getMessage(),FATAL);
       throw new Exception("Erreur dans replaceDocument pour FileOID $fileOID. ". $e->getMessage());  
     }
-  }
-
-  /*
-    Return lock status for a given dbxml file
-    @param string $dbxmlFile dbxml filename
-    @return int LOCK_EX (write) (2) or LOCK_SH (read) (1) or false if not current lock
-    @author wlt
-  */
-  public function getLockStatus($dbxmlFile){
-    if(isset($this->m_tblLock["$dbxmlFile"])){
-      return $this->m_tblLock["$dbxmlFile"]["LOCK_TYPE"];
-    }else{
-      return false;
-    }   
   }
 
   /*
@@ -424,7 +384,9 @@ class socdiscoo extends CommonFunctions
     if(!isset($this->m_tblLock["$dbxmlFile"])){    
       //c => Open the file for writing only. If the file does not exist, it is created. 
       $lockFileHandle = fopen($lockFile, 'c');
-       
+      if($this->m_user!="CLI"){
+        chmod($lockFile, 0664);
+      } 
       $start_time = microtime(true);
       if(!flock($lockFileHandle, $lockType)){
         $this->addLog("socdiscoo()->lock($lockFile) => Unable to get lock",FATAL);
@@ -471,7 +433,6 @@ class socdiscoo extends CommonFunctions
 //Private methods
 /****************************************************/ 
   
-  //Initialise une des trois bases ($containerName = Metadata, DocumentData)
   private function initDB($containerName,$dbxmlPath,$bReadOnly)
   {
     $this->addLog("socdiscoo->initDB('$containerName','$dbxmlPath','$bReadOnly')",TRACE);
@@ -497,6 +458,8 @@ class socdiscoo extends CommonFunctions
             $flags = DB_CREATE | DB_EXCL;
             $this->m_con[$containerName] = $this->m_mgr->createContainer($dbxmlPath . $containerName, $flags);
             $this->setIndexes($containerName);
+            //set container writable for www-data group
+            chmod($dbxmlPath . $containerName, 0664);
           }catch(xmlexception $e){
             $this->addLog("socdiscoo->initDB() => xmlexception : " . $e->getMessage() ." (". __METHOD__ .")",FATAL);
             throw($e);            

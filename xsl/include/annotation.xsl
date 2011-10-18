@@ -85,7 +85,9 @@
           <div id="{$DivId}" class='dialog-annotation' title='{$Title}' style="display:none;">
             <xsl:element name="input">
             	 <xsl:attribute name="type">radio</xsl:attribute>
-            	 <xsl:attribute name="name">ui-annotation_flag_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/></xsl:attribute>
+            	 <!--
+               <xsl:attribute name="name">ui-annotation_flag_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/></xsl:attribute>
+               -->
                <xsl:attribute name="onClick">updateFlag('<xsl:value-of select="$ItemOID"/>','<xsl:value-of select="$CurrentItemGroupOID"/>','<xsl:value-of select="$CurrentItemGroupRepeatKey"/>',this.value,false,false)</xsl:attribute>
                <!--Mémo : l'utilisation du onChange a ici été abandonnée, le comportement étant différent selon les navigateurs-->
             	 <xsl:attribute name="value">Ø</xsl:attribute>
@@ -97,7 +99,8 @@
             <br />
           	<xsl:element name="input">
             	 <xsl:attribute name="type">radio</xsl:attribute>
-            	 <xsl:attribute name="name">ui-annotation_flag_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/></xsl:attribute>
+            	 <!--<xsl:attribute name="name">ui-annotation_flag_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/></xsl:attribute>
+               -->
                <xsl:attribute name="onClick">updateFlag('<xsl:value-of select="$ItemOID"/>','<xsl:value-of select="$CurrentItemGroupOID"/>','<xsl:value-of select="$CurrentItemGroupRepeatKey"/>',this.value,false,false)</xsl:attribute>
             	 <xsl:attribute name="value">UNK</xsl:attribute>
             	 <xsl:if test="'UNK'=$FlagValue">
@@ -108,7 +111,9 @@
             <br />
           	<xsl:element name="input">
             	 <xsl:attribute name="type">radio</xsl:attribute>
-            	 <xsl:attribute name="name">ui-annotation_flag_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/></xsl:attribute>
+            	 <!--
+               <xsl:attribute name="name">ui-annotation_flag_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/></xsl:attribute>
+               -->
                <xsl:attribute name="onClick">updateFlag('<xsl:value-of select="$ItemOID"/>','<xsl:value-of select="$CurrentItemGroupOID"/>','<xsl:value-of select="$CurrentItemGroupRepeatKey"/>',this.value,false,<xsl:choose><xsl:when test="boolean($DataType='partialDate')">true</xsl:when><xsl:otherwise>false</xsl:otherwise></xsl:choose>)</xsl:attribute>
             	 <xsl:attribute name="value">ND</xsl:attribute>
             	 <xsl:if test="'ND'=$FlagValue">
@@ -119,7 +124,9 @@
             <br />
           	<xsl:element name="input">
             	 <xsl:attribute name="type">radio</xsl:attribute>
-            	 <xsl:attribute name="name">ui-annotation_flag_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/></xsl:attribute>
+            	 <!--
+               <xsl:attribute name="name">ui-annotation_flag_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/></xsl:attribute>
+               -->
                <xsl:attribute name="onClick">updateFlag('<xsl:value-of select="$ItemOID"/>','<xsl:value-of select="$CurrentItemGroupOID"/>','<xsl:value-of select="$CurrentItemGroupRepeatKey"/>',this.value,false,false)</xsl:attribute>
             	 <xsl:attribute name="value">NA</xsl:attribute>
             	 <xsl:if test="'NA'=$FlagValue">
@@ -132,9 +139,10 @@
               <xsl:attribute name="cols">43</xsl:attribute>
               <xsl:attribute name="rows">3</xsl:attribute>
               <xsl:attribute name="class">inputText</xsl:attribute>
-              <xsl:attribute name="name">ui-annotation_comment_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/></xsl:attribute>
-              <xsl:attribute name="onChange">$("input:[name='annotation_comment_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/>']").val(this.value);</xsl:attribute>              	 
-              <xsl:if test="string-length($Comment)=0">&#160;</xsl:if>
+              <!-- Le textarea ne sort pas du DOM du form
+              <xsl:attribute name="name">annotation_comment_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/></xsl:attribute>
+              -->
+              <xsl:attribute name="onChange">$("input:[name='annotation_comment_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/>']").val(this.value);</xsl:attribute>              	              <xsl:if test="string-length($Comment)=0">&#160;</xsl:if>
               <xsl:value-of select="$Comment"/>
             </xsl:element>
           </div>

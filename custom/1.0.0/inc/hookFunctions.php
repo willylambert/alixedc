@@ -109,10 +109,18 @@ function uisubject_getMenu_xslParameters($xslProc,$uisubject){
 }
 
 /**
+ *wrapper to uisubject_getMenu_beforeRendering hook
+ *@author wlt 
+ */
+function bosubjects_updateSubjectInList_customVisitStatus($SubjectKey,$tblForm,$uisubject){
+  uisubject_getMenu_beforeRendering($SubjectKey,&$tblForm,$uisubject);
+}
+
+/**
  * @desc Calcul et enregistrement du statut du CRF du patient
  * @author tpi 
  */ 
-function uisubject_getMenu_saveSubjectStatus($SubjectKey,$tblForm,$uisubject){
+function uisubject_getMenu_beforeRendering($SubjectKey,$tblForm,$uisubject){
   $SubjectStatus = "";
   $endOfStudyStatus = "";
   $EMPTY = 0;
@@ -120,6 +128,38 @@ function uisubject_getMenu_saveSubjectStatus($SubjectKey,$tblForm,$uisubject){
   $INCONSISTENT = 0;
   $FILLED = 0;
   $StudyEventDatas = $tblForm->firstChild->childNodes;
+  
+  //Mise à jour du statut de la visite pour la visite Inclusion Visit (VO) => cas particulier, un formulaire est caché
+  $V0_StudyEventOID = "2";
+  $V0_StudyEventRepeatKey = "0";
+  $V0_forms = 0;
+  $V0_filledForms = 0;
+  foreach($StudyEventDatas as $StudyEventData){
+    if((string)$StudyEventData->getAttribute('StudyEventOID') == $V0_StudyEventOID &&(string)$StudyEventData->getAttribute('StudyEventRepeatKey') == $V0_StudyEventRepeatKey ){
+      foreach($StudyEventData->childNodes as $FormData){
+        $V0_forms++;
+        foreach($FormData->childNodes as $FormDataChild){
+          if($FormDataChild->nodeName=="status"){
+            if($FormDataChild->nodeValue=="FILLED" || $FormDataChild->nodeValue=="FROZEN"){
+              $V0_filledForms++;
+            }
+          }
+        }
+      }
+      break;
+    }
+  }
+  if($V0_filledForms == ($V0_forms-1)){
+    //seul le formulaire caché est empty => la visite est FILLED
+    $xPath = new DOMXPath($tblForm);
+    $result = $xPath->query("StudyEventData[@StudyEventOID='$V0_StudyEventOID' and @StudyEventRepeatKey='$V0_StudyEventRepeatKey']");
+    if($result->length==1){
+      $StudyEventData = $result->item(0);
+      $StudyEventData->setAttribute("Status","FILLED");
+    }
+  }
+  
+  //Calcul du statut du patient
   
   $notEmpty = 0;
   foreach($StudyEventDatas as $StudyEventData){

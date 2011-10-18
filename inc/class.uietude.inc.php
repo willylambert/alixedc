@@ -66,10 +66,7 @@ class uietude extends CommonFunctions
     //If the user quit a CRF page, we need to update subject info in the subject list
     if(isset($_GET['updateSubjectEntry'])){
       $SubjectKey = $_GET['updateSubjectEntry'];
-      //Update only if there is no current lock on SubjectList - Otherwise the update will me made later (nightly at worse)
-      if($this->m_ctrl->socdiscoo($SubjectKey)->getLockStatus("SubjectsList.dbxml")===false){
-        $this->m_ctrl->bosubjects()->updateSubjectsList($SubjectKey);
-      }
+      $this->m_ctrl->bosubjects()->updateSubjectsList($SubjectKey);
     }
   }
  

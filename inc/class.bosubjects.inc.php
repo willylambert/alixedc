@@ -188,6 +188,10 @@ class bosubjects extends CommonFunctions
     
     //Visits Status
     $formList = $this->m_ctrl->bocdiscoo()->getSubjectTblForm($SubjectKey);
+    
+    //HOOK => bosubject_updateSubjectInList_customVisitStatus
+    $this->callHook(__FUNCTION__,"customVisitStatus",array($SubjectKey,&$formList,$this));
+
     $formListNode = $SubjectsList->importNode($formList->documentElement,true);
     
     $query = "/subjects/subject[./SubjectKey='$SubjectKey']/formList/SubjectData";

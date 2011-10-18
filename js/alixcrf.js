@@ -209,9 +209,9 @@ function loadAlixCRFjs(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepe
   
   //Initialisation des Post-it
   initPostIt(SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey);
-  
+ 
   initDyn(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey,ProfileId);
-  
+ 
   //Handle of "Quit without saving"
   if(ProfileId=='INV'){
     $("a").click(function(){ 
@@ -263,16 +263,16 @@ function loadAlixCRFjs(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepe
   //les ARC peuvent modifier les valeurs des post-it
   if(ProfileId=='CRA'){
     $("div.PostIt textarea").removeAttr("readonly");
-  }
-  
-  //We store form data in a serialized manner to submit only modified form
+  } 
+
+  //We store form data in a serialized manner to submit only modified forms by user
   $("form").each( 
     function(index){
       dataString = $(this).serialize();
       $(this).data('initials_values',dataString);
     }
-   ); 
-  
+   );
+     
   if(typeof(afterInit)=="function"){
     afterInit();
   }
@@ -420,71 +420,68 @@ function saveAllItemGroup(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventR
   //Boucle sur les formulaires
   $("form").each( 
     function(index){
-      //Cas des formulaires templates d'ajout
-      //if($(this).attr("donotsave")!="true"){
-        dataString = $(this).serialize();
-        if(dataString!=$(this).data('initials_values') ||
-           index==$("form").length-1 )
-        {
-          //Form is modified - we submit it
-          $.ajax({
-            type: "POST",
-            async: false,
-            url: "index.php?menuaction="+CurrentApp+".ajax.saveItemGroupData",
-            data: dataString,
-            dataType: "json",
-            error: function(data) {
-                helper.displayError("An error occured while saving", data);
-              },
-            success: function(data){
-                if(data.errors.length > 0){
-                  bSanityErrors = true;
-                  //On efface toutes les erreurs, pour ne faire apparaitre que les erreurs de sanity check
-                  $("#formQueries").empty();
-                  for(i=0;i<data.errors.length;i++){
-                    ItemOID = data.errors[i].ItemOID;
-                    ItemGroupRepeatKey  = data.errors[i].ItemGroupRepeatKey;
-                    Description = data.errors[i].desc;
-                    
-                    //On remplit le div dedié aux erreurs
-                    $("#formQueries").append("<div id='query_"+ItemOID.replace(".","_")+"_"+ItemGroupRepeatKey+"' class='QueryType QueryTypeCM'>"+ Description +"</div>");
-                  }
-                };   
-    
-                //Appel de la verification des controles, uniquement sur le dernier itemGroup sauvegardé (car verif au niveau du Form)
-                //And only if we have less than XX forms
-                //If there is more than XX forms, run checks are executed when leaving the form
-                if(index==$("form").length-1){
-                  //Verfication des controles uniquement si pas d'erreur bad_format
-                  if(bSanityErrors==false){
-                    //Si la sauvegarde a conduit à l'enregistrement d'un nouveau patient, on recharge la page
-                    if(typeof(data.newSubjectId)!='undefined'){
-                      newSubjectId = data.newSubjectId[0];
-                      newUrl = "index.php?menuaction="+CurrentApp+".uietude.subjectInterface&action=view&SubjectKey="+newSubjectId+"&StudyEventOID="+StudyEventOID+"&StudyEventRepeatKey="+StudyEventRepeatKey+"&FormOID="+FormOID+"&FormRepeatKey="+FormRepeatKey;
-                      $(location).attr('href',newUrl);
-                    }else{
-                      //Mise à jour des queries
-                      if(bCheckFormData!==false && $("div[class='pagination']").length==0){ //uniquement si le check à l'enregistrement n'est pas désactivé dans la configuration du centre
-                        checkFormData(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey);                        
-                        location.replace(location.href + "&donotcheck");
-                      }else{
-                        location.reload();
-                      }   
-                    }             
-                  }else{
-                    //alert("Data NOT SAVED - Please input sane data");
-                    regexp = new RegExp("(<b>)|(</b>)","gi");
-                    Description = Description.replace(regexp,"");
-                    alert(Description);        
-                  }
-                  //Code couleur sur le clique => confirmation rapide que les données ont été enregistrées/checkées
-                  $("#btnSave").css({color: '#393939'});
-                  $("#btnSave").animate({opacity: 1});
+      dataString = $(this).serialize();
+      if(dataString!=$(this).data('initials_values') ||
+         index==$("form").length-1 )
+      {
+        //Form is modified - we submit it
+        $.ajax({
+          type: "POST",
+          async: false,
+          url: "index.php?menuaction="+CurrentApp+".ajax.saveItemGroupData",
+          data: dataString,
+          dataType: "json",
+          error: function(data) {
+              helper.displayError("An error occured while saving", data);
+            },
+          success: function(data){
+              if(data.errors.length > 0){
+                bSanityErrors = true;
+                //On efface toutes les erreurs, pour ne faire apparaitre que les erreurs de sanity check
+                $("#formQueries").empty();
+                for(i=0;i<data.errors.length;i++){
+                  ItemOID = data.errors[i].ItemOID;
+                  ItemGroupRepeatKey  = data.errors[i].ItemGroupRepeatKey;
+                  Description = data.errors[i].desc;
+                  
+                  //On remplit le div dedié aux erreurs
+                  $("#formQueries").append("<div id='query_"+ItemOID.replace(".","_")+"_"+ItemGroupRepeatKey+"' class='QueryType QueryTypeCM'>"+ Description +"</div>");
                 }
+              };   
+  
+              //Appel de la verification des controles, uniquement sur le dernier itemGroup sauvegardé (car verif au niveau du Form)
+              //And only if we have less than XX forms
+              //If there is more than XX forms, run checks are executed when leaving the form
+              if(index==$("form").length-1){
+                //Verfication des controles uniquement si pas d'erreur bad_format
+                if(bSanityErrors==false){
+                  //Si la sauvegarde a conduit à l'enregistrement d'un nouveau patient, on recharge la page
+                  if(typeof(data.newSubjectId)!='undefined'){
+                    newSubjectId = data.newSubjectId[0];
+                    newUrl = "index.php?menuaction="+CurrentApp+".uietude.subjectInterface&action=view&SubjectKey="+newSubjectId+"&StudyEventOID="+StudyEventOID+"&StudyEventRepeatKey="+StudyEventRepeatKey+"&FormOID="+FormOID+"&FormRepeatKey="+FormRepeatKey;
+                    $(location).attr('href',newUrl);
+                  }else{
+                    //Mise à jour des queries
+                    if(bCheckFormData!==false && $("div[class='pagination']").length==0){ //uniquement si le check à l'enregistrement n'est pas désactivé dans la configuration du centre
+                      checkFormData(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey);                        
+                      location.replace(location.href + "&donotcheck");
+                    }else{
+                      location.reload();
+                    }   
+                  }             
+                }else{
+                  //alert("Data NOT SAVED - Please input sane data");
+                  regexp = new RegExp("(<b>)|(</b>)","gi");
+                  Description = Description.replace(regexp,"");
+                  alert(Description);        
+                }
+                //Code couleur sur le clique => confirmation rapide que les données ont été enregistrées/checkées
+                $("#btnSave").css({color: '#393939'});
+                $("#btnSave").animate({opacity: 1});
               }
-            });
+            }
+          });
         }
-     // }
     }
   );
   $("#dialog-modal-save").dialog("close");
