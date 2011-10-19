@@ -113,14 +113,14 @@ function uisubject_getMenu_xslParameters($xslProc,$uisubject){
  *@author wlt 
  */
 function bosubjects_updateSubjectInList_customVisitStatus($SubjectKey,$tblForm,$uisubject){
-  uisubject_getMenu_beforeRendering($SubjectKey,&$tblForm,$uisubject);
+  uisubject_getMenu_beforeRendering($SubjectKey,$tblForm,$uisubject);
 }
 
 /**
  * @desc Calcul et enregistrement du statut du CRF du patient
  * @author tpi 
  */ 
-function uisubject_getMenu_beforeRendering($SubjectKey,$tblForm,$uisubject){
+function uisubject_getMenu_beforeRendering($SubjectKey,&$tblForm,$uisubject){
   $SubjectStatus = "";
   $endOfStudyStatus = "";
   $EMPTY = 0;

@@ -27,7 +27,7 @@ require_once("class.instanciation.inc.php");
 require_once(EGW_SERVER_ROOT . "/".$GLOBALS['egw_info']['flags']['currentapp']."/config.inc.php");
 
 /*
-@desc joue le role de controleur pour notre application. C'est ici que les sont centralisés les instanciations à la volée des classe uiXXXXX et boXXXX
+@desc this class handles and answers to Ajax queries, received from Javascript calls directly sent by the user's browser.
 */
 class ajax extends CommonFunctions
 {
