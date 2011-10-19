@@ -74,6 +74,7 @@ class ajax extends CommonFunctions
     $this->m_ctrl = new instanciation();
 
     CommonFunctions::__construct($configEtude,$this->m_ctrl);
+    
   }		
 
 /*
