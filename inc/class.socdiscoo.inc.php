@@ -59,10 +59,10 @@ class socdiscoo extends CommonFunctions
     @param string $SubjectKey if specified, open only metadata and specified subject container. otherwise open all subjects containers
     @author wlt  
   */
-  function initContext($SubjectKey){           
+  function initContext($SubjectKey){
     //Initialisation du manager
     $this->m_mgr = new XmlManager();
-    
+
     //Gestion du mode test
     if(isset($_SESSION[$this->getCurrentApp(false)]['testmode']) && $_SESSION[$this->getCurrentApp(false)]['testmode']){
       $this->m_dbxmlPath = $this->m_tblConfig["DBXML_BASE_DEMO_PATH"];
@@ -127,7 +127,7 @@ class socdiscoo extends CommonFunctions
      
      unset($this->m_mgr);
      
-     foreach($this->m_tblLock as $dbxmlFile){
+     foreach($this->m_tblLock as $dbxmlFile => $lock){
         $this->unlock($dbxmlFile);
      } 
   }
@@ -459,7 +459,9 @@ class socdiscoo extends CommonFunctions
             $this->m_con[$containerName] = $this->m_mgr->createContainer($dbxmlPath . $containerName, $flags);
             $this->setIndexes($containerName);
             //set container writable for www-data group
-            chmod($dbxmlPath . $containerName, 0664);
+            if($this->m_user!="CLI"){
+              chmod($dbxmlPath . $containerName, 0664);
+            }
           }catch(xmlexception $e){
             $this->addLog("socdiscoo->initDB() => xmlexception : " . $e->getMessage() ." (". __METHOD__ .")",FATAL);
             throw($e);            
