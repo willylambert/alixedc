@@ -25,7 +25,7 @@ require_once("class.CommonFunctions.php");
 class boetude extends CommonFunctions
 {      
   //Constructeur
-  function boetude($configEtude,$ctrlRef)
+  function boetude(&$configEtude,$ctrlRef)
   {                
       CommonFunctions::__construct($configEtude,$ctrlRef);
   }

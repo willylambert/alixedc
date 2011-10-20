@@ -32,7 +32,7 @@ class bosubjects extends CommonFunctions
 {
 
   //Constructeur
-  function subjects($tblConfig,$ctrlRef)
+  function bosubjects(&$tblConfig,$ctrlRef)
   {
       CommonFunctions::__construct($tblConfig,$ctrlRef);
   }

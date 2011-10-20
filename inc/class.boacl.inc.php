@@ -31,7 +31,7 @@ class boacl extends CommonFunctions
   //Variables mise en cache
 
   //Constructeur
-  function __construct($tblConfig,$ctrlRef)
+  function __construct(&$tblConfig,$ctrlRef)
   {
       parent::__construct($tblConfig,$ctrlRef);
   }

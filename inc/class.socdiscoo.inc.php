@@ -38,7 +38,7 @@ class socdiscoo extends CommonFunctions
   private $m_subjectsContainers;
      
   //Constructeur
-  function socdiscoo($tblConfig,$SubjectKey)
+  function socdiscoo(&$tblConfig,$SubjectKey)
   {                
       CommonFunctions::__construct($tblConfig,null);
       $this->addLog("socdiscoo->socdiscoo('$SubjectKey')",INFO);
@@ -241,9 +241,7 @@ class socdiscoo extends CommonFunctions
     {
       $eMsg = $e->getMessage();
       $this->m_con[$containerName]->sync();
-      $message = "Le fichier avec le FileOID $fileOID est déjà présent dans la base.";
-      $this->addLog($message ." ". $eMsg . " (". __METHOD__ .")",ERROR);
-      throw new Exception($message);
+      throw new Exception();
     }
     $this->m_con[$containerName]->sync();
   }
@@ -418,10 +416,11 @@ class socdiscoo extends CommonFunctions
     $this->addLog("socdiscoo()->unlock($dbxmlFile)",TRACE);
 
     if(isset($this->m_tblLock["$dbxmlFile"])){    
+      ftruncate($this->m_tblLock["$dbxmlFile"]["LOCK_HANDLE"],0);
       if(!flock($this->m_tblLock["$dbxmlFile"]["LOCK_HANDLE"], LOCK_UN)){
         $this->addLog("socdiscoo()->releaseLock() => Unable to latch lock",FATAL);
       }else{
-        ftruncate($this->m_tblLock["$dbxmlFile"]["LOCK_HANDLE"],0);
+        $this->addLog("socdiscoo()->unlock($dbxmlFile) ok",TRACE);
         fclose($this->m_tblLock["$dbxmlFile"]["LOCK_HANDLE"]);
         unset($this->m_tblLock["$dbxmlFile"]);
       }

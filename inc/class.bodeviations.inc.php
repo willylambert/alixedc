@@ -38,7 +38,7 @@ class bodeviations extends CommonFunctions
     );
     
   //Constructeur
-  function bodeviations($tblConfig,$ctrlRef)
+  function bodeviations(&$tblConfig,$ctrlRef)
   {
       CommonFunctions::__construct($tblConfig,$ctrlRef);
   }

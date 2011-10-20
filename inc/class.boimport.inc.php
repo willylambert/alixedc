@@ -217,6 +217,9 @@ class boimport extends CommonFunctions
 */   
   function importECG($ecgFile)
   {
+    global $configEtude;   
+    $configEtude["LOG_LONG_EXECUTION"] = false;
+
     $xml = new DOMDocument();
     $xml->load($ecgFile);
     
@@ -775,6 +778,9 @@ class boimport extends CommonFunctions
 */   
   function importLAB($labFile)
   {
+    global $configEtude;   
+    $configEtude["LOG_LONG_EXECUTION"] = false;
+    
     $xml = new DOMDocument();
     $xml->load($labFile);
     

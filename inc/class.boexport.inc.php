@@ -26,7 +26,7 @@ class boexport extends CommonFunctions
 {  
 
   //Constructeur
-  function __construct($tblConfig,$ctrlRef)
+  function __construct(&$tblConfig,$ctrlRef)
   {                
       CommonFunctions::__construct($tblConfig,$ctrlRef);
   }               
@@ -454,7 +454,7 @@ run;";
           
           $procSAS .= "\n;" . $procSASformat . "\n;" . $procSASlabel . "\n; \nrun;";
           
-          $subjCol = "collection('0703.dbxml')";
+          //$subjCol = "collection('0703.dbxml')";
           //Data extraction
           $query = "
                     let \$SubjectData := $subjCol/odm:ODM/odm:ClinicalData/odm:SubjectData[@SubjectKey!='BLANK']

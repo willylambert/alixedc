@@ -39,7 +39,7 @@ class boqueries extends CommonFunctions
     );
 
   //Constructeur
-  function boqueries($tblConfig,$ctrlRef)
+  function boqueries(&$tblConfig,$ctrlRef)
   {
       CommonFunctions::__construct($tblConfig,$ctrlRef);
   }

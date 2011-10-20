@@ -549,7 +549,7 @@ class uidbadmin extends CommonFunctions{
     
     if (move_uploaded_file($_FILES['uploadedDoc']['tmp_name'], $uploadfile)){
       try{
-        echo "ajout de {$_FILES['uploadedDoc']['name']}...<br/>";
+        echo "adding {$_FILES['uploadedDoc']['name']}...<br/>";
         $this->m_ctrl->socdiscoo()->addDocument($uploadfile,false,$containerName);
       }catch(Exception $e){
           //déjà présent, on va essayer de le remplacer

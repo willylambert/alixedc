@@ -26,7 +26,7 @@ class bostats extends CommonFunctions
 {  
 
   //Constructeur
-  function __construct($tblConfig,$ctrlRef)
+  function __construct(&$tblConfig,$ctrlRef)
   {                
       CommonFunctions::__construct($tblConfig,$ctrlRef);
   }

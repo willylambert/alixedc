@@ -29,7 +29,7 @@ class bocdiscoo extends CommonFunctions
   var $m_lang; //lang de l'utilisateur : cf constructeur
 
   //Constructeur
-  function bocdiscoo($tblConfig,$ctrlRef)
+  function bocdiscoo(&$tblConfig,$ctrlRef)
   {
       CommonFunctions::__construct($tblConfig,$ctrlRef);
 
@@ -827,14 +827,19 @@ class bocdiscoo extends CommonFunctions
                                                 /odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']
                                                 /odm:ItemGroupData[@TransactionType!='Remove']   
               let \$ItemGroupOID := \$ItemGroupData/@ItemGroupOID
-              let \$ItemGroupRepeatKey := \$ItemGroupData/@ItemGroupRepeatKey                  
+              let \$ItemGroupDef := \$MetaDataVersion/odm:ItemGroupDef[@OID=\$ItemGroupOID]
+              let \$ItemGroupRepeatKey := \$ItemGroupData/@ItemGroupRepeatKey
+              where \$ItemGroupRepeatKey!='0' and \$ItemGroupDef/@Repeating='Yes' or \$ItemGroupDef/@Repeating='No'
+              return                  
                  for \$ItemOID in distinct-values(\$ItemGroupData/odm:*/@ItemOID)
                   let \$ItemDatas := \$ItemGroupData/odm:*[@ItemOID=\$ItemOID]
                   let \$ItemData := \$ItemDatas[last()]
                   let \$FlagValue := \$SubjectData/../odm:Annotations/odm:Annotation[@ID=\$ItemData/@AnnotationID]/odm:Flag/odm:FlagValue/string()
                   let \$ItemRef := \$MetaDataVersion/odm:ItemGroupDef[@OID=\$ItemGroupOID]/odm:ItemRef[@ItemOID=\$ItemOID]
                   let \$CollectionException := \$MetaDataVersion/odm:ConditionDef[@OID=\$ItemRef/@CollectionExceptionConditionOID]
-                    where \$ItemRef/@Mandatory='Yes' and (count(\$ItemData)=0 or \$ItemData/string()='') and (\$FlagValue='Ø' or \$FlagValue='' or not(\$FlagValue) or \$MetaDataVersion/odm:ItemDef[@OID=\$ItemOID]/@DataType='date')
+                    where \$ItemRef/@Mandatory='Yes' and 
+                          (count(\$ItemData)=0 or \$ItemData/string()='') and 
+                          (\$FlagValue='Ø' or \$FlagValue='' or not(\$FlagValue) or \$MetaDataVersion/odm:ItemDef[@OID=\$ItemOID]/@DataType='date')
                     return
                         <error ItemOID=\"{\$ItemOID}\"
                                FlagValue=\"{\$FlagValue}\"
@@ -2108,18 +2113,19 @@ class bocdiscoo extends CommonFunctions
             if(exists(\$StudyEventData/odm:FormData/odm:Annotation/odm:Flag[odm:FlagValue/string()='INCONSISTENT']))
               then 'INCONSISTENT'
             else
-            if(exists(\$StudyEventData/odm:FormData/odm:ItemGroupData[@TransactionType!='Remove'])
-               and count(\$StudyEventData/odm:FormData/odm:ItemGroupData[@TransactionType!='Remove' and odm:Annotation/odm:Flag[odm:FlagValue/string()='FILLED' or odm:FlagValue/string()='FROZEN']]) = count(\$StudyEventData/odm:FormData/odm:ItemGroupData[@TransactionType!='Remove']) 
-               and count(distinct-values(\$StudyEventData/odm:FormData/odm:ItemGroupData[@TransactionType!='Remove']/@ItemGroupOID)) ge count(\$MetaDataVersion/odm:FormDef[@OID=\$StudyEventDef/odm:FormRef/@FormOID]/odm:ItemGroupRef[@Mandatory='Yes']))
-                then 
-                  if(exists(\$StudyEventData/odm:FormData/odm:ItemGroupData[@TransactionType!='Remove']/odm:Annotation/odm:Flag[odm:FlagValue/string()='FILLED']))  
+              if(count(\$StudyEventData/odm:FormData/odm:ItemGroupData[@TransactionType!='Remove']/odm:Annotation/odm:Flag[odm:FlagValue/string()!='EMPTY']) = 0)
+              then 'EMPTY'
+              else
+              if(exists(\$StudyEventData/odm:FormData/odm:ItemGroupData/odm:Annotation/odm:Flag[odm:FlagValue/string()='INCONSISTENT']))
+                  then 'INCONSISTENT'
+              else
+              if( count(\$StudyEventData/odm:FormData/odm:ItemGroupData[@TransactionType!='Remove']/odm:Annotation/odm:Flag[odm:FlagValue/string()='FILLED' or odm:FlagValue/string()='FROZEN']) = count(\$StudyEventData/odm:FormData/odm:ItemGroupData[@TransactionType!='Remove']) )
+                  then 
+                    if(exists(\$StudyEventData/odm:FormData/odm:ItemGroupData[@TransactionType!='Remove']/odm:Annotation/odm:Flag[odm:FlagValue/string()='FILLED'])) 
                     then 'FILLED'
                     else 'FROZEN'
-            else 
-              if(exists(\$StudyEventData/odm:FormData/odm:ItemGroupData[@TransactionType!='Remove']/odm:Annotation/odm:Flag[odm:FlagValue/string()!='EMPTY']))
-               then 'PARTIAL'
-              else
-                'EMPTY'
+              else 'PARTIAL'
+
         };
 
         let \$SubjectData := collection('$SubjectKey.dbxml')/odm:ODM/odm:ClinicalData/odm:SubjectData
@@ -2865,6 +2871,8 @@ Run edit checks on asked form and update accordingly Form's ItemGroupData
 @author tpi, wlt
 */
 public function updateFormStatus($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey){
+  $nbIGupdated = 0;
+  
   //Look for queries on the form
   $errorsMandatory = $this->checkMandatoryData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey);
   $errorsConsistency = $this->checkFormConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey);
@@ -2969,9 +2977,11 @@ public function updateFormStatus($SubjectKey,$StudyEventOID,$StudyEventRepeatKey
       //Only update ItemGroupData Status if needed
       if($ItemGroupData['Status']!=$status){
         $this->setItemGroupStatus($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$status);
+        $nbIGupdated++;
       }
     }
   }
+  return $nbIGupdated;
 }
   
 }

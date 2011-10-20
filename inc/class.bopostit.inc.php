@@ -32,7 +32,7 @@ class bopostit extends CommonFunctions
 {
 
   //Constructeur
-  function bopostit($tblConfig,$ctrlRef)
+  function bopostit(&$tblConfig,$ctrlRef)
   {
       CommonFunctions::__construct($tblConfig,$ctrlRef);
   }

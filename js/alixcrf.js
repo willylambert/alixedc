@@ -306,6 +306,9 @@ function initDyn(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,
                     if($(this).attr('name')){
                       IGRK = $(this).attr('name').split('_').pop();
                       IGOID = $(this).closest("form").attr('name');
+                      if(typeof(IGOID)=="undefined"){
+                        IGOID = $(this).closest("table").attr('name');  
+                      } 
                       ItemOID = $(this).closest("tr").attr('name');
                       if(typeof(ItemOID)=="undefined"){
                         ItemOID = $(this).closest("td").attr('name');

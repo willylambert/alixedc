@@ -54,6 +54,10 @@
     <xsl:variable name="ItemGroupData" select="."/>  
     <xsl:variable id="{$ItemGroup/@OID}" name="ItemGroupPos" select="position()"/>
     <form name="{$ItemGroup/@OID}" position="{$ItemGroupPos}">
+      <!--Dans le cas des itemggroup repeating, le premier form est notre template d'ajout - il ne faut pas le sauvegarder-->
+      <xsl:if test="$ItemGroupData/@ItemGroupRepeatKey='0' and $ItemGroup/@Repeating='Yes'">
+        <xsl:attribute name="style">display:none;</xsl:attribute>
+      </xsl:if>
       <!--Insertion du contexte-->
       <input type="hidden" name="MetaDataVersionOID" value="{/StudyEvent/@MetaDataVersionOID}"/>
       <input type="hidden" name="SubjectKey" value="{$SubjectKey}"/>

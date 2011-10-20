@@ -56,9 +56,9 @@ class CommonFunctions{
 /****************************************************/
 
   //Constructeur
-  function __construct($tblConfig=array(),$ctrlRef)
+  function __construct(&$tblConfig=array(),$ctrlRef)
   {
-    $this->m_tblConfig = $tblConfig;
+    $this->m_tblConfig =& $tblConfig;
     if(isset($GLOBALS['egw_info']['user']['userid'])){
       $userId = $GLOBALS['egw_info']['user']['userid'];
     }else{
