@@ -70,14 +70,14 @@
        <xsl:copy-of select="@*"/>
        <xsl:apply-templates/>
 
-   		 <input type="image" src="alixcrf_demobd/templates/default/images/bulb_on.gif"
+   		 <input type="image" src="alixedc/templates/default/images/bulb_on.gif"
   				onclick='return showInfo("&lt;table&gt;
   				&lt;tr&gt;
   				  &lt;td&gt;
               0 : Capable d une activité identique à celle précédant la maladie sans aucune restriction.
             &lt;/td&gt;  
             &lt;td&gt;
-              &lt;img src=\"alixcrf_demobd/templates/default/images/ps0.png\"/&gt;
+              &lt;img src=\"alixedc/templates/default/images/ps0.png\"/&gt;
             &lt;/td&gt;
             &lt;/tr&gt;
                         &lt;tr&gt;    
@@ -85,7 +85,7 @@
                               1 : Activité physique diminuée mais ambulatoire et capable de mener un travail.
                           &lt;/td&gt; 
                                                   &lt;td&gt;
-                        &lt;img src=\"alixcrf_demobd/templates/default/images/ps1.png\"/&gt;
+                        &lt;img src=\"alixedc/templates/default/images/ps1.png\"/&gt;
                         &lt;/td&gt;
                           &lt;/tr&gt;  
                           &lt;tr&gt;   
@@ -94,7 +94,7 @@
                               2 : Ambulatoire et capable de prendre soin de soi-même, incapable de travailler.Alité moins de 50 % de son temps.
                                                       &lt;/td&gt; 
                                                                               &lt;td&gt;
-                        &lt;img src=\"alixcrf_demobd/templates/default/images/ps2.png\"/&gt;
+                        &lt;img src=\"alixedc/templates/default/images/ps2.png\"/&gt;
                         &lt;/td&gt;
                            &lt;/tr&gt;
                                                       &lt;tr&gt;     
@@ -102,14 +102,14 @@
                               3 : Capable seulement de quelques soins. Alité ou en chaise plus de 50 % du temps.
                                                       &lt;/td&gt; 
                                                                                                                                     &lt;td&gt;
-                        &lt;img src=\"alixcrf_demobd/templates/default/images/ps3.png\"/&gt;
+                        &lt;img src=\"alixedc/templates/default/images/ps3.png\"/&gt;
                         &lt;/td&gt;
                 &lt;/tr&gt;
                                                       &lt;tr&gt;     
                         &lt;td&gt;    
                               4 : Capable de prendre soins de soi-même. Alité ou en chaise en permanence.
                                                                                                             &lt;td&gt;
-                        &lt;img src=\"alixcrf_demobd/templates/default/images/ps4.png\"/&gt;
+                        &lt;img src=\"alixedc/templates/default/images/ps4.png\"/&gt;
                         &lt;/td&gt;
                 &lt;/td&gt;
                 &lt;/tr&gt;
