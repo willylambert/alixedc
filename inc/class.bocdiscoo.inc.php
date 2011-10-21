@@ -156,7 +156,7 @@ class bocdiscoo extends CommonFunctions
 @return boolean : Retourne true si la mise à jour est effective, false si elle n'etait pas nécessaire (donnée identique)
 @author wlt
 */
-  private function addItemData($IG,$ItemGroupRef,$formVars,$tblFilledVar,$subj,$AuditRecordID,$bEraseNotFoundItem=true)
+  private function addItemData($IG,$ItemGroupRef,$formVars,&$tblFilledVar,$subj,$AuditRecordID,$bEraseNotFoundItem=true)
   {
     $this->addLog("bocdiscoo->addItemData() : tblFilledVar = " . $this->dumpRet($tblFilledVar),TRACE);
     $valRet = false;
@@ -2756,7 +2756,7 @@ class bocdiscoo extends CommonFunctions
       $hasModif = false;
       foreach($results as $ItemGroupRef){
         //$bFormVarsIsAlreadyDecoded = true en cas d'import du coding, pour ne pas effacer les champs non présent dans l'import
-        if($this->addItemData($IG,$ItemGroupRef,$formVars,&$tblFilledVar,$subj,$AuditRecordID,!$bFormVarsIsAlreadyDecoded)){
+        if($this->addItemData($IG,$ItemGroupRef,$formVars,$tblFilledVar,$subj,$AuditRecordID,!$bFormVarsIsAlreadyDecoded)){
           $hasModif = true;
         }
       }

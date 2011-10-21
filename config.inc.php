@@ -42,8 +42,8 @@
   $configEtude["IMPORT_BASE_PATH"] = "$basePath/alixdb_dev/import/";
   $configEtude["DBXML_BASE_DEMO_PATH"] = "$basePath/$moduleName/dbxmlDemoBase/";
 
-  $configEtude["ODM_1_3_SCHEMA"] = "/var/www/alix/docs/demo/alixcrf_demobd/xsd/ODM1-3-0-foundation.xsd";
-  $configEtude["ODM_1_2_SCHEMA"] = "/var/www/alix/docs/demo/alixcrf_demobd/xsd/ODM1-2-1-foundation.xsd";
+  $configEtude["ODM_1_3_SCHEMA"] = "/var/www/alix/docs/demo/$moduleName/xsd/ODM1-3-0-foundation.xsd";
+  $configEtude["ODM_1_2_SCHEMA"] = "/var/www/alix/docs/demo/$moduleName/xsd/ODM1-2-1-foundation.xsd";
   
   $configEtude["EMAIL_PV"] = "svp.clinical@businessdecision.com";
   $configEtude["EMAIL_ERROR"] = "svp.clinical@businessdecision.com";
