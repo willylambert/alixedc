@@ -55,10 +55,7 @@ class uieditor extends CommonFunctions
     $this->m_ctrl->boeditor()->setXmlFiles();
     
     $htmlEditor = $this->getEditor();
-    
-    //variable added to Javascript URLs in order to force reloading on the user's browser
-    $jsVersion = $this->m_tblConfig['JS_VERSION'];
-    
+   
     $htmlRet = "$topMenu
                 
                 
@@ -126,16 +123,16 @@ class uieditor extends CommonFunctions
                 
                 <div id='editorContainer'></div>
                 
-                <SCRIPT LANGUAGE='JavaScript' SRC='" . $wwwroot ."/js/ace/ace.js?". $jsVersion ."'></SCRIPT>
-                <SCRIPT LANGUAGE='JavaScript' SRC='" . $wwwroot ."/js/ace/theme-cobalt.js?". $jsVersion ."'></SCRIPT>
-                <SCRIPT LANGUAGE='JavaScript' SRC='" . $wwwroot ."/js/ace/theme-textmate.js?". $jsVersion ."'></SCRIPT>
-                <SCRIPT LANGUAGE='JavaScript' SRC='" . $wwwroot ."/js/ace/theme-twilight.js?". $jsVersion ."'></SCRIPT>
-                <SCRIPT LANGUAGE='JavaScript' SRC='" . $wwwroot ."/js/ace/theme-vibrant_ink.js?". $jsVersion ."'></SCRIPT>
-                <SCRIPT LANGUAGE='JavaScript' SRC='" . $wwwroot ."/js/ace/mode-javascript.js?". $jsVersion ."'></SCRIPT>
-                <SCRIPT LANGUAGE='JavaScript' SRC='" . $wwwroot ."/js/ace/mode-php.js?". $jsVersion ."'></SCRIPT>
-                <SCRIPT LANGUAGE='JavaScript' SRC='" . $wwwroot ."/js/ace/mode-xml.js?". $jsVersion ."'></SCRIPT>
-                <SCRIPT LANGUAGE='JavaScript' SRC='" . $wwwroot ."/js/ace/mode-html.js?". $jsVersion ."'></SCRIPT>
-                <SCRIPT LANGUAGE='JavaScript' SRC='" . $wwwroot ."/js/ace/mode-css.js?". $jsVersion ."'></SCRIPT>
+                <SCRIPT LANGUAGE='JavaScript' SRC='" . $wwwroot ."/js/ace/ace.js'></SCRIPT>
+                <SCRIPT LANGUAGE='JavaScript' SRC='" . $wwwroot ."/js/ace/theme-cobalt.js'></SCRIPT>
+                <SCRIPT LANGUAGE='JavaScript' SRC='" . $wwwroot ."/js/ace/theme-textmate.js'></SCRIPT>
+                <SCRIPT LANGUAGE='JavaScript' SRC='" . $wwwroot ."/js/ace/theme-twilight.js?'></SCRIPT>
+                <SCRIPT LANGUAGE='JavaScript' SRC='" . $wwwroot ."/js/ace/theme-vibrant_ink.js'></SCRIPT>
+                <SCRIPT LANGUAGE='JavaScript' SRC='" . $wwwroot ."/js/ace/mode-javascript.js'></SCRIPT>
+                <SCRIPT LANGUAGE='JavaScript' SRC='" . $wwwroot ."/js/ace/mode-php.js'></SCRIPT>
+                <SCRIPT LANGUAGE='JavaScript' SRC='" . $wwwroot ."/js/ace/mode-xml.js'></SCRIPT>
+                <SCRIPT LANGUAGE='JavaScript' SRC='" . $wwwroot ."/js/ace/mode-html.js'></SCRIPT>
+                <SCRIPT LANGUAGE='JavaScript' SRC='" . $wwwroot ."/js/ace/mode-css.js'></SCRIPT>
                 
                 <script>
                   var _CurrentApp = '". $this->getCurrentApp(false) ."';

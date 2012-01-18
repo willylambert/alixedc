@@ -56,11 +56,7 @@ class uidashboard extends CommonFunctions
     $topMenu = $this->m_ctrl->etudemenu()->getMenu($SiteId);
     $dashboardMenu = $this->getMenu();
     
-    $htmlRet .= "<SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jquery-1.6.2.min.js') . "'></SCRIPT>
-                <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jquery-ui-1.8.16.custom.min.js') . "'></SCRIPT>
-                ";
-    
-    $htmlRet .= $topMenu;
+    $htmlRet = $topMenu;
     $htmlRet .= $dashboardMenu;
     
     switch($action){

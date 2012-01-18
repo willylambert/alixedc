@@ -64,8 +64,6 @@
 
   $configEtude["SUBJID_FORMAT"] = "%04d";
   
-  $configEtude["APP_CSS"] = "cocktail";
-  
   //Where is the enrolment form ?  
   $configEtude['BLANK_OID'] = "BLANK";
   $configEtude['ENROL_SEOID'] = "1";
@@ -183,9 +181,7 @@
                                                  'Value'=>array('SEOID'=>'13','SERK'=>'0','FRMOID'=>'FORM.SS','FRMRK'=>'0','IGOID'=>'DSSS','IGRK'=>'0','ITEMOID'=>'DS.DSTERMN'));
 
   //Forms for which we enable pagination
-  $browser = get_browser(null, true);
-  $maxIGperPage = ($browser['browser']!="IE" ? 10 : 5);
-  $configEtude['FORM_PAGINATE']['FORM.CM'] = array('FRMOID'=>'FORM.CM','IG_PER_PAGE'=>$maxIGperPage);
+  $configEtude['FORM_PAGINATE']['FORM.CM'] = array('FRMOID'=>'FORM.CM','IG_PER_PAGE'=>10);
 
 
   //Downloadable docmuments for all countries

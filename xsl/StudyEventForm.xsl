@@ -88,7 +88,7 @@
   	          <!--On n'affiche l'icône que s'il y a du contenu d'audit trail-->
               <xsl:if test="$ItemGroupData/ItemData[@OID=$Item/@OID]/@TransactionType!='Insert'">
               	<a href="javascript:void(0)">
-                  <xsl:element name='image'>
+                  <xsl:element name='img'>
                     <xsl:attribute name="src"><xsl:value-of select="$CurrentApp"/>/templates/default/images/clock-history.png</xsl:attribute>
                     <xsl:attribute name="onClick">toggleAuditTrail('<xsl:value-of select="concat('auditTrail_div_',$Item/@OID,'_',$ItemGroupData/@ItemGroupRepeatKey)"/>');</xsl:attribute>
                     <xsl:attribute name="altbox">Edit the history of this item</xsl:attribute>
@@ -223,10 +223,11 @@
 	 <p>Please wait while your request is processed...</p>
 	 <div style="text-align: center;"><img src="{$CurrentApp}/templates/default/images/ajax_loader_77.gif" alt="Loading" /></div>
   </div>
-
+  <!--
   <div id="dialog-modal-info" title="Information">
 	 <p>Information on study</p>
-  </div>  
+  </div>
+  -->  
 </xsl:template>
 
 </xsl:stylesheet>

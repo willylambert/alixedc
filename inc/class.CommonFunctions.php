@@ -51,10 +51,6 @@ class CommonFunctions{
   public $m_user;
   public $m_lang;
   
-/****************************************************/
-//Méthodes Publiques
-/****************************************************/
-
   //Constructeur
   function __construct(&$tblConfig=array(),$ctrlRef)
   {
@@ -83,10 +79,6 @@ class CommonFunctions{
   {
     //RAF   
   }
- 
-/****************************************************/
-//Méthodes Privés
-/****************************************************/
   
   protected function egwId2studyId($id)
   {
@@ -98,6 +90,19 @@ class CommonFunctions{
   {
     $egwId = "-".($id);
     return $egwId;   
+  }
+  
+  /**
+   * Does the user browser is an iPad ?
+   * @return boolean true if yes, false if no
+   * @author wlt - 20/12/2011      
+   **/     
+  public function isIpad(){
+    if(strstr($_SERVER['HTTP_USER_AGENT'],"iPad")){
+      return true;
+    }else{
+      return true;
+    }
   }
   
   public function addLog($message,$level){

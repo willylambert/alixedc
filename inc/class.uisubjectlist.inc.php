@@ -74,9 +74,7 @@ class uisubjectlist extends CommonFunctions
                       'Orientation' => $col['Orientation']);
     }
     
-    $html .= "<SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jquery-1.6.2.min.js') . "'></SCRIPT>
-              <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jquery-ui-1.8.16.custom.min.js') . "'></SCRIPT>
-              <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jqGrid/grid.locale-en.js') . "'></SCRIPT>
+    $html .= "<SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jqGrid/grid.locale-en.js') . "'></SCRIPT>
               <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jqGrid/jquery.jqGrid.min.js') . "'></SCRIPT>
               <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/helpers.js') . "'></SCRIPT>
               <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/alixcrf.subjects.js') . "'></SCRIPT>
@@ -86,14 +84,6 @@ class uisubjectlist extends CommonFunctions
               <div id='filter' style='margin-left:30%;display:none'></div>
               
               <script>loadAlixCRFSubjectsJS('".$this->getCurrentApp(false)."','".json_encode($cols)."');</script>";
-    
-    
-    $html .= "
-      <div id='dialog-modal-check' title='Running consistency checks...'>
-    	  <p>Checking data... <span id='dialog-modal-check-subject'></span> <span id='dialog-modal-check-subjects'></span></p>
-    	  <div style='text-align: center;'><img src='". $this->getCurrentApp(false) ."/templates/default/images/horizontal_loader.gif' alt='Loading' /></div>
-    	  <p>Progress : <span id='dialog-modal-check-progress'>0</span>% &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button id='dialog-modal-check-cancel' class='ui-state-default ui-corner-all'>Cancel</button></p>
-      </div>";
     
     $html .= "<script>
                 function goSubject(SubjectKey){
@@ -109,20 +99,6 @@ class uisubjectlist extends CommonFunctions
                   initSubjectsList();
                 }); 
                 
-                function runAllConsistencyChecks(i){
-                  var CurrentApp = '". $this->getCurrentApp(false) ."';
-                  var Subjects = new Array($jsSubjects);
-                  var len = Subjects.length;
-                  //for(var i=0; i<len; i++){
-                    if(i<len)
-                    $('#dialog-modal-check-subjects').html('('+ (i+1) +'/'+ len +')');
-                    if(i==(len-1)){
-                      runConsistencyChecks(CurrentApp,Subjects[i].SiteId,Subjects[i].SubjectKey);
-                    }else{ //with callback for next subject
-                      runConsistencyChecks(CurrentApp,Subjects[i].SiteId,Subjects[i].SubjectKey,'runAllConsistencyChecks('+ (i+1) +')');
-                    }
-                  //}
-                }
               </script>";
               
     return $html;

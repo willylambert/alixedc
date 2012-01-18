@@ -61,9 +61,7 @@ class uipreferences extends CommonFunctions
 			$htmlProfiles .= "</tbody></table>
                   	</div>";
     
-    $htmlRet = "<SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jquery-1.4.2.min.js') . "'></SCRIPT>
-                <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jquery-ui-1.8.4.custom.min.js') . "'></SCRIPT>
-                $menu
+    $htmlRet = "$menu
                   <div id='mainForm' class='ui-dialog ui-widget ui-widget-content ui-corner-all'>
                     <div class='ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix'>
                       <span class='ui-grid-header ui-widget-header ui-corner-top'>Preferences</span>

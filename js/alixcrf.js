@@ -181,6 +181,7 @@ function loadAlixCRFjs(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepe
   
   //Initialisation des boites de dialogue
   $("#dialog-modal-save").dialog({ height: 140, autoOpen: false, modal: false });
+  
   $( "#dialog-modal-info" ).dialog({
       			modal: false,
       			autoOpen: false,
@@ -202,10 +203,10 @@ function loadAlixCRFjs(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepe
   $("#visit_"+StudyEventOID+"_"+StudyEventRepeatKey+"_form_"+FormOID.replace(".","\\.")+"_"+FormRepeatKey).addClass("ui-state-highlight");
 
   //Affichage des queries
-  showQueries(CurrentApp,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey,ProfileId);
+  //showQueries(CurrentApp,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey,ProfileId);
   
   //Affichage des deviations
-  showDeviations(CurrentApp,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey,ProfileId);
+  //showDeviations(CurrentApp,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey,ProfileId);
   
   //Initialisation des Post-it
   initPostIt(SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey);

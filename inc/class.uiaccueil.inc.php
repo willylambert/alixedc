@@ -36,8 +36,7 @@ class uiaccueil extends CommonFunctions
     $userSiteId = $this->egwId2studyId($GLOBALS['egw_info']['user']['account_primary_group']);
     //$siteStats = $this->m_ctrl->bostats()->getStudyStats("('$userSiteId')");
     
-    $htmlRet = "<SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jquery-1.6.4.min.js') . "'></SCRIPT>
-                <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jquery.corner.js') . "'></SCRIPT>";
+    $htmlRet = "<SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jquery.corner.js') . "'></SCRIPT>";
     
     //Accès à la page d'accueil d'un utilisateur ayant accès au CRF
     $htmlRet .= '<table width="100%"><tr><td valign="top" width="70%">';
