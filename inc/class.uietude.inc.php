@@ -143,6 +143,11 @@ class uietude extends CommonFunctions
 
    public function deviationsInterface()
    {
+        //Only accessible to CRA, DM and SPONSOR
+        if(!$this->m_ctrl->boacl()->existUserProfileId(array("CRA","DM","SPO"))){
+          $this->addLog("Unauthorized Access to Deviations Module - Administrator has been notified",FATAL);          
+        }
+
         require_once('class.uideviations.inc.php');
         global $configEtude;
         $ui = new uideviations($configEtude,$this->m_ctrl);
@@ -168,6 +173,11 @@ class uietude extends CommonFunctions
 
    public function queriesInterface()
    {
+        //Only accessible to CRA and DM
+        if(!$this->m_ctrl->boacl()->existUserProfileId(array("CRA","DM"))){
+          $this->addLog("Unauthorized Access to Queries Module - Administrator has been notified",FATAL);          
+        }
+        
         require_once('class.uiqueries.inc.php');
         global $configEtude;
         $ui = new uiqueries($configEtude,$this->m_ctrl);
