@@ -110,6 +110,11 @@ class uietude extends CommonFunctions
    public function dbadminInterface()
    {
         require_once('class.uidbadmin.inc.php');
+       
+        //Only accessible to admin
+        if(!$GLOBALS['egw_info']['user']['apps']['admin']){
+          $this->addLog("Unauthorized Access to Admin Module - Administrator has been notified",FATAL);
+        }
         
         $ui = new uidbadmin();
         $ui->setCtrl($this->m_ctrl);        
@@ -122,6 +127,12 @@ class uietude extends CommonFunctions
    public function editorInterface()
    {
         require_once('class.uieditor.inc.php');
+        
+        //Only accessible to admin
+        if(!$GLOBALS['egw_info']['user']['apps']['admin']){
+          $this->addLog("Unauthorized Access to Admin Module - Administrator has been notified",FATAL);
+        }
+
         global $configEtude;
         $ui = new uieditor($configEtude,$this->m_ctrl);
         
@@ -170,6 +181,12 @@ class uietude extends CommonFunctions
    public function sitesInterface()
    {
         require_once('class.uisites.inc.php');
+        
+        //Only accessible to admin
+        if(!$GLOBALS['egw_info']['user']['apps']['admin']){
+          $this->addLog("Unauthorized Access to Admin Module - Administrator has been notified",FATAL);
+        }
+
         global $configEtude;
         $ui = new uisites($configEtude,$this->m_ctrl);
         
@@ -274,6 +291,12 @@ class uietude extends CommonFunctions
    public function usersInterface()
    {
         require_once('class.uiusers.inc.php');
+
+        //Only accessible to admin
+        if(!$GLOBALS['egw_info']['user']['apps']['admin']){
+          $this->addLog("Unauthorized Access to Admin Module - Administrator has been notified",FATAL);
+        }
+
         global $configEtude;
         $ui = new uiusers($configEtude,$this->m_ctrl);
         

@@ -183,8 +183,9 @@
                                                  'Value'=>array('SEOID'=>'13','SERK'=>'0','FRMOID'=>'FORM.SS','FRMRK'=>'0','IGOID'=>'DSSS','IGRK'=>'0','ITEMOID'=>'DS.DSTERMN'));
 
   //Forms for which we enable pagination
-  $browser = get_browser(null, true);
-  $maxIGperPage = ($browser['browser']!="IE" ? 10 : 5);
+  //$browser = get_browser(null, true);
+  //$maxIGperPage = ($browser['browser']!="IE" ? 10 : 5);
+  $maxIGperPage = 10;
   $configEtude['FORM_PAGINATE']['FORM.CM'] = array('FRMOID'=>'FORM.CM','IG_PER_PAGE'=>$maxIGperPage);
 
 

@@ -344,7 +344,7 @@ class socdiscoo extends CommonFunctions
         //By security - we save the XML file on hard drive
         $xml->save($this->m_tblConfig["CDISCOO_PATH"] . "/xml/$fileOID" . ".xml");
         if($this->m_user!="CLI"){
-          chmod($this->m_tblConfig["CDISCOO_PATH"] . "/xml/$fileOID" . ".xml",664);
+          //chmod($this->m_tblConfig["CDISCOO_PATH"] . "/xml/$fileOID" . ".xml",664);
         }
       }
       else
@@ -383,7 +383,7 @@ class socdiscoo extends CommonFunctions
       //c => Open the file for writing only. If the file does not exist, it is created. 
       $lockFileHandle = fopen($lockFile, 'c');
       if($this->m_user!="CLI"){
-        chmod($lockFile, 0664);
+        //chmod($lockFile, 0664);
       } 
       $start_time = microtime(true);
       if(!flock($lockFileHandle, $lockType)){
@@ -459,7 +459,7 @@ class socdiscoo extends CommonFunctions
             $this->setIndexes($containerName);
             //set container writable for www-data group
             if($this->m_user!="CLI"){
-              chmod($dbxmlPath . $containerName, 0664);
+              //chmod($dbxmlPath . $containerName, 0664);
             }
           }catch(xmlexception $e){
             $this->addLog("socdiscoo->initDB() => xmlexception : " . $e->getMessage() ." (". __METHOD__ .")",FATAL);

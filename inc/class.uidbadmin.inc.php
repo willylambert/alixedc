@@ -46,6 +46,11 @@ class uidbadmin extends CommonFunctions{
   //Appel direct depuis la liste des patients (par ex)
   function viewDoc()
   {
+    //Only accessible to admin
+    if(!$GLOBALS['egw_info']['user']['apps']['admin']){
+      $this->addLog("Unauthorized Access to Admin Module - Administrator has been notified",FATAL);
+    }
+    
     $content = ob_get_contents();
     ob_end_clean();
     
@@ -514,6 +519,16 @@ class uidbadmin extends CommonFunctions{
   }
 
   function getExportFile(){
+    //Only accessible to admin
+    if(!$GLOBALS['egw_info']['user']['apps']['admin']){
+      $this->addLog("Unauthorized Access to Admin Module - Administrator has been notified",FATAL);
+    }
+
+    //Only accessible to admin
+    if(!$GLOBALS['egw_info']['user']['apps']['admin']){
+      $this->addLog("Unauthorized Access to Admin Module - Administrator has been notified",FATAL);
+    }
+
     $exportId = $_GET['exportid'];
     
     $this->m_ctrl->boexport()->getExportFile($exportId);
