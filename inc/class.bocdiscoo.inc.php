@@ -337,7 +337,7 @@ class bocdiscoo extends CommonFunctions
       }
       else
       {
-        $this->addLog("Un item attendu (ItemGroup ".$IG->getAttribute("ItemGroupOID").") n'est pas retrouve dans les donnees soumises .\nElement ".$Item['ItemOID'],TRACE);
+        $this->addLog("Expected item (ItemGroup ".$IG->getAttribute("ItemGroupOID").") not found in POSTed vars .\nElement ".$Item['ItemOID'],TRACE);
       }
       
       //Nouvel ItemData uniquement si nous avons un nouvel Item ou une Mise à jour de la valeur
@@ -354,8 +354,11 @@ class bocdiscoo extends CommonFunctions
       {
         $this->addLog("bocdiscoo->addItemData() Ajout de ItemData={$Item['ItemOID']} PreviousItemValue=".$Item->PreviousItemValue." Value=".$tblFilledVar["{$Item['ItemOID']}"],INFO);
 
+        //Value may contains & caracters
+        $encodedValue = htmlspecialchars($tblFilledVar["{$Item['ItemOID']}"],ENT_NOQUOTES); 
+
         $valRet = true;
-        $ItemData = $subj->createElementNS(ODM_NAMESPACE,"ItemData" . ucfirst($Item['DataType']),$tblFilledVar["{$Item['ItemOID']}"]);
+        $ItemData = $subj->createElementNS(ODM_NAMESPACE,"ItemData" . ucfirst($Item['DataType']),$encodedValue);
         $ItemData->setAttribute("ItemOID",$Item['ItemOID']);
         $ItemData->setAttribute("AuditRecordID",$AuditRecordID);
         if($AnnotationID != "") $ItemData->setAttribute("AnnotationID",$AnnotationID);
