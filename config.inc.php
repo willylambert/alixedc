@@ -188,6 +188,10 @@
   $maxIGperPage = 10;
   $configEtude['FORM_PAGINATE']['FORM.CM'] = array('FRMOID'=>'FORM.CM','IG_PER_PAGE'=>$maxIGperPage);
 
+  //Security
+  $configEtude['PASSWORD']['MIN_LENGTH'] = 6;
+  $configEtude['PASSWORD']['UPPER_LOWER_CASE'] = true;
+  $configEtude['PASSWORD']['CHANGE_AFTER'] = 90;  
 
   //Downloadable docmuments for all countries
   $configEtude['DOCS']['INT'] = array(

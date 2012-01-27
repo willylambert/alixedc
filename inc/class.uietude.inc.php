@@ -100,7 +100,6 @@ class uietude extends CommonFunctions
         require_once('class.uidashboard.inc.php');
         global $configEtude;
         $ui = new uidashboard($configEtude,$this->m_ctrl);
-        
         $GLOBALS['egw_info']['flags']['app_header'];
         $this->create_header();
         echo $ui->getInterface();
@@ -216,7 +215,6 @@ class uietude extends CommonFunctions
           $testmode = true;
         }
         $_SESSION[$this->getCurrentApp(false)]['testmode'] = $testmode;
-
         require_once('class.uipassword.inc.php');
         $uiPassword = new uipassword($configEtude,$this->m_ctrl);
         if($uiPassword->passwordNeedChange()){
@@ -224,9 +222,9 @@ class uietude extends CommonFunctions
           echo $uiPassword->getChangeInterface();
           $this->create_footer();
         }else{ 
-          require_once('class.uiaccueil.inc.php');
+          require_once('class.uidashboard.inc.php');
           
-          $ui = new uiaccueil($configEtude,$this->m_ctrl);
+          $ui = new uidashboard($configEtude,$this->m_ctrl);
                   
           $this->create_header();
           echo $ui->getInterface();

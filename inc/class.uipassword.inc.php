@@ -28,20 +28,25 @@ class uipassword extends CommonFunctions
   }
 
   /**
-   *@desc determine les règles qui imposent un changement de mot de passe
+   *Determine rules for suggest password change to the user
    *@return boolean
    *@author wlt        
    **/    
   function passwordNeedChange(){
-    //Le mot de passe doit-il être changé ?
+    //Password must be changed ?
     $password = $GLOBALS['egw_info']['user']['passwd'];
-    
-    //Par défaut, les password sont composés de six lettres minuscules
-    //Dans ce cas on impose le changement du mot de passe
+    $bNeedChange = false;
+        
+    //By default, passwords ares 6 low case letters long.
+    //In this case, password change is suggested to the user
     if(strlen($password)==6 && ctype_lower($password)){
       $bNeedChange = true;
-    }else{
-      $bNeedChange = false;
+    }
+    
+    //If password change is 
+    $nbDaysSinceLastChange = (time() - $GLOBALS['egw_info']['user']['account_lastpwd_change'])/86400; 
+    if($nbDaysSinceLastChange >= $this->m_tblConfig['PASSWORD']['CHANGE_AFTER']){
+      $bNeedChange = true;    
     }
     
     return $bNeedChange;
@@ -85,13 +90,20 @@ class uipassword extends CommonFunctions
   				$errors[] = $error_msg;
   			}
   			
-  			//Verification de la taille minimale (6 caractères)
-  			if(strlen($n_passwd)<6){
+  			//Password min length
+  			if(strlen($n_passwd)<$this->m_tblConfig['PASSWORD']['MIN_LENGTH']){
           $errors[] = lang('The min length of the password is 6 characters');
         }
 
-  			if(strlen($n_passwd)<6){
-          $errors[] = lang('The password must have one digit or one upper case letter');
+        //Password needs at least one upper case letter
+  			if($this->m_tblConfig['PASSWORD']['UPPER_LOWER_CASE']){
+          if(strtolower($n_passwd) == $n_passwd){
+    			  $errors[] = lang('The password needs at least one upper case letter');      
+          }
+          //Password needs at least one lower case letter
+    			if(strtoupper($n_passwd) == $n_passwd){
+    			  $errors[] = lang('The password needs at least one lower case letter');      
+          }
         }
   			
   			if(is_array($errors)==false){ //Pas d'erreur
