@@ -592,6 +592,113 @@ class bocdiscoo extends CommonFunctions
     return $errors;
   }
   
+  /*
+  * Just a method to test a xQuery code
+  * Called by boalixws  
+  * @author: tpi
+  */   
+  public function RunXQuery($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemOID,$ErrorMessage,$FormalExpression,$FormalExpressionDecode,$SoftHard)
+  {
+    $this->addLog("bocdiscoo->checkFormConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID)", TRACE);
+    
+    //$ErrorMessage = addslashes($ErrorMessage);
+    //$FormalExpression = addslashes($FormalExpression);
+    //$FormalExpressionDecode = addslashes($FormalExpressionDecode);
+
+    //Boucle sur les ItemDatas ayant un ItemDef contenant un FormalExpression
+    $query = "
+        let \$SubjectData := collection(\"$SubjectKey.dbxml\")/odm:ODM/odm:ClinicalData/odm:SubjectData
+        let \$MetaDataVersion := collection(\"MetaDataVersion.dbxml\")/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
+        for \$ItemGroupData in \$SubjectData/odm:StudyEventData[@StudyEventOID=\"$StudyEventOID\" and @StudyEventRepeatKey=\"$StudyEventRepeatKey\"]
+                                            /odm:FormData[@FormOID=\"$FormOID\" and @FormRepeatKey=\"$FormRepeatKey\" and @TransactionType!=\"Remove\"]
+                                            /odm:ItemGroupData[@TransactionType!=\"Remove\"]
+        let \$ItemGroupOID := \$ItemGroupData/@ItemGroupOID
+        let \$ItemGroupRepeatKey := \$ItemGroupData/@ItemGroupRepeatKey
+          let \$ItemOID := \"$ItemOID\"
+          let \$ItemDatas := \$ItemGroupData/odm:*[@ItemOID=\$ItemOID]
+          let \$ItemData := \$ItemDatas[last()]
+          let \$ItemDef := \$MetaDataVersion/odm:ItemDef[@OID=\$ItemOID]
+          return
+              <Control ItemOID=\"{\$ItemDef/@OID}\"
+                       ItemGroupRepeatKey=\"{\$ItemGroupRepeatKey}\"
+                       Position=\"-1\"
+                       ItemGroupOID=\"{\$ItemGroupOID}\"
+                       AuditRecordID=\"{\$ItemData/@AuditRecordID}\"
+                       Name=\"{\$ItemDef/@Name}\"
+                       SoftHard=\"$SoftHard\"
+                       ErrorMessage=\"$ErrorMessage\"
+                       FormalExpression=\"$FormalExpression\"
+                       FormalExpressionDecode=\"$FormalExpressionDecode\"
+                       Title=\"{\$ItemDef/odm:Question/odm:TranslatedText[@xml:lang=\"{$this->m_lang}\"]/text()}\"/>
+        ";
+    //return $query;
+    try{
+      $ctrls = $this->m_ctrl->socdiscoo($SubjectKey)->query($query);
+      //return $ctrls;
+    }catch(xmlexception $e){
+      $str = "Erreur de la requete : " . $e->getMessage() . " " . $query ." (". __METHOD__ .")";
+      $this->addLog($str,FATAL);
+      die($str);
+    }
+    $errors = array();
+    
+    $macros = $this->getMacros($SubjectKey);
+    
+    foreach($ctrls as $ctrl)
+    {
+      $testXQuery = $macros . $this->getXQueryConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ctrl);
+      //return $testXQuery;
+      try{
+        $ctrlResult = $this->m_ctrl->socdiscoo($SubjectKey)->query($testXQuery);
+        //return $ctrlResult;
+      }catch(xmlexception $e){
+        //L'erreur est probablement liée à l"ecriture du contrôle contenu dans les metadatas,
+        //ainsi on présente cela d'une façon élégante à l'utilsateur. On conserve la notification par e-mail,
+        //pour rectifier le tir.
+        $str = "xQuery error : " . $e->getMessage() . " " . $testXQuery;
+        $this->addLog($str,ERROR);
+        //Have to return the message !
+        return $str;
+      }
+
+      $this->addLog("bocdiscoo->checkFormConsistency() Control[{$StudyEventOID}][{$FormOID}][{$ctrl['ItemGroupOID']}][{$ctrl['ItemGroupRepeatKey']}]['{$ctrl['ItemOID'] }'] => Result=" . $ctrlResult[0]->Result, INFO);
+      if($ctrlResult[0]->Result=='false'){
+        if($ctrl['SoftHard']=="Hard"){
+          $type = 'HC';
+        }else{
+          $type = 'SC';
+        }
+        //On doit passer par un eval pour gérer les décodes multiples, que l'on passe en param de la func sprintf()
+        $nbS = substr_count($ctrl['ErrorMessage'],"%s");
+        if($nbS>0){
+          $tblParams = explode(' ',$ctrlResult[0]->Decode . str_pad("",$nbS));
+          $tblParams = str_replace("¤", " ", $tblParams); //restauration des espaces ' ' substitués (par des '¤', cf getXQueryConsistency())
+          $ctrl['ErrorMessage'] = str_replace("\"","'",$ctrl['ErrorMessage']);
+          $cmdEval = "\$desc = sprintf(\"".$ctrl['ErrorMessage']."\",\"".implode('","',$tblParams)."\");";
+          eval($cmdEval);
+        }else{
+          //Ici, pas de decode, on affiche simplement le message d'erreur
+          $desc = $ctrl['ErrorMessage'];
+        }
+        $this->addLog("message = $desc",INFO);  
+        $errors[] = array( 
+                           'Description' => $desc,
+                           'Title' => $ctrl['Title'],
+                           'Type' => $type,
+								           'ItemOID' => $ctrl['ItemOID'],
+								           'ItemGroupOID' => $ctrl['ItemGroupOID'],
+								           'ItemGroupRepeatKey' => $ctrl['ItemGroupRepeatKey'],
+								           'Position' => $ctrl['Position'],
+								           'ContextKey' => $ctrlResult[0]->ContextKey,
+								           'Value' => $ctrlResult[0]->Value,
+								           'Decode' => $ctrlResult[0]->DecodedValue
+                         );
+      }
+    }
+    
+    return $errors;
+  }
+  
 /*
 @desc Verification que les données de l'itemgroup respecte bien le format défini dans les metadata
 @param string $MetaDataVersion version des MetaDatas à utiliser
