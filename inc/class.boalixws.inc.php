@@ -40,7 +40,7 @@ class boalixws extends CommonFunctions
 			die('not called via xmlrpc');
 		}else{
 
-      global $configEtude;
+      $configEtude = $GLOBALS['configEtude'];
       CommonFunctions::__construct($configEtude,null);
       
       //Instance controler
@@ -71,10 +71,10 @@ class boalixws extends CommonFunctions
 						'signature' => array(array(xmlrpcStruct,xmlrpcStruct)),
 						'docstring' => lang('Add or Update Doc.')
 					),
-					'runQuery' => array(
-						'function'  => 'importDoc',
+					'testXQuery' => array(
+						'function'  => 'testXQuery',
 						'signature' => array(array(xmlrpcStruct,xmlrpcStruct)),
-						'docstring' => lang('Add or Update Doc.')
+						'docstring' => lang('Test xQuery.')
 					),
 				);
 				break;
@@ -109,6 +109,48 @@ class boalixws extends CommonFunctions
           $this->m_ctrl->socdiscoo()->replaceDocument($uploadfile,false,$containerName);
       }
       return array("result"=>"ok");
+    }else{
+   		$GLOBALS['server']->xmlrpc_error($GLOBALS['xmlrpcerr']['no_access'],$GLOBALS['xmlrpcstr']['no_access']);  
+    }   
+	}
+  	
+	/**
+	 * Test an xQuery
+	 *
+	 * @params array (docContent => base64 of metadata, shortFileName)
+	 * @return array (importLog => string)
+	 */
+	function testXQuery($params)
+	{     
+    //Check user right to import metadata - need to be an admin
+    if($GLOBALS['egw_info']['user']['apps']['admin']){
+    
+      $SubjectKey = $params['SubjectKey'];
+      $StudyEventOID = $params['StudyEventOID'];
+      $StudyEventRepeatKey = $params['StudyEventRepeatKey'];
+      $FormOID = $params['FormOID'];
+      $FormRepeatKey = $params['FormRepeatKey'];
+      $ItemgroupOID = $params['ItemgroupOID'];
+      $ItemGroupRepeatKey = $params['ItemGroupRepeatKey'];
+      $ItemOID = $params['ItemOID'];
+      $SoftHard = $params['SoftHard'];
+      $xQuery = base64_decode($params['xQuery']);
+      $xQueryDecode = base64_decode($params['xQueryDecode']);
+      $ErrorMessage = base64_decode($params['ErrorMessage']);
+      
+      $result = $this->m_ctrl->bocdiscoo()->RunXQuery($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemOID,$ErrorMessage,$xQuery,$xQueryDecode,$SoftHard);
+      
+      if(is_array($result)){
+        if(count($result)>0){
+          $result = $result[0]['Description'];
+        }else{
+          $result = "No error";
+        }
+      }else{
+        //result is an error message
+      }
+      
+      return array("result"=>$result);
     }else{
    		$GLOBALS['server']->xmlrpc_error($GLOBALS['xmlrpcerr']['no_access'],$GLOBALS['xmlrpcstr']['no_access']);  
     }   
