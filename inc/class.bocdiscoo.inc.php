@@ -618,6 +618,7 @@ class bocdiscoo extends CommonFunctions
           let \$ItemDatas := \$ItemGroupData/odm:*[@ItemOID=\$ItemOID]
           let \$ItemData := \$ItemDatas[last()]
           let \$ItemDef := \$MetaDataVersion/odm:ItemDef[@OID=\$ItemOID]
+          where \$ItemData/string()!=''
           return
               <Control ItemOID=\"{\$ItemDef/@OID}\"
                        ItemGroupRepeatKey=\"{\$ItemGroupRepeatKey}\"
