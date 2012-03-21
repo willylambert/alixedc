@@ -27,6 +27,8 @@
 
   $configEtude = array();
 
+  $configEtude["MODULE_NAME"] = $moduleName;
+
   $configEtude["APP_NAME"] = "DEMO BD STUDY";
   
   $configEtude["JS_VERSION"] = "1706";
