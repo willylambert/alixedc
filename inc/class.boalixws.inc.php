@@ -133,24 +133,39 @@ class boalixws extends CommonFunctions
       $ItemgroupOID = $params['ItemgroupOID'];
       $ItemGroupRepeatKey = $params['ItemGroupRepeatKey'];
       $ItemOID = $params['ItemOID'];
+      $Value = base64_decode($params['Value']);
+      if($Value=="%CRF%"){
+        $Value = false;
+      }
       $SoftHard = $params['SoftHard'];
       $xQuery = base64_decode($params['xQuery']);
       $xQueryDecode = base64_decode($params['xQueryDecode']);
       $ErrorMessage = base64_decode($params['ErrorMessage']);
       
-      $result = $this->m_ctrl->bocdiscoo()->RunXQuery($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemOID,$ErrorMessage,$xQuery,$xQueryDecode,$SoftHard);
       
+      $strRes = "";
+      $result = $this->m_ctrl->bocdiscoo()->RunXQuery($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemOID,$Value,$ErrorMessage,$xQuery,$xQueryDecode,$SoftHard);
+      
+      //$result = print_r($result,true);
       if(is_array($result)){
         if(count($result)>0){
-          $result = $result[0]['Description'];
+          $strRes = (string)$result[0]['Description'];
+          if($strRes==""){
+            $strRes = "Description is empty!";
+          }
         }else{
-          $result = "No error";
+          $strRes = "No error.";
         }
       }else{
-        //result is an error message
+        if(!$result){
+          $strRes = "No result!";
+        }else{
+          //result is an error message
+          $strRes = $result;
+        }
       }
       
-      return array("result"=>$result);
+      return array("result"=>$strRes);
     }else{
    		$GLOBALS['server']->xmlrpc_error($GLOBALS['xmlrpcerr']['no_access'],$GLOBALS['xmlrpcstr']['no_access']);  
     }   

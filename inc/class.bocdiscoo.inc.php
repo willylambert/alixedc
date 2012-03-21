@@ -592,19 +592,21 @@ class bocdiscoo extends CommonFunctions
     return $errors;
   }
   
+  
   /*
   * Just a method to test a xQuery code
   * Called by boalixws  
   * @author: tpi
-  */   
-  public function RunXQuery($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemOID,$ErrorMessage,$FormalExpression,$FormalExpressionDecode,$SoftHard)
+  */
+  public function RunXQuery($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemOID,$Value=false,$ErrorMessage,$FormalExpression,$FormalExpressionDecode,$SoftHard)
   {
-    $this->addLog("bocdiscoo->checkFormConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID)", TRACE);
+    $this->addLog("bocdiscoo->checkFormConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemOID,$Value,\$ErrorMessage,\$FormalExpression,\$FormalExpressionDecode,$SoftHard)", TRACE);
     
-    //$ErrorMessage = addslashes($ErrorMessage);
-    //$FormalExpression = addslashes($FormalExpression);
-    //$FormalExpressionDecode = addslashes($FormalExpressionDecode);
-
+    $whereItemData = "";
+    if($Value==false){
+      $whereItemData = "where \$ItemData/string()!=''";
+    }
+    
     //Boucle sur les ItemDatas ayant un ItemDef contenant un FormalExpression
     $query = "
         let \$SubjectData := collection(\"$SubjectKey.dbxml\")/odm:ODM/odm:ClinicalData/odm:SubjectData
@@ -618,6 +620,7 @@ class bocdiscoo extends CommonFunctions
           let \$ItemDatas := \$ItemGroupData/odm:*[@ItemOID=\$ItemOID]
           let \$ItemData := \$ItemDatas[last()]
           let \$ItemDef := \$MetaDataVersion/odm:ItemDef[@OID=\$ItemOID]
+          $whereItemData
           return
               <Control ItemOID=\"{\$ItemDef/@OID}\"
                        ItemGroupRepeatKey=\"{\$ItemGroupRepeatKey}\"
@@ -646,7 +649,7 @@ class bocdiscoo extends CommonFunctions
     
     foreach($ctrls as $ctrl)
     {
-      $testXQuery = $macros . $this->getXQueryConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ctrl);
+      $testXQuery = $macros . $this->getXQueryConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ctrl,$Value);
       //return $testXQuery;
       try{
         $ctrlResult = $this->m_ctrl->socdiscoo($SubjectKey)->query($testXQuery);
@@ -680,7 +683,7 @@ class bocdiscoo extends CommonFunctions
           //Ici, pas de decode, on affiche simplement le message d'erreur
           $desc = $ctrl['ErrorMessage'];
         }
-        $this->addLog("message = $desc",INFO);  
+        $this->addLog("message = $desc",INFO);
         $errors[] = array( 
                            'Description' => $desc,
                            'Title' => $ctrl['Title'],
@@ -694,6 +697,12 @@ class bocdiscoo extends CommonFunctions
 								           'Decode' => $ctrlResult[0]->DecodedValue
                          );
       }
+    }
+    
+    if(count($errors)==0 && $Value===false){
+      //test if value to test is existing
+      $value = $this->getValue($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,"","",$ItemOID,"");
+      if($value=="") return "No error. Value not found or empty in the CRF.";
     }
     
     return $errors;
@@ -2307,8 +2316,11 @@ class bocdiscoo extends CommonFunctions
     return $doc;
   }
 
-  //Retourne la valeur actuelle d'une variable donnée
-  public function getValue($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$ItemOID)
+  //@desc Retourne la valeur actuelle d'une variable donnée
+  //@optional param ItemGroupOID => if empty, look into the whole form
+  //@optional param exlude => exclude some values from the research of the value : can be a string or an array of strings
+  //@author tpi
+  public function getValue($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$ItemOID,$exclude=false)
   {
     $andStudyEventRepeatKey = "";
     if($StudyEventRepeatKey!=""){
@@ -2318,9 +2330,20 @@ class bocdiscoo extends CommonFunctions
     if($FormRepeatKey!=""){
       $andFormRepeatKey = "and @FormRepeatKey='$FormRepeatKey'";
     }
+    $andItemGroupOID = "";
+    if($ItemGroupOID!=""){
+      $andItemGroupOID = "and @ItemGroupOID='$ItemGroupOID'";
+    }
     $andItemGroupRepeatKey = "";
     if($ItemGroupRepeatKey!=""){
       $andItemGroupRepeatKey = "and @ItemGroupRepeatKey='$ItemGroupRepeatKey'";
+    }
+    $whereIGString = "";
+    if($exclude!==false){
+      if(!is_array($exclude)) $exclude = array($exclude);
+      foreach($exclude as $val){
+        $whereIGString .= " and local:getLastValue(./odm:*[@ItemOID='$ItemOID'])!=\"$val\"";
+      }
     }
     
     //L'audit trail engendre plusieurs ItemData avec le même ItemOID, ce qui nous oblige
@@ -2333,7 +2356,7 @@ class bocdiscoo extends CommonFunctions
       };
       
       let \$SubjectData := collection('$SubjectKey.dbxml')/odm:ODM/odm:ClinicalData/odm:SubjectData
-      let \$value := local:getLastValue(\$SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' $andStudyEventRepeatKey]/odm:FormData[@FormOID='$FormOID' $andFormRepeatKey]/odm:ItemGroupData[@ItemGroupOID='$ItemGroupOID' $andItemGroupRepeatKey and (@TransactionType!='Remove' or not(@TransactionType))]/odm:*[@ItemOID='$ItemOID'])
+      let \$value := local:getLastValue(\$SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' $andStudyEventRepeatKey]/odm:FormData[@FormOID='$FormOID' $andFormRepeatKey]/odm:ItemGroupData[true() $andItemGroupOID $andItemGroupRepeatKey and (@TransactionType!='Remove' or not(@TransactionType)) $whereIGString]/odm:*[@ItemOID='$ItemOID'])
       return
         <result value='{\$value}' />
     ";
@@ -2350,7 +2373,8 @@ class bocdiscoo extends CommonFunctions
   
   //Fonction de création de la xQuery à éxécuter dans le checkFormConsistency
   //Retourne la xQuery à partir d'un ctrl[FormalExpression,FormalExpressionDecode]
-  function getXQueryConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ctrl){
+  //@optional param Value for RunXQuery
+  function getXQueryConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ctrl,$Value=false){
     $testExpr = $ctrl['FormalExpression'];
     
     /*******************************************************************************/
@@ -2424,6 +2448,13 @@ class bocdiscoo extends CommonFunctions
             </Decode>";
     }
     
+    $ItemData = "\$FormData/odm:ItemGroupData[@ItemGroupOID='{$ctrl['ItemGroupOID']}' and @ItemGroupRepeatKey='{$ctrl['ItemGroupRepeatKey']}']/
+                                   odm:*[@ItemOID='{$ctrl['ItemOID']}' and @AuditRecordID='{$ctrl['AuditRecordID']}']";
+    if($Value!==false){ //If value is specified somewhere (eCRFDesigner via RunXQuery())
+      $ItemData = "<ItemData ItemOID='{$ctrl['ItemOID']}' AuditRecordID='{$ctrl['AuditRecordID']}'>$Value</ItemData>";
+      //TODO: recreate the full context : recreate FormData and ItemGroupData with this Specified ItemData included
+    }
+    
     //Création de la requête de test pour l'ItemData en cours
     $testXQuery = "
       let \$StudyEventOID := '$StudyEventOID'
@@ -2437,8 +2468,7 @@ class bocdiscoo extends CommonFunctions
       let \$StudyEventData := \$SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']
       let \$FormData := \$StudyEventData/odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']
       let \$ItemGroupData := \$FormData/odm:ItemGroupData[@ItemGroupOID='{$ctrl['ItemGroupOID']}' and @ItemGroupRepeatKey='{$ctrl['ItemGroupRepeatKey']}']
-      let \$ItemData := \$FormData/odm:ItemGroupData[@ItemGroupOID='{$ctrl['ItemGroupOID']}' and @ItemGroupRepeatKey='{$ctrl['ItemGroupRepeatKey']}']/
-                                   odm:*[@ItemOID='{$ctrl['ItemOID']}' and @AuditRecordID='{$ctrl['AuditRecordID']}']
+      let \$ItemData := $ItemData
       let \$value := local:getRawValue(\$ItemData)
       let \$decode := local:getDecode(\$ItemData,\$SubjectData,\$MetaDataVersion)
       $lets
