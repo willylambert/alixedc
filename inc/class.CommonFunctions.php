@@ -21,7 +21,7 @@
     * along with ALIX.  If not, see <http://www.gnu.org/licenses/>.            *
     \**************************************************************************/
 /**
-* @desc Classe de base abstraite contenant les méthodes communes à toutes les classes
+* @desc Classe de base abstraite contenant les mï¿½thodes communes ï¿½ toutes les classes
 * Features :
 *   => Affichage de variable sous la forme print_r version html ou version texte pour insertion dans log par ex
 *   => addLog : Fonction de log...
@@ -38,21 +38,21 @@ define("FATAL",5);
 class CommonFunctions{
 
 /****************************************************/
-//Variables membres (privées)
+//Variables membres (privï¿½es)
 /****************************************************/
 
-  //Array des paramètres de config
+  //Array des paramï¿½tres de config
   public $m_tblConfig;
 
-  //Référence vers le controleur (class uietude)
-  //Unique point d'accès aux instances des classes boXXXXX et uiXXXXX
+  //Rï¿½fï¿½rence vers le controleur (class uietude)
+  //Unique point d'accï¿½s aux instances des classes boXXXXX et uiXXXXX
   public $m_ctrl;
   
   public $m_user;
   public $m_lang;
   
 /****************************************************/
-//Méthodes Publiques
+//Mï¿½thodes Publiques
 /****************************************************/
 
   //Constructeur
@@ -72,7 +72,7 @@ class CommonFunctions{
       $this->m_lang = "en";
     }
     if (defined('EGW_INCLUDE_ROOT')) {
-      require_once(EGW_INCLUDE_ROOT . "/".$GLOBALS['egw_info']['flags']['currentapp']."/custom/".$this->m_tblConfig['METADATAVERSION']."/inc/hookFunctions.php"); 
+      require_once(EGW_INCLUDE_ROOT . "/".$this->m_tblConfig['MODULE_NAME']."/custom/".$this->m_tblConfig['METADATAVERSION']."/inc/hookFunctions.php"); 
     }
 
   
@@ -85,7 +85,7 @@ class CommonFunctions{
   }
  
 /****************************************************/
-//Méthodes Privés
+//Mï¿½thodes Privï¿½s
 /****************************************************/
   
   protected function egwId2studyId($id)
@@ -125,7 +125,7 @@ class CommonFunctions{
   }
 
 /*
-@desc retourne le login, identifiant de connexion, de l'utilisateur connecté
+@desc retourne le login, identifiant de connexion, de l'utilisateur connectï¿½
 @return string login
 @author tpi
 */
@@ -134,8 +134,8 @@ class CommonFunctions{
   }
   
   /**
-  *@desc Retourne la string currentapp utilisé dans la base de données egroupware pour différencier les différentes instances du module de CRF
-  *      Si le mode test est activé, un suffixe peut être ajouté en fonction du paramètre $bIncludeTestModeSuffix
+  *@desc Retourne la string currentapp utilisï¿½ dans la base de donnï¿½es egroupware pour diffï¿½rencier les diffï¿½rentes instances du module de CRF
+  *      Si le mode test est activï¿½, un suffixe peut ï¿½tre ajoutï¿½ en fonction du paramï¿½tre $bIncludeTestModeSuffix
   *@param boolean $bIncludeTestModeSuffix ajouter le suffixe d'indication du mode de test si le mode de test est actif
   *@return string             
   **/  
@@ -153,10 +153,10 @@ class CommonFunctions{
   }
 
   /**
-  * @desc Tente d'appeler le hook demandé, si celui ci a été déclaré
+  * @desc Tente d'appeler le hook demandï¿½, si celui ci a ï¿½tï¿½ dï¿½clarï¿½
   * @param string $methodName nom de la methode appelante
   * @param string $hookName nom du hook
-  * @param array tableau de paramètre passé au hook     
+  * @param array tableau de paramï¿½tre passï¿½ au hook     
   * @return valeur de retour du hook
   * @author WLT
   **/   
