@@ -90,7 +90,7 @@ class uietude extends CommonFunctions
 		
 		$htmlRet = ob_get_clean();
 		$htmlRet = str_replace("&","&amp;",$htmlRet);
-    
+        
     $stdDoc = new DOMDocument();
     $stdDoc->loadHTML($htmlRet);
     
@@ -111,6 +111,13 @@ class uietude extends CommonFunctions
       $proc->importStyleSheet($xsl);
       
       $proc->setParameter('',"CurrentApp",$this->getCurrentApp(false));
+      if(isset($_GET['SubjectKey'])){
+        $proc->setParameter('',"SubjectKey",$_GET['SubjectKey']);
+      }
+      if(isset($_GET['OnlyLoadForm'])){
+        $proc->setParameter('',"OnlyLoadForm",$_GET['OnlyLoadForm']);
+      }
+      
       $stdDoc = $proc->transformToDoc($stdDoc);
     } 		
     
@@ -120,8 +127,8 @@ class uietude extends CommonFunctions
     
     //We add the html DOC Type for HTML 5 support - safely ignored by older browser
     $htmlRet = "<!DOCTYPE html>$htmlRet";
-    
     echo $htmlRet;
+    //echo "<!DOCTYPE html><html><body>toto</body></html>";
 		
 		$this->addLog("***********************************************************************",INFO);
 	}

@@ -203,7 +203,7 @@ function loadAlixCRFjs(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepe
   $("#visit_"+StudyEventOID+"_"+StudyEventRepeatKey+"_form_"+FormOID.replace(".","\\.")+"_"+FormRepeatKey).addClass("ui-state-highlight");
 
   //Affichage des queries
-  //showQueries(CurrentApp,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey,ProfileId);
+  showQueries(CurrentApp,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey,ProfileId);
   
   //Affichage des deviations
   //showDeviations(CurrentApp,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey,ProfileId);

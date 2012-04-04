@@ -101,7 +101,7 @@ class CommonFunctions{
     if(strstr($_SERVER['HTTP_USER_AGENT'],"iPad")){
       return true;
     }else{
-      return true;
+      return false;
     }
   }
   

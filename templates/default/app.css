@@ -934,6 +934,10 @@ form#addProfile input.text { margin-bottom:12px; width:95%; padding: .4em; }
   text-align:center;
 }
 
+#toolbar_ico img{
+  width:32px;
+} 
+
 .itemGroupHeadLine{
   clear:both;
   text-align:left;
