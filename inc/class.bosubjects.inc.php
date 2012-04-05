@@ -91,16 +91,12 @@ class bosubjects extends CommonFunctions
     
     $DOMList = new DOMDocument();
     $DOMList->loadXML("<subjects FileOID='SubjectsList'></subjects>");
-    $subjectsContainers = $this->m_ctrl->socdiscoo()->getSubjectsContainers();
+    $SubjectKeys = $this->m_ctrl->socdiscoo()->getDocumentsList('ClinicalData');
     $isNewList = true;
-    foreach($subjectsContainers as $subjectContainer){
+    foreach($SubjectKeys as $SubjectKey){
       set_time_limit(30);
-      $SubjectKey = substr($subjectContainer, 0, -6);
       try{
         $this->addLog(__METHOD__."() Adding Subject $SubjectKey",TRACE);
-
-        //We only need to lock one subject
-        $this->m_ctrl->socdiscoo($SubjectKey,true);
         
         $this->updateSubjectInList($SubjectKey, $DOMList, $isNewList);
         $isNewList = false;
@@ -122,11 +118,11 @@ class bosubjects extends CommonFunctions
     $this->addLog(__METHOD__."()",INFO);
     
     try{
-      $SubjectsList = $this->m_ctrl->socdiscoo("SubjectsList")->getDocument("SubjectsList.dbxml","SubjectsList",true);
+      $SubjectsList = $this->m_ctrl->socdiscoo()->getDocument("","SubjectsList");
     }catch(Exception $e){
       $this->addLog($e->getMessage(),INFO);
       $this->initSubjectsList();
-      $SubjectsList = $this->m_ctrl->socdiscoo("SubjectsList")->getDocument("SubjectsList.dbxml","SubjectsList",true);
+      $SubjectsList = $this->m_ctrl->socdiscoo()->getDocument("","SubjectsList");
     }
     return $SubjectsList;
   }
@@ -142,7 +138,7 @@ class bosubjects extends CommonFunctions
     
     if($SubjectsList===false){
       try{
-        $SubjectsList = $this->m_ctrl->socdiscoo($SubjectKey)->getDocument("SubjectsList.dbxml","SubjectsList",false);
+        $SubjectsList = $this->m_ctrl->socdiscoo()->getDocument("","SubjectsList",false);
       }catch(Exception $e){
         $this->addLog($e->getMessage(),INFO);
         $this->initSubjectsList();
@@ -207,9 +203,9 @@ class bosubjects extends CommonFunctions
           
     //update SubjectsList.dbxml
     if($isNewList){
-      $this->m_ctrl->socdiscoo("SubjectsList")->addDocument($SubjectsList,false,"",false);
+      $this->m_ctrl->socdiscoo()->addDocument($SubjectsList,false,"",false);
     }else{
-      $this->m_ctrl->socdiscoo("SubjectsList")->replaceDocument($SubjectsList,false,"",false);
+      $this->m_ctrl->socdiscoo()->replaceDocument($SubjectsList,false,"",false);
     }
   }
 
@@ -229,7 +225,7 @@ class bosubjects extends CommonFunctions
 
           <subjs>
               {
-                let \$SubjectsCol := collection('$SubjectKey.dbxml')
+                let \$SubjectsCol := collection('ClinicalData')[/odm:ODM/@FileOID='$SubjectKey']
                 for \$SubjectData in \$SubjectsCol/odm:ODM/odm:ClinicalData/odm:SubjectData
 				        let \$FileOID := \$SubjectData/../../@FileOID
                 ";
@@ -242,7 +238,11 @@ class bosubjects extends CommonFunctions
                                                           odm:*[@ItemOID='{$col['Value']['ITEMOID']}'])
                   ";
       }else{
-        $query .= "let \$col$key := " . $col['Value'];
+        if($key=="SUBJID"){
+          $query .= "let \$col$key := \$FileOID \n";
+        }else{
+          $query .= "let \$col$key := " . $col['Value'];
+        }
       }
     }            
 
@@ -257,10 +257,10 @@ class bosubjects extends CommonFunctions
       
     $query .= "}
           </subjs>";
-
+    
     try{
       $this->addLog(__METHOD__."() Run query",TRACE);
-      $doc = $this->m_ctrl->socdiscoo($SubjectKey)->query($query);
+      $doc = $this->m_ctrl->socdiscoo()->query($query);
       $this->addLog(__METHOD__."() Query OK",TRACE);
     }catch(xmlexception $e){
       $str = "Erreur de la requete : " . $e->getMessage() . "<br/><br/>" . $query . __METHOD__ .")";

@@ -278,6 +278,7 @@ function editor_new(){
 function editor_save(){
   var content = _editor.getSession().getValue();
   //content = helper.addslashes(content);
+  //content = '<?xml version="1.0" standalone="yes"?><ODM xmlns="http://www.cdisc.org/ns/odm/v1.3" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ODMVersion="1.3" FileOID="0010001" FileType="Transactional" Description="" CreationDateTime="2008-02-01T18:31:00" Originator="Peter Holmes"><ClinicalData StudyOID="ESOGIA" MetaDataVersionOID="1.0.2">TEST</ClinicalData></ODM>';
   content = encodeURIComponent(content);
   //content = escape(content);
   //alert(content);
@@ -285,6 +286,7 @@ function editor_save(){
   //dataString =  'file='+ _file +'&content='+ content; //ok php => faire un urldecode + stripslashes //ko xml
   dataString = {file: _file, content: content}; //ok xml => faire un urldecode + str_replacede \\'  //ok php => faire un urldecode + str_replace de \\'
   //dataString =  'file='+ _file +'&content='+ content;
+  //alert(decodeURIComponent(dataString.content));
   helper.setLoader('editorContainer', 'big', 'Saving...');
   $.ajax({
     type: 'POST',

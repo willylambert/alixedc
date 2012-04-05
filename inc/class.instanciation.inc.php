@@ -77,19 +77,14 @@ class instanciation extends CommonFunctions
   @return socdiscoo object reference
   @author wlt
   */
-  public function socdiscoo($SubjectKey="",$bForceNew = false)
+  public function socdiscoo()
   {
     require_once("class.socdiscoo.inc.php");
-    $this->addLog("uietude->socdiscoo($SubjectKey)",TRACE);
-    
-    if($bForceNew && isset($this->m_socdiscoo)){
-      //Release associated lock
-      unset($this->m_socdiscoo);  
-    }
+    $this->addLog("uietude->socdiscoo()",TRACE);
     
     if(!isset($this->m_socdiscoo)){
-      $this->addLog("uietude->socdiscoo($SubjectKey) : instanciation of socdiscoo",TRACE);
-      $this->m_socdiscoo = new socdiscoo($this->m_tblConfig,$SubjectKey);
+      $this->addLog("uietude->socdiscoo() : instanciation of socdiscoo",TRACE);
+      $this->m_socdiscoo = new socdiscoo($this->m_tblConfig);
     }    
     return $this->m_socdiscoo;   
   }

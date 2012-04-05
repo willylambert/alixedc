@@ -217,7 +217,7 @@ class uidashboard extends CommonFunctions
                       <tbody>";
     
     foreach($stats as $stat){
-      $query = "let \$SubjCol := collection('SubjectsList.dbxml')";
+      $query = "let \$SubjCol := doc('SubjectsList')";
       $query .= $stat['query'];
 
 
@@ -300,7 +300,7 @@ class uidashboard extends CommonFunctions
   private function getAgeDistribution(){
     $htmlRet = "";
     
-    $query = "let \$SubjectsCol := collection('SubjectsList.dbxml')
+    $query = "let \$SubjectsCol := doc('SubjectsList')
               for \$SubjectData in \$SubjectsCol/subjects/subject
               let \$siteId := \$SubjectData/colSITEID
               let \$age := \$SubjectData/colDMAGE
@@ -379,7 +379,7 @@ class uidashboard extends CommonFunctions
   private function getWeightDistribution(){
     $htmlRet = "";
     
-    $query = "let \$SubjectsCol := collection('SubjectsList.dbxml')
+    $query = "let \$SubjectsCol := doc('SubjectsList')
               for \$SubjectData in \$SubjectsCol/subjects/subject
               let \$siteId := \$SubjectData/colSITEID
               let \$weight := \$SubjectData/colWEIGHT
@@ -482,7 +482,7 @@ class uidashboard extends CommonFunctions
 		
 		$tblSite = $this->m_ctrl->boacl()->getSites();
 
-    $query = "let \$SubjectsCol := collection('SubjectsList.dbxml')
+    $query = "let \$SubjectsCol := doc('SubjectsList')
               for \$SubjectData in \$SubjectsCol/subjects/subject
               let \$siteId := \$SubjectData/colSITEID
               let \$numRando := \$SubjectData/colRDNUM
@@ -580,7 +580,7 @@ class uidashboard extends CommonFunctions
       //on ne calcule pas les valeurs du futur
       $toDate = $year."-".sprintf("%02d", $month)."-".date('d');
       if($toDate <= $today){
-        $query = "let \$SubjectsCol := collection('SubjectsList.dbxml')
+        $query = "let \$SubjectsCol := doc('SubjectsList')
                   for \$SubjectData in \$SubjectsCol/subjects/subject
                   let \$SVSVSTDTC := \$SubjectData/colSVSVSTDTC
                   where \$SVSVSTDTC!='' and \$SVSVSTDTC lt '$toDate'

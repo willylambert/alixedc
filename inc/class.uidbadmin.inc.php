@@ -57,17 +57,13 @@ class uidbadmin extends CommonFunctions{
     header("content-type: text/xml");
     if(isset($_GET['asxml'])) header('Content-Disposition: attachment; filename="'.$_GET['doc'].'.xml"');
     //with SimpleXmlElement
-    if($_GET['container']=="MetaDataVersion"){
-      echo $this->m_ctrl->socdiscoo($_GET['doc'])->getDocument("MetaDataVersion.dbxml",$_GET['doc'])->asXML();
-    }else{
-      echo $this->m_ctrl->socdiscoo($_GET['doc'])->getDocument("{$_GET['doc']}.dbxml",$_GET['doc'])->asXML();
-    }
-    exit(0); 
+    echo $this->m_ctrl->socdiscoo()->getDocument($_GET['container'],$_GET['doc'])->asXML();
+    exit(0);
   }
 
   function deleteDoc()
   {
-    $this->m_ctrl->socdiscoo()->deleteDocument("{$_GET['doc']}.dbxml",$_GET['doc']);
+    $this->m_ctrl->socdiscoo()->deleteDocument($_GET['container'],$_GET['doc']);
   }
   
   function getInterface()
@@ -228,46 +224,41 @@ class uidbadmin extends CommonFunctions{
   }
 
   private function getMainInterface($containerName)
-  {             
- 		  if($containerName=="SubjectsList"){
-        $collection = "collection('SubjectsList.dbxml')";
-      }elseif($containerName=="ClinicalData"){
-        $collection = $this->m_ctrl->socdiscoo()->getClinicalDataCollection();
-      }else{
-        $collection = "collection('MetaDataVersion.dbxml')";
-      }
+  {
+      $containerName = $_GET['container'];
+      
       //Boucle sur les documents
-      $query = "<docs>
-                {
-                let \$Col := $collection
-                for \$doc in \$Col 
-                return 
-                <doc>{dbxml:metadata('dbxml:name', \$doc)}</doc>
-                }
-                </docs>
-                "; 
+      if($containerName!=""){
+        $query = "<docs>
+                  {
+                    for \$doc in document('\$documents')/documents/collection[@name='$containerName']/document
+                    return 
+                    <doc>{\$doc/string(@name)}</doc>
+                  }
+                  </docs>
+                  ";
+      }else{
+        $query = "<docs>
+                  {
+                    for \$doc in document('\$documents')/documents/document
+                    return 
+                    <doc>{\$doc/string(@name)}</doc>
+                  }
+                  </docs>
+                  ";
+      }
 
-      try{
+      try
+      {
         $docs = $this->m_ctrl->socdiscoo()->query($query);
-      }catch(xmlexception $e){
-        $str = "xQuery error : " . $e->getMessage() . "<br/><br/>" . $query . "</html>";
+      }
+      catch(xmlexception $e)
+      {
+        $str = "Erreur de la requete : " . $e->getMessage() . "<br/><br/>" . $query . "</html>";
         die($str);
       }
 
-      $htmlRet = '<table width="100%"><tr><td valign="top">';
-      
-      //Pour les containers SAS, on ajoute un bouton d'import des fichers depuis le container correspondant en ODM 1.3
-      
-      if($containerName=="ClinicalDataSAS" || $containerName=="MetaDataVersionSAS"){
-        $htmlRet .= "<a href='" . $GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
-                                                                           'action' => 'importToSAS',
-                                                                           'container' => substr($containerName,0,strlen($containerName)-3))) . "'>Mettre à jour la base SAS</a>";
-      }
-      
-      $htmlRet .= '<div class="divSidebox">
-            	<div class="divSideboxHeader" align="center"><span>'.$containerName.'</span></div>';
-      
-			$htmlRet .= "<table align='center' width='80%' cellspacing='0' cellpadding='2' class='tabloGris'>
+      $htmlRet .= "<table align='center' width='80%' cellspacing='0' cellpadding='2' class='tabloGris'>
 			<tbody><tr>
 			<th class='tabloGrisTitle'>Name</th>
 			<th class='tabloGrisTitle'>Status</th>
@@ -275,72 +266,47 @@ class uidbadmin extends CommonFunctions{
 			</tr>" ;  
       
       $class = "";
-
+      
       foreach($docs[0] as $doc)
       {
-        //checking if document can be accessed
         $status = "ok";
-        try{
-          if($containerName=="SubjectsList"){
-            $xquery = "let \$FileOID := collection('SubjectsList.dbxml')/odm:ODM/@FileOID";
-          }elseif($containerName=="ClinicalData"){
-            $xquery = "let \$FileOID := collection('$doc.dbxml')/odm:ODM/@FileOID";
-          }else{
-            $xquery = "let \$FileOID := doc('MetaDataVersion.dbxml/$doc')/odm:ODM/@FileOID";
+        if($containerName!=""){
+          try{
+            $xquery = "let \$res := exists(collection('$containerName')/odm:ODM/@FileOID='$doc')
+                       return<res>{\$res}</res>";
+            $results = $this->m_ctrl->socdiscoo()->query($xquery);
+            if((string)$results[0] != 'true') throw new xmlexception("Cannot find doc('$doc')/odm:ODM/@FileOID");
+          }catch(xmlexception $e){
+            $status = "<input type='button' value='ko' onClick=\"alert('". addslashes($e->getMessage()) ."')\" />";
           }
-          $xquery .= "
-                     return
-                           <result FileOID='{\$FileOID}' />";
-          $results = $this->m_ctrl->socdiscoo()->query($xquery);
-          if((string)$results[0]['FileOID'] == '') throw new xmlexception("Cannot find doc('$containerName.dbxml/$doc')/odm:ODM/@FileOID");
-        }catch(xmlexception $e){
-          $status = "<input type='button' value='ko' onClick=\"alert('". addslashes($e->getMessage()) ."')\" />";
         }
         
         $class = ($class=="row_off" ? "row_on" : "row_off");
-        
         $htmlRet .= "
-           <tr class='$class'><td>" . $doc ."</td>
-             <td style='text-align: center;'>$status</td> 
-             <td><small><a target='_new' href='" . $GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
+           <tr class='$class' style='".($status != "ok"?'background-color: red; color: white;':'').";' onMouseOver=\"this.oldBGC = this.style.backgroundColor; this.style.backgroundColor='yellow';\" onMouseOut=\"this.style.backgroundColor=this.oldBGC;\"><td>" . $doc ."</td>
+             <td style='text-align: center;'><small>$status</small></td> 
+             <td style='text-align: center; font-weight: bold;'><small><a target='_new' href='" . $GLOBALS['egw']->link('/index.php',array('menuaction' => $GLOBALS['egw_info']['flags']['currentapp'].'.uietude.dbadminInterface',
                                                                                               'action' => 'viewDoc',
                                                                                               'container' => $containerName,
-                                                                                              'doc'=>$doc)) . "'>View</a></small></td>   
-             <td><small><a href='" . $GLOBALS['egw']->link('/index.php',array('menuaction' => $GLOBALS['egw_info']['flags']['currentapp'].'.uietude.dbadminInterface',
+                                                                                              'doc'=>$doc)) . "'>View</a></small></td>  
+             <td style='text-align: center; font-weight: bold;'><small><a href='" . $GLOBALS['egw']->link('/index.php',array('menuaction' => $GLOBALS['egw_info']['flags']['currentapp'].'.uietude.dbadminInterface',
                                                                                               'action' => 'viewDoc',
                                                                                               'container' => $containerName,
                                                                                               'doc'=>$doc,
-                                                                                              'asxml'=>'true')) . "'>Download</a></small></td>
-             <td><small><a href='" . $GLOBALS['egw']->link('/index.php',array('menuaction' => $GLOBALS['egw_info']['flags']['currentapp'].'.uietude.dbadminInterface',
-                                                                                              'action' => 'updateSubjectStatus',
-                                                                                              'container' => $containerName,
-                                                                                              'doc'=>$doc)) . "'>Update Subject Status</a></small></td>
-             <td><small><a href=\"javascript:deleteDocument('".$doc."')\">Delete</a></small></td>
-
-           </tr>";        
+                                                                                              'asxml'=>'true')) . "'>Download</a></small></td>                       
+             <td style='text-align: center; font-weight: bold;'><small><a href=\"javascript:deleteDocument('".$doc."')\">Delete</a></small></td>                                                
+           </tr>";      
       }
-
-      //Ajout du BLANK
-      if($containerName=="ClinicalData"){
-        $htmlRet .= "
-           <tr class='$class'><td>BLANK</td>
-             <td style='text-align: center;'>--</td> 
-             <td><small><a target='_new' href='" . $GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
-                                                                                              'action' => 'viewDoc',
-                                                                                              'doc'=>"BLANK")) . "'>View</a></small></td>   
-             <td><small><a href='" . $GLOBALS['egw']->link('/index.php',array('menuaction' => $GLOBALS['egw_info']['flags']['currentapp'].'.uietude.dbadminInterface',
-                                                                                              'action' => 'viewDoc',
-                                                                                              'doc'=>"BLANK",
-                                                                                              'asxml'=>'true')) . "'>Download</a></small></td>
-             <td><small><a href=\"javascript:deleteDocument('".$doc."')\">Delete</a></small></td>
-           </tr>";  
-      }
-      $htmlRet .= "</tbody></table>";
       
-      $htmlRet .= "<form action='".$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
+      $htmlRet .= "</tbody></table>";
+      $htmlRet .= count($docs[0]) ." fichiers";
+      $htmlRet .= "</div>";
+      
+      
+      $htmlRet .= "<form action='".$GLOBALS['egw']->link('/index.php',array('menuaction' => $GLOBALS['egw_info']['flags']['currentapp'].'.uietude.dbadminInterface',
                                                                                               'action' => 'execXQuery',
                                                                                               'container' => $containerName))."' method='post'>
-                    <textarea name='p_xquery' rows='15' cols='140'>".(isset($_POST['p_xquery'])?$_POST['p_xquery']:'')."</textarea><br/>
+                    <textarea name='p_xquery' rows='15' cols='140'>".(isset($_POST['p_xquery'])?stripslashes($_POST['p_xquery']):'')."</textarea><br/>
                     <input type='submit'/></form>";
       
       $deleteUrl = $GLOBALS['egw']->link('/index.php',array('menuaction' => $GLOBALS['egw_info']['flags']['currentapp'].'.uietude.dbadminInterface',
@@ -350,7 +316,7 @@ class uidbadmin extends CommonFunctions{
                    <script>
                     function deleteDocument(doc)
                     {
-                      if(confirm('Delete document '+doc+' ?'))
+                      if(confirm('Supprimer le document '+doc+' ?'))
                       {
                         window.location = \"".$deleteUrl."&doc=\"+doc;
                       }
@@ -557,9 +523,9 @@ class uidbadmin extends CommonFunctions{
     $uploadfile = $uploaddir . basename($_FILES['uploadedDoc']['name']);
     
     if($container=="MetaDataVersion"){
-      $containerName = "MetaDataVersion.dbxml";
+      $containerName = "MetaDataVersion";
     }else{
-      $containerName="";
+      $containerName=$container;
     }
     
     if (move_uploaded_file($_FILES['uploadedDoc']['tmp_name'], $uploadfile)){

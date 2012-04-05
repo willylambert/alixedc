@@ -77,7 +77,7 @@ var helper = {
         }
         msg += sMsgError;
         //alert(msg);
-        this.showPrompt(msg, "noon()", 1);
+        this.showPrompt(msg, "function noon(){}", 1);
       }
     }
   },

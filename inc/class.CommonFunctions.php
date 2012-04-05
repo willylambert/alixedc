@@ -72,7 +72,7 @@ class CommonFunctions{
       $this->m_lang = "en";
     }
     if (defined('EGW_INCLUDE_ROOT')) {
-      require_once(EGW_INCLUDE_ROOT . "/".$GLOBALS['egw_info']['flags']['currentapp']."/custom/".$this->m_tblConfig['METADATAVERSION']."/inc/hookFunctions.php"); 
+      require_once(EGW_INCLUDE_ROOT . "/".$this->m_tblConfig['MODULE_NAME']."/custom/".$this->m_tblConfig['METADATAVERSION']."/inc/hookFunctions.php"); 
     }
 
   
@@ -107,6 +107,7 @@ class CommonFunctions{
       error_log("$dt " . $message . "\n",3,$this->m_tblConfig['LOG_FILE']);
       if($level>=ERROR){
         $message .= "\nrequest = " . $this->dumpRet($_REQUEST);
+        $message .= "\nbacktrace = " . $this->dumpRet(debug_backtrace(false));
         mail($this->m_tblConfig['EMAIL_ERROR'],"ETUDE (".$this->m_tblConfig['APP_NAME'].") ERROR/FATAL : {$this->m_user}@$dt",$message);
         if($level==FATAL){
           die("<pre>$message</pre>");
@@ -153,6 +154,20 @@ class CommonFunctions{
   }
 
   /**
+  * @desc Subsitut à l'accès direct au tableau m_tblConfig (plus intuitif à mon goût, tpi)
+  * @param string congifuration param  
+  * @return valeur du paramètre de configuration
+  * @author TPI
+  **/   
+  protected function config($param){
+    if(isset($this->m_tblConfig[$param])){
+      return $this->m_tblConfig[$param];       
+    }else{
+      throw new Exception("Unkonwn configuration parameter '$param'");
+    }
+  }
+
+  /**
   * @desc Tente d'appeler le hook demandé, si celui ci a été déclaré
   * @param string $methodName nom de la methode appelante
   * @param string $hookName nom du hook
@@ -171,12 +186,31 @@ class CommonFunctions{
  
   }
   
-  public function dumpPre($mixed = null)
+  public function dumpPre($mixed = null, $expandable=false)
   {
     echo '<pre>';
-    var_dump($mixed);
+    if(!$expandable){
+      var_dump($mixed);
+    }else{
+      echo $this->print_r_tree($mixed);
+    }
     echo '</pre>';
     return null;
+  }
+  
+  private function print_r_tree($data = null)
+  {
+      // capture the output of print_r
+      $out = print_r($data, true);
+  
+      // replace something like '[element] => <newline> (' with <a href="javascript:toggleDisplay('...');">...</a><div id="..." style="display: none;">
+      $out = preg_replace('/([ \t]*)(\[[^\]]+\][ \t]*\=\>[ \t]*[a-z0-9 \t_]+)\n[ \t]*\(/iUe',"'\\1<a href=\"javascript:toggleDisplay(\''.(\$id = substr(md5(rand().'\\0'), 0, 7)).'\');\">(+)\\2</a><div id=\"'.\$id.'\" style=\"display: block;\">'", $out);
+  
+      // replace ')' on its own on a new line (surrounded by whitespace is ok) with '</div>
+      $out = preg_replace('/^\s*\)\s*$/m', '</div>', $out);
+  
+      // print the javascript function toggleDisplay() and then the transformed output
+      return '<script language="Javascript">function toggleDisplay(id) { document.getElementById(id).style.display = (document.getElementById(id).style.display == "block") ? "none" : "block"; }</script>'."\n$out";
   }
   
   public function dumpRet($mixed = null)

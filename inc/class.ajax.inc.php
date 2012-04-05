@@ -170,13 +170,6 @@ public function checkFormData(){
        $FormOID=="" || $FormRepeatKey=="" || $ItemGroupOID=="" || $ItemGroupRepeatKey==""){
       $this->addlog(__METHOD__ ." : missing variables : $MetaDataVersion || $SubjectKey || $StudyEventOID || $StudyEventRepeatKey ||
        $FormOID || $FormRepeatKey || $ItemGroupOID || $ItemGroupRepeatKey",FATAL);       
-    } 
-  
-    //Do we need to create a new patient ? if yes, we need to browser the entire patient collection
-    if($SubjectKey=="BLANK"){
-      $this->m_ctrl->socdiscoo();
-    }else{
-      $this->m_ctrl->socdiscoo($SubjectKey);   
     }
     
     //Première vérification : est-ce que les données de notre formulaire sont saines
@@ -600,6 +593,7 @@ public function checkFormData(){
   public function setFileContent(){
     $this->addlog(__METHOD__ ." : _POST=".$this->dumpRet($_POST),TRACE);  
     
+    //print_r($_POST);
     $file = $_POST['file'];
     $content = $_POST['content'];
     $content = urldecode($content);
@@ -1871,6 +1865,7 @@ public function checkFormData(){
       }
       if($fileOID != $newFileOID){
         $newName = $this->m_ctrl->boeditor()->renameDbxmlFile($containerName, $fileOID, $newFileOID);
+        $newName .= ".xml"; //tpi 20120402, extension was missing
       }else{
         $newName = $newFileOID .".xml";
       }

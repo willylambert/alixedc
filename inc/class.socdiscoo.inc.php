@@ -24,28 +24,25 @@ require_once("class.CommonFunctions.php");
 
 class socdiscoo extends CommonFunctions
 { 
-  var $m_con = array(); //XmlContainer instances array
-  var $m_mgr; //XmlManager instance
-  var $m_queryContext; //QueryContext instance
-  var $m_dbxmlPath; //Path to dbxml files
+  /* Parameters of the database to connect to.
+   * The default port is 5050. If Sedna server is listening
+   * on the different port (say 5051) modify host value like:
+   * $host = 'localhost:5051' */
+  var $host      = 'localhost';
+  var $database  = 'alixdb';
+  var $user      = 'SYSTEM';
+  var $password  = 'MANAGER';
+  var $collections = array("ClinicalData", "MetaDataVersion");
+  var $odm_declaration = "declare namespace odm = 'http://www.cdisc.org/ns/odm/v1.3';\n";
   
-  private $m_tblLocks; 
-  
-  //Container collection
-  private $m_clinicalCollection;
-  
-  //Subjects Containers list
-  private $m_subjectsContainers;
-     
   //Constructeur
-  function socdiscoo(&$tblConfig,$SubjectKey)
+  function socdiscoo(&$tblConfig)
   {                
       CommonFunctions::__construct($tblConfig,null);
-      $this->addLog("socdiscoo->socdiscoo('$SubjectKey')",INFO);
-      
-      $this->m_tblLocks = array();
+      $this->addLog("socdiscoo->socdiscoo()",INFO);
                   
-      $this->initContext($SubjectKey);
+      $this->initContext();
+      $this->initDB();
   }
   
   function __destruct()
@@ -55,97 +52,88 @@ class socdiscoo extends CommonFunctions
   }
 
   /*
-    Intialize member parameters
-    @param string $SubjectKey if specified, open only metadata and specified subject container. otherwise open all subjects containers
-    @author wlt  
+    Intialize database connection
+    @author tpi  
   */
-  function initContext($SubjectKey){
-    //Initialisation du manager
-    $this->m_mgr = new XmlManager();
-
-    //Gestion du mode test
-    if(isset($_SESSION[$this->getCurrentApp(false)]['testmode']) && $_SESSION[$this->getCurrentApp(false)]['testmode']){
-      $this->m_dbxmlPath = $this->m_tblConfig["DBXML_BASE_DEMO_PATH"];
-    }else{
-      $this->m_dbxmlPath = $this->m_tblConfig["DBXML_BASE_PATH"];
-    }
-        
-    //Query context
-    $this->m_queryContext = $this->m_mgr->createQueryContext();
-    if ($this->m_queryContext)
-    {
-      $this->m_queryContext->setBaseURI("dbxml:///".$this->m_dbxmlPath);      
-      $this->m_queryContext->setNamespace("odm", "http://www.cdisc.org/ns/odm/v1.3"); 
-    }
+  function initContext(){
+    /* Don't print anything. We'll handle errors ... */
+    ini_set("sedna.verbosity","0");
     
-    //Containers initialisation
-    $this->addLog("Containers initialisation",TRACE);
-    $this->m_clinicalCollection = "(";
-    if($SubjectKey!=""){ //All queries will be run only on one subject
-      $this->initDB($SubjectKey . ".dbxml",$this->m_dbxmlPath,false);
-      $this->m_clinicalCollection .= "collection('" . $SubjectKey . ".dbxml')";
-    }else{
-      //we open all patients containers
-      $this->m_subjectsContainers = $this->listSubjectsContainers();
-      foreach($this->m_subjectsContainers as $container){
-        $this->m_clinicalCollection .= "collection('" . $container . "') | ";
-        $this->initDB($container,$this->m_dbxmlPath,false); 
-      }
-      $this->m_clinicalCollection = substr($this->m_clinicalCollection,0,-2);
-    }
-    $this->initDB('MetaDataVersion.dbxml',$this->m_dbxmlPath,false);
-    $this->initDB('BLANK.dbxml',$this->m_dbxmlPath,false);
-    $this->initDB('SubjectsList.dbxml',$this->m_dbxmlPath,false);
+    /* Try to connect to the testdb on the localhost with default credentials */
+    $this->conn = sedna_connect($this->host,$this->database,$this->user,$this->password);
     
-    //Set default collection
-    $this->m_clinicalCollection .= ")"; 
-  }
-  
-  /*
-  Accesor of $this->m_clinicalCollection
-  */
-  public function getClinicalDataCollection(){
-    return $this->m_clinicalCollection; 
-  }
-  
-  /*
-  Accesor of $this->m_subjectsContainers
-  */
-  public function getSubjectsContainers(){
-    if(!$this->m_subjectsContainers){
-      $this->m_subjectsContainers = $this->listSubjectsContainers();
+    if(!$this->conn){
+      $str = "Could not connect to database: ".$this->database."\n" . sedna_error() ." (". __METHOD__ .")";
+      $this->addLog($str,FATAL);
     }
-    return $this->m_subjectsContainers; 
   }
   
   private function closeContext(){
-     foreach($this->m_con as $containerName=>$container)
-     {
-      $this->addLog("socdiscoo->__closeContext() : $containerName",TRACE);
-      unset($this->con[$containerName]);
-     } 
-     
-     unset($this->m_mgr);
-     
-     foreach($this->m_tblLock as $dbxmlFile => $lock){
-        $this->unlock($dbxmlFile);
-     } 
+    /* Properly close the connection */
+    if(!sedna_close($this->conn)){
+      $str = "Could not close connection to database: ".$this->database."\n" . sedna_error() ." (". __METHOD__ .")";
+      $this->addLog($str,FATAL);
+    }
   }
           
   //Retourne un document sous la forme d'un objet SimpleXMLelement ou DOMDocument
-  //Si le patient n'est pas trouvé, l'erreur doit être gérée par un try catch dans la fonction appelante
-  function getDocument($containerName,$name, $useSimpleXML = true)
+  //Si le document n'est pas trouvé, l'erreur doit être gérée par un try catch dans la fonction appelante
+  function getDocument($collection, $name, $useSimpleXML = true)
   {   
-    if($useSimpleXML)
-    {
-      $xmlResult = new SimpleXMLElement($this->m_con[$containerName]->getDocument($name)->getContentAsString());
+    /* Execute query: list all categories in the document */
+    if($collection==""){
+      $query = "let \$doc := doc('$name')
+                return \$doc";
+    }else{
+      $query = "let \$doc := collection('$collection')[odm:ODM/@FileOID='$name']
+                return \$doc";
     }
-    else
-    {
-      $xmlResult = new DOMDocument();
-      $xmlResult->loadXML($this->m_con[$containerName]->getDocument($name)->getContentAsString());
+    //namespace declaration
+    $query = $this->odm_declaration . $query;
+    
+    //$res = $this->query($query, $useSimpleXML);
+    try{
+      if(!sedna_execute($query)){
+        $str = "Could not execute query: $query\n" . sedna_error() ." (". __METHOD__ .")";
+        $this->addLog($str,ERROR);
+      }
+      
+      $results = sedna_result_array();
+      if(!$results){
+        $str = "Could not get query result or result is empty for query: $query\n" . sedna_error() ." (". __METHOD__ .")";
+        $this->addLog($str,ERROR);
+      }
+      
+      if($useSimpleXML)
+      {
+        $xmlResult = array();
+        
+        foreach($results as $res){
+          $xmlResult[] = new SimpleXMLElement($res);
+        }
+      }
+      else
+      {
+        $xmlResult = new DOMDocument();
+        $xmlResult->loadXML($results[0]);
+      }
+    }catch(xmlexception $e){
+      throw $e;
     }
-    return $xmlResult;
+    
+    if(count($xmlResult)>1){
+      $str = "Found more than one document '$name' in collection '$collection' (". __METHOD__ .")";
+      throw new Exception($str);
+    }elseif(count($xmlResult)==0){
+      $str = "Could not find document '$name' in collection '$collection' (". __METHOD__ .")";
+      throw new Exception($str);
+    }
+    
+    if($useSimpleXML){ //SimpleXmlElement
+      return $xmlResult[0];
+    }else{ //DOMDocument
+      return $xmlResult;
+    }
   }
 
   /*
@@ -156,37 +144,40 @@ class socdiscoo extends CommonFunctions
   {
     $this->addLog("socdiscoo->query($query,$useSimpleXML,$raw)",TRACE);
     
+    //namespace declaration
+    $query = $this->odm_declaration . $query;
+    
     try{
+      if(!sedna_execute($query)){
+        $str = "Could not execute query: $query\n" . sedna_error() ." (". __METHOD__ .")";
+        $this->addLog($str,FATAL);
+      }
+      
+      $results = sedna_result_array();
+      
+      if(!$results){
+        $str = "Could not get query result or result is empty for query: $query\n" . sedna_error() ." (". __METHOD__ .")";
+        $this->addLog($str,WARN);
+      }
+      
       if($raw)
       {
-        $xmlResult = $this->m_mgr->query($query,$this->m_queryContext);
+        $xmlResult = $results;
       }
       else
       {
         if($useSimpleXML)
         {
           $xmlResult = array();
-
-          $results = $this->m_mgr->query($query,$this->m_queryContext);
-          if(isset($results)){
-            while($val=$results->next()){
-              $xmlResult[] = new SimpleXMLElement($val->asString());
-            }
-          }else{
-            $this->addLog("Echec de la requête ".$query." (". __METHOD__ ." with \$useSimpleXML=". $useSimpleXML .") ",FATAL);
+          
+          foreach($results as $res){
+            $xmlResult[] = new SimpleXMLElement($res);
           }
         }
         else
         {
-          $results = $this->m_mgr->query($query,$this->m_queryContext);
-          if(isset($results)){
-            if($val=$results->next()){
-              $xmlResult = new DOMDocument();
-              $xmlResult->loadXML($val->asString());
-            }
-          }else{
-            $this->addLog("Echec de la requête ".$query." (". __METHOD__ ." with \$useSimpleXML=". $useSimpleXML .") ",FATAL);
-          }
+          $xmlResult = new DOMDocument();
+          $xmlResult->loadXML($results[0]);
         }
       }
     }catch(xmlexception $e){
@@ -198,7 +189,7 @@ class socdiscoo extends CommonFunctions
 
   //Ajoute un document dans le container indiquée
   //if container is not specified, we use the FileOID to determine it
-  function addDocument($doc,$isString=false,$containerName="",$schemaValidate=true)
+  function addDocument($doc,$isString=false,$collection="",$schemaValidate=true)
   {
     //Validation du schéma CDISC et Extraction du FileOID
     if(is_object($doc))
@@ -225,66 +216,47 @@ class socdiscoo extends CommonFunctions
      throw new Exception("Le fichier $doc n'est pas valide.");
     }
     $fileOID = $xml->documentElement->getAttribute("FileOID");
-    if($containerName==""){
-      $containerName = $fileOID . ".dbxml";
-    }
     try
     {
-      $this->addLog("addDocument sur $containerName de $fileOID",INFO);
-      $this->initDB($containerName,$this->m_dbxmlPath,false);
-
-      //Lock container in write mode
-      $this->lock($containerName,LOCK_EX);
-      $this->m_con[$containerName]->putDocument($fileOID,$xml->saveXML()); //Insertion
+      $this->addLog("addDocument sur $collection de $fileOID",INFO);
+      
+      //Insertion
+      if($collection!=""){
+        if(!sedna_load($xml->saveXML(), $fileOID, $collection)){
+          $str = "Could not load the document '$fileOID' in collection '$collection': " . sedna_error() ." (". __METHOD__ .")";
+          //$this->addLog($str,FATAL);
+          throw new Exception($str);
+        }
+      }else{
+        if(!sedna_load($xml->saveXML(), $fileOID)){
+          $str = "Could not load the document '$fileOID': " . sedna_error() ." (". __METHOD__ .")";
+          //$this->addLog($str,FATAL);
+          throw new Exception($str);
+        }
+      }
     }
     catch(xmlexception $e)
     {
-      $eMsg = $e->getMessage();
-      $this->m_con[$containerName]->sync();
-      throw new Exception();
+      throw new Exception($e->getMessage());
     }
-    $this->m_con[$containerName]->sync();
   }
 
   //Supprime un document dans le container indiquée
-  function deleteDocument($containerName,$name)
+  function deleteDocument($collection,$name)
   {
-    try
-    {
-      $this->addLog("deleteDocument sur $containerName de $name",TRACE);
-      $this->lock($containerName,LOCK_EX);
-      $this->m_con[$containerName]->deleteDocument($name); //Suppression
-    }
-    catch(xmlexception $e)
-    {
-      $this->addLog("Erreur deleteDocument sur $containerName de $name (". __METHOD__ .")",FATAL);
-      throw new Exception("Erreur dans  deleteDocument pour $name");
-    } 
-  }
-
-  private function setIndexes($containerName){
-    if($containerName=='MetaDataVersion.dbxml'){
-      $this->m_con[$containerName]->addIndex("http://www.cdisc.org/ns/odm/v1.3","OID","node-attribute-equality-string");
-      $this->m_con[$containerName]->addIndex("http://www.cdisc.org/ns/odm/v1.3","StudyEventOID","unique-node-attribute-equality-string");
-      $this->m_con[$containerName]->addIndex("http://www.cdisc.org/ns/odm/v1.3","FormOID","unique-node-attribute-equality-string");
-      $this->m_con[$containerName]->addIndex("http://www.cdisc.org/ns/odm/v1.3","ItemGroupOID","unique-node-attribute-equality-string");
-      $this->m_con[$containerName]->addIndex("http://www.cdisc.org/ns/odm/v1.3","ItemOID","unique-node-attribute-equality-string");
-      $this->m_con[$containerName]->addIndex("http://www.cdisc.org/ns/odm/v1.3","CodeListOID","unique-node-attribute-equality-string");
-      $this->m_con[$containerName]->addIndex("http://www.cdisc.org/ns/odm/v1.3","CollectionExceptionConditionOID","unique-node-attribute-equality-string");  
+    /* Remove the document */
+    if($collection!=""){
+      $query = "DROP DOCUMENT '$name' IN COLLECTION '$collection'";
     }else{
-        $this->m_con[$containerName]->addIndex("http://www.cdisc.org/ns/odm/v1.3","SubjectKey","node-attribute-substring-string");
-        $this->m_con[$containerName]->addIndex("http://www.cdisc.org/ns/odm/v1.3","CodeListOID","node-attribute-equality-string");
-        $this->m_con[$containerName]->addIndex("http://www.cdisc.org/ns/odm/v1.3","StudyEventOID","node-attribute-equality-string");
-        $this->m_con[$containerName]->addIndex("http://www.cdisc.org/ns/odm/v1.3","StudyEventRepeatKey","node-attribute-equality-string");
-        $this->m_con[$containerName]->addIndex("http://www.cdisc.org/ns/odm/v1.3","FormOID","node-attribute-equality-string");
-        $this->m_con[$containerName]->addIndex("http://www.cdisc.org/ns/odm/v1.3","FormRepeatKey","node-attribute-equality-string");
-        $this->m_con[$containerName]->addIndex("http://www.cdisc.org/ns/odm/v1.3","ItemGroupOID","node-attribute-equality-string");
-        $this->m_con[$containerName]->addIndex("http://www.cdisc.org/ns/odm/v1.3","ItemGroupRepeatKey","node-attribute-equality-string");
-        $this->m_con[$containerName]->addIndex("http://www.cdisc.org/ns/odm/v1.3","ID","unique-node-attribute-equality-string");          
+      $query = "DROP DOCUMENT '$name'";
+    }
+    if(!sedna_execute($query)){
+      $str = "Could not drop the document '$name' in collection '$collection': " . sedna_error() ." (". __METHOD__ .")";
+      $this->addLog($str,FATAL);
     }
   }
   
-  function replaceDocument($doc,$isString=false,$containerName="",$schemaValidate=true)
+  function replaceDocument($doc,$isString=false,$collection="",$schemaValidate=true)
   {        
     //Validation du schéma CDISC et Extraction du FileOID     
     if(is_object($doc))
@@ -319,180 +291,83 @@ class socdiscoo extends CommonFunctions
       throw new Exception($message);
     }
     $fileOID = $xml->documentElement->getAttribute("FileOID");
-    if($containerName==""){
-      $containerName = $fileOID . ".dbxml";
-    }
     try{
-      $this->addLog("socdiscoo->replaceDocument() sur $containerName de $fileOID",TRACE);
+      $this->addLog("socdiscoo->replaceDocument() sur $collection de $fileOID",TRACE);
       
-      //Lock container in write mode
-      $this->lock($containerName,LOCK_EX);    
-
-      $document = $this->m_con[$containerName]->getDocument($fileOID);
       $xml->formatOutput = true;
       $string = $xml->saveXML();
       if($string!="")
       {     
-        $document->setContent($string);
+        /* Remove the document */
+        $this->deleteDocument($collection,$fileOID);
         
-        $this->m_con[$containerName]->updateDocument($document);
-
-        $this->m_con[$containerName]->sync();
+        //Insertion
+        if($collection!=""){
+          if(!sedna_load($string, $fileOID, $collection)){
+            $str = "Could not load the document '$fileOID' in collection '$collection': " . sedna_error() ." (". __METHOD__ .")";
+            $this->addLog($str,FATAL);
+          }
+        }else{
+          if(!sedna_load($string, $fileOID)){
+            $str = "Could not load the document '$fileOID': " . sedna_error() ." (". __METHOD__ .")";
+            $this->addLog($str,FATAL);
+          }
+        }
         
-        unset($document); //cf "The Definitive Guide Berkeley DB XML p.180 > Caution It’s a good idea to unset() document objects before closing containers—and always before deleting/renaming them—even if the PHP API tries hard to know when object destruction is needed.
-
         //By security - we save the XML file on hard drive
         $xml->save($this->m_tblConfig["CDISCOO_PATH"] . "/xml/$fileOID" . ".xml");
-        if($this->m_user!="CLI"){
-          //chmod($this->m_tblConfig["CDISCOO_PATH"] . "/xml/$fileOID" . ".xml",664);
-        }
       }
       else
       {
-        unset($document);
-        $this->addLog("Erreur replaceDocument sur $containerName de $fileOID : le document xml est vide (". __METHOD__ .")",FATAL);
+        $this->addLog("Erreur replaceDocument sur $collection de $fileOID : le document xml est vide (". __METHOD__ .")",FATAL);
         throw new Exception("Erreur dans replaceDocument pour FileOID $fileOID : le document xml est vide");
       }
     }catch(xmlexception $e){
-      unset($document);
-      $this->addLog("Erreur replaceDocument sur $containerName de $fileOID (". __METHOD__ .") " . $e->getMessage(),FATAL);
+      $this->addLog("Erreur replaceDocument sur $collection de $fileOID (". __METHOD__ .") " . $e->getMessage(),FATAL);
       throw new Exception("Erreur dans replaceDocument pour FileOID $fileOID. ". $e->getMessage());  
     }
   }
+  
+  public function getDocumentsList($collection){
+    if($collection!=""){
+      $query = "<docs>
+                {
+                  for \$doc in document('\$documents')/documents/collection[@name='$collection']/document
+                  return 
+                  <doc>{\$doc/string(@name)}</doc>
+                }
+                </docs>
+                ";
+    }else{
+      $query = "<docs>
+                {
+                  for \$doc in document('\$documents')/documents/document
+                  return 
+                  <doc>{\$doc/string(@name)}</doc>
+                }
+                </docs>
+                ";
+    }
 
-  /*
-    Acquire a lock on a subject
-    @param string $dbxmlFile dbxml filename to lock
-    @param int $lockType LOCK_EX (write) or LOCK_SH (read)
-    @author wlt
-  */
-  public function lock($dbxmlFile,$lockType){
-    $this->addLog("socdiscoo()->lock($dbxmlFile,$lockType)",TRACE);
+    $docs = $this->query($query);
+    $res = array();
+    foreach($docs[0] as $doc){
+      $res[] = $doc;
+    }
     
-    $lockFile = $this->m_tblConfig["LOCK_FILE"] . $dbxmlFile;
-
-    //If in this thread we have an ongoing read lock, we upgrade it to a write lock
-    if(isset($this->m_tblLock["$dbxmlFile"])){
-      if($this->m_tblLock["$dbxmlFile"]["LOCK_TYPE"]==LOCK_SH && $lockType==LOCK_EX){
-        $this->unlock($dbxmlFile);
-      } 
-    }
-
-    //To avoid self deadlock, we check for an ongoing lock in the same thread
-    if(!isset($this->m_tblLock["$dbxmlFile"])){    
-      //c => Open the file for writing only. If the file does not exist, it is created. 
-      $lockFileHandle = fopen($lockFile, 'c');
-      if($this->m_user!="CLI"){
-        //chmod($lockFile, 0664);
-      } 
-      $start_time = microtime(true);
-      if(!flock($lockFileHandle, $lockType)){
-        $this->addLog("socdiscoo()->lock($lockFile) => Unable to get lock",FATAL);
-      }    
-      ftruncate($lockFileHandle,0);
-      fwrite($lockFileHandle,$this->m_user . "@" . date("c") . " : " . $lockType);
-      
-      $stop_time = microtime(true);
-  
-      //Store lock
-      $this->m_tblLock["$dbxmlFile"] = array("LOCK_TYPE" => $lockType, "LOCK_HANDLE" => $lockFileHandle);
-  
-      //We trace waiting time, for statistical purpose
-      $wait_time = $stop_time - $start_time;
-      if($wait_time > 1){ 
-        $sql = "INSERT INTO egw_alix_lock (study,start_time,stop_time,wait_time,lock_dt,who) 
-                VALUES ('".$dbxmlFile."',$start_time,$stop_time,$wait_time,now(),'".$GLOBALS['egw']->accounts->data['account_lid']."')";
-        $GLOBALS['egw']->db->query($sql);
-      }
-    }   
+    return $res;
   }
-
-  /*
-  release lock acquired with lockSubject()
-  @param string $dbxmlFile dbxml filename to lock
-  @author wlt 
-  */
-  public function unlock($dbxmlFile){
-    $this->addLog("socdiscoo()->unlock($dbxmlFile)",TRACE);
-
-    if(isset($this->m_tblLock["$dbxmlFile"])){    
-      ftruncate($this->m_tblLock["$dbxmlFile"]["LOCK_HANDLE"],0);
-      if(!flock($this->m_tblLock["$dbxmlFile"]["LOCK_HANDLE"], LOCK_UN)){
-        $this->addLog("socdiscoo()->releaseLock() => Unable to latch lock",FATAL);
-      }else{
-        $this->addLog("socdiscoo()->unlock($dbxmlFile) ok",TRACE);
-        fclose($this->m_tblLock["$dbxmlFile"]["LOCK_HANDLE"]);
-        unset($this->m_tblLock["$dbxmlFile"]);
-      }
-    }      
-  }  
-
-
-/****************************************************/
-//Private methods
-/****************************************************/ 
   
-  private function initDB($containerName,$dbxmlPath,$bReadOnly)
-  {
-    $this->addLog("socdiscoo->initDB('$containerName','$dbxmlPath','$bReadOnly')",TRACE);
-    try{
-      /*
-      * DB_CREATE - If the container does not currently exist, create it.
-      * DB_EXCL - Return an error if the container already exists. The DB_EXCL flag is only meaningful when specified with the DB_CREATE flag
-      * DB_RDONLY - Open the container for reading only. Any attempt to modify items in the container will fail, regardless of the actual permissions of any underlying files.
-      */      
-      if($bReadOnly){                  
-        $flags = DB_RDONLY;
-      }else{
-        $flags = 0;
-      }
-      //Lock container in read mode
-      $this->lock($containerName,LOCK_SH);
-      
-      $this->m_con[$containerName] = $this->m_mgr->openContainer($dbxmlPath . $containerName ,$flags);
-    }catch(xmlexception $e){
-        $this->addLog("socdiscoo->initDB() error",INFO);
-        if($e->getCode()==17){
-          try{
-            $flags = DB_CREATE | DB_EXCL;
-            $this->m_con[$containerName] = $this->m_mgr->createContainer($dbxmlPath . $containerName, $flags);
-            $this->setIndexes($containerName);
-            //set container writable for www-data group
-            if($this->m_user!="CLI"){
-              //chmod($dbxmlPath . $containerName, 0664);
-            }
-          }catch(xmlexception $e){
-            $this->addLog("socdiscoo->initDB() => xmlexception : " . $e->getMessage() ." (". __METHOD__ .")",FATAL);
-            throw($e);            
-          }
-        }else{       
-          //autre erreur que fichier non trouvé
-          $this->addLog("socdiscoo->initDB() => xmlexception : " . $e->getMessage() ." (". __METHOD__ .")",FATAL);
-          throw($e);
+  private function initDB(){
+    //Create collections
+    foreach($this->collections as $col){
+      if(!sedna_execute("CREATE COLLECTION '$col'")){
+        if(sedna_ercls() == "SE2002"){ //Collection with the same name already exists.
+          break; //I consider all collections already exists (otherwise continue;)
         }
-    }
-  }
-  
-/* return containers file
-@return array of string 
-*/
-public function listSubjectsContainers(){
-    // create an array to hold directory list
-    $results = array();
-
-    // create a handler for the directory
-    $handler = opendir($this->m_tblConfig["DBXML_BASE_PATH"]);
-
-    // open directory and walk through the filenames
-    while ($file = readdir($handler)) {
-
-      // if file isn't this directory or its parent, add it to the results
-      if ($file != "." && $file != ".." && $file != "SubjectsList.dbxml" && $file != "MetaDataVersion.dbxml" && $file != "ClinicalData.dbxml"  && $file != "BLANK.dbxml" && substr_compare($file, ".dbxml", -6, 6) === 0 && substr_count($file,".")==1 ) {
-        $results[] = $file;
+        $str = "Could create collection '$col': " . sedna_error() ." (". __METHOD__ .")";
+        $this->addLog($str,FATAL);
       }
     }
-    closedir($handler);
-
-    return $results;
-  }   
+  }
 }
