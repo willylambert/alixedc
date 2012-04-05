@@ -22,7 +22,7 @@ body,td{
 	font: bold 12px Verdana, Arial, Helvetica, sans-serif;
   color: white;
   background: black url(images/fond_boitemenu_noir.png) repeat-x center left;
-  margin-bottom: 10px; /*bottom spacing between header and rest of content*/
+  margin-bottom: 0px; /*bottom spacing between header and rest of content*/
   text-transform: uppercase;
   padding: 4px 0 4px 7px; /*header text is indented 10px*/
   margin-top:0;
@@ -933,6 +933,10 @@ form#addProfile input.text { margin-bottom:12px; width:95%; padding: .4em; }
   width:120px;
   text-align:center;
 }
+
+#toolbar_ico img{
+  width:32px;
+} 
 
 .itemGroupHeadLine{
   clear:both;

@@ -381,10 +381,7 @@ class socdiscoo extends CommonFunctions
     //To avoid self deadlock, we check for an ongoing lock in the same thread
     if(!isset($this->m_tblLock["$dbxmlFile"])){    
       //c => Open the file for writing only. If the file does not exist, it is created. 
-      $lockFileHandle = fopen($lockFile, 'c');
-      if($this->m_user!="CLI"){
-        //chmod($lockFile, 0664);
-      } 
+      $lockFileHandle = fopen($lockFile, 'c'); 
       $start_time = microtime(true);
       if(!flock($lockFileHandle, $lockType)){
         $this->addLog("socdiscoo()->lock($lockFile) => Unable to get lock",FATAL);

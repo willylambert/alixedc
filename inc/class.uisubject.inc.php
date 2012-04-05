@@ -208,7 +208,16 @@ class uisubject extends CommonFunctions
          
       $topMenu = $this->m_ctrl->etudemenu()->getMenu($SiteId);
       
-      $legend =  $this->getLegend();
+      //We disable the legend - we have to find a better place
+      /*
+      $legend = "<div class='ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix'>
+                      <span class='ui-dialog-title'>Legend</span>
+                 </div> 
+                 <div class='ui-dialog-content ui-widget-content'>" .
+                      $this->getLegend();
+                 ."</div>";             
+      */
+      $legend = "";
       
       $toolbox = $this->getToolbox($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$profileId);
       
@@ -229,10 +238,7 @@ class uisubject extends CommonFunctions
       //variable ajoutée aux URLs Javascript afin de forcer le rechargement coté navigateur
       $jsVersion = $this->m_tblConfig['JS_VERSION'];
         
-      $htmlRet = "
-                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jquery-1.6.2.min.js') . "'></SCRIPT>
-                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jquery-ui-1.8.16.custom.min.js') . "'></SCRIPT>
-                  
+      $htmlRet = "                  
                   $topMenu
                   
                   <div id='formMenu' class='ui-dialog ui-widget ui-widget-content ui-corner-all'>
@@ -242,12 +248,7 @@ class uisubject extends CommonFunctions
                     <div class='ui-dialog-content ui-widget-content'>
                       $htmlMenu
                     </div>
-                    <div class='ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix'>
-                      <span class='ui-dialog-title'>Legend</span>
-                    </div>
-                    <div class='ui-dialog-content ui-widget-content'>
-                      $legend
-                    </div>               
+                    $legend
                   </div>
                   <div id='mainForm' class='ui-dialog ui-widget ui-widget-content ui-corner-all'>
                     <div class='ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix'>

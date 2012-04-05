@@ -58,10 +58,10 @@
   				    	 <xsl:if test="@CodedValue=$ItemValue">
   				    	   <xsl:attribute name="checked">true</xsl:attribute>
                  </xsl:if>
-                 <!--Si pas de Decode dispo, on affiche comme texte adjacent la valeur de 'base'-->
-                 <xsl:if test="@Decode=''"><xsl:value-of select="@CodedValue"/></xsl:if>
-  				       <xsl:value-of select="@Decode"/>
   				    	</xsl:element>
+                <!--Si pas de Decode dispo, on affiche comme texte adjacent la valeur de 'base'-->
+                <xsl:if test="@Decode=''"><xsl:value-of select="@CodedValue"/></xsl:if>
+				        <xsl:value-of select="@Decode"/>  				    	
   				    </xsl:for-each>
   				</xsl:when>
   		    <xsl:otherwise> 

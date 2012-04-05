@@ -55,11 +55,7 @@ class uidocuments extends CommonFunctions
     $topMenu = $this->m_ctrl->etudemenu()->getMenu($SiteId);
     $content = $this->getMenu();
     
-    $htmlRet .= "<SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jquery-1.4.2.min.js') . "'></SCRIPT>
-                <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jquery-ui-1.8.5.custom.min.js') . "'></SCRIPT>
-                ";
-    
-    $htmlRet .= $topMenu;
+    $htmlRet = $topMenu;
     $htmlRet .= $content;
     
                 

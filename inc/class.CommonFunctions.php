@@ -100,6 +100,19 @@ class CommonFunctions{
     return $egwId;   
   }
   
+  /**
+   * Does the user browser is an iPad ?
+   * @return boolean true if yes, false if no
+   * @author wlt - 20/12/2011      
+   **/     
+  public function isIpad(){
+    if(strstr($_SERVER['HTTP_USER_AGENT'],"iPad")){
+      return true;
+    }else{
+      return false;
+    }
+  }
+  
   public function addLog($message,$level){
     if($level>=$this->m_tblConfig['LOG_LEVEL']){
       $timeOffset = microtime(true) - $_SERVER['REQUEST_TIME']; 

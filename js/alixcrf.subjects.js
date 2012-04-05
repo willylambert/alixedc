@@ -44,8 +44,7 @@ function loadSubjectsGrid(CurrentApp, config)
       align:'center',
       search: false
     });
-    
-    
+       
     //Columns defined in config.inc.php
     for(i in config)
     {
@@ -55,8 +54,6 @@ function loadSubjectsGrid(CurrentApp, config)
         }else{
           width = 150;
         }
-        
-        
         
         if(config[i].Orientation== 'V'){
           formatter = "rotateText";
@@ -92,7 +89,7 @@ function loadSubjectsGrid(CurrentApp, config)
       align:'center',
       search: true
     });
-
+   /*
     colNames.push("Post-it<br/>number");
     colModel.push({
       name: "POSTITNUM",
@@ -101,7 +98,7 @@ function loadSubjectsGrid(CurrentApp, config)
       align:'center',
       search: false
     });
-    
+   */ 
     colNames.push("Queries<br/>number");
     colModel.push({
       name: "QUERIESNUM",

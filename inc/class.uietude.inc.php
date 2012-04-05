@@ -75,12 +75,7 @@ class uietude extends CommonFunctions
     ob_start();
 		$GLOBALS['egw']->common->egw_header();
 		parse_navbar();
-    $jsVersion = $this->m_tblConfig['JS_VERSION'];
-    echo "<link rel='stylesheet' type='text/css' href='".$GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/templates/default/'.$this->m_tblConfig['APP_CSS'].'/jquery-ui-1.8.16.custom.css')."' />";
-    echo "<link rel='stylesheet' type='text/css' href='".$GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/templates/default/'.$this->m_tblConfig['APP_CSS'].'/app-custom.css?'.$jsVersion)."' />";
-    echo "<link rel='stylesheet' type='text/css' href='".$GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/templates/default/ui.jqgrid.css')."' />";
-    echo "<link rel='stylesheet' type='text/css' href='".$GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/templates/default/ui.jqgridex.css')."' />";
-      
+ 
 		if($_SESSION[$this->getCurrentApp(false)]['testmode']){
       echo "<div style='width:100%;text-align:center;color:white;background-color:red;'><strong><blink>WARNING</blink> : Test mode is activated !</strong>
               <a style='color:white;' href=".$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.startupInterface',
@@ -92,6 +87,49 @@ class uietude extends CommonFunctions
 	public function create_footer ()
 	{	
 		$GLOBALS['egw']->common->egw_footer();
+		
+		$htmlRet = ob_get_clean();
+		$htmlRet = str_replace("&","&amp;",$htmlRet);
+        
+    $stdDoc = new DOMDocument();
+    $stdDoc->loadHTML($htmlRet);
+    
+    $xsl = new DOMDocument;
+    $xsl->load(EGW_INCLUDE_ROOT . "/".$this->getCurrentApp(false)."/xsl/baseBrowser.xsl");    
+
+    $proc = new XSLTProcessor;     
+    $proc->importStyleSheet($xsl);
+
+    $proc->setParameter('',"CurrentApp",$this->getCurrentApp(false));
+    $stdDoc = $proc->transformToDoc($stdDoc);
+            
+    if($this->isIpad()){
+      $xsl = new DOMDocument;
+      $xsl->load(EGW_INCLUDE_ROOT . "/".$this->getCurrentApp(false)."/xsl/ipad.xsl");
+      
+      $proc = new XSLTProcessor;     
+      $proc->importStyleSheet($xsl);
+      
+      $proc->setParameter('',"CurrentApp",$this->getCurrentApp(false));
+      if(isset($_GET['SubjectKey'])){
+        $proc->setParameter('',"SubjectKey",$_GET['SubjectKey']);
+      }
+      if(isset($_GET['OnlyLoadForm'])){
+        $proc->setParameter('',"OnlyLoadForm",$_GET['OnlyLoadForm']);
+      }
+      
+      $stdDoc = $proc->transformToDoc($stdDoc);
+    } 		
+    
+    $htmlRet = $stdDoc->saveHTML();
+    
+    $htmlRet = str_replace("&amp;","&",$htmlRet);
+    
+    //We add the html DOC Type for HTML 5 support - safely ignored by older browser
+    $htmlRet = "<!DOCTYPE html>$htmlRet";
+    echo $htmlRet;
+    //echo "<!DOCTYPE html><html><body>toto</body></html>";
+		
 		$this->addLog("***********************************************************************",INFO);
 	}
    
