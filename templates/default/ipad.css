@@ -1,0 +1,52 @@
+	.ui-icon-addSubj {
+		background-image: url("images/user_add_36.png");
+		background-size: 18px 18px;
+		background-color:transparent;
+	}
+	
+	.navtable, td#pagerSubjects_center{
+    display:none; 
+  }
+  
+  .ui-body-c{
+    text-shadow : 0 0 0 #FFFFFF;
+  }
+  
+  #formMenu{
+    margin-left:0;
+    width:23%;
+  }
+  
+  #mainForm{
+    width:75%;
+  }
+  
+  .ui-dialog .ui-dialog-content {
+    padding-left:0;
+    padding-right:0;
+  }
+  
+  .ui-dialog .ui-dialog-title{
+    margin-top:0.8em;
+    margin-bottom:0.8em;
+  }
+  
+  .ui-dialog .ui-dialog-titlebar{
+     padding-top:0;
+     padding-bottom:0;
+  }  
+  
+  .ui-btn{
+    margin:0;
+  }
+  
+  .ui-widget-content .ui-icon {
+    background-image: url("images/icons-18-white.png");  
+  }
+  
+  .splitview .ui-header{
+    top:15px;
+  }
+  .splitview .ui-content{
+    top:55px;
+  }

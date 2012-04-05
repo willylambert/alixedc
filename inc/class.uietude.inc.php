@@ -39,7 +39,7 @@ class uietude extends CommonFunctions
 		'queriesInterface' => True,
     'sitesInterface' => True,
 		'startupInterface'	=> True,
-		'changePasswordInterface' => True,
+		'exportInterface' => True,
 		'subjectInterface' => True,
 		'subjectListInterface' => True,
 		'lockInterface' => True,
@@ -69,11 +69,17 @@ class uietude extends CommonFunctions
       $this->m_ctrl->bosubjects()->updateSubjectsList($SubjectKey);
     }
   }
- 
-	public function create_header ()
+
+	/**
+	 *@param boolean $bBuffering false to disable buffering of output allowing post treament of output
+	 *                           useful if a script uses flush()     	
+	 **/	 
+	public function create_header ($bBuffering=true)
 	{
-    ob_start();
-		$GLOBALS['egw']->common->egw_header();
+    if($bBuffering){
+      ob_start();
+		}
+    $GLOBALS['egw']->common->egw_header();
 		parse_navbar();
  
 		if($_SESSION[$this->getCurrentApp(false)]['testmode']){
@@ -84,47 +90,52 @@ class uietude extends CommonFunctions
     }
 	}
 	
-	public function create_footer ()
+	/**
+	 *@param boolean $bBuffering false to disable buffering of output allowing post treament of output
+	 *                           useful if a script uses flush()     	
+	 **/	
+	public function create_footer ($bBuffering=true)
 	{	
 		$GLOBALS['egw']->common->egw_footer();
-		
-		$htmlRet = ob_get_clean();
-		$htmlRet = str_replace("&","&amp;",$htmlRet);
-        
-    $stdDoc = new DOMDocument();
-    $stdDoc->loadHTML($htmlRet);
-    
-    $xsl = new DOMDocument;
-    $xsl->load(EGW_INCLUDE_ROOT . "/".$this->getCurrentApp(false)."/xsl/baseBrowser.xsl");    
-
-    $proc = new XSLTProcessor;     
-    $proc->importStyleSheet($xsl);
-
-    $proc->setParameter('',"CurrentApp",$this->getCurrentApp(false));
-    $stdDoc = $proc->transformToDoc($stdDoc);
-            
-    if($this->isIpad()){
-      $xsl = new DOMDocument;
-      $xsl->load(EGW_INCLUDE_ROOT . "/".$this->getCurrentApp(false)."/xsl/ipad.xsl");
+		if($bBuffering)
+		{
+  		$htmlRet = ob_get_clean();
+  		$htmlRet = str_replace("&","&amp;",$htmlRet);
+          
+      $stdDoc = new DOMDocument();
+      $stdDoc->loadHTML($htmlRet);
       
+      $xsl = new DOMDocument;
+      $xsl->load(EGW_INCLUDE_ROOT . "/".$this->getCurrentApp(false)."/xsl/baseBrowser.xsl");    
+  
       $proc = new XSLTProcessor;     
       $proc->importStyleSheet($xsl);
-      
+  
       $proc->setParameter('',"CurrentApp",$this->getCurrentApp(false));
-      if(isset($_GET['SubjectKey'])){
-        $proc->setParameter('',"SubjectKey",$_GET['SubjectKey']);
-      }
-      if(isset($_GET['OnlyLoadForm'])){
-        $proc->setParameter('',"OnlyLoadForm",$_GET['OnlyLoadForm']);
-      }
-      
       $stdDoc = $proc->transformToDoc($stdDoc);
-    } 		
-    
-    $htmlRet = $stdDoc->saveHTML();
-    
-    $htmlRet = str_replace("&amp;","&",$htmlRet);
-    
+              
+      if($this->isIpad()){
+        $xsl = new DOMDocument;
+        $xsl->load(EGW_INCLUDE_ROOT . "/".$this->getCurrentApp(false)."/xsl/ipad.xsl");
+        
+        $proc = new XSLTProcessor;     
+        $proc->importStyleSheet($xsl);
+        
+        $proc->setParameter('',"CurrentApp",$this->getCurrentApp(false));
+        if(isset($_GET['SubjectKey'])){
+          $proc->setParameter('',"SubjectKey",$_GET['SubjectKey']);
+        }
+        if(isset($_GET['OnlyLoadForm'])){
+          $proc->setParameter('',"OnlyLoadForm",$_GET['OnlyLoadForm']);
+        }
+        
+        $stdDoc = $proc->transformToDoc($stdDoc);
+      } 		
+      
+      $htmlRet = $stdDoc->saveHTML();
+      
+      $htmlRet = str_replace("&amp;","&",$htmlRet);
+    }    
     //We add the html DOC Type for HTML 5 support - safely ignored by older browser
     $htmlRet = "<!DOCTYPE html>$htmlRet";
     echo $htmlRet;
@@ -132,6 +143,25 @@ class uietude extends CommonFunctions
 		
 		$this->addLog("***********************************************************************",INFO);
 	}
+
+   public function exportInterface()
+   {
+        require_once('class.uiexport.inc.php');
+        global $configEtude;
+        $ui = new uiexport($configEtude,$this->m_ctrl);
+        
+        $GLOBALS['egw_info']['flags']['app_header'];
+		    
+		    if(isset($_GET['action']) && $_GET['action']=="run"){
+          $bBuffer = false;
+        }else{
+          $bBuffer = true;
+        }
+        
+        $this->create_header($bBuffer);
+        echo $ui->getInterface();
+		    $this->create_footer($bBuffer);  
+   }
    
    public function dashboardInterface()
    {

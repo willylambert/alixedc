@@ -1,0 +1,30 @@
+#buttons {
+    margin-bottom: 20px;
+    display:none;
+}
+#treeItems ul {
+    margin-bottom: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    margin-top: 0 !important;
+    padding-bottom: 0 !important;
+    padding-left: 20px !important;
+    padding-right: 0 !important;
+    padding-top: 0 !important;
+}
+ul#treeItems li {
+    list-style-image: none;
+    list-style-position: outside;
+    list-style-type: none;
+}
+#treeItems ul.hide {
+    display: none;
+}
+#treeItems span {
+    color: #999999;
+    cursor: default;
+    font-family: "Courier New",Courier,monospace;
+}
+#treeItems span.expanded, #example span.collapsed {
+    cursor: pointer;
+}

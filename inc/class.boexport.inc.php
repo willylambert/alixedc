@@ -1,25 +1,4 @@
 <?php
-    /**************************************************************************\
-    * ALIX EDC SOLUTIONS                                                       *
-    * Copyright 2011 Business & Decision Life Sciences                         *
-    * http://www.alix-edc.com                                                  *
-    * ------------------------------------------------------------------------ *                                                                       *
-    * This file is part of ALIX.                                               *
-    *                                                                          *
-    * ALIX is free software: you can redistribute it and/or modify             *
-    * it under the terms of the GNU General Public License as published by     *
-    * the Free Software Foundation, either version 3 of the License, or        *
-    * (at your option) any later version.                                      *
-    *                                                                          *
-    * ALIX is distributed in the hope that it will be useful,                  *
-    * but WITHOUT ANY WARRANTY; without even the implied warranty of           *
-    * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            *
-    * GNU General Public License for more details.                             *
-    *                                                                          *
-    * You should have received a copy of the GNU General Public License        *
-    * along with ALIX.  If not, see <http://www.gnu.org/licenses/>.            *
-    \**************************************************************************/
-    
 require_once("class.CommonFunctions.php");
 
 class boexport extends CommonFunctions
@@ -32,22 +11,114 @@ class boexport extends CommonFunctions
   }               
 
   /**
-  *@desc Produit un nouvel export des données. Les règles sont les suivantes :
-  *      1 fichier csv est généré par ItemGroup
-  *      Les variables à exporter sont indiquées dans le fichier de configuration
-  *      Les fichiers csv sont zippés dans un fichier qui s'ajoute à la liste des exports précédent (pas d'annule et remplace)  
-  @author wlt
-  */   
-  function export($type)
-  { 	    
+   *Add or Update a export type
+   *@param id string if 0, we add a new export type. Otherwise we are updating the export type $id
+   *@param name,description,share string details on export type
+   *@return nothing - raise an exception in case of errors
+   *@author wlt - 06/12/2011   
+   **/              
+  function defineExport(&$id,$name,$description,$share,$raw)
+  {
+    $this->addLog("boexport::defineExport($id,$name,$description,$share,$raw)",INFO);
     
-    //L'export est piloté par le fichier de configuration principale
-    if(isset($this->m_tblConfig['EXPORT']['TYPE'][$type]['index'])){
-      $exportIndex = $this->m_tblConfig['EXPORT']['TYPE'][$type]['index']; 
+    //Checking parameters
+    if($name==""){
+      throw new Exception("Name cannot be empty");
+      return;
     }else{
-      $this->addLog("export : type $type inconnu",FATAL);
+      if($description==""){
+        throw new Exception("Description cannot be empty");
+        return;
+      }else{
+        if($share!='Y' and $share!='N'){
+          throw new Exception("Share must be 'Y' or 'N'");
+          return;
+        }else{
+          if($raw!='Y' and $raw!='N'){
+            throw new Exception("Raw must be 'Y' or 'N'");
+            return;
+          }
+        }
+      }
     }
-        
+   
+    //Parameters are OK
+    $id = mysql_real_escape_string($id);
+    $name = mysql_real_escape_string($name);
+    $description = mysql_real_escape_string($description);
+    $share = mysql_real_escape_string($share); 
+    $raw = mysql_real_escape_string($raw); 
+    
+    if($id=="0"){
+      //Insertion
+      $sql = "INSERT INTO egw_alix_export(name,description,user,creationDate,share,raw,currentapp)
+                                   VALUES('$name','$description','".$GLOBALS['egw_info']['user']['userid']."',now(),'$share','$raw','".$this->getCurrentApp(true)."')";
+      $GLOBALS['egw']->db->query($sql);
+      $id = mysql_insert_id();
+    }else{
+      //Update - only owner of export can modify it
+      $sql = "UPDATE egw_alix_export set name='$name',description='$description',share='$share',raw='$raw' 
+              WHERE id='$id' and user='".$GLOBALS['egw_info']['user']['userid']."'";      
+      $GLOBALS['egw']->db->query($sql);
+    }
+  }
+
+  /**
+  Produce a new data export. Rules are as follows :
+      1 file is produced per ItemGroue
+      Variables to be exported could be defined in the UI or/and the config file config.export.inc.php
+      CSV files are zipped and password protected in 1 file which is avaiable for download from UI
+  @param string $rawValue 'Y' or 'N' Do we extract raws values or decoded values ?
+  @author WLT - 09/12/2011
+  **/   
+  function runExport($id,$type,$rawValue='Y')
+  { 	        
+    $this->addLog("boexport::runExport($id,$type,$rawValue)",INFO);
+    //Checking parameters
+    if($type!="db" && $type!="config_file"){
+      throw new Exception("Type must be db or config_file cannot be empty");
+      return;
+    }else{
+      if($id==""){
+        throw new Exception("ID cannot be empty");
+        return;
+      }
+    }   
+    
+    //TODO : Add rights check here        
+    if($type=="config_file"){
+      if(isset($this->m_tblConfig['EXPORT']['TYPE'][$id]['index'])){
+        $exportIndex = $this->m_tblConfig['EXPORT']['TYPE'][$id]['index'];
+        $exportDef = $this->m_tblConfig[$exportIndex];
+        $contextVars = $this->m_tblConfig['EXPORT']['TYPE'][$id]['contextVars']; 
+      }else{
+        $this->addLog("export : type $id inconnu",FATAL);
+      }
+    }else{
+      if($type=="db"){
+        $contextVars = $this->m_tblConfig['EXPORT']["DEFAULT_CONTEXT"];
+        $exportDef = array();
+        $sql = "SELECT studyeventoid,formoid,itemgroupoid,fields
+                FROM egw_alix_export_def
+                WHERE exportid='$id'";
+                
+        $GLOBALS['egw']->db->query($sql);        
+        while($GLOBALS['egw']->db->next_record()){
+          $studyeventoid = array($GLOBALS['egw']->db->f('studyeventoid'));
+          $formoid = array($GLOBALS['egw']->db->f('formoid'));
+          $itemgroupoid = $GLOBALS['egw']->db->f('itemgroupoid');
+          $fields = json_decode($GLOBALS['egw']->db->f('fields'));
+          //If we have multiple line for one IG, we have to merge fields and keys
+          if(isset($exportDef[$itemgroupoid])){
+            $studyeventoid = array_merge($studyeventoid,$exportDef[$itemgroupoid]['SEOID']);
+            $formoid = array_merge($formoid,$exportDef[$itemgroupoid]['FRMOID']);    
+          }
+          $exportIGdef = array('FILEDEST'=>$itemgroupoid,'FIELDLIST'=>$fields,'SEOID'=>$studyeventoid,'FRMOID'=>$formoid);
+          $exportDef[$itemgroupoid] = $exportIGdef;
+        }    
+      }
+    }        
+    
     //Stockage temporaire des fichiers csv avant zippage
     $tmp = sys_get_temp_dir();
   	$uid = uniqid($type);
@@ -87,7 +158,7 @@ class boexport extends CommonFunctions
       $this->addLog("Erreur : exportDSMB() => $str",FATAL);
       die($str);
     }     
-
+    
     $filename = $tmp.'/'.$uid."/Structure.csv";
     $fp = fopen($filename, 'w');
     
@@ -99,19 +170,19 @@ class boexport extends CommonFunctions
     foreach($ItemGroupDefs as $ItemGroupDef){
       $ItemGroupOID = (string)$ItemGroupDef['OID'];
       
-      if(isset($this->m_tblConfig[$exportIndex][$ItemGroupOID])){
+      if(isset($exportDef[$ItemGroupOID])){
 
         foreach($ItemGroupDef as $ItemDef){
           $ItemOID = (string)$ItemDef['OID'];
-          if(!isset($this->m_tblConfig[$exportIndex][$ItemGroupOID]['FIELDLIST']) || 
-             in_array($ItemOID,$this->m_tblConfig[$exportIndex][$ItemGroupOID]['FIELDLIST'])){
+          if(!isset($exportDef[$ItemGroupOID]['FIELDLIST']) || 
+             in_array($ItemOID,$exportDef[$ItemGroupOID]['FIELDLIST'])){
             //Champ demandé dans l'export
             if($ItemDef['Length']!="" && $ItemDef['SignificantDigits']!=""){
               $length = $ItemDef['Length'] . "." . $ItemDef['SignificantDigits']; 
             }else{
               $length = $ItemDef['Length'];
             }
-            $line = array($this->m_tblConfig[$exportIndex][$ItemGroupOID]['FILEDEST'],
+            $line = array($exportDef[$ItemGroupOID]['FILEDEST'],
                           $ItemGroupOID . "." . $ItemDef['Name'],
                           utf8_decode($ItemDef['Question']),
                           $ItemDef['DataType'],
@@ -142,7 +213,7 @@ class boexport extends CommonFunctions
 /*************************************************************************************/
 /** General information                                                             **/
 /** -------------------                                                             **/
-/** Program : importFormat.sas                                                            **/
+/** Program : importFormat.sas                                                      **/
 /** Project : ".$this->m_tblConfig['CODE_PROJET'] . " " . $this->m_tblConfig['APP_NAME'] ."**/
 /** Client  : ".$this->m_tblConfig['CLIENT']."                                      **/
 /** Version : SAS V9                                                                **/
@@ -223,7 +294,7 @@ run;";
     $subjCol = $this->m_ctrl->socdiscoo()->getClinicalDataCollection();
     $query = "for \$SubjectData in $subjCol/odm:ODM/odm:ClinicalData/odm:SubjectData[@SubjectKey!='BLANK']";
 
-    foreach($this->m_tblConfig['EXPORT']['TYPE'][$type]['contextVars'] as $key=>$col){
+    foreach($contextVars as $key=>$col){
       if(!in_array($key,array("SUBJID","VISITNUM","VISITNAME"))){
         $query .= "let \$col$key := \$SubjectData/odm:StudyEventData[@StudyEventOID='{$col['value']['SEOID']}' and @StudyEventRepeatKey='{$col['value']['SERK']}']/
                                                           odm:FormData[@FormOID='{$col['value']['FRMOID']}' and @FormRepeatKey='{$col['value']['FRMRK']}']/
@@ -237,7 +308,7 @@ run;";
                 <Subject     
                      SubjectKey='{\$SubjectData/@SubjectKey}' ";
     
-    foreach($this->m_tblConfig['EXPORT']['TYPE'][$type]['contextVars'] as $key=>$col){
+    foreach($contextVars as $key=>$col){
       if(!in_array($key,array("SUBJID","VISITNUM","VISITNAME"))){
         $query .= "$key='{\$col$key}' ";
       }
@@ -254,7 +325,7 @@ run;";
     $tblSubj = array();
     foreach($subjs as $subj){
       $subjKey = (string)$subj['SubjectKey'];
-      foreach($this->m_tblConfig['EXPORT']['TYPE'][$type]['contextVars'] as $key=>$col){
+      foreach($contextVars as $key=>$col){
         if(!in_array($key,array("SUBJID","VISITNUM","VISITNAME"))){
           $tblSubj[$subjKey]["$key"] = (string)$subj["$key"];
         }
@@ -297,8 +368,21 @@ run;";
     //Les tables poolées horizontalement sont stockées dans le table TblPoolH pour utilisation en deuxième temps
     $tblPoolH = array();
     $tblHeadLine = array(); //Entete - correspondance nom du champ - offset
-    foreach($this->m_tblConfig[$exportIndex] as $ItemGroupOID => $ItemGroupDest){
+    foreach($exportDef as $ItemGroupOID => $ItemGroupDest){
       $tblFields = $ItemGroupDest['FIELDLIST'];
+      
+      if(isset($ItemGroupDest['SEOID'])){
+        $tblStudyEventOID = $ItemGroupDest['SEOID'];
+      }else{
+        $tblStudyEventOID = array();
+      }
+      
+      if(isset($ItemGroupDest['FRMOID'])){
+        $tblFormOID = $ItemGroupDest['FRMOID'];
+      }else{
+        $tblFormOID = array();
+      }
+      
       if(isset($ItemGroupDest['CUSTOM_HEADLINE'])){
         $tblCustomHeadLine = $ItemGroupDest['CUSTOM_HEADLINE']; 
       }else{
@@ -310,7 +394,7 @@ run;";
       }else{
         if(!isset($ItemGroupDest['POOL']) || isset($ItemGroupDest['POOL']) && $ItemGroupDest['POOL']=="V"){
           //2 minutes par ItemGroup
-          set_time_limit(240);
+          set_time_limit(360);
           
           echo "<br/>Exporting $ItemGroupOID...";
           flush();
@@ -362,7 +446,7 @@ run;";
             $tblHeadLine = array();
             
             $line = array();
-            foreach($this->m_tblConfig['EXPORT']['TYPE'][$type]['contextVars'] as $contextVar => $infos){
+            foreach($contextVars as $contextVar => $infos){
               $line[] = $contextVar;  
               $procSAS .= "
        $contextVar";
@@ -457,33 +541,50 @@ run;";
           //$subjCol = "collection('0703.dbxml')";
           //Data extraction
           $query = "
+                    declare function local:getDecode(\$ItemData as node()*,\$MetaDataVersion as node()) as xs:string?
+                    {
+                      let \$value := \$ItemData/string()
+                      let \$CodeListOID := \$MetaDataVersion/odm:ItemDef[@OID=\$ItemData/@ItemOID]/odm:CodeListRef/@CodeListOID
+                      return
+                        if(\$CodeListOID)
+                        then \$MetaDataVersion/odm:CodeList[@OID=\$CodeListOID]/odm:CodeListItem[@CodedValue=\$value]/odm:Decode/odm:TranslatedText[@xml:lang='".$this->m_lang."']/string()
+                        else \$value
+                    };
+              
                     let \$SubjectData := $subjCol/odm:ODM/odm:ClinicalData/odm:SubjectData[@SubjectKey!='BLANK']
                     
                     let \$BLANKSubjectData := collection('BLANK.dbxml')/odm:ODM/odm:ClinicalData/odm:SubjectData
                     
-                    let \$MetaDataVersion := doc('MetaDataVersion.dbxml/{$this->m_tblConfig["METADATAVERSION"]}')
-                    let \$ItemGroupDef := \$MetaDataVersion/odm:ODM/odm:Study/odm:MetaDataVersion/odm:ItemGroupDef[@OID='$ItemGroupOID']
-                    for \$ItemGroupData in \$SubjectData/odm:StudyEventData/odm:FormData/odm:ItemGroupData[@ItemGroupOID='$ItemGroupOID' and @TransactionType!='Remove']
+                    let \$MetaDataVersion := doc('MetaDataVersion.dbxml/{$this->m_tblConfig["METADATAVERSION"]}')/odm:ODM/odm:Study/odm:MetaDataVersion
+                    let \$ItemGroupDef := \$MetaDataVersion/odm:ItemGroupDef[@OID='$ItemGroupOID']
+                    for \$ItemGroupData in \$SubjectData/odm:StudyEventData/
+                                                         odm:FormData[@TransactionType!='Remove']/
+                                                         odm:ItemGroupData[@ItemGroupOID='$ItemGroupOID' and @TransactionType!='Remove']
                     let \$SubjectKey := \$ItemGroupData/../../../@SubjectKey
                     let \$StudyEventOID := \$ItemGroupData/../../@StudyEventOID
                     let \$StudyEventRepeatKey := \$ItemGroupData/../../@StudyEventRepeatKey
                     let \$FormOID := \$ItemGroupData/../@FormOID
                     let \$FormRepeatKey := \$ItemGroupData/../@FormRepeatKey
-                    let \$StudyEventName := \$MetaDataVersion/odm:ODM/odm:Study/odm:MetaDataVersion/odm:StudyEventDef[@OID=\$StudyEventOID]/odm:Description/odm:TranslatedText               
-                    where count(\$ItemGroupData/odm:*) gt count(\$BLANKSubjectData/odm:StudyEventData[@StudyEventOID=\$StudyEventOID and @StudyEventRepeatKey=\$StudyEventRepeatKey]/odm:FormData[@FormOID=\$FormOID and @FormRepeatKey=\$FormRepeatKey]/odm:ItemGroupData[@ItemGroupOID='$ItemGroupOID' and @ItemGroupRepeatKey=\$ItemGroupData/@ItemGroupRepeatKey]/odm:*) 
-                    (:
-                    for \$ItemGroupData in \$SubjectData/odm:StudyEventData/odm:FormData/odm:ItemGroupData[@ItemGroupOID='$ItemGroupOID' and @TransactionType!='Remove']
-                    :)
+                    let \$StudyEventName := \$MetaDataVersion/odm:StudyEventDef[@OID=\$StudyEventOID]/odm:Description/odm:TranslatedText               
+                    where count(\$ItemGroupData/odm:*) gt count(\$BLANKSubjectData/odm:StudyEventData[@StudyEventOID=\$StudyEventOID and @StudyEventRepeatKey=\$StudyEventRepeatKey]/odm:FormData[@FormOID=\$FormOID and @FormRepeatKey=\$FormRepeatKey]/odm:ItemGroupData[@ItemGroupOID='$ItemGroupOID' and @ItemGroupRepeatKey=\$ItemGroupData/@ItemGroupRepeatKey]/odm:*)
+                          and (\$ItemGroupDef/@Repeating='No' or \$ItemGroupDef/@Repeating='Yes' and \$ItemGroupData/@ItemGroupRepeatKey!='0')   
                     return
                       <ItemGroupData SubjectKey='{\$SubjectKey}' 
                                      StudyEventOID='{\$StudyEventOID}'
-                                     StudyEventName='{\$StudyEventName}'>
+                                     StudyEventName='{\$StudyEventName}'
+                                     FormOID='{\$FormOID}'
+                                     ItemGroupRepeatKey='{\$ItemGroupData/@ItemGroupRepeatKey}'
+                                     >
                       {
                         for \$ItemRef in \$ItemGroupDef/odm:ItemRef
-                        let \$ItemDef := \$MetaDataVersion/odm:ODM/odm:Study/odm:MetaDataVersion/odm:ItemDef[@OID=\$ItemRef/@ItemOID]
+                        let \$ItemDef := \$MetaDataVersion/odm:ItemDef[@OID=\$ItemRef/@ItemOID]
                         let \$ItemData := (\$ItemGroupData/odm:*[@ItemOID=\$ItemRef/@ItemOID])[last()]
+                        let \$DecodedValue := local:getDecode(\$ItemData,\$MetaDataVersion)
                         return
-                          <ItemData OID='{\$ItemRef/@ItemOID}' Name='{\$ItemDef/@SASFieldName}' Value='{\$ItemData/string()}'/>
+                          <ItemData OID='{\$ItemRef/@ItemOID}' 
+                                    Name='{\$ItemDef/@SASFieldName}' 
+                                    Value='{\$ItemData/string()}'
+                                    DecodedValue='{\$DecodedValue}'/>
                       }
                       </ItemGroupData>  
                    ";
@@ -499,43 +600,59 @@ run;";
           //Boucle sur les lignes
           $rowNum = 0;
           foreach($ItemGroupDatas as $ItemGroupData){
-            $line = array_fill(0,count($tblHeadLine),"");
             $subjKey = (string)$ItemGroupData['SubjectKey'];
-
-            //Fill the context vars
-            foreach($this->m_tblConfig['EXPORT']['TYPE'][$type]['contextVars'] as $key=>$col){
-              if(!in_array($key,array("SUBJID","VISITNUM","VISITNAME"))){
-                $line[$tblHeadLine["$key"]] = (string)$tblSubj[$subjKey]["$key"];
-              }else{
-                //Handling of magic keywords
-                switch($key){
-                  case 'SUBJID' :
-                            $line[$tblHeadLine["SUBJID"]] = (string)$ItemGroupData['SubjectKey'];
-                            break;
-                  case 'VISITNUM' :
-                            $line[$tblHeadLine["VISITNUM"]] = (string)$ItemGroupData['StudyEventOID'];
-                            break;
-                  case 'VISITNAME' :
-                            $line[$tblHeadLine["VISITNAME"]] = (string)$ItemGroupData['StudyEventName'];
-                            break;
-                }  
+            $IGstudyEventOID = (string)$ItemGroupData['StudyEventOID'];
+            $IGformOID = (string)$ItemGroupData['FormOID'];
+            
+            //We filter result - if specified
+            if( (count($tblStudyEventOID)==0 || in_array($IGstudyEventOID,$tblStudyEventOID)) && 
+                (count($tblFormOID)==0 || in_array($IGformOID,$tblFormOID)) )
+            {
+              $line = array_fill(0,count($tblHeadLine),"");
+  
+              //Fill the context vars
+              foreach($contextVars as $key=>$col){
+                if(!in_array($key,array("SUBJID","VISITNUM","VISITNAME","IGRK"))){
+                  $line[$tblHeadLine["$key"]] = (string)$tblSubj[$subjKey]["$key"];
+                }else{
+                  //Handling of magic keywords
+                  switch($key){
+                    case 'SUBJID' :
+                              $line[$tblHeadLine["SUBJID"]] = (string)$ItemGroupData['SubjectKey'];
+                              break;
+                    case 'VISITNUM' :
+                              $line[$tblHeadLine["VISITNUM"]] = (string)$ItemGroupData['StudyEventOID'];
+                              break;
+                    case 'VISITNAME' :
+                              $line[$tblHeadLine["VISITNAME"]] = (string)$ItemGroupData['StudyEventName'];
+                              break;
+                    case 'IGRK' :
+                              $line[$tblHeadLine["IGRK"]] = (string)$ItemGroupData['ItemGroupRepeatKey'];
+                              break;
+                  }  
+                }
               }
-            }
-                        
-           foreach($ItemGroupData as $ItemData){
-              $itemName = (string)$ItemData['Name'];
-              $OID = (string)$ItemData['OID'];
-              if(!is_array($tblFields) || in_array($OID,$tblFields)){
-                $line[$tblHeadLine[$itemName]] = utf8_decode($ItemData['Value']);
+                          
+             foreach($ItemGroupData as $ItemData){
+                $itemName = (string)$ItemData['Name'];
+                $OID = (string)$ItemData['OID'];
+                if(!is_array($tblFields) || in_array($OID,$tblFields)){
+                  if($rawValue=="Y"){
+                    $value = utf8_decode($ItemData['Value']);
+                  }else{
+                    $value = utf8_decode($ItemData['DecodedValue']);
+                  }
+                  $line[$tblHeadLine[$itemName]] = $value;
+                }
               }
+              $rowNum++;
+              //Add line of data to csv file
+              fputcsv($fp, $line,';');
             }
-            $rowNum++;
-            //Add line of data to csv file
-            fputcsv($fp, $line,';');
           }
           fclose($fp); 
           
-          echo "$rowNum lignes exportées vers le fichier $destFile.csv";
+          echo "$rowNum lines exported to $destFile.csv";
           flush();                          
         }
       }
@@ -546,7 +663,7 @@ run;";
     $tblFields = array();
     foreach($tblPoolH as  $destFile => $ItemGroupOIDList){
       //2 minutes par ItemGroup
-      set_time_limit(240);
+      set_time_limit(360);
       
       $xQuerySelect = "";
       $xQuerySelectIGOID = "";
@@ -560,8 +677,8 @@ run;";
           $xQuerySelect .= " or ";
           $xQuerySelectIGOID .= " or ";  
         }
-        if(isset($this->m_tblConfig[$exportIndex][$ItemGroupOID]['FIELDLIST'])){
-          $tblFields = array_merge($tblFields,$this->m_tblConfig[$exportIndex][$ItemGroupOID]['FIELDLIST']);
+        if(isset($exportDef[$ItemGroupOID]['FIELDLIST'])){
+          $tblFields = array_merge($tblFields,$exportDef[$ItemGroupOID]['FIELDLIST']);
         }
       }   
         
@@ -610,7 +727,7 @@ delimiter = ';' MISSOVER DSD lrecl=32767 firstobs=2;
       if($fexists==false){
         $colNum = 0;
         $line = array();
-        foreach($this->m_tblConfig['EXPORT']['TYPE'][$type]['contextVars'] as $contextVar => $infos){
+        foreach($contextVars as $contextVar => $infos){
           $line[] = $contextVar;  
           $procSAS .= "
        $contextVar";
@@ -691,15 +808,17 @@ delimiter = ';' MISSOVER DSD lrecl=32767 firstobs=2;
                 let \$nbIG := count(\$StudyEventData/odm:FormData/odm:ItemGroupData[$xQuerySelectIGOID and @TransactionType!='Remove'])
                 return
                   <StudyEventData SubjectKey='{\$SubjectKey}' 
-                                 StudyEventOID='{\$StudyEventOID}'
-                                 StudyEventName='{\$StudyEventName}'
-                                 NbIG='{\$nbIG}'>
+                                  StudyEventOID='{\$StudyEventOID}'
+                                  StudyEventName='{\$StudyEventName}'
+                                  NbIG='{\$nbIG}'>
                   {
                     for \$ItemRef in \$ItemGroupDef/odm:ItemRef
                     let \$ItemDef := doc('MetaDataVersion.dbxml/{$this->m_tblConfig["METADATAVERSION"]}')/odm:ODM/odm:Study/odm:MetaDataVersion/odm:ItemDef[@OID=\$ItemRef/@ItemOID]
                     let \$ItemData := (\$StudyEventData/odm:FormData/odm:ItemGroupData/odm:*[@ItemOID=\$ItemRef/@ItemOID])[last()]
                     return
-                      <ItemData OID='{\$ItemRef/@ItemOID}' Name='{\$ItemDef/@SASFieldName}' Value='{\$ItemData/string()}'/>
+                      <ItemData OID='{\$ItemRef/@ItemOID}' 
+                                Name='{\$ItemDef/@SASFieldName}' 
+                                Value='{\$ItemData/string()}'/>
                   }
                   </StudyEventData>  
                ";
@@ -726,7 +845,7 @@ delimiter = ';' MISSOVER DSD lrecl=32767 firstobs=2;
         $line = array();
         $subjKey = (string)$ItemGroupData['SubjectKey'];
 
-        foreach($this->m_tblConfig['EXPORT']['TYPE'][$type]['contextVars'] as $key=>$col){
+        foreach($contextVars as $key=>$col){
           if(!in_array($key,array("SUBJID","VISITNUM","VISITNAME"))){
             $line[$tblHeadLine["$key"]] = (string)$tblSubj[$subjKey]["$key"];
           }else{
@@ -758,56 +877,295 @@ delimiter = ';' MISSOVER DSD lrecl=32767 firstobs=2;
       }
       fclose($fp); 
       
-      echo "<br/>$rowNum lignes exportées vers le fichier $destFile.csv depuis les itemgroups $lstIGOID";
+      echo "<br/>$rowNum lines exported to $destFile.csv from itemgroups $lstIGOID";
       flush();  
     }
     
     file_put_contents($tmp.'/'.$uid . '/import.sas',$procSAS);
     file_put_contents($tmp.'/'.$uid . '/importFormat.sas',$procSasFormat);
+
+
+    //Creation du fichier csv destination
+    $filename = $tmp.'/'.$uid."/Annotations.csv";
+    $fexists = file_exists($filename);
+    $fp = fopen($filename, 'a+');
+          
+    //Processing of Annotation - Here we add all annonations into one file
+    $query = "let \$ClinicalDatas := $subjCol/odm:ODM/odm:ClinicalData
+              for \$ClinicalData in \$ClinicalDatas
+                let \$SubjectKey := \$ClinicalData/odm:SubjectData/@SubjectKey
+                for \$Annotation in \$ClinicalData/odm:Annotations/odm:Annotation
+                  let \$AnnotationID := \$Annotation/@ID
+                  let \$ItemDatas := \$ClinicalData/odm:SubjectData/odm:StudyEventData/odm:FormData/odm:ItemGroupData/odm:*[@AnnotationID=\$AnnotationID]
+                  for \$ItemData in \$ItemDatas
+                    let \$StudyEventOID := \$ItemData/../../../@StudyEventOID
+                    let \$StudyEventRepeatKey := \$ItemData/../../../@StudyEventRepeatKey
+                    let \$FormOID := \$ItemData/../../@FormOID
+                    let \$FormRepeatKey := \$ItemData/../../@FormRepeatKey
+                    let \$ItemGroupOID := \$ItemData/../@ItemGroupOID
+                    let \$ItemGroupRepeatKey := \$ItemData/../@ItemGroupRepeatKey
+                    return
+                      <AnnotedItem SubjectKey='{\$SubjectKey}'
+                                   StudyEventOID='{\$StudyEventOID}'
+                                   StudyEventRepeatKey='{\$StudyEventRepeatKey}'
+                                   FormOID='{\$FormOID}'
+                                   FormRepeatKey='{\$FormRepeatKey}'
+                                   ItemGroupOID='{\$ItemGroupOID}'
+                                   ItemGroupRepeatKey='{\$ItemGroupRepeatKey}'
+                                   ItemOID='{\$ItemData/@ItemOID}'>
+                        <FlagValue>{\$Annotation/odm:Flag/odm:FlagValue/text()}</FlagValue>
+                        <Comment>{\$Annotation/odm:Comment/text()}</Comment>  
+                      </AnnotedItem>      
+              ";   
+    try{         
+      $AnnotedItems = $this->m_ctrl->socdiscoo()->query($query);
+    }catch(xmlexception $e){
+      $str = "<html>Erreur de la requete : " . htmlentities($e->getMessage()) . "<br/><br/>" . htmlentities($query) . "</html> (". __METHOD__ .")";
+      $this->addLog("Erreur : exportDSMB() => $str",FATAL);
+      die($str);
+    }
+    fputcsv($fp, array("SubjectKey","StudyEventOID","StudyEventRepeatKey","FormOID","FormRepeatKey","ItemGroupOID","ItemGroupRepeatKey","ItemOID","Flag","Comment"),';');                              
     
-    $dsmbFileName = $type."_".date('Y_m_d_H_i').".zip";
+    $tblAnnot = array();
+    foreach($AnnotedItems as $AnnotedItem){
+      $line = array();
+      $key = (string)$AnnotedItem['SubjectKey'] . "_" . 
+             (string)$AnnotedItem['StudyEventOID'] . "_" .  
+             (string)$AnnotedItem['StudyEventRepeatKey'] . "_" .
+             (string)$AnnotedItem['FormOID'] . "_" .
+             (string)$AnnotedItem['FormRepeatKey'] . "_" .
+             (string)$AnnotedItem['ItemGroupOID'] . "_" .
+             (string)$AnnotedItem['ItemGroupRepeatKey'] . "_" .
+             (string)$AnnotedItem['ItemOID'];
+             
+      $line[] = (string)$AnnotedItem['SubjectKey'];
+      $line[] = (string)$AnnotedItem['StudyEventOID'];  
+      $line[] = (string)$AnnotedItem['StudyEventRepeatKey'];
+      $line[] = (string)$AnnotedItem['FormOID'];
+      $line[] = (string)$AnnotedItem['FormRepeatKey'];
+      $line[] = (string)$AnnotedItem['ItemGroupOID'];
+      $line[] = (string)$AnnotedItem['ItemGroupRepeatKey'];
+      $line[] = (string)$AnnotedItem['ItemOID'];
+      $line[] = utf8_decode((string)($AnnotedItem->FlagValue));
+      $line[] = utf8_decode((string)($AnnotedItem->Comment));
+      //We keep only the last annotation
+      $tblAnnot[$key] = $line;                                    
+    }
+    foreach($tblAnnot as $annot){
+      fputcsv($fp,$annot,";");
+    }
+    fclose($fp);
+          
+    $dsmbFileName = $id."_".date('Y_m_d_H_i').".zip";
     $dsmbFile = $this->m_tblConfig["EXPORT_BASE_PATH"] . $dsmbFileName;
     
     shell_exec('cd '.$tmp.'/'.$uid.';zip -P '.$uid.' -r '.escapeshellarg($dsmbFile).' ./');
     
-    $sql = "INSERT INTO egw_alix_export(exportname,exportpath,exporttype,exportdate,exportpassword,exportuser,currentapp)
-            VALUES('$dsmbFileName','{$this->m_tblConfig["EXPORT_BASE_PATH"]}','$type',now(),'$uid','{$GLOBALS['egw_info']['user']['userid']}','{$GLOBALS['egw_info']['flags']['currentapp']}')";
+    $sql = "INSERT INTO egw_alix_export_log(exportid,exportfilename,exportpath,exporttype,exportdate,exportpassword,exportuser,currentapp)
+            VALUES('$id','$dsmbFileName','{$this->m_tblConfig["EXPORT_BASE_PATH"]}','$type',now(),'$uid','{$GLOBALS['egw_info']['user']['userid']}','{$GLOBALS['egw_info']['flags']['currentapp']}')";
   
     $GLOBALS['egw']->db->query($sql);
   }
   
-  public function getExportList(){
-    $sql = "SELECT exportid,exportname,exportpath,exportdate,exportpassword,exportuser,exporttype
+  public function getMetaDataStructure(){
+    $query = "
+      let \$SubjectData := collection('BLANK.dbxml')/odm:ODM/odm:ClinicalData/odm:SubjectData
+      let \$MetaDataVersion := collection('MetaDataVersion.dbxml')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
+      
+      for \$StudyEventDef in \$MetaDataVersion/odm:StudyEventDef
+        return
+          <StudyEvent StudyEventOID='{\$StudyEventDef/@OID}'
+                      StudyEventTitle='{\$StudyEventDef/odm:Description/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()}'>
+          {        
+            for \$FormRef in \$StudyEventDef/odm:FormRef
+            let \$FormDef := \$MetaDataVersion/odm:FormDef[@OID=\$FormRef/@FormOID]
+            return
+              <Form FormOID='{\$FormDef/@OID}'
+                    FormTitle='{\$FormDef/odm:Description/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()}'>
+              {
+                for \$ItemGroupRef in \$FormDef/odm:ItemGroupRef
+                let \$ItemGroupDef := \$MetaDataVersion/odm:ItemGroupDef[@OID=\$ItemGroupRef/@ItemGroupOID]
+                return
+                  <ItemGroup ItemGroupOID='{\$ItemGroupDef/@OID}' 
+                             ItemGroupTitle='{\$ItemGroupDef/odm:Description/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()}'>
+                  {
+                    for \$ItemRef in \$ItemGroupDef/odm:ItemRef
+                    let \$ItemDef := \$MetaDataVersion/odm:ItemDef[@OID=\$ItemRef/@ItemOID]
+                    return 
+                      <Item ItemOID='{\$ItemDef/@OID}'
+                            Question='{\$ItemDef/odm:Question/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()}' />                        
+                  }
+                  </ItemGroup>
+              }
+              </Form>
+          }
+          </StudyEvent>    
+    ";
+    try{
+    $doc = $this->m_ctrl->socdiscoo("BLANK")->query($query);
+    }catch(xmlexception $e){
+      $str = "Error in xQuery : " . $e->getMessage() . "<br/><br/>" . $query . "</html> (". __METHOD__ .")";
+      $this->addLog($str,FATAL);
+      die($str);
+    }
+    return $doc;    
+  }
+
+  /**
+   *Export edit interface submit data to this function while saving
+   *@param integer $id id of the export to save
+   *@param array $ItemGroups array of Itemgroup checked for export
+   *@param array $Items array of ItemDef checked for export           
+   **/  
+  function saveExport($id,$ItemGroups,$Items){
+    $this->addLog("boexport::saveExport($id)",INFO);
+    //Checking parameters
+    if($id==""){
+      throw new Exception("ID cannot be empty");
+      return;
+    }else{
+      if(is_array($ItemGroups)==false or is_array($ItemGroups) and count($ItemGroups)==0){
+        throw new Exception("One Itemgroup must be selected at least");
+        return;
+      }else{
+        if(is_array($Items)==false or is_array($Items) and count($Items)==0){
+          throw new Exception("One Item must be selected at least");
+          return;
+        }
+      }
+    }
+    
+    $id = mysql_real_escape_string($id);
+    $updateDT = date("c");
+          
+    foreach($ItemGroups as $ItemGroupOIDInfos){
+      $ItemGroupInfo = explode('_',$ItemGroupOIDInfos);
+      $StudyEventOID = $ItemGroupInfo[0];
+      $FormOID = $ItemGroupInfo[1];
+      $ItemGroupOID = $ItemGroupInfo[2]; 
+      
+      //Here we extract the Item list corresponding to the current ItemGroup
+      $tblItem = array();
+      foreach($Items as $Item){
+        $ItemInfo = explode("_",$Item);
+        if($ItemInfo[0]==$StudyEventOID && 
+           $ItemInfo[1]==$FormOID && 
+           $ItemInfo[2]==$ItemGroupOID){
+          $tblItem[] = $ItemInfo[3];
+        }
+      }
+
+      $sql = "REPLACE INTO egw_alix_export_def(exportid,studyeventoid,formoid,itemgroupoid,fields,updateDT) 
+                    VALUES('$id','$StudyEventOID','$FormOID','$ItemGroupOID','".json_encode($tblItem)."','$updateDT')";
+
+      $GLOBALS['egw']->db->query($sql);
+    }
+    
+    //We delete old definition for this export 
+    $sql = "DELETE FROM egw_alix_export_def WHERE exportid='$id' AND updateDT<>'$updateDT'";                 
+    $GLOBALS['egw']->db->query($sql);
+    
+  }
+  
+  /**
+   * Retrieve the Definition (i.e. Selected Items) of an export
+   * @param $id string id of the export to retrieve   
+   **/     
+  public function getExportDef($id){
+    $sql = "SELECT studyeventoid,formoid,itemgroupoid,fields
+            FROM egw_alix_export_def
+            WHERE exportid='$id'";
+    $GLOBALS['egw']->db->query($sql);            
+    $tblExport = array();
+    while($GLOBALS['egw']->db->next_record()){
+      $tblExport[(string)$GLOBALS['egw']->db->f('studyeventoid')]
+                [(string)$GLOBALS['egw']->db->f('formoid')]
+                [(string)$GLOBALS['egw']->db->f('itemgroupoid')] = json_decode($GLOBALS['egw']->db->f('fields'));
+    }
+    return $tblExport;    
+  }
+  
+  /**
+   *Retrieve export list
+   *@param int $id optional : if specified filter the export list to retrieve only one export type
+   *@return array         
+   **/  
+  public function getExportList($id=""){
+    $sql = "SELECT id,name,description,user,creationDate,share,raw,MAX(exportdate) as lastrun
+            FROM egw_alix_export LEFT JOIN egw_alix_export_log 
+              ON egw_alix_export.id=egw_alix_export_log.exportid
+            WHERE egw_alix_export.currentapp='".$this->getCurrentApp(true)."'";
+ 
+    $sql = "SELECT id,name,description,user,creationDate,share,raw,
+                   (SELECT MAX(exportdate) FROM egw_alix_export_log WHERE egw_alix_export_log.exportid=egw_alix_export.id AND egw_alix_export_log.currentapp='".$this->getCurrentApp(true)."') as lastrun
             FROM egw_alix_export
-            WHERE currentapp='".$GLOBALS['egw_info']['flags']['currentapp']."'
+            WHERE egw_alix_export.currentapp='".$this->getCurrentApp(true)."'";    
+    if($id!=""){
+      $sql .= " AND id='$id'";
+    }
+            
+    $GLOBALS['egw']->db->query($sql);        
+
+    $tblExport = array();
+    while($GLOBALS['egw']->db->next_record()){
+      if($GLOBALS['egw_info']['user']['apps']['admin'] ||
+         $GLOBALS['egw_info']['user']['userid']==$GLOBALS['egw']->db->f('user') ||
+         $GLOBALS['egw']->db->f('share')=="Y")
+      {
+        $tblExport[] = array('id' => $GLOBALS['egw']->db->f('id'),
+                             'name' => $GLOBALS['egw']->db->f('name'),
+                             'description' => $GLOBALS['egw']->db->f('description'), 
+                             'user' => $GLOBALS['egw']->db->f('user'),
+                             'creationDate' => $GLOBALS['egw']->db->f('creationDate'),
+                             'share' => $GLOBALS['egw']->db->f('share'),
+                             'raw' => $GLOBALS['egw']->db->f('raw'),
+                             'lastrun' => $GLOBALS['egw']->db->f('lastrun'),
+                            );
+      }                        
+    }
+    return $tblExport;
+  
+  }
+  
+  public function getLogExport(){
+    $sql = "SELECT logid,name,exportfilename,exportpath,exportdate,exportpassword,exportuser,exporttype,exportid
+            FROM egw_alix_export_log LEFT JOIN egw_alix_export
+            ON egw_alix_export_log.exportid=egw_alix_export.id
+            WHERE egw_alix_export_log.currentapp='".$this->getCurrentApp(true)."'
             ORDER BY exportdate DESC";
             
     $GLOBALS['egw']->db->query($sql);        
 
     $tblExport = array();
     while($GLOBALS['egw']->db->next_record()){
-      $tblExport[] = array('exportid' => $GLOBALS['egw']->db->f('exportid'),
-                           'exporttype' => $GLOBALS['egw']->db->f('exporttype'),
-                           'exportname' => $GLOBALS['egw']->db->f('exportname'), 
-                           'exportpath' => $GLOBALS['egw']->db->f('exportpath'),
-                           'exportdate' => $GLOBALS['egw']->db->f('exportdate'),
-                           'exportpassword' => $GLOBALS['egw']->db->f('exportpassword'),
-                           'exportuser' => $GLOBALS['egw']->db->f('exportuser'));  
+      if($GLOBALS['egw_info']['user']['apps']['admin'] ||
+         $GLOBALS['egw_info']['user']['userid']==$GLOBALS['egw']->db->f('exportuser'))
+      {
+        $tblExport[] = array('logid' => $GLOBALS['egw']->db->f('logid'),
+                             'exporttype' => $GLOBALS['egw']->db->f('exporttype'),
+                             'exportid' => $GLOBALS['egw']->db->f('exportid'),
+                             'exportname' => $GLOBALS['egw']->db->f('name'),                           
+                             'exportfilename' => $GLOBALS['egw']->db->f('exportfilename'), 
+                             'exportpath' => $GLOBALS['egw']->db->f('exportpath'),
+                             'exportdate' => $GLOBALS['egw']->db->f('exportdate'),
+                             'exportpassword' => $GLOBALS['egw']->db->f('exportpassword'),
+                             'exportuser' => $GLOBALS['egw']->db->f('exportuser'));  
+      }
     }
     return $tblExport;
   }
   
-  public function getExportFile($exportId){    
+  public function getExportFile($logId){    
     
     //Recuperation des informations sur le fichier demandé
-    $sql = "SELECT exportname,exportpath
-            FROM egw_alix_export
-            WHERE exportid='$exportId'";
+    $sql = "SELECT exportfilename,exportpath
+            FROM egw_alix_export_log
+            WHERE logid='$logId'";
             
     $GLOBALS['egw']->db->query($sql);    
     
     if($GLOBALS['egw']->db->next_record()){
-      $filename = $GLOBALS['egw']->db->f('exportname');
+      $filename = $GLOBALS['egw']->db->f('exportfilename');
       $filepath = $GLOBALS['egw']->db->f('exportpath') . $filename;
     }
     

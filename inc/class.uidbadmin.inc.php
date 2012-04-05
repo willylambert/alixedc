@@ -194,30 +194,18 @@ class uidbadmin extends CommonFunctions{
   				                                                                        'container' => 'MetaDataVersion',
                                                                                   'action' => 'viewDocs'),
                                             "MetaData");
-        /*$menu_admin .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
-  				                                                                        'container' => 'SubjectsList',
-                                                                                  'action' => 'viewDocs'),
-                                            "SubjectsList");
-        */
         $menu_admin .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
   				                                                                        'action' => 'importDocInterface'),
                                             "Import Metadata / ClinicalData");
-        /* 
-        $menu_admin .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
-  				                                                                        'action' => 'importECG'),
-                                            "Import ECG");     
-        $menu_admin .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
-  				                                                                        'action' => 'importLAB'),
-                                            "Import LAB");  
-        $menu_admin .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
-  				                                                                        'action' => 'importCoding'),
-                                            "Import Coding");
-        */
         $menu_admin .= "<h3 class='ui-accordion-header ui-helper-reset ui-state-default ui-corner-all ui-state-highlight'><a href=\"javascript:helper.showPrompt('Please configure class.boimport.inc.php according to your purposes.', 'noon()', 1);\">Import Clinical Data</a></h3>";
-        
-        $menu_admin .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
-  				                                                                        'action' => 'exportInterface'),
-                                            "Data export");                   
+
+        if( $GLOBALS['egw_info']['user']['apps']['admin'] ||
+            $this->m_ctrl->boacl()->existUserProfileId(array("DM","SPO")) )
+        {
+          $menu_admin .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.exportInterface'),
+                                            "Data export");                                                                                                                       
+        }
+
         $menu_admin .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.editorInterface',
   				                                                                        'action' => ''),
                                             "Editor");                                                                                                      
