@@ -100,22 +100,7 @@ class etudemenu extends CommonFunctions
                 <li><a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.logout')).$updateSubjectEntryLink.'"><img src="'.$this->getCurrentApp(false).'/templates/default/images/logout2.png" alt=""/>Logout</a></li>
               </ul>
             </div>';
-/*
 
-            <div id="userProfileInfo" style="display:block;">
-             <div id="userInfo">
-              ['.$user['login'].'] '.$user['fullname'].' Last login : '.date('r',$user['lastlogin']).'
-             </div>
-             <div id="profileInfo">';
-      $menu .= '
-              ['.$profile['siteId'].']'. $profile['siteName'].' =&gt; '.$profile['profileId'].'
-             ';         
-      $menu .= '
-              </div>
-              <div><a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.preferencesInterface')).$updateSubjectEntryLink.'">My preferences</a>
-              </div>
-            </div>
-*/
     return $menu;
 	}	
 }

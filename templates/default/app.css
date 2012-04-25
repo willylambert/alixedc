@@ -16,6 +16,11 @@ body,td{
   font-size:11;
 }
 
+#userInfo{
+  margin-right:5px;
+  float:right;
+}
+
 .divSideboxHeader,.divLoginboxHeader 
 {
 

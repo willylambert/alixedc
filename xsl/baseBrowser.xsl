@@ -25,12 +25,24 @@
 <xsl:output method="html" encoding="UTF-8" indent="yes"/>
 
 <xsl:param name="CurrentApp"/>
+<xsl:param name="UserInfo"/>
 
 <!--Catch all non treated tags, print them with no treatment-->
 <xsl:template match="*">
 	<xsl:copy>
 		<xsl:copy-of select="@*"/>
 		<xsl:apply-templates/>
+  </xsl:copy>
+</xsl:template>
+
+<!--Add User Info next to the app title -->
+<xsl:template match="div[@id='mysite']">
+	<xsl:copy>
+		<xsl:copy-of select="@*"/>
+		<xsl:apply-templates/>
+		<span id='userInfo'>
+		  <xsl:value-of select="$UserInfo"/>
+		</span>
   </xsl:copy>
 </xsl:template>
 

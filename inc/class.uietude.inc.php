@@ -108,9 +108,11 @@ class uietude extends CommonFunctions
       $xsl = new DOMDocument;
       $xsl->load(EGW_INCLUDE_ROOT . "/".$this->getCurrentApp(false)."/xsl/baseBrowser.xsl");    
   
+      $user = $this->m_ctrl->boacl()->getUserInfo();
+  
       $proc = new XSLTProcessor;     
       $proc->importStyleSheet($xsl);
-  
+      $proc->setParameter('',"UserInfo",'['.$user['login'].'] '.$user['fullname'].' Last login : '.date('r',$user['lastlogin']));
       $proc->setParameter('',"CurrentApp",$this->getCurrentApp(false));
       $stdDoc = $proc->transformToDoc($stdDoc);
               
