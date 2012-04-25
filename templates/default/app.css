@@ -317,7 +317,7 @@ div.itemGroupLine:hover{
 .StudyEventStatusEMPTY{
   background-image: url(images/circle_lightgray_16.png)
 }
-.StudyEventStatusPARTIAL{
+.StudyEventStatusPARTIAL,.StudyEventStatusMISSING{
   background-image: url(images/circle_orange_16.png)
 }
 .StudyEventStatusINCONSISTENT{

@@ -2287,6 +2287,7 @@ class bocdiscoo extends CommonFunctions
     //Loop through visits
     $visits = $doc->getElementsByTagName('StudyEventData');
     foreach($visits as $visit){
+      $nbForm = 0;
       $nbFormEmpty = 0;
       $nbFormFrozen = 0;
       $StudyEventOID = $visit->getAttribute('StudyEventOID');
@@ -2295,6 +2296,7 @@ class bocdiscoo extends CommonFunctions
       //Loop through forms
       foreach($visit->childNodes as $form){
         if(!$form->hasAttribute('Status')){
+          $nbForm++;
           $FormOID = $form->getAttribute('FormOID');
           $FormRepeatKey = $form->getAttribute('FormRepeatKey');                 
           
@@ -2303,10 +2305,12 @@ class bocdiscoo extends CommonFunctions
           $ItemGroupDataCountFrozen = $form->getAttribute('ItemGroupDataCountFrozen');
           
           if($ItemGroupDataCount==$ItemGroupDataCountEmpty){
-            $frmStatus = "EMPTY";  
+            $frmStatus = "EMPTY";
+            $nbFormEmpty++;  
           }else{
             if($ItemGroupDataCount==$ItemGroupDataCountFrozen){
-              $frmStatus = "FROZEN";  
+              $frmStatus = "FROZEN";
+              $nbFormFrozen++;  
             }else{
               $frmStatus = $this->m_ctrl->boqueries()->getFormStatus($SubjectKey,$StudyEventOID ,$StudyEventRepeatKey, $FormOID,$FormRepeatKey);
             }           
@@ -2314,6 +2318,16 @@ class bocdiscoo extends CommonFunctions
           $form->setAttribute("Status",$frmStatus);
         }
       }
+      if($nbForm==$nbFormEmpty){
+        $visitStatus = "EMPTY";
+      }else{
+        if($nbForm==$nbFormFrozen){
+          $visitStatus = "FROZEN"; 
+        }else{
+          $visitStatus = $this->m_ctrl->boqueries()->getStudyEventStatus($SubjectKey,$StudyEventOID ,$StudyEventRepeatKey);
+        }           
+      }
+      $visit->setAttribute("Status",$visitStatus);
     }
     
    return $doc;
