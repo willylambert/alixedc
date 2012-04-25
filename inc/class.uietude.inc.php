@@ -110,9 +110,12 @@ class uietude extends CommonFunctions
   
       $user = $this->m_ctrl->boacl()->getUserInfo();
   
+      $viewUserProfileLink = $GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.usersInterface','action'=>'viewUser','userId'=>$user['login']));
+  
       $proc = new XSLTProcessor;     
       $proc->importStyleSheet($xsl);
-      $proc->setParameter('',"UserInfo",'['.$user['login'].'] '.$user['fullname'].' Last login : '.date('r',$user['lastlogin']));
+      $proc->setParameter('',"UserInfo",$user['fullname'].' Last login : '.date('r',$user['lastlogin']));
+      $proc->setParameter('',"UserId",$user['login']);      
       $proc->setParameter('',"CurrentApp",$this->getCurrentApp(false));
       $stdDoc = $proc->transformToDoc($stdDoc);
               

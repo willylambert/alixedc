@@ -21,6 +21,10 @@ body,td{
   float:right;
 }
 
+#userInfo a{
+  color:white;
+}
+
 .divSideboxHeader,.divLoginboxHeader 
 {
 

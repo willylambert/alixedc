@@ -25,6 +25,7 @@
 <xsl:output method="html" encoding="UTF-8" indent="yes"/>
 
 <xsl:param name="CurrentApp"/>
+<xsl:param name="UserId"/>
 <xsl:param name="UserInfo"/>
 
 <!--Catch all non treated tags, print them with no treatment-->
@@ -41,7 +42,13 @@
 		<xsl:copy-of select="@*"/>
 		<xsl:apply-templates/>
 		<span id='userInfo'>
-		  <xsl:value-of select="$UserInfo"/>
+		  [ 
+      <a>
+		    <xsl:attribute name="href">index.php?menuaction=<xsl:value-of select="$CurrentApp"/>.uietude.usersInterface&amp;action=viewUser&amp;userId=<xsl:value-of select="$UserId"/></xsl:attribute>
+        <xsl:value-of select="$UserId"/>
+      </a>
+       ]
+      <xsl:value-of select="$UserInfo"/>
 		</span>
   </xsl:copy>
 </xsl:template>

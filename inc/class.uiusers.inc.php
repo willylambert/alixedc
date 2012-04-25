@@ -49,12 +49,14 @@ class uiusers extends CommonFunctions
     $htmlRet = "";
     
     if(!isset($_GET['action'])){
-      $htmlRet = $this->getInterfaceUserList();
+      if($this->m_ctrl->boacl()->checkModuleAccess("ManageUsers")){
+        $htmlRet = $this->getInterfaceUserList();
+      }else{
+        $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
+      }
     }else{
       if($_GET['action']=='viewUser' || $_GET['action']=='addProfile'){
         $htmlRet = $this->getInterfaceProfil();  
-      }else{
-        
       }
     }
     
@@ -236,9 +238,10 @@ class uiusers extends CommonFunctions
                     <div class='ui-dialog-content ui-widget-content'>
                       $htmlUser
                     </div>
-                  </div>  
-                  
-                  <div id='dialog-form' title='Add/Edit profile for $userId'>
+                  </div>";  
+      if($this->m_ctrl->boacl()->checkModuleAccess("ManageUsers")){
+        $htmlRet .=                  
+                  "<div id='dialog-form' title='Add/Edit profile for $userId'>
                   	<p class='validateTips'>All form fields are required.</p>
               
                   	<form id='addProfile' action='index.php?menuaction=".$this->getCurrentApp(false).".uietude.usersInterface&action=addProfile' method='post'>
@@ -265,6 +268,7 @@ class uiusers extends CommonFunctions
                   <button id='create-profile'>Add new profile to user $userId</button>
 
                   <script>loadAlixCRFprofilesJS();</script>";
+      }
                   	
       return $htmlRet;            	
                         
