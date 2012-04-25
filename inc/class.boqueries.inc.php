@@ -23,8 +23,7 @@
 require_once("class.CommonFunctions.php");
 
 class boqueries extends CommonFunctions
-{
-   
+{   
   var $statuses = array(
       "O" => "Open",
       "A" => "Value confirmed",
@@ -42,6 +41,76 @@ class boqueries extends CommonFunctions
   function boqueries(&$tblConfig,$ctrlRef)
   {
       CommonFunctions::__construct($tblConfig,$ctrlRef);
+  }
+
+
+/**
+ * Return the status of a form based on the queries :
+ * No queries opened : FROZEN
+ * At least one HC opened and no missing (CM) : INCONSISTENT
+ * At least one missing : PARTIAL    
+ * @return string "FILLED","PARTIAL","INCONSISTENT" 
+ * @author wlt 
+ **/ 
+  function getFormStatus($SubjectKey, $StudyEventOID, $StudyEventRepeatKey, $FormOID,$FormRepeatKey){
+    $nbCM = $this->getQueriesCount($SubjectKey, $StudyEventOID, $StudyEventRepeatKey, $FormOID,$FormRepeatKey, "", "", "","","O", "Y", "QUERYTYPE='CM'");      
+    if($nbCM>0){
+      $frmStatus = "MISSING";
+    }else{
+      $nbHC = $this->getQueriesCount($SubjectKey, $StudyEventOID, $StudyEventRepeatKey, $FormOID,$FormRepeatKey, "", "", "","","O", "Y", "QUERYTYPE='HC'");     
+      if($nbHC>0){
+        $frmStatus = "INCONSISTENT";
+      }else{
+        $frmStatus = "FILLED";
+      }
+    }
+    return $frmStatus;
+  }
+
+/**
+ * Return the status of a StudyEvent based on the queries :
+ * No queries opened : FROZEN
+ * At least one HC opened : INCONSISTENT
+ * At least one missing and no HC : PARTIAL    
+ * @return string "FILLED","PARTIAL","INCONSISTENT" 
+ * @author wlt 
+ **/ 
+  function getStudyEventStatus($SubjectKey, $StudyEventOID, $StudyEventRepeatKey){
+    $nbCM = $this->getQueriesCount($SubjectKey, $StudyEventOID, $StudyEventRepeatKey, "", "","", "", "","","O", "Y", "QUERYTYPE='CM'");     
+    if($nbCM>0){
+      $seStatus = "MISSING";
+    }else{
+      $nbHC = $this->getQueriesCount($SubjectKey, $StudyEventOID, $StudyEventRepeatKey, "", "","", "", "","","O", "Y", "QUERYTYPE='HC'");           
+      if($nbHC>0){
+        $seStatus = "INCONSISTENT";
+      }else{
+        $seStatus = "FILLED";
+      }
+    }
+    return $seStatus;
+  }
+
+/**
+ * Return the status of a Subject based on the queries :
+ * No queries opened : FROZEN
+ * At least one HC opened : INCONSISTENT
+ * At least one missing and no HC : PARTIAL    
+ * @return string "FILLED","PARTIAL","INCONSISTENT" 
+ * @author wlt 
+ **/ 
+  function getSubjectStatus($SubjectKey){
+    $nbCM = $this->getQueriesCount($SubjectKey, "", "", "","", "", "", "","","O", "Y", "QUERYTYPE='CM'");     
+    if($nbCM>0){
+      $subjStatus = "MISSING";
+    }else{
+      $nbHC = $this->getQueriesCount($SubjectKey, "", "", "","", "", "", "","","O", "Y", "QUERYTYPE='HC'");           
+      if($nbHC>0){
+        $subjStatus = "INCONSISTENT";
+      }else{
+        $subjStatus = "FILLED";
+      }
+    }
+    return $subjStatus;
   }
 
 /*

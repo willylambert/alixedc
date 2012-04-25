@@ -296,7 +296,7 @@ div.itemGroupLine:hover{
 .FormStatusEMPTY{
   background-color: #cccccc;
 }
-.FormStatusPARTIAL{
+.FormStatusPARTIAL,.FormStatusMISSING{
   background-color: #C5541C;
 }
 .FormStatusINCONSISTENT{

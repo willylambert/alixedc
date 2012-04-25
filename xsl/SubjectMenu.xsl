@@ -47,7 +47,7 @@
 <xsl:template match="FormData">
   <xsl:variable name="formId">visit_<xsl:value-of select="../@StudyEventOID"/>_<xsl:value-of select="../@StudyEventRepeatKey"/>_form_<xsl:value-of select="@FormOID"/>_<xsl:value-of select="@FormRepeatKey"/></xsl:variable>
   <div id="{$formId}" class="FormTitle TransactionType{@TransactionType}" StudyEventOID="{./../@StudyEventOID}" StudyEventRepeatKey="{../@StudyEventRepeatKey}" FormOID="{@FormOID}" FormRepeatKey="{@FormRepeatKey}">
-    <span class="FormStatus FormStatus{./status}">&#160;</span>
+    <span class="FormStatus FormStatus{@Status}">&#160;</span>
     <xsl:variable name="url">index.php?menuaction=<xsl:value-of select="$CurrentApp"/>.uietude.subjectInterface&amp;action=view&amp;SubjectKey=<xsl:value-of select="$SubjectKey"/>&amp;StudyEventOID=<xsl:value-of select="./../@StudyEventOID"/>&amp;StudyEventRepeatKey=<xsl:value-of select="../@StudyEventRepeatKey"/>&amp;FormOID=<xsl:value-of select="@FormOID"/>&amp;FormRepeatKey=<xsl:value-of select="@FormRepeatKey"/></xsl:variable>
     <a>
       <xsl:attribute name="href"><xsl:value-of select="$url"/></xsl:attribute>      
@@ -57,10 +57,10 @@
       <xsl:value-of select="@Title"/>
     </a>
     <div>
-      <xsl:attribute name="class">FormLock FormLock<xsl:value-of select="./status"/></xsl:attribute>
-      <xsl:if test="./status='FILLED' or ./status='FROZEN'">
+      <xsl:attribute name="class">FormLock FormLock<xsl:value-of select="@Status"/></xsl:attribute>
+      <xsl:if test="@Status='FILLED' or @Status='FROZEN'">
         <xsl:if test="$AllowLock='true'">
-          <xsl:variable name="urlLock">index.php?menuaction=<xsl:value-of select="$CurrentApp"/>.uietude.lockInterface&amp;action=view&amp;SubjectKey=<xsl:value-of select="$SubjectKey"/>&amp;StudyEventOID=<xsl:value-of select="./../@StudyEventOID"/>&amp;StudyEventRepeatKey=<xsl:value-of select="../@StudyEventRepeatKey"/>&amp;FormOID=<xsl:value-of select="@FormOID"/>&amp;FormRepeatKey=<xsl:value-of select="@FormRepeatKey"/>&amp;FormStatus=<xsl:value-of select="./status"/></xsl:variable>
+          <xsl:variable name="urlLock">index.php?menuaction=<xsl:value-of select="$CurrentApp"/>.uietude.lockInterface&amp;action=view&amp;SubjectKey=<xsl:value-of select="$SubjectKey"/>&amp;StudyEventOID=<xsl:value-of select="./../@StudyEventOID"/>&amp;StudyEventRepeatKey=<xsl:value-of select="../@StudyEventRepeatKey"/>&amp;FormOID=<xsl:value-of select="@FormOID"/>&amp;FormRepeatKey=<xsl:value-of select="@FormRepeatKey"/>&amp;FormStatus=<xsl:value-of select="@Status"/></xsl:variable>
           <xsl:attribute name="onClick">changeLockStatus("<xsl:value-of select="$urlLock"/>","<xsl:value-of select="@Title"/>","<xsl:value-of select="./status"/>");</xsl:attribute>
         </xsl:if>
       </xsl:if>&#160;

@@ -55,13 +55,22 @@ class uiusers extends CommonFunctions
         $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
       }
     }else{
-      if($_GET['action']=='viewUser' || $_GET['action']=='addProfile'){
-        $htmlRet = $this->getInterfaceProfil();  
+      if($_GET['action']=='addProfile'){
+        if($this->m_ctrl->boacl()->checkModuleAccess("ManageUsers")){
+          $htmlRet = $this->getInterfaceProfil(); 
+        }else{
+          $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
+        }
       }
-    }
-    
-    
-      			
+      if($_GET['action']=='viewUser'){
+        if($this->m_ctrl->boacl()->checkModuleAccess("ManageUsers") ||
+           $_GET['login']==$this->getUserId()){
+          $htmlRet = $this->getInterfaceProfil(); 
+        }else{
+          $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
+        }
+      }
+    }      			
 		return $htmlRet;
   }
 
