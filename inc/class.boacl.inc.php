@@ -23,13 +23,11 @@
 require_once("class.CommonFunctions.php");
 
 /*
-@desc classe de gestion des droits utilisateurs
+management of users rights
 @author wlt
 */
 class boacl extends CommonFunctions
 {
-  //Variables mise en cache
-
   //Constructeur
   function __construct(&$tblConfig,$ctrlRef)
   {
@@ -202,4 +200,33 @@ class boacl extends CommonFunctions
     $GLOBALS['egw']->db->query($sql); 
   }
 
+  /**
+ *Check if current user has access to the module
+ *@return boolean true if module is enable for current user
+ *@author wlt        
+ **/  
+  public function checkModuleAccess($moduleName){
+    $access = false;
+    
+    switch($moduleName)
+    {
+      case "importDoc" :
+      case "deleteDoc" :
+      case "ViewDocs" :
+      case "EditDocs" :
+         if( $GLOBALS['egw_info']['user']['apps']['admin']){
+          $access = true; 
+         }
+         break;    
+      case "ManageUsers" :
+      case "ManageSites" :
+      case "ExportData" :
+         if($GLOBALS['egw_info']['user']['apps']['admin'] || 
+            $this->m_ctrl->boacl()->existUserProfileId(array("DM","SPO"))){
+          $access = true; 
+         }
+         break;    
+    }
+    return $access;
+  }
 }

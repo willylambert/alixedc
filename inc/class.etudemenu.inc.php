@@ -59,12 +59,7 @@ class etudemenu extends CommonFunctions
                                                                          'FormRepeatKey' => $this->m_tblConfig['ENROL_FORMRK'])).$updateSubjectEntryLink.'"><img src="'.$this->getCurrentApp(false).'/templates/default/images/user_add.png" alt="" />Enrol Subject</a></li>';
     }
        
-    $adminButtons = "";
-    if($GLOBALS['egw_info']['user']['apps']['admin'])
-    {
-      $adminButtons .= '
-                <li id="adminMenu" style="'.$jqabStyle.'" ><a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface')).$updateSubjectEntryLink.'"><img src="'.$GLOBALS['egw_info']['flags']['currentapp'].'/templates/default/images/notification_warning.png" alt=""/>Admin</a></li>';
-    }
+    $toolsButtons = '<li id="adminMenu" style="'.$jqabStyle.'" ><a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface')).$updateSubjectEntryLink.'"><img src="'.$GLOBALS['egw_info']['flags']['currentapp'].'/templates/default/images/notification_warning.png" alt=""/>Tools</a></li>';
     
     $dashboard = '<li style="'.$jqabStyle.'" ><a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.dashboardInterface')).$updateSubjectEntryLink.'"><img src="'. $GLOBALS['egw_info']['flags']['currentapp'].'/templates/default/images/piechart2.png" alt="" />Dashboard</a></li>';
     
@@ -96,7 +91,7 @@ class etudemenu extends CommonFunctions
                   </a></li>
                 '.$queries.'
                 '.$deviations.'
-                '.$adminButtons.'
+                '.$toolsButtons.'
                 <li><a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.logout')).$updateSubjectEntryLink.'"><img src="'.$this->getCurrentApp(false).'/templates/default/images/logout2.png" alt=""/>Logout</a></li>
               </ul>
             </div>';
