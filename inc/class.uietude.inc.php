@@ -74,7 +74,7 @@ class uietude extends CommonFunctions
 	 *@param boolean $bBuffering false to disable buffering of output allowing post treament of output
 	 *                           useful if a script uses flush()     	
 	 **/	 
-	public function create_header ($bBuffering=true)
+	public function create_header($bBuffering=true)
 	{
     if($bBuffering){
       ob_start();
@@ -94,13 +94,15 @@ class uietude extends CommonFunctions
 	 *@param boolean $bBuffering false to disable buffering of output allowing post treament of output
 	 *                           useful if a script uses flush()     	
 	 **/	
-	public function create_footer ($bBuffering=true)
+	public function create_footer($bBuffering=true)
 	{	
 		$GLOBALS['egw']->common->egw_footer();
 		if($bBuffering)
 		{
   		$htmlRet = ob_get_clean();
   		$htmlRet = str_replace("&","&amp;",$htmlRet);
+      
+      //die($htmlRet);
           
       $stdDoc = new DOMDocument();
       $stdDoc->loadHTML($htmlRet);
@@ -136,16 +138,13 @@ class uietude extends CommonFunctions
         
         $stdDoc = $proc->transformToDoc($stdDoc);
       } 		
-      
       $htmlRet = $stdDoc->saveHTML();
+    }          
       
-      $htmlRet = str_replace("&amp;","&",$htmlRet);
-    }    
+    $htmlRet = str_replace("&amp;","&",$htmlRet);
     //We add the html DOC Type for HTML 5 support - safely ignored by older browser
-    $htmlRet = "<!DOCTYPE html>$htmlRet";
-    echo $htmlRet;
-    //echo "<!DOCTYPE html><html><body>toto</body></html>";
-		
+    echo "<!DOCTYPE html>";
+    echo $htmlRet;		
 		$this->addLog("***********************************************************************",INFO);
 	}
 

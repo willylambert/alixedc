@@ -83,22 +83,27 @@ class uisubjectlist extends CommonFunctions
               <div id='pagerSubjects'></div>
               <div id='filter' style='margin-left:30%;display:none'></div>
               
-              <script>loadAlixCRFSubjectsJS('".$this->getCurrentApp(false)."','".json_encode($cols)."');</script>";
+              <script>
+                //<![CDATA[
+                  loadAlixCRFSubjectsJS('".$this->getCurrentApp(false)."','".json_encode($cols)."');
+                //]]>
+              </script>";
     
     $html .= "<script>
-                function goSubject(SubjectKey){
-                  CurrentApp = '".$this->getCurrentApp(false)."';
-                  StudyEventOID = '".$this->m_tblConfig['ENROL_SEOID']."';
-                  StudyEventRepeatKey = '".$this->m_tblConfig['ENROL_SERK']."';
-                  FormOID = '".$this->m_tblConfig['ENROL_FORMOID']."';
-                  FormRepeatKey = '".$this->m_tblConfig['ENROL_FORMRK']."';
-                  loadAlixCRFSubject(CurrentApp,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey);
-                }
-                
-                $(document).ready(function() {
-                  initSubjectsList();
-                }); 
-                
+                <![CDATA[
+                  function goSubject(SubjectKey){
+                    CurrentApp = '".$this->getCurrentApp(false)."';
+                    StudyEventOID = '".$this->m_tblConfig['ENROL_SEOID']."';
+                    StudyEventRepeatKey = '".$this->m_tblConfig['ENROL_SERK']."';
+                    FormOID = '".$this->m_tblConfig['ENROL_FORMOID']."';
+                    FormRepeatKey = '".$this->m_tblConfig['ENROL_FORMRK']."';
+                    loadAlixCRFSubject(CurrentApp,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey);
+                  }
+                  
+                  $(document).ready(function() {
+                    initSubjectsList();
+                  }); 
+                ]]>                
               </script>";
               
     return $html;

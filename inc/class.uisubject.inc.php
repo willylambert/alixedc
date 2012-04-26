@@ -200,10 +200,10 @@ class uisubject extends CommonFunctions
   
       //HOOK => uisubject_getInterface_afterXSLT
       $doc = $this->callHook(__FUNCTION__,"afterXSLT",array($MetaDataVersionOID,$FormOID,$this,$doc));
-        
-      $htmlForm = $doc->saveXML();
-  
-      //Hack pour gérer un pb xsl, qui transforme <textarea></textarea> en <textarea/>
+      
+      $htmlForm = $doc->saveXML($doc->childNodes->item(0));
+
+      //Hack to manage a saveXML feature, which transform <textarea></textarea> into <textarea/>
       $htmlForm = str_replace(">EMPTY</textarea>","></textarea>",$htmlForm);
          
       $topMenu = $this->m_ctrl->etudemenu()->getMenu($SiteId);
@@ -276,9 +276,11 @@ class uisubject extends CommonFunctions
                   <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jquery.jqAltBox.js') . "'></SCRIPT>
                   
                   <script>
+                  //<![CDATA[
                     $(document).ready(function() {
                                     loadAlixCRFjs('".$this->getCurrentApp(false)."','$SiteId','$SubjectKey','$StudyEventOID','$StudyEventRepeatKey','$FormOID','$FormRepeatKey','".$profileId."','".$formStatus."',$bCheckFormData);
                                      }); 
+                  //]]>
                   </script>
                   ";
       }	         
@@ -346,7 +348,10 @@ class uisubject extends CommonFunctions
     //HOOK => uisubject_getMenu_saveSubjectStatus
     $this->callHook(__FUNCTION__,"saveSubjectStatus",array($SubjectKey,$tblForm,$this));
 
-    $htmlRet = $doc->saveXML();
+    $htmlRet = "";  
+    foreach($doc->childNodes as $node){
+      $htmlRet .= $doc->saveXML($node,LIBXML_NOEMPTYTAG);
+    }
     
     return $htmlRet;
   }
