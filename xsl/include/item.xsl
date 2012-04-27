@@ -218,6 +218,7 @@
         <textarea>
           <xsl:attribute name="cols">55</xsl:attribute>
           <xsl:attribute name="rows">3</xsl:attribute>
+          <xsl:attribute name="maxlength"><xsl:value-of select="@Length"/></xsl:attribute>          
           <xsl:attribute name="class">inputText inputItem</xsl:attribute>
   				<xsl:attribute name="itemoid">
   					<xsl:value-of select="$Item/@OID"/>
