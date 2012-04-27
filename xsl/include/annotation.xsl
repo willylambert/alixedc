@@ -83,57 +83,39 @@
             </xsl:element>
           </a>
           <div id="{$DivId}" class='dialog-annotation' title='{$Title}' style="display:none;">
-            <xsl:element name="input">
-            	 <xsl:attribute name="type">radio</xsl:attribute>
-            	 <!--
-               <xsl:attribute name="name">ui-annotation_flag_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/></xsl:attribute>
-               -->
+            <input type="radio" value="Ø">
                <xsl:attribute name="onClick">updateFlag('<xsl:value-of select="$ItemOID"/>','<xsl:value-of select="$CurrentItemGroupOID"/>','<xsl:value-of select="$CurrentItemGroupRepeatKey"/>',this.value,false,false)</xsl:attribute>
                <!--Mémo : l'utilisation du onChange a ici été abandonnée, le comportement étant différent selon les navigateurs-->
             	 <xsl:attribute name="value">Ø</xsl:attribute>
             	 <xsl:if test="'Ø'=$FlagValue">
             	   <xsl:attribute name="checked">true</xsl:attribute>
                </xsl:if>
-               Ø (No comment)
-            </xsl:element>
+            </input>
+            Ø (No comment)
             <br />
-          	<xsl:element name="input">
-            	 <xsl:attribute name="type">radio</xsl:attribute>
-            	 <!--<xsl:attribute name="name">ui-annotation_flag_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/></xsl:attribute>
-               -->
+          	<input type="radio" value="UNK">
                <xsl:attribute name="onClick">updateFlag('<xsl:value-of select="$ItemOID"/>','<xsl:value-of select="$CurrentItemGroupOID"/>','<xsl:value-of select="$CurrentItemGroupRepeatKey"/>',this.value,false,false)</xsl:attribute>
-            	 <xsl:attribute name="value">UNK</xsl:attribute>
             	 <xsl:if test="'UNK'=$FlagValue">
             	   <xsl:attribute name="checked">true</xsl:attribute>
                </xsl:if>
-               UNK (unknown)
-            </xsl:element>
+            </input>
+            UNK (unknown)
             <br />
-          	<xsl:element name="input">
-            	 <xsl:attribute name="type">radio</xsl:attribute>
-            	 <!--
-               <xsl:attribute name="name">ui-annotation_flag_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/></xsl:attribute>
-               -->
+          	<input type="radio" value="ND">
                <xsl:attribute name="onClick">updateFlag('<xsl:value-of select="$ItemOID"/>','<xsl:value-of select="$CurrentItemGroupOID"/>','<xsl:value-of select="$CurrentItemGroupRepeatKey"/>',this.value,false,<xsl:choose><xsl:when test="boolean($DataType='partialDate')">true</xsl:when><xsl:otherwise>false</xsl:otherwise></xsl:choose>)</xsl:attribute>
-            	 <xsl:attribute name="value">ND</xsl:attribute>
             	 <xsl:if test="'ND'=$FlagValue">
             	   <xsl:attribute name="checked">true</xsl:attribute>
                </xsl:if>
-               ND (Not Done or Missing)
-            </xsl:element>
+            </input>
+            ND (Not Done or Missing)
             <br />
-          	<xsl:element name="input">
-            	 <xsl:attribute name="type">radio</xsl:attribute>
-            	 <!--
-               <xsl:attribute name="name">ui-annotation_flag_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/></xsl:attribute>
-               -->
+          	<input type="radio" value="NA">
                <xsl:attribute name="onClick">updateFlag('<xsl:value-of select="$ItemOID"/>','<xsl:value-of select="$CurrentItemGroupOID"/>','<xsl:value-of select="$CurrentItemGroupRepeatKey"/>',this.value,false,false)</xsl:attribute>
-            	 <xsl:attribute name="value">NA</xsl:attribute>
             	 <xsl:if test="'NA'=$FlagValue">
             	   <xsl:attribute name="checked">true</xsl:attribute>
                </xsl:if>
+            </input>
                NA (Not Applicable)
-            </xsl:element>
             <br />                 
             <xsl:element name="textarea">
               <xsl:attribute name="cols">43</xsl:attribute>

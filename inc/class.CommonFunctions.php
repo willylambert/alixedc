@@ -21,7 +21,7 @@
     * along with ALIX.  If not, see <http://www.gnu.org/licenses/>.            *
     \**************************************************************************/
 /**
-* @desc Classe de base abstraite contenant les méthodes communes à toutes les classes
+* @desc Classe de base abstraite contenant les m?thodes communes ? toutes les classes
 * Features :
 *   => Affichage de variable sous la forme print_r version html ou version texte pour insertion dans log par ex
 *   => addLog : Fonction de log...
@@ -38,21 +38,21 @@ define("FATAL",5);
 class CommonFunctions{
 
 /****************************************************/
-//Variables membres (privées)
+//Variables membres (priv?es)
 /****************************************************/
 
-  //Array des paramètres de config
+  //Array des param?tres de config
   public $m_tblConfig;
 
-  //Référence vers le controleur (class uietude)
-  //Unique point d'accès aux instances des classes boXXXXX et uiXXXXX
+  //R?f?rence vers le controleur (class uietude)
+  //Unique point d'acc?s aux instances des classes boXXXXX et uiXXXXX
   public $m_ctrl;
   
   public $m_user;
   public $m_lang;
   
 /****************************************************/
-//Méthodes Publiques
+//M?thodes Publiques
 /****************************************************/
 
   //Constructeur
@@ -85,7 +85,7 @@ class CommonFunctions{
   }
  
 /****************************************************/
-//Méthodes Privés
+//M?thodes Priv?s
 /****************************************************/
   
   protected function egwId2studyId($id)
@@ -98,6 +98,19 @@ class CommonFunctions{
   {
     $egwId = "-".($id);
     return $egwId;   
+  }
+  
+  /**
+   * Does the user browser is an iPad ?
+   * @return boolean true if yes, false if no
+   * @author wlt - 20/12/2011      
+   **/     
+  public function isIpad(){
+    if(strstr($_SERVER['HTTP_USER_AGENT'],"iPad")){
+      return true;
+    }else{
+      return false;
+    }
   }
   
   public function addLog($message,$level){
@@ -126,7 +139,7 @@ class CommonFunctions{
   }
 
 /*
-@desc retourne le login, identifiant de connexion, de l'utilisateur connecté
+@desc retourne le login, identifiant de connexion, de l'utilisateur connect?
 @return string login
 @author tpi
 */
@@ -135,8 +148,8 @@ class CommonFunctions{
   }
   
   /**
-  *@desc Retourne la string currentapp utilisé dans la base de données egroupware pour différencier les différentes instances du module de CRF
-  *      Si le mode test est activé, un suffixe peut être ajouté en fonction du paramètre $bIncludeTestModeSuffix
+  *@desc Retourne la string currentapp utilis? dans la base de donn?es egroupware pour diff?rencier les diff?rentes instances du module de CRF
+  *      Si le mode test est activ?, un suffixe peut ?tre ajout? en fonction du param?tre $bIncludeTestModeSuffix
   *@param boolean $bIncludeTestModeSuffix ajouter le suffixe d'indication du mode de test si le mode de test est actif
   *@return string             
   **/  
@@ -154,24 +167,9 @@ class CommonFunctions{
   }
 
   /**
-  * @desc Subsitut à l'accès direct au tableau m_tblConfig (plus intuitif à mon goût, tpi)
-  * @param string congifuration param  
-  * @return valeur du paramètre de configuration
-  * @author TPI
-  **/   
-  protected function config($param){
-    if(isset($this->m_tblConfig[$param])){
-      return $this->m_tblConfig[$param];       
-    }else{
-      throw new Exception("Unkonwn configuration parameter '$param'");
-    }
-  }
-
-  /**
   * @desc Tente d'appeler le hook demandé, si celui ci a été déclaré
-  * @param string $methodName nom de la methode appelante
-  * @param string $hookName nom du hook
-  * @param array tableau de paramètre passé au hook     
+  * @param string $methodName nom de la methode appelante  * @param string $hookName nom du hook
+  * @param array tableau de param?tre pass? au hook     
   * @return valeur de retour du hook
   * @author WLT
   **/   

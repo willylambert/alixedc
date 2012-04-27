@@ -16,13 +16,22 @@ body,td{
   font-size:11;
 }
 
+#userInfo{
+  margin-right:5px;
+  float:right;
+}
+
+#userInfo a{
+  color:white;
+}
+
 .divSideboxHeader,.divLoginboxHeader 
 {
 
 	font: bold 12px Verdana, Arial, Helvetica, sans-serif;
   color: white;
   background: black url(images/fond_boitemenu_noir.png) repeat-x center left;
-  margin-bottom: 10px; /*bottom spacing between header and rest of content*/
+  margin-bottom: 0px; /*bottom spacing between header and rest of content*/
   text-transform: uppercase;
   padding: 4px 0 4px 7px; /*header text is indented 10px*/
   margin-top:0;
@@ -287,7 +296,7 @@ div.itemGroupLine:hover{
 .FormStatusEMPTY{
   background-color: #cccccc;
 }
-.FormStatusPARTIAL{
+.FormStatusPARTIAL,.FormStatusMISSING{
   background-color: #C5541C;
 }
 .FormStatusINCONSISTENT{
@@ -308,7 +317,7 @@ div.itemGroupLine:hover{
 .StudyEventStatusEMPTY{
   background-image: url(images/circle_lightgray_16.png)
 }
-.StudyEventStatusPARTIAL{
+.StudyEventStatusPARTIAL,.StudyEventStatusMISSING{
   background-image: url(images/circle_orange_16.png)
 }
 .StudyEventStatusINCONSISTENT{
@@ -933,6 +942,10 @@ form#addProfile input.text { margin-bottom:12px; width:95%; padding: .4em; }
   width:120px;
   text-align:center;
 }
+
+#toolbar_ico img{
+  width:32px;
+} 
 
 .itemGroupHeadLine{
   clear:both;

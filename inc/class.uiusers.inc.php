@@ -49,17 +49,28 @@ class uiusers extends CommonFunctions
     $htmlRet = "";
     
     if(!isset($_GET['action'])){
-      $htmlRet = $this->getInterfaceUserList();
-    }else{
-      if($_GET['action']=='viewUser' || $_GET['action']=='addProfile'){
-        $htmlRet = $this->getInterfaceProfil();  
+      if($this->m_ctrl->boacl()->checkModuleAccess("ManageUsers")){
+        $htmlRet = $this->getInterfaceUserList();
       }else{
-        
+        $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
       }
-    }
-    
-    
-      			
+    }else{
+      if($_GET['action']=='addProfile'){
+        if($this->m_ctrl->boacl()->checkModuleAccess("ManageUsers")){
+          $htmlRet = $this->getInterfaceProfil(); 
+        }else{
+          $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
+        }
+      }
+      if($_GET['action']=='viewUser'){
+        if($this->m_ctrl->boacl()->checkModuleAccess("ManageUsers") ||
+           $_GET['login']==$this->getUserId()){
+          $htmlRet = $this->getInterfaceProfil(); 
+        }else{
+          $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
+        }
+      }
+    }      			
 		return $htmlRet;
   }
 
@@ -152,9 +163,7 @@ class uiusers extends CommonFunctions
 
     $menu = $this->m_ctrl->etudemenu()->getMenu();
 
-    $htmlRet = "<SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jquery-1.6.2.min.js') . "'></SCRIPT>
-                <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jquery-ui-1.8.16.custom.min.js') . "'></SCRIPT>
-                <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/alixcrf.users.js') . "'></SCRIPT>
+    $htmlRet = "<SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/alixcrf.users.js') . "'></SCRIPT>
 
                 $menu
 
@@ -238,9 +247,10 @@ class uiusers extends CommonFunctions
                     <div class='ui-dialog-content ui-widget-content'>
                       $htmlUser
                     </div>
-                  </div>  
-                  
-                  <div id='dialog-form' title='Add/Edit profile for $userId'>
+                  </div>";  
+      if($this->m_ctrl->boacl()->checkModuleAccess("ManageUsers")){
+        $htmlRet .=                  
+                  "<div id='dialog-form' title='Add/Edit profile for $userId'>
                   	<p class='validateTips'>All form fields are required.</p>
               
                   	<form id='addProfile' action='index.php?menuaction=".$this->getCurrentApp(false).".uietude.usersInterface&action=addProfile' method='post'>
@@ -267,6 +277,7 @@ class uiusers extends CommonFunctions
                   <button id='create-profile'>Add new profile to user $userId</button>
 
                   <script>loadAlixCRFprofilesJS();</script>";
+      }
                   	
       return $htmlRet;            	
                         

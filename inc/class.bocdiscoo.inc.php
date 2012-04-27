@@ -48,6 +48,7 @@ class bocdiscoo extends CommonFunctions
 
     //Ouverture du patient
     try{
+      $subj = $this->m_ctrl->socdiscoo($SubjectKey)->getDocument("$SubjectKey.dbxml",$SubjectKey,false);
       $subj = $this->m_ctrl->socdiscoo()->getDocument("ClinicalData",$SubjectKey,false);
     }catch(xmlexception $e){
       $str= "Patient $SubjectKey non trouvé dans la base : " . $e->getMessage() ." (". __METHOD__ .")";
@@ -2215,35 +2216,15 @@ class bocdiscoo extends CommonFunctions
     return $doc;                        
   }
 
-  //Retourne les visites d'un patient
-  // et pour chaque visite on intègre toutes les forms possibles (saisis ou pas),
-  // avec le statut : empty, inconsistent et filled
+  /**
+   *Get all subject forms and visitq, with lock status for each form
+   @return array 
+   *@author wlt     
+   **/  
   function getSubjectTblForm($SubjectKey)
   {
     $this->addLog("bocdiscoo->getSubjectTblForm($SubjectKey)",INFO);
     $query = "        
-        declare function local:getStudyEventStatus(\$MetaDataVersion as node()*, \$StudyEventData as node()*) as xs:string?
-        {
-          let \$StudyEventDef := \$MetaDataVersion/odm:StudyEventDef[@OID=\$StudyEventData/@StudyEventOID]
-          return
-            if(exists(\$StudyEventData/odm:FormData/odm:Annotation/odm:Flag[odm:FlagValue/string()='INCONSISTENT']))
-              then 'INCONSISTENT'
-            else
-              if(count(\$StudyEventData/odm:FormData/odm:ItemGroupData[@TransactionType!='Remove']/odm:Annotation/odm:Flag[odm:FlagValue/string()!='EMPTY']) = 0)
-              then 'EMPTY'
-              else
-              if(exists(\$StudyEventData/odm:FormData/odm:ItemGroupData/odm:Annotation/odm:Flag[odm:FlagValue/string()='INCONSISTENT']))
-                  then 'INCONSISTENT'
-              else
-              if( count(\$StudyEventData/odm:FormData/odm:ItemGroupData[@TransactionType!='Remove']/odm:Annotation/odm:Flag[odm:FlagValue/string()='FILLED' or odm:FlagValue/string()='FROZEN']) = count(\$StudyEventData/odm:FormData/odm:ItemGroupData[@TransactionType!='Remove']) )
-                  then 
-                    if(exists(\$StudyEventData/odm:FormData/odm:ItemGroupData[@TransactionType!='Remove']/odm:Annotation/odm:Flag[odm:FlagValue/string()='FILLED'])) 
-                    then 'FILLED'
-                    else 'FROZEN'
-              else 'PARTIAL'
-
-        };
-
         let \$SubjectData := collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData
 
         let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
@@ -2252,12 +2233,10 @@ class bocdiscoo extends CommonFunctions
           {
             for \$StudyEventData in \$SubjectData/odm:StudyEventData
             let \$StudyEventDef := \$MetaDataVersion/odm:StudyEventDef[@OID=\$StudyEventData/@StudyEventOID]
-            let \$StudyEventStatus := local:getStudyEventStatus(\$MetaDataVersion, \$StudyEventData)
             return
               <StudyEventData StudyEventOID='{\$StudyEventData/@StudyEventOID}'
                               StudyEventRepeatKey='{\$StudyEventData/@StudyEventRepeatKey}'
                               Title='{\$StudyEventDef/odm:Description/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()}'
-                              Status='{\$StudyEventStatus}'
                               >
               {
                 for \$FormRef in \$StudyEventDef/odm:FormRef
@@ -2268,35 +2247,25 @@ class bocdiscoo extends CommonFunctions
                     then
                         for \$FormData in \$AllFormData
                             let \$ItemGroupDataCount := count(\$FormData/odm:ItemGroupData[@TransactionType!='Remove'])
+                            let \$ItemGroupDataCountEmpty := count(\$FormData/odm:ItemGroupData[@TransactionType!='Remove']/odm:Annotation/odm:Flag[odm:FlagValue/string()='EMPTY'])
+                            let \$ItemGroupDataCountFrozen := count(\$FormData/odm:ItemGroupData[@TransactionType!='Remove']/odm:Annotation/odm:Flag[odm:FlagValue/string()='FROZEN'])
+                            
                             return
                                 <FormData FormOID='{\$FormRef/@FormOID}'
                                     FormRepeatKey='{\$FormData/@FormRepeatKey}'
                                     MetaDataVersionOID='{\$MetaDataVersion/@OID}'
                                     ItemGroupDataCount='{\$ItemGroupDataCount}'
+                                    ItemGroupDataCountEmpty='{\$ItemGroupDataCountEmpty}'
+                                    ItemGroupDataCountFrozen='{\$ItemGroupDataCountFrozen}'
                                     TransactionType='{\$FormData/@TransactionType}'
                                     Title='{\$MetaDataVersion/odm:FormDef[@OID=\$FormRef/@FormOID]/odm:Description/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()}'>
-                            {
-                                if(count(\$FormData/odm:ItemGroupData[@TransactionType!='Remove']/odm:Annotation/odm:Flag[odm:FlagValue/string()!='EMPTY']) = 0)
-                                then <status>EMPTY</status>
-                                else
-                                if(exists(\$FormData/odm:ItemGroupData/odm:Annotation/odm:Flag[odm:FlagValue/string()='INCONSISTENT']))
-                                    then <status>INCONSISTENT</status>
-                                else
-                                if(count(\$FormData/odm:ItemGroupData[@TransactionType!='Remove']/odm:Annotation/odm:Flag[odm:FlagValue/string()='FILLED' or odm:FlagValue/string()='FROZEN']) = count(\$FormData/odm:ItemGroupData[@TransactionType!='Remove']) and
-                                    count(distinct-values(\$FormData/odm:ItemGroupData[@TransactionType!='Remove']/@ItemGroupOID)) ge count(\$FormDef/odm:ItemGroupRef[@Mandatory='Yes']) )
-                                    then 
-                                      if(exists(\$FormData/odm:ItemGroupData[@TransactionType!='Remove']/odm:Annotation/odm:Flag[odm:FlagValue/string()='FILLED'])) 
-                                      then <status>FILLED</status>
-                                      else <status>FROZEN</status>
-                                else <status>PARTIAL</status>
-                            }
                               </FormData>
                     else
                         <FormData FormOID='{\$FormRef/@FormOID}'
                                   FormRepeatKey='0'
                                   MetaDataVersionOID='{\$MetaDataVersion/@OID}'
                                   Title='{\$MetaDataVersion/odm:FormDef[@OID=\$FormRef/@FormOID]/odm:Description/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()}'>
-                          <status>EMPTY</status>
+                                  Status='EMPTY'
                         </FormData>
               }
               </StudyEventData>
@@ -2310,7 +2279,56 @@ class bocdiscoo extends CommonFunctions
       $this->addLog($str,FATAL);
       die($str);
     }
-    return $doc;
+    
+    //Set StudyEvent and Form status according to associated queries
+    
+    //Loop through visits
+    $visits = $doc->getElementsByTagName('StudyEventData');
+    foreach($visits as $visit){
+      $nbForm = 0;
+      $nbFormEmpty = 0;
+      $nbFormFrozen = 0;
+      $StudyEventOID = $visit->getAttribute('StudyEventOID');
+      $StudyEventRepeatKey = $visit->getAttribute('StudyEventRepeatKey');
+      
+      //Loop through forms
+      foreach($visit->childNodes as $form){
+        if(!$form->hasAttribute('Status')){
+          $nbForm++;
+          $FormOID = $form->getAttribute('FormOID');
+          $FormRepeatKey = $form->getAttribute('FormRepeatKey');                 
+          
+          $ItemGroupDataCount = $form->getAttribute('ItemGroupDataCount');
+          $ItemGroupDataCountEmpty = $form->getAttribute('ItemGroupDataCountEmpty');
+          $ItemGroupDataCountFrozen = $form->getAttribute('ItemGroupDataCountFrozen');
+          
+          if($ItemGroupDataCount==$ItemGroupDataCountEmpty){
+            $frmStatus = "EMPTY";
+            $nbFormEmpty++;  
+          }else{
+            if($ItemGroupDataCount==$ItemGroupDataCountFrozen){
+              $frmStatus = "FROZEN";
+              $nbFormFrozen++;  
+            }else{
+              $frmStatus = $this->m_ctrl->boqueries()->getFormStatus($SubjectKey,$StudyEventOID ,$StudyEventRepeatKey, $FormOID,$FormRepeatKey);
+            }           
+          }
+          $form->setAttribute("Status",$frmStatus);
+        }
+      }
+      if($nbForm==$nbFormEmpty){
+        $visitStatus = "EMPTY";
+      }else{
+        if($nbForm==$nbFormFrozen){
+          $visitStatus = "FROZEN"; 
+        }else{
+          $visitStatus = $this->m_ctrl->boqueries()->getStudyEventStatus($SubjectKey,$StudyEventOID ,$StudyEventRepeatKey);
+        }           
+      }
+      $visit->setAttribute("Status",$visitStatus);
+    }
+    
+   return $doc;
   }
 
   //@desc Retourne la valeur actuelle d'une variable donnée
@@ -2534,12 +2552,12 @@ class bocdiscoo extends CommonFunctions
     }
   }
 
-/*
-@desc sauvegarde en base xml un ItemGroupData
-@return boolean  true si la sauvegarde à généré une maj des données,
-                 false si aucune maj de la base n'était nécessaire
-@author wlt                 
-*/
+  /**
+   *save into xml database the ItemGroupData
+   *@return boolean true if data have been updated
+   *                false if database update was unnecessary        
+   *@author wlt                 
+  **/
   function saveItemGroupData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$formVars,$who,$where,$why,$fillst="",$bFormVarsIsAlreadyDecoded=false)
   {
     try
@@ -2547,7 +2565,7 @@ class bocdiscoo extends CommonFunctions
       $this->addLog("bocdiscoo->saveItemGroupData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$formVars,$who,$where,$why,$fillst)",INFO);
       $this->addLog("$formVars = " . $this->dumpRet($formVars),TRACE);
       
-      //Le document de notre patient (c'est un DOMDocument)
+      //DomDocument of Subject
       try{
         $subj = $this->m_ctrl->socdiscoo()->getDocument("ClinicalData",$SubjectKey,false);
       }catch(xmlexception $e){
@@ -2559,7 +2577,7 @@ class bocdiscoo extends CommonFunctions
       $xPath = new DOMXPath($subj);
       $xPath->registerNamespace("odm", ODM_NAMESPACE);
 
-      //Ajout de StudyEventData si besoin
+      //Add StudyEventData if needed
       $result = $xPath->query("/odm:ODM/odm:ClinicalData/odm:SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']");
       if($result->length==0){
         $this->addLog("bocdiscoo->saveItemGroupData() Ajout de StudyEventData[@StudyEventOID='$StudyEventOID']",INFO);
@@ -2568,7 +2586,7 @@ class bocdiscoo extends CommonFunctions
           $StudyEventData = $subj->createElementNS(ODM_NAMESPACE,"StudyEventData");
           $StudyEventData->setAttribute("StudyEventOID","$StudyEventOID");
           $StudyEventData->setAttribute("StudyEventRepeatKey",$StudyEventRepeatKey);
-          $result->item(0)->appendChild($StudyEventData); //On l'ajoute
+          $result->item(0)->appendChild($StudyEventData); //We add it
         }else{
           $str = "Erreur : Insertion StudyEventData[@StudyEventOID='$StudyEventOID'] (". __METHOD__ .")";
           $this->addLog($str,FATAL);
@@ -2576,7 +2594,7 @@ class bocdiscoo extends CommonFunctions
         }
       }else{
         if($result->length==1){
-          //Il était déjà présent
+          //Already here
         }else{
           $str = "Erreur : doublons de StudyEventData[@StudyEventOID='$StudyEventOID'] (". __METHOD__ .")";
           $this->addLog($str,FATAL);
@@ -2584,7 +2602,7 @@ class bocdiscoo extends CommonFunctions
         }
       }
   
-      //Ajout de FormData si besoin
+      //Add FormData if needed
       $result = $xPath->query("/odm:ODM/odm:ClinicalData/odm:SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']/odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']");
       if($result->length==0){
         $this->addLog("bocdiscoo()->saveItemGroupData() Ajout de FormData=$FormOID FormRepeatKey=$FormRepeatKey",TRACE);
@@ -2595,22 +2613,7 @@ class bocdiscoo extends CommonFunctions
           $FormData->setAttribute("FormRepeatKey","$FormRepeatKey");
           $FormData->setAttribute("TransactionType","Insert");
   
-          //Création de l'élement annotation, qui va contenir les flags de statuts
-          $Annotation = $subj->createElementNS(ODM_NAMESPACE,"Annotation");
-          $Flag = $subj->createElementNS(ODM_NAMESPACE,"Flag");
-          $FlagValue = $subj->createElementNS(ODM_NAMESPACE,"FlagValue","EMPTY");
-          $FlagType = $subj->createElementNS(ODM_NAMESPACE,"FlagType","STATUS");
-  
-          $Annotation->setAttribute("SeqNum","1");
-          $FlagValue->setAttribute("CodeListOID","CL.IGSTATUS");
-          $FlagType->setAttribute("CodeListOID","CL.FLAGTYPE");
-  
-          $Flag->appendChild($FlagValue);
-          $Flag->appendChild($FlagType);
-          $Annotation->appendChild($Flag);
-          $FormData->appendChild($Annotation);
-  
-          $result->item(0)->appendChild($FormData); //On l'ajoute
+          $result->item(0)->appendChild($FormData); //We add it
         }else{
           $str = "Erreur : Insertion FormData[@FormOID='$FormOID' @FormRepeatKey='$FormRepeatKey'] : result->length={$result->length} (".__METHOD__.")";
           $this->addLog($str,FATAL);
@@ -2618,7 +2621,7 @@ class bocdiscoo extends CommonFunctions
         }
       }else{
         if($result->length==1){
-          //Il était déjà présent
+          //Already here
           $FormData = $result->item(0);
         }else{
           $str = "Erreur : doublons de FormData[@FormOID='$FormOID' @FormRepeatKey='$FormRepeatKey] (". __METHOD__ .")";
@@ -2627,14 +2630,14 @@ class bocdiscoo extends CommonFunctions
         }
       }
   
-      //Ajout de AuditRecords si besoin
+      //Add AuditRecords if needed
       $result = $xPath->query("/odm:ODM/odm:ClinicalData/odm:AuditRecords");
       if($result->length==0){
         $this->addLog("Ajout de AuditRecords",INFO);
         $ClinicalData = $xPath->query("/odm:ODM/odm:ClinicalData");
         if($ClinicalData->length==1){
           $AuditRecords = $subj->createElementNS(ODM_NAMESPACE,"AuditRecords");
-          $ClinicalData->item(0)->appendChild($AuditRecords); //On l'ajoute
+          $ClinicalData->item(0)->appendChild($AuditRecords); //We add it
         }else{
           $str = "Erreur : Bug à l'insertion AuditRecords ClinicalData->length = {$ClinicalData->length} (".__METHOD__.")";
           $this->addLog($str,FATAL);
@@ -2642,7 +2645,7 @@ class bocdiscoo extends CommonFunctions
         }
       }else{
         if($result->length==1){
-          //Il était déjà présent
+          //Already here
           $AuditRecords = $result->item(0);
         }else{
           $str = "Erreur : doublons de AuditRecords pour le patient $SubjectKey result->length={$result->length} (".__METHOD__.")";
@@ -2651,39 +2654,39 @@ class bocdiscoo extends CommonFunctions
         }
       }
   
-      //Ajout d'un AuditRecord
+      //Add AuditRecord
       $AuditRecord = $subj->createElementNS(ODM_NAMESPACE,"AuditRecord");
-      //Calcul du nouvel ID sous la form Audit-XXXXXX
+      //Generation of new ID as Audit-XXXXXX
       $result = $xPath->query("/odm:ODM/odm:ClinicalData/odm:AuditRecords/odm:AuditRecord");
       $AuditRecordID = sprintf("Audit-%06s",$result->length+1);
       $AuditRecord->setAttribute("ID",$AuditRecordID);
-      //Qui
+      //Who
       $UserRef = $subj->createElementNS(ODM_NAMESPACE,"UserRef");
       $UserRef->setAttribute("UserOID",$who);
       $AuditRecord->appendChild($UserRef);
-      //Ou
+      //Where
       $LocationRef = $subj->createElementNS(ODM_NAMESPACE,"LocationRef");
       $LocationRef->setAttribute("LocationOID",$where);
       $AuditRecord->appendChild($LocationRef);
-      //Quand
+      //When
       $DateTimeStamp = $subj->createElementNS(ODM_NAMESPACE,"DateTimeStamp",date('c'));
       $AuditRecord->appendChild($DateTimeStamp);
-      //Pourquoi
+      //Why
       $ReasonForChange = $subj->createElementNS(ODM_NAMESPACE,"ReasonForChange",$why);
       $AuditRecord->appendChild($ReasonForChange);
   
       $AuditRecords->appendChild($AuditRecord); 
   
-      //Ajout de Annotations si besoin
+      //Add Annotations if needed
       $result = $xPath->query("/odm:ODM/odm:ClinicalData/odm:Annotations");
       if($result->length==0){
-        $this->addLog("Ajout de Annotations",INFO);
+        $this->addLog("Add Annotations",INFO);
         $ClinicalData = $xPath->query("/odm:ODM/odm:ClinicalData");
         if($ClinicalData->length==1){
           $Annotations = $subj->createElementNS(ODM_NAMESPACE,"Annotations");
           $ClinicalData->item(0)->appendChild($Annotations); //On l'ajoute
         }else{
-          $str = "Erreur : Bug à l'insertion Annotations ClinicalData->length = {$ClinicalData->length} (".__METHOD__.")";
+          $str = "Error : While adding Annotations ClinicalData->length = {$ClinicalData->length} (".__METHOD__.")";
           $this->addLog($str,FATAL);
           die($str);
         }
@@ -2692,30 +2695,30 @@ class bocdiscoo extends CommonFunctions
           //Il était déjà présent
           $Annotations = $result->item(0);
         }else{
-          $str = "Erreur : doublons de Annotations pour le patient $SubjectKey result->length={$result->length} (".__METHOD__.")";
+          $str = "Error : multiple Annotations for patient $SubjectKey result->length={$result->length} (".__METHOD__.")";
           $this->addLog($str,FATAL);
           die($str);
         }
       }
   
-      //Nouveau FormData qui va remplacer l'ancien
+      //New FormData to replace the old one
       $newFormData = $subj->createElementNS(ODM_NAMESPACE,"FormData");
       $newFormData->setAttribute("FormOID","$FormOID");
       $newFormData->setAttribute("FormRepeatKey","$FormRepeatKey");
   
-      //Extraction des variables de notre formulaire POSTé
+      //Extraction from POSTed data
       if($bFormVarsIsAlreadyDecoded){
         $tblFilledVar = $formVars;  
       }else{
         $tblFilledVar = array();
-        //on boucle sur les variables de notre formulaire soumis
+        //loop through incoming POST variables
         foreach($formVars as $key=>$value)
         {
-          //Extraction de l'oid
+          //oid extraction
           $varParts = explode("_",$key);
           if($varParts[0]!="annotation" && end($varParts)==$ItemGroupRepeatKey)
           {          
-            //WLT le 01/02/2011 : modification du code d'extraction de l'itemOID, afin de gérer les itemoid contenant un "_"
+            //WLT 01/02/2011 : modification du code d'extraction de l'itemOID, afin de gérer les itemoid contenant un "_"
             //Deux cas de figure : la val commence par text_dd_itemoid (exemple) ou par radio_itemoid (exemple)
             $rawItemOID = str_replace("_".end($varParts),"",$key);  //suppression de l'ItemGroupRepeatKey              
             if($varParts[0]=="radio" || $varParts[0]=="select"){
@@ -2724,13 +2727,9 @@ class bocdiscoo extends CommonFunctions
               $rawItemOID = str_replace($varParts[0]."_".$varParts[1]."_","",$rawItemOID);  //suppression de l'ItemGroupRepeatKey
             }
             
-            //$cleanVarParts = explode("_",$rawItemOID);  
             $ItemOID = str_replace("@",".",$rawItemOID);
             
             $this->addLog("rawItemOID=$rawItemOID ItemOID=$ItemOID",TRACE);
-            
-            //text_string_AE@AEHLGT_N_0
-            //text_string_AE@AEHLGT_N
             
             $tblFilledVar["$ItemOID"] = $value;
           }
@@ -2781,7 +2780,7 @@ class bocdiscoo extends CommonFunctions
         die($str);
       }
   
-      //Ajout si besoin de l'ItemGroupData à notre FormData
+      //Add ItemGroupData to FormData if needed
       $result = $xPath->query("/odm:ODM/odm:ClinicalData/odm:SubjectData
                                        /odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']
                                        /odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']
@@ -2795,9 +2794,7 @@ class bocdiscoo extends CommonFunctions
   
         $IG->setAttribute("TransactionType","Insert");
   
-        //Création de l'élement annotation, qui va contenir les flags de statuts
-        //Si on est là, c'est que l'ItemGroupData a passé le CheckItemGroupData (on a bien toutes les données)
-        //Donc par défaut Status = FILLED, qui peut être modifié par la suite (cf + bas)
+        //We are here because of incoming data - we set ItemGroupData Flag to FILLED
         $Annotation = $subj->createElementNS(ODM_NAMESPACE,"Annotation");
         $Flag = $subj->createElementNS(ODM_NAMESPACE,"Flag");
         $FlagValue = $subj->createElementNS(ODM_NAMESPACE,"FlagValue","FILLED");
@@ -2815,24 +2812,23 @@ class bocdiscoo extends CommonFunctions
         $FormData->appendChild($IG);
       }else{
         if($result->length==1){
-          $this->addLog("bocdiscoo->saveItemGroupData() Mise à jour ItemGroupData=$ItemGroupOID",INFO);
+          $this->addLog("bocdiscoo->saveItemGroupData()Update of ItemGroupData=$ItemGroupOID",INFO);
           $IG = $result->item(0);
         }else{
-          $str = "Erreur : doublons de ItemGroupData=$ItemGroupOID RepeatKey=$ItemGroupRepeatKey (".__METHOD__.")";
+          $str = "Erreur : multiple ItemGroupData=$ItemGroupOID RepeatKey=$ItemGroupRepeatKey (".__METHOD__.")";
           $this->addLog($str,FATAL);
           die($str);
         }
       }
   
-      //Mise à jour du statut, de la ligne, utilisé en cas de saisie d'une ligne pré-saisie dans le patient BLANK
-      //et complété par l'investigateur.
+      //ItemGroupData already here - status may need update, as it could came from the BLANK Subject
       $result = $xPath->query("/odm:ODM/odm:ClinicalData/odm:SubjectData
                                        /odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']
                                        /odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']
                                        /odm:ItemGroupData[@ItemGroupOID='$ItemGroupOID' and @ItemGroupRepeatKey='$ItemGroupRepeatKey']
                                        /odm:Annotation/odm:Flag[odm:FlagType/@CodeListOID='CL.FLAGTYPE']/odm:FlagValue");
       if($result->length!=1){
-        $str = "bocdiscoo->saveItemGroupData() FlagValue non trouvé (".__METHOD__.")";
+        $str = "bocdiscoo->saveItemGroupData() FlagValue not found (".__METHOD__.")";
         $this->addLog($str,INFO);
         $resultIGDT = $xPath->query("/odm:ODM/odm:ClinicalData/odm:SubjectData
                                              /odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']
@@ -2848,7 +2844,7 @@ class bocdiscoo extends CommonFunctions
           $IGDT = $resultIGDT->item(0);
           $Annotation = $subj->createElementNS(ODM_NAMESPACE,"Annotation");
           $Flag = $subj->createElementNS(ODM_NAMESPACE,"Flag");
-          $FlagValue = $subj->createElementNS(ODM_NAMESPACE,"FlagValue","PARTIAL");
+          $FlagValue = $subj->createElementNS(ODM_NAMESPACE,"FlagValue","FILLED");
           $FlagType = $subj->createElementNS(ODM_NAMESPACE,"FlagType","STATUS");
     
           $Annotation->setAttribute("SeqNum","1");
@@ -2859,7 +2855,7 @@ class bocdiscoo extends CommonFunctions
           $Flag->appendChild($FlagType);
           $Annotation->appendChild($Flag);
           
-          //Les annotations doivent êtes le premier noeud de l'IGDT
+          //Annotation must be the first child
           $firstChild = $IGDT->firstChild;
           if($firstChild)
           {
@@ -2869,35 +2865,11 @@ class bocdiscoo extends CommonFunctions
           {
             $IGDT->appendChild($Annotation);
           }
-          
-          $str = "Un FlagValue non trouvé a été créé/restauré sur un ItemGroupData (".__METHOD__.")";
-          $this->addLog($str,INFO);
         }
       }else{
         $FlagValue = $result->item(0);
       }
-  
-      switch($fillst)
-      {
-        case 'E' :
-          $FlagValue->nodeValue='EMPTY';
-          break;
-        case 'F' :
-          $FlagValue->nodeValue='FILLED';
-          break;
-        case 'I' :
-          $FlagValue->nodeValue='INCONSISTENT';
-          break;
-        case 'M' :
-          $FlagValue->nodeValue='PARTIAL';
-          break;
-        case 'Z' :
-          $FlagValue->nodeValue='FROZEN';
-          break;
-        default :
-          //nothing to do
-      }
-  
+    
       //On a à notre disposition $FormData pour ajouter les ItemGroup
       $hasModif = false;
       foreach($results as $ItemGroupRef){
@@ -2907,10 +2879,9 @@ class bocdiscoo extends CommonFunctions
         }
       }
             
-      //Si pas de modif, on zappe la suite
+      //Update XML DB only if needed
       if($hasModif)
       { 
-        //Mise à jour de notre document dans la base
         $this->m_ctrl->socdiscoo()->replaceDocument($subj,false,"ClinicalData");      
       }
     }
@@ -3023,126 +2994,19 @@ public function setLock($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID
     return $var;
   }
 
-/*
-Run edit checks on asked form and update accordingly Form's ItemGroupData
-@see class.ajax.inc.php, runChecks.php
-@todo add error handling for mysql call
-@version 2 by WLT 01/07/2011 : Only update ItemGroupData Status if needed, add return value
-@return int number of updated itemgGroupData status
-@author tpi, wlt
-*/
-public function updateFormStatus($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey){
-  $nbIGupdated = 0;
-  
-  //Look for queries on the form
-  $errorsMandatory = $this->checkMandatoryData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey);
-  $errorsConsistency = $this->checkFormConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey);
-  $errors = array_merge($errorsMandatory, $errorsConsistency);
-  
-  //On met à jour le statut des ItemGroupData
-  //D'abord ceux qui contiennent des erreurs
-  
-  $partial = array(); //on ne va pas tester 2 fois un Itemgroup déjà vu comme partial
-  $inconsistent = array(); //on ne va pas tester 2 fois un Itemgroup déjà vu comme inconsistent
-  foreach($errors as $error){
-    $this->addLog("bocdiscoo->updateFormStatus() : Error : ".$this->dumpRet($error),TRACE);
-    $ItemGroupOID = (string)$error['ItemGroupOID'];
-    $ItemGroupRepeatKey = (string)$error['ItemGroupRepeatKey'];
-    if(!isset($partial[$ItemGroupOID][$ItemGroupRepeatKey])){ //on ne va pas tester 2 fois un Itemgroup déjà vu comme partial (et partial est plus fort qu'inconsistent)
-      if($error['Type']=="CM"){
-        //The error could have been closed
-        $queryClosed = $this->m_ctrl->boqueries()->getQueriesCount($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey, $error['ItemOID'],$error['Position'],"C","Y","QUERYTYPE='{$error['Type']}'");
-        if($queryClosed==0){ //Query not closed
-          $this->setItemGroupStatus($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,"PARTIAL");
-          $partial[$ItemGroupOID][$ItemGroupRepeatKey] = 1;
-        }
-      }elseif(!isset($inconsistent[$ItemGroupOID][$ItemGroupRepeatKey]) && $error['Type']=="HC"){
-        $queryClosed = $this->m_ctrl->boqueries()->getQueriesCount($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey, $error['ItemOID'],$error['Position'],"C","Y","QUERYTYPE='{$error['Type']}'");
-        if($queryClosed==0){ //Query not closed
-          $this->setItemGroupStatus($SubjectKey, $StudyEventOID, $StudyEventRepeatKey, $FormOID, $FormRepeatKey, $ItemGroupOID, $ItemGroupRepeatKey, "INCONSISTENT");
-          $inconsistent[$ItemGroupOID][$ItemGroupRepeatKey] = 1;
-        }
-      }
-    }
+  /*
+  Run edit checks on asked form and update accordingly Form's ItemGroupData
+  @see class.ajax.inc.php, runChecks.php
+  @version 2 by WLT 01/07/2011 : Only update ItemGroupData Status if needed, add return value
+  @version 3 by WLT 25/04/2012 : No more need to update ItemGroupData Status. From now only authorized status are EMPTY, FROZEN, and FILLED
+  @return int number of queries
+  @author tpi, wlt
+  */
+  public function updateFormStatus($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey){
+    //Look for queries on the form
+    $errorsMandatory = $this->checkMandatoryData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey);
+    $errorsConsistency = $this->checkFormConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey);
+    return count($errorsMandatory)+count($errorsConsistency);
   }
-  
-  //Puis ceux qui n'en contiennent pas => FILLED, SAUF pour ceux pour lesquels des queries CM ou HC sont présentes en base de données => on rechercher particulièrement les queries manuelles non connues
-  $unfilled = array_merge($partial, $inconsistent);
-  
-  //algo :
-  //pour tous les itemgroupdatas du formulaire, dont le statut n'est pas déjà connu comme PARTIAL ou INCONSISTENT à la suite des tests ci-dessus (checkMandatoryData et checkFormConsistency)
-    //on regarde s'il existe des queries de types CM et/ou HC (pas SC car ce sont de gentilles queries)
-      //si count(CM)>0 on enregistre le statut de l'itemgroupdata à PARTIAL
-      //sinon si count(HC)>0 on enregistre le statut de l'itemgroupdata à INCONSISTENT
-      //sinon on enregistre le statut de l'itemgroupdata à FILLED
-  
-  //pour tous les itemgroupdatas du formulaire
-  $ItemGroupDatas = $this->getItemGroupDatas($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey);
-  foreach($ItemGroupDatas as $ItemGroupData){
-    $ItemGroupOID = (string)$ItemGroupData['ItemGroupOID'];
-    $ItemGroupRepeatKey = (string)$ItemGroupData['ItemGroupRepeatKey'];
-    $ItemGroupStatus = (string)$ItemGroupData['Status'];
-    if(!isset($unfilled[$ItemGroupOID][$ItemGroupRepeatKey])){
-      $status = "";
-      //on compte le nombre de queries de types CM et HC (pas SC car ce sont de gentilles queries)
-      $sql = "SELECT QUERYID
-              FROM egw_alix_queries
-              WHERE CURRENTAPP='".$this->getCurrentApp(true)."' AND
-                            SUBJKEY='$SubjectKey' AND
-                            SEOID='$StudyEventOID' AND
-                            SERK='$StudyEventRepeatKey' AND
-                            FRMOID='$FormOID' AND
-                            FRMRK='$FormRepeatKey' AND
-                            IGOID='$ItemGroupOID' AND
-                            IGRK='$ItemGroupRepeatKey' AND
-                            ISLAST='Y' AND
-                            QUERYSTATUS<>'C' AND
-                            QUERYTYPE='CM'";
-      $GLOBALS['egw']->db->query($sql);
-      if($GLOBALS['egw']->db->next_record()){
-        $status = "PARTIAL";
-      }else{
-        $sql = "SELECT QUERYID
-                FROM egw_alix_queries
-                WHERE CURRENTAPP='".$this->getCurrentApp(true)."' AND
-                              SUBJKEY='$SubjectKey' AND
-                              SEOID='$StudyEventOID' AND
-                              SERK='$StudyEventRepeatKey' AND
-                              FRMOID='$FormOID' AND
-                              FRMRK='$FormRepeatKey' AND
-                              IGOID='$ItemGroupOID' AND
-                              IGRK='$ItemGroupRepeatKey' AND
-                              ISLAST='Y' AND
-                              QUERYSTATUS<>'C' AND
-                              QUERYTYPE='HC'";
-        $GLOBALS['egw']->db->query($sql);
-        if($GLOBALS['egw']->db->next_record()){
-          $status = "INCONSISTENT";
-        }
-      }
-      if($status == ""){ //aucune query, mais le formulaire est-il vide ou parfaitement rempli ?
-        //au mieux l'itemgroupdata sera FROZEN ou FILLED             
-        if($ItemGroupStatus=="FROZEN"){
-          $status = "FROZEN";
-        }else{
-          $status = "FILLED";
-        }
-        //si l'itemgroupdata ne contient aucune donnée il sera au EMPTY
-        $nbItems = $this->countItems($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey);
-        $nbDefaultItems = $this->countItems("BLANK",$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey); //nécessaire pour comparer l'itemgroupdata du patient avec l'itemgroupdata du BLANK car celui-ci peut être prérenseigné
-        if((string)$nbItems == (string)$nbDefaultItems){
-          //Remarque : s'il n'y a pas d'item en général il n'y a même pas l'itemgroupdata les contenant non plus, donc on ne serait même pas rentré dans le foreach. Ce IF est donc une sécurité nécessaire pour ne pas passer un ItemGroupData vide à FILLED 
-          $status = "EMPTY";
-        }
-      }
-      //Only update ItemGroupData Status if needed
-      if($ItemGroupData['Status']!=$status){
-        $this->setItemGroupStatus($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$status);
-        $nbIGupdated++;
-      }
-    }
-  }
-  return $nbIGupdated;
-}
   
 }

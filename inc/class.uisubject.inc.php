@@ -74,7 +74,7 @@ class uisubject extends CommonFunctions
       //Recuperation du formulaire 
       $xml = $this->m_ctrl->bocdiscoo()->getStudyEventForms($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,false,$paginateStart,$paginateEnd);    
       
-      $FormTag = $xml->getElementsByTagName("Form");
+      $FormTag = $xml->getElementsByTagName("Form");  
       $FormTitle = $FormTag->item(0)->getAttribute("Title");
 
       $StudyEventTag = $xml->getElementsByTagName("StudyEvent");  
@@ -197,91 +197,93 @@ class uisubject extends CommonFunctions
        $this->callHook(__FUNCTION__,"xslParameters",array($FormOID,$proc,$this));
         
        $doc = $proc->transformToDoc($doc);
-    }
-
-    //HOOK => uisubject_getInterface_afterXSLT
-    $doc = $this->callHook(__FUNCTION__,"afterXSLT",array($MetaDataVersionOID,$FormOID,$this,$doc));
+  
+      //HOOK => uisubject_getInterface_afterXSLT
+      $doc = $this->callHook(__FUNCTION__,"afterXSLT",array($MetaDataVersionOID,$FormOID,$this,$doc));
       
-    $htmlForm = $doc->saveXML();
+      $htmlForm = $doc->saveXML($doc->childNodes->item(0));
 
-    //Hack pour gérer un pb xsl, qui transforme <textarea></textarea> en <textarea/>
-    $htmlForm = str_replace(">EMPTY</textarea>","></textarea>",$htmlForm);
-       
-    $topMenu = $this->m_ctrl->etudemenu()->getMenu($SiteId);
-    
-    $legend =  $this->getLegend();
-    
-    $toolbox = $this->getToolbox($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$profileId);
-    
-    //Do we have to check the data consistency before saving => set for each site in their configuration
-    if($profile['checkOnSave']==2){
-      $bCheckFormData = "false";
-    }else{
-      $bCheckFormData = "true";
-    }
-    
-    //May be override by the config.inc.php file
-    if(isset($this->m_tblConfig['FORM_DO_NOT_CHECK'][$FormOID]) && $this->m_tblConfig['FORM_DO_NOT_CHECK'][$FormOID]==true){
-      $bCheckFormData = "false";
-    }else{
-      $bCheckFormData = "true";
-    }      
-    
-    //variable ajoutée aux URLs Javascript afin de forcer le rechargement coté navigateur
-    $jsVersion = $this->m_tblConfig['JS_VERSION'];
+      //Hack to manage a saveXML feature, which transform <textarea></textarea> into <textarea/>
+      $htmlForm = str_replace(">EMPTY</textarea>","></textarea>",$htmlForm);
+         
+      $topMenu = $this->m_ctrl->etudemenu()->getMenu($SiteId);
       
-    $htmlRet = "
-                <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jquery-1.6.2.min.js') . "'></SCRIPT>
-                <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jquery-ui-1.8.16.custom.min.js') . "'></SCRIPT>
-                
-                $topMenu
-                
-                <div id='formMenu' class='ui-dialog ui-widget ui-widget-content ui-corner-all'>
-                  <div class='ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix'>
-                    <span class='ui-dialog-title'>Flow Chart</span>
-                  </div>
-                  <div class='ui-dialog-content ui-widget-content'>
-                    $htmlMenu
-                  </div>
-                  <div class='ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix'>
-                    <span class='ui-dialog-title'>Legend</span>
-                  </div>
-                  <div class='ui-dialog-content ui-widget-content'>
+      //We disable the legend - we have to find a better place
+      /*
+      $legend = "<div class='ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix'>
+                      <span class='ui-dialog-title'>Legend</span>
+                 </div> 
+                 <div class='ui-dialog-content ui-widget-content'>" .
+                      $this->getLegend();
+                 ."</div>";             
+      */
+      $legend = "";
+      
+      $toolbox = $this->getToolbox($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$profileId);
+      
+      //Do we have to check the data consistency before saving => set for each site in their configuration
+      if($profile['checkOnSave']==2){
+        $bCheckFormData = "false";
+      }else{
+        $bCheckFormData = "true";
+      }
+      
+      //May be override by the config.inc.php file
+      if(isset($this->m_tblConfig['FORM_DO_NOT_CHECK'][$FormOID]) && $this->m_tblConfig['FORM_DO_NOT_CHECK'][$FormOID]==true){
+        $bCheckFormData = "false";
+      }else{
+        $bCheckFormData = "true";
+      }      
+      
+      //variable ajoutée aux URLs Javascript afin de forcer le rechargement coté navigateur
+      $jsVersion = $this->m_tblConfig['JS_VERSION'];
+        
+      $htmlRet = "                  
+                  $topMenu
+                  
+                  <div id='formMenu' class='ui-dialog ui-widget ui-widget-content ui-corner-all'>
+                    <div class='ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix'>
+                      <span class='ui-dialog-title'>Flow Chart</span>
+                    </div>
+                    <div class='ui-dialog-content ui-widget-content'>
+                      $htmlMenu
+                    </div>
                     $legend
-                  </div>               
-                </div>
-                <div id='mainForm' class='ui-dialog ui-widget ui-widget-content ui-corner-all'>
-                  <div class='ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix'>
-                    <span class='ui-dialog-title'>Subject $SubjectKey / $StudyEventTitle / $FormTitle</span>
-                    <span class='ToolBox ToolBoxOneButton'>$toolbox</span>
                   </div>
-                  <div class='ui-dialog-content ui-widget-content'>
-                    <div id='formDeviations'></div>
-                    <div id='formQueries'></div>
-                    $htmlForm
+                  <div id='mainForm' class='ui-dialog ui-widget ui-widget-content ui-corner-all'>
+                    <div class='ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix'>
+                      <span class='ui-dialog-title'>Subject $SubjectKey / $StudyEventTitle / $FormTitle</span>
+                      <span class='ToolBox ToolBoxOneButton'>$toolbox</span>
+                    </div>
+                    <div class='ui-dialog-content ui-widget-content'>
+                      <div id='formDeviations'></div>
+                      <div id='formQueries'></div>
+                      $htmlForm
+                    </div>
                   </div>
-                </div>
-                
-                
-                <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/helpers.js') . "'></SCRIPT>
-                <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/queries.js') . "'></SCRIPT>
-                <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/query.js') . "'></SCRIPT>
-                <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/deviations.js') . "'></SCRIPT>
-                <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/deviation.js') . "'></SCRIPT>
-                <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/annotations.js') . "'></SCRIPT>
-                <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/audittrail.js') . "'></SCRIPT>
-                <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/postit.js') . "'></SCRIPT>
-                <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/alixcrf.js') . "'></SCRIPT>
-                <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/custom/'.$MetaDataVersionOID.'/js/alixlib.js') . "'></SCRIPT>
-                <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jquery.jqAltBox.js') . "'></SCRIPT>
-                
-                <script>
-                  $(document).ready(function() {
-                                  loadAlixCRFjs('".$this->getCurrentApp(false)."','$SiteId','$SubjectKey','$StudyEventOID','$StudyEventRepeatKey','$FormOID','$FormRepeatKey','".$profileId."','".$formStatus."',$bCheckFormData);
-                                   }); 
-                </script>
-                ";
-                
+                  
+                  
+                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/helpers.js') . "'></SCRIPT>
+                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/queries.js') . "'></SCRIPT>
+                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/query.js') . "'></SCRIPT>
+                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/deviations.js') . "'></SCRIPT>
+                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/deviation.js') . "'></SCRIPT>
+                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/annotations.js') . "'></SCRIPT>
+                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/audittrail.js') . "'></SCRIPT>
+                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/postit.js') . "'></SCRIPT>
+                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/alixcrf.js') . "'></SCRIPT>
+                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/custom/'.$MetaDataVersionOID.'/js/alixlib.js') . "'></SCRIPT>
+                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jquery.jqAltBox.js') . "'></SCRIPT>
+                  
+                  <script>
+                  //<![CDATA[
+                    $(document).ready(function() {
+                                    loadAlixCRFjs('".$this->getCurrentApp(false)."','$SiteId','$SubjectKey','$StudyEventOID','$StudyEventRepeatKey','$FormOID','$FormRepeatKey','".$profileId."','".$formStatus."',$bCheckFormData);
+                                     }); 
+                  //]]>
+                  </script>
+                  ";
+      }	         
       return $htmlRet;  
   }
 
@@ -346,7 +348,10 @@ class uisubject extends CommonFunctions
     //HOOK => uisubject_getMenu_saveSubjectStatus
     $this->callHook(__FUNCTION__,"saveSubjectStatus",array($SubjectKey,$tblForm,$this));
 
-    $htmlRet = $doc->saveXML();
+    $htmlRet = "";  
+    foreach($doc->childNodes as $node){
+      $htmlRet .= $doc->saveXML($node,LIBXML_NOEMPTYTAG);
+    }
     
     return $htmlRet;
   }

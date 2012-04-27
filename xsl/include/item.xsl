@@ -42,31 +42,32 @@
       <xsl:when test="count($Item/CodeList/CodeListItem)!=0">
         <!--Si nous sommes en présence d'une codelist à 2,3 ou 4 réponses, et que les libellés sont courts, on présente des radios button-->
         <xsl:choose>
-        <!--count($Item/CodeList/CodeListItem)&lt;=3-->
    				<xsl:when test="$ForceSelect='' and($ItemOID='TRT@ACTION' or count($Item/CodeList/CodeListItem)&lt;=4 and string-length($Item/CodeList/CodeListItem[position()=1]/@Decode)&lt;5)">
   				    <xsl:for-each select="$Item/CodeList/CodeListItem">
-  				      <xsl:element name="input">
-  				       <!--<xsl:attribute name="tabindex"><xsl:value-of select="$TabIndex"/>0</xsl:attribute> -->
+                <xsl:variable name="InputId">radio_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/>_<xsl:value-of select="position()"/></xsl:variable>
+                <xsl:element name="input">
   				    	 <xsl:attribute name="class">inputItem</xsl:attribute>
                  <xsl:attribute name="type">radio</xsl:attribute>
-  				    	 <xsl:attribute name="name">radio_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/></xsl:attribute>
+  				    	 <xsl:attribute name="name"><xsl:value-of select="$InputId"/></xsl:attribute>
+  				    	 <xsl:attribute name="id"><xsl:value-of select="$InputId"/></xsl:attribute>
   				    	 <xsl:attribute name="itemoid"><xsl:value-of select="$Item/@OID"/></xsl:attribute>
   							 <xsl:attribute name="value"><xsl:value-of select="@CodedValue"/></xsl:attribute>
   							 <xsl:attribute name="oldvalue"><xsl:value-of select="$ItemValue"/></xsl:attribute>
   							 <xsl:attribute name="flagvalue"><xsl:value-of select="$FlagValue"/></xsl:attribute>
-  							 <xsl:attribute name="MaxAuditRecordID"><xsl:value-of select="$MaxAuditRecordID"/></xsl:attribute>
-  				    	 <xsl:if test="@CodedValue=$ItemValue">
-  				    	   <xsl:attribute name="checked">true</xsl:attribute>
+  							 <xsl:attribute name="MaxAuditRecordID"><xsl:value-of select="$MaxAuditRecordID"/></xsl:attribute>                 
+                 <xsl:if test="@CodedValue=$ItemValue">
+  				    	   <xsl:attribute name="checked">checked</xsl:attribute>
                  </xsl:if>
-                 <!--Si pas de Decode dispo, on affiche comme texte adjacent la valeur de 'base'-->
-                 <xsl:if test="@Decode=''"><xsl:value-of select="@CodedValue"/></xsl:if>
-  				       <xsl:value-of select="@Decode"/>
   				    	</xsl:element>
+                <!--If not Codelist decode associated, raw value is displayed-->
+                <label for="{$InputId}">
+                  <xsl:if test="@Decode=''"><xsl:value-of select="@CodedValue"/></xsl:if>
+  				        <xsl:value-of select="@Decode"/>
+                </label>  				    	
   				    </xsl:for-each>
   				</xsl:when>
   		    <xsl:otherwise> 
   				  <xsl:element name="select">
-            <!--<xsl:attribute name="tabindex"><xsl:value-of select="$TabIndex"/>0</xsl:attribute>-->
     				<xsl:attribute name="class">inputItem</xsl:attribute>
             <xsl:attribute name="oldvalue"><xsl:value-of select="$ItemValue"/></xsl:attribute>
     				<xsl:attribute name="flagvalue"><xsl:value-of select="$FlagValue"/></xsl:attribute>
@@ -78,7 +79,7 @@
   				      <xsl:element name="option">
   				        <xsl:attribute name="value"><xsl:value-of select="@CodedValue"/></xsl:attribute>
   				        <xsl:if test="@CodedValue=$ItemValue">
-  				        	<xsl:attribute name="selected">true</xsl:attribute>
+  				        	<xsl:attribute name="selected">selected</xsl:attribute>
   				        </xsl:if>
   				        <xsl:if test="@Decode=''"><xsl:value-of select="@CodedValue"/></xsl:if>
   				        <xsl:value-of select="@Decode"/>
@@ -131,11 +132,10 @@
           </xsl:choose>
         </xsl:element>
         <xsl:element name="input">
-          <!--<xsl:attribute name="tabindex"><xsl:value-of select="$TabIndex"/>2</xsl:attribute>-->
           <xsl:attribute name="type">text</xsl:attribute>
           <xsl:attribute name="class">inputText inputItem</xsl:attribute>
   			  <xsl:attribute name="itemoid">
-  				<xsl:value-of select="$Item/@OID"/>
+  				  <xsl:value-of select="$Item/@OID"/>
   			  </xsl:attribute>
           <xsl:attribute name="value"><xsl:value-of select="substring($ItemValue,6,2)"/></xsl:attribute>
   				<xsl:attribute name="oldvalue">
@@ -156,7 +156,6 @@
           <xsl:otherwise>year:</xsl:otherwise>
         </xsl:choose>
         <xsl:element name="input">
-          <!--<xsl:attribute name="tabindex"><xsl:value-of select="$TabIndex"/>3</xsl:attribute>-->
           <xsl:attribute name="type">text</xsl:attribute>
           <xsl:attribute name="class">inputText inputItem</xsl:attribute>
   			  <xsl:attribute name="itemoid">
@@ -178,7 +177,6 @@
       <!--Item de type float : on décompose partie entière/partie décimale -->
       <xsl:when test="$Item/@DataType='float'">
         <xsl:element name="input">
-          <!--<xsl:attribute name="tabindex"><xsl:value-of select="$TabIndex"/>0</xsl:attribute>-->
           <xsl:attribute name="type">text</xsl:attribute>
           <xsl:attribute name="class">inputText inputItem</xsl:attribute>
   				<xsl:attribute name="itemoid">
@@ -198,7 +196,6 @@
         </xsl:element>      	
         <strong>.</strong>
         <xsl:element name="input">
-          <!--<xsl:attribute name="tabindex"><xsl:value-of select="$TabIndex"/>1</xsl:attribute>-->
           <xsl:attribute name="type">text</xsl:attribute>
           <xsl:attribute name="class">inputText inputItem</xsl:attribute>
   				<xsl:attribute name="itemoid">
@@ -219,7 +216,6 @@
       </xsl:when>
       <xsl:when test="$Item/@DataType='text'">   
         <textarea>
-          <!--<xsl:attribute name="tabindex"><xsl:value-of select="$TabIndex"/>0</xsl:attribute>-->
           <xsl:attribute name="cols">55</xsl:attribute>
           <xsl:attribute name="rows">3</xsl:attribute>
           <xsl:attribute name="class">inputText inputItem</xsl:attribute>
@@ -236,25 +232,22 @@
       </xsl:when>
       <xsl:otherwise>
     	  <xsl:element name="input">
-        <xsl:attribute name="type">text</xsl:attribute>
-        <xsl:attribute name="class">inputText inputItem</xsl:attribute>
-        <!--Il ne faut pas mettre l'attribut value si pas de valeur, sinon nous ne pourrons l'ajouter plus tard-->
-        <xsl:if test="$ItemValue!=''">
-          <xsl:attribute name="value"><xsl:value-of select="$ItemValue"/></xsl:attribute>
-        </xsl:if>  
-  			<xsl:attribute name="oldvalue"><xsl:value-of select="$ItemValue"/></xsl:attribute>
-  			<xsl:attribute name="flagvalue"><xsl:value-of select="$FlagValue"/></xsl:attribute>
-  			<xsl:attribute name="MaxAuditRecordID"><xsl:value-of select="$MaxAuditRecordID"/></xsl:attribute>
-  			<xsl:attribute name="itemoid"><xsl:value-of select="$Item/@OID"/></xsl:attribute>
-        <!--<xsl:attribute name="tabindex"><xsl:value-of select="$TabIndex"/>0</xsl:attribute> -->
-        <xsl:attribute name="name">text_<xsl:value-of select="@DataType"/>_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/></xsl:attribute>
-        <xsl:attribute name="id"><xsl:value-of select="$Item/@OID"/></xsl:attribute>
-        <xsl:attribute name="size"><xsl:value-of select="@Length"/></xsl:attribute>
-        <xsl:attribute name="maxlength"><xsl:value-of select="@Length"/></xsl:attribute>
+          <xsl:attribute name="type">text</xsl:attribute>
+          <xsl:attribute name="class">inputText inputItem</xsl:attribute>
+          <xsl:if test="$ItemValue!=''">
+            <xsl:attribute name="value"><xsl:value-of select="$ItemValue"/></xsl:attribute>
+          </xsl:if>  
+    			<xsl:attribute name="oldvalue"><xsl:value-of select="$ItemValue"/></xsl:attribute>
+    			<xsl:attribute name="flagvalue"><xsl:value-of select="$FlagValue"/></xsl:attribute>
+    			<xsl:attribute name="MaxAuditRecordID"><xsl:value-of select="$MaxAuditRecordID"/></xsl:attribute>
+    			<xsl:attribute name="itemoid"><xsl:value-of select="$Item/@OID"/></xsl:attribute>
+          <xsl:attribute name="name">text_<xsl:value-of select="@DataType"/>_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/></xsl:attribute>
+          <xsl:attribute name="size"><xsl:value-of select="@Length"/></xsl:attribute>
+          <xsl:attribute name="maxlength"><xsl:value-of select="@Length"/></xsl:attribute>
         </xsl:element>        
       </xsl:otherwise>
     </xsl:choose>
-    <!--On a une unité de disponible, on l'affiche, mais uniquement si l'on a une valeur-->
+    <!--Print Unit if defined-->
     <xsl:if test="MeasurementUnit/MeasurementUnitItem/@Symbol">
       &#160;<xsl:value-of select="MeasurementUnit/MeasurementUnitItem/@Symbol"/>
     </xsl:if>  

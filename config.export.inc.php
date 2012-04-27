@@ -1,4 +1,34 @@
 <?
+//Define default context inserted for each exported record
+$configEtude['EXPORT']["DEFAULT_CONTEXT"] = array( 
+                                  'STUDYID' => array('name'=>'Study ID',
+                                                     'type'=>'string',
+                                                     'length'=>'22'),
+                                  'COUNTID' => array('name'=>'Country',
+                                                     'type'=>'string',
+                                                     'length'=>'3',
+                                                     'codelist'=>'CL.$COUNT',
+                                                     'value'=>array('SEOID'=>'1','SERK'=>'0','FRMOID'=>'FORM.ENROL','FRMRK'=>'0','IGOID'=>'ENROL','IGRK'=>'0','ITEMOID'=>'ENROL.COUNTID')),
+                                  'SITEID' => array('name'=>'Site number',
+                                                    'type'=>'string',
+                                                    'length'=>'2',
+                                                    'value'=>array('SEOID'=>'1','SERK'=>'0','FRMOID'=>'FORM.ENROL','FRMRK'=>'0','IGOID'=>'ENROL','IGRK'=>'0','ITEMOID'=>'ENROL.SITEID')),
+                                  'SITENAME' => array('name'=>'Site name',
+                                                      'type'=>'string',
+                                                      'length'=>'50',
+                                                      'value'=>array('SEOID'=>'1','SERK'=>'0','FRMOID'=>'FORM.ENROL','FRMRK'=>'0','IGOID'=>'ENROL','IGRK'=>'0','ITEMOID'=>'ENROL.SITENAME')),
+                                  'SUBJID' => array('name'=>'Subject ID',
+                                                    'type'=>'string',
+                                                    'length'=>'32',
+                                                    'value'=>'SUBJID'),
+                                  'VISITNUM' => array('name'=>'Visit number',
+                                                      'type'=>'string',
+                                                      'value'=>'VISITNUM'),
+                                  'VISITNAME' => array('name'=>'Visit name',
+                                                       'type'=>'string',
+                                                       'value'=>'VISITNAME'),
+                                );
+
   $configEtude['EXPORT']['TYPE'] = array(
                 "dsmb" => array("index"=>"DSMB_VAR",
                                 "name"=>"DSMB export",
@@ -127,7 +157,7 @@
   $configEtude['CODING_VAR']['AE'] = array('FILEDEST'=>'AE','FIELDLIST'=>array('AE.AESEQ','AE.AETERM','AE.AELLT_C','AE.AELLT_N','AE.AEPT_C','AE.AEDECOD','AE.AESOC_C','AE.AEBODSYS','AE.AEHLT_C','AE.AEHLT_N','AE.AEHLGT_C','AE.AEHLGT_N','AE.MEDDRA_V'));
   
   //Export FULL
-  //On ne precise pas FIELDLIST => Tous les champs sont exportés 
+  //FIELDLIST is not defined => All fields are exported
   $configEtude['EXPORT_VAR']['AE'] = array('FILEDEST'=>'AE');
   $configEtude['EXPORT_VAR']['CM'] = array('FILEDEST'=>'CM');
  

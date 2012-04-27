@@ -46,7 +46,8 @@ class uidbadmin extends CommonFunctions{
   //Appel direct depuis la liste des patients (par ex)
   function viewDoc()
   {
-    //Only accessible to admin
+    //Check right
+    
     if(!$GLOBALS['egw_info']['user']['apps']['admin']){
       $this->addLog("Unauthorized Access to Admin Module - Administrator has been notified",FATAL);
     }
@@ -78,72 +79,44 @@ class uidbadmin extends CommonFunctions{
         switch($_GET['action'])
         {
           case 'importDocInterface' :
-                $htmlRet = $this->getImportInterface();
+                if($this->m_ctrl->boacl()->checkModuleAccess("importDoc")){
+                  $htmlRet = $this->getImportInterface();
+                }else{
+                  $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
+                }
                 break;
                 
           case 'importDoc' :
-                $container=$_POST['p_container'];
-                $htmlRet = $this->importDoc($container);
+                if($this->m_ctrl->boacl()->checkModuleAccess("importDoc")){
+                  $container=$_POST['p_container'];
+                  $htmlRet = $this->importDoc($container);
+                }else{
+                  $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
+                }
                 break;
-                
-          case 'importECGDoc' :
-                $htmlRet = $this->importECGDoc();
-                $htmlRet .= $this->getImportECGInterface();
-                break;               
-
-          case 'importLABDoc' :
-                $htmlRet = $this->importLABDoc();
-                $htmlRet .= $this->getImportLABInterface();
-                break;    
-
-          case 'importCodingDoc' :
-                $htmlRet = $this->importCodingDoc();
-                $htmlRet .= $this->getImportCodingInterface();
-                break;  
-                                
+                                              
           case 'deleteDoc' :
-                $this->deleteDoc();
-                $htmlRet = $this->getMainInterface($_GET['container']);
-                break;
+                if($this->m_ctrl->boacl()->checkModuleAccess("importDoc")){
+                  $this->deleteDoc();
+                  $htmlRet = $this->getMainInterface($_GET['container']);
+                }else{
+                  $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
+                }
 
-          case 'viewDoc' : 
-                $this->viewDoc();
                 break;  
 
           case 'viewDocs' : 
-                $htmlRet = $this->getMainInterface($_GET['container']);
+                if($this->m_ctrl->boacl()->checkModuleAccess("viewDocs")){
+                  $htmlRet = $this->getMainInterface($_GET['container']);
+                }else{
+                  $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
+                }
                 break;  
-
-          case 'exportInterface' : 
-                $htmlRet = $this->getExportInterface();
-                break;
-          
-          case 'importECG' :
-                $htmlRet = $this->getImportECGInterface();
-                break;
-
-          case 'importLAB' :
-                $htmlRet = $this->getImportLABInterface();
-                break;
-          
-          case 'importCoding' :
-                $htmlRet = $this->getImportCodingInterface();
-                break;
-                                                
-          case 'export' :               
-                $this->export($_GET['type']);
-                $htmlRet = $this->getExportInterface();      
-                break;
                 
           case 'updateSubjectStatus' : 
                 $this->m_ctrl->bosubjects()->updateSubjectInList($_GET['doc']);
                 $htmlRet = $this->getMainInterface("ClinicalData");
                 break;            
-
-          case 'viewLocks' : 
-                $htmlRet = $this->getLocksInterface();
-                break; 
-
         }        
       }
 
@@ -151,9 +124,7 @@ class uidbadmin extends CommonFunctions{
 
     $jsVersion = $this->m_tblConfig['JS_VERSION'];
     
-    $htmlRet = "
-                <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jquery-1.6.2.min.js') . "'></SCRIPT>
-                <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/helpers.js') . "'></SCRIPT>
+    $htmlRet = "<SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/helpers.js') . "'></SCRIPT>
                 
                 $menu
 
@@ -176,49 +147,54 @@ class uidbadmin extends CommonFunctions{
   }
 
   private function getDefaultInterface(){
-        $menu_admin = "";
+    $menu_admin = "";
         
-        $menu_admin .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.usersInterface',
-                                                                           'title' => urlencode(lang('Users')),),
-                                            "Users");
-        $menu_admin .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.sitesInterface',
-                                                                           'title' => urlencode(lang('Sites'))),
-                                            "Sites");
-        $menu_admin .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
-  				                                                                        'container' => 'ClinicalData',
-                                                                                  'action' => 'viewDocs'),
-                                            "ClinicalData");
-        $menu_admin .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
-  				                                                                        'container' => 'MetaDataVersion',
-                                                                                  'action' => 'viewDocs'),
-                                            "MetaData");
-        /*$menu_admin .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
-  				                                                                        'container' => 'SubjectsList',
-                                                                                  'action' => 'viewDocs'),
-                                            "SubjectsList");
-        */
-        $menu_admin .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
-  				                                                                        'action' => 'importDocInterface'),
-                                            "Import Metadata / ClinicalData");
-        /* 
-        $menu_admin .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
-  				                                                                        'action' => 'importECG'),
-                                            "Import ECG");     
-        $menu_admin .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
-  				                                                                        'action' => 'importLAB'),
-                                            "Import LAB");  
-        $menu_admin .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
-  				                                                                        'action' => 'importCoding'),
-                                            "Import Coding");
-        */
-        $menu_admin .= "<h3 class='ui-accordion-header ui-helper-reset ui-state-default ui-corner-all ui-state-highlight'><a href=\"javascript:helper.showPrompt('Please configure class.boimport.inc.php according to your purposes.', 'noon()', 1);\">Import Clinical Data</a></h3>";
-        
-        $menu_admin .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
-  				                                                                        'action' => 'exportInterface'),
-                                            "Data export");                   
-        $menu_admin .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.editorInterface',
-  				                                                                        'action' => ''),
-                                            "Editor");                                                                                                      
+    if($this->m_ctrl->boacl()->checkModuleAccess("viewDocs"))
+    {
+      $menu_admin .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
+				                                                                        'container' => 'ClinicalData',
+                                                                                'action' => 'viewDocs'),
+                                          "ClinicalData");
+      $menu_admin .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
+				                                                                        'container' => 'MetaDataVersion',
+                                                                                'action' => 'viewDocs'),      
+                                          "MetaData");
+    }
+    
+    if($this->m_ctrl->boacl()->checkModuleAccess("importDoc"))
+    {
+      $menu_admin .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
+				                                                                        'action' => 'importDocInterface'),
+                                          "Import Metadata / ClinicalData");
+      $menu_admin .= "<h3 class='ui-accordion-header ui-helper-reset ui-state-default ui-corner-all ui-state-highlight'><a href=\"javascript:helper.showPrompt('Please configure class.boimport.inc.php according to your purposes.', 'noon()', 1);\">Import Clinical Data</a></h3>";
+    }
+
+    if($this->m_ctrl->boacl()->checkModuleAccess("EditDocs"))
+    {
+      $menu_admin .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.editorInterface',
+			                                                                        'action' => ''),
+                                        "Editor"); 
+    }
+
+    if($this->m_ctrl->boacl()->checkModuleAccess("ManageUsers"))
+    {
+      $menu_admin .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.usersInterface',
+                                                                       'title' => urlencode(lang('Users'))),
+                                        "Users");
+    }
+
+    if($this->m_ctrl->boacl()->checkModuleAccess("ManageSites"))
+    {
+      $menu_admin .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.sitesInterface',
+                                                                       'title' => urlencode(lang('Sites'))),
+                                        "Sites");
+    }
+
+    if($this->m_ctrl->boacl()->checkModuleAccess("ExportData"))
+    {
+      $menu_admin .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.exportInterface'),
+                                        "Data export");                                                                                                                       
+    }
 
     return $menu_admin;  
   }
@@ -326,108 +302,6 @@ class uidbadmin extends CommonFunctions{
       
       return $htmlRet; 
   }
-
-  private function getImportECGInterface()
-  {           
-      $htmlRet = "<div class='subjectBold'>Import des données ECG</div>
-                    <form action='" . $GLOBALS['egw']->link('/index.php',array('menuaction'=>$this->getCurrentApp(false).'.uietude.dbadminInterface','action'=>'importECGDoc')) . "' method='post' enctype='multipart/form-data'>
-                      Fichier ECG XML à importer : <input type='file' name='uploadedDoc'>
-                      <input type='submit' value='Importer'/>
-                    </form>";
-      
-      //On liste les exports déja réalisé
-      $tblImport = $this->m_ctrl->boimport()->getImportList("ECG");
-      
-      $htmlRet .= "<br/></br><br/><table><tr><th>ECG File Creation Date</th><th>User</th><th>Status</th><th>Errors</th><th>Import File</th><th>Report File</th></tr>";
-      
-      foreach($tblImport as $import){
-        $htmlRet .= "<tr>
-                      <td>{$import['DATE_IMPORT_FILE']}</td>
-                      <td>{$import['USER']}</td>
-                      <td>{$import['STATUS']}</td>
-                      <td>{$import['ERROR_COUNT']}</td>
-                      <td><a target='new' href='". $GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uidbadmin.getImportFile',
-                                                                               'importid' => $import['IMPORTID'],
-                                                                               'importFileType' => 'IMPORT_FILE',
-                                                                               )) ."'>{$import['IMPORT_FILE']}</a></td>                   
-                      <td><a target='new' href='". $GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uidbadmin.getImportFile',
-                                                                               'importid' => $import['IMPORTID'],
-                                                                               'importFileType' => 'REPORT_FILE',
-                                                                               )) ."'>{$import['REPORT_FILE']}</a></td>                   
-                     </tr>";
-      }
-      $htmlRet .= "</table>"; 
-        
-      return $htmlRet;  
-  }  
-
-  private function getImportLABInterface()
-  {           
-      $htmlRet = "<div class='subjectBold'>Import des données LAB</div>
-                    <form action='" . $GLOBALS['egw']->link('/index.php',array('menuaction'=>$this->getCurrentApp(false).'.uietude.dbadminInterface','action'=>'importLABDoc')) . "' method='post' enctype='multipart/form-data'>
-                      Fichier LAB XML à importer : <input type='file' name='uploadedDoc'>
-                      <input type='submit' value='Importer'/>
-                    </form>";
-      
-      //On liste les exports déja réalisé
-      $tblImport = $this->m_ctrl->boimport()->getImportList("LAB");
-      
-      $htmlRet .= "<br/></br><br/><table><tr><th>ECG File Creation Date</th><th>User</th><th>Status</th><th>Errors</th><th>Import File</th><th>Report File</th></tr>";
-      
-      foreach($tblImport as $import){
-        $htmlRet .= "<tr>
-                      <td>{$import['DATE_IMPORT_FILE']}</td>
-                      <td>{$import['USER']}</td>
-                      <td>{$import['STATUS']}</td>
-                      <td>{$import['ERROR_COUNT']}</td>
-                      <td><a target='new' href='". $GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uidbadmin.getImportFile',
-                                                                               'importid' => $import['IMPORTID'],
-                                                                               'importFileType' => 'IMPORT_FILE',
-                                                                               )) ."'>{$import['IMPORT_FILE']}</a></td>                   
-                      <td><a target='new' href='". $GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uidbadmin.getImportFile',
-                                                                               'importid' => $import['IMPORTID'],
-                                                                               'importFileType' => 'REPORT_FILE',
-                                                                               )) ."'>{$import['REPORT_FILE']}</a></td>                   
-                     </tr>";
-      }
-      $htmlRet .= "</table>"; 
-        
-      return $htmlRet;  
-  } 
-
-  private function getImportCodingInterface()
-  {           
-      $htmlRet = "<div class='subjectBold'>Import des données Coding</div>
-                    <form action='" . $GLOBALS['egw']->link('/index.php',array('menuaction'=>$this->getCurrentApp(false).'.uietude.dbadminInterface','action'=>'importCodingDoc')) . "' method='post' enctype='multipart/form-data'>
-                      Fichier Coding CSV (AE, CM ou MH) à importer : <input type='file' name='uploadedDoc'>
-                      <input type='submit' value='Importer'/>
-                    </form>";
-      
-      //On liste les exports déja réalisé
-      $tblImport = $this->m_ctrl->boimport()->getImportList("Coding");
-      
-      $htmlRet .= "<br/></br><br/><table><tr><th>Import Date</th><th>User</th><th>Status</th><th>Errors</th><th>Import File</th><th>Report File</th></tr>";
-      
-      foreach($tblImport as $import){
-        $htmlRet .= "<tr>
-                      <td>{$import['DATE_IMPORT_FILE']}</td>
-                      <td>{$import['USER']}</td>
-                      <td>{$import['STATUS']}</td>
-                      <td>{$import['ERROR_COUNT']}</td>
-                      <td><a target='new' href='". $GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uidbadmin.getImportFile',
-                                                                               'importid' => $import['IMPORTID'],
-                                                                               'importFileType' => 'IMPORT_FILE',
-                                                                               )) ."'>{$import['IMPORT_FILE']}</a></td>                   
-                      <td><a target='new' href='". $GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uidbadmin.getImportFile',
-                                                                               'importid' => $import['IMPORTID'],
-                                                                               'importFileType' => 'REPORT_FILE',
-                                                                               )) ."'>{$import['REPORT_FILE']}</a></td>                   
-                     </tr>";
-      }
-      $htmlRet .= "</table>"; 
-        
-      return $htmlRet;  
-  } 
 
   private function getImportInterface()
   {           
@@ -538,45 +412,6 @@ class uidbadmin extends CommonFunctions{
           $this->m_ctrl->socdiscoo()->replaceDocument($uploadfile,false,$containerName);
       }
       echo "import successfull !<br/>";         
-    }
-  }
-
-  function importECGDoc()
-  {
-	  $uploaddir = $this->m_tblConfig['IMPORT_BASE_PATH'];
-    
-    $uploadfile = $uploaddir . basename($_FILES['uploadedDoc']['name']);    
-    
-    $tblBlockingErrors = array();
-       
-    if(move_uploaded_file($_FILES['uploadedDoc']['tmp_name'], $uploadfile)){      
-      $this->m_ctrl->boimport()->importECG($uploadfile);   
-    }
-  }
-
-  function importLABDoc()
-  {
-	  $uploaddir = $this->m_tblConfig['IMPORT_BASE_PATH'];
-    
-    $uploadfile = $uploaddir . basename($_FILES['uploadedDoc']['name']);    
-    
-    $tblBlockingErrors = array();
-       
-    if(move_uploaded_file($_FILES['uploadedDoc']['tmp_name'], $uploadfile)){      
-      $this->m_ctrl->boimport()->importLAB($uploadfile);   
-    }
-  }
-  
-  function importCodingDoc()
-  {
-	  $uploaddir = $this->m_tblConfig['IMPORT_BASE_PATH'];
-    
-    $uploadfile = $uploaddir . basename($_FILES['uploadedDoc']['name']);    
-    
-    $tblBlockingErrors = array();
-       
-    if(move_uploaded_file($_FILES['uploadedDoc']['tmp_name'], $uploadfile)){      
-      $this->m_ctrl->boimport()->importCoding($uploadfile);   
     }
   }
 }
