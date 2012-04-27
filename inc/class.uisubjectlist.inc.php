@@ -90,7 +90,7 @@ class uisubjectlist extends CommonFunctions
               </script>";
     
     $html .= "<script>
-                <![CDATA[
+                //<![CDATA[
                   function goSubject(SubjectKey){
                     CurrentApp = '".$this->getCurrentApp(false)."';
                     StudyEventOID = '".$this->m_tblConfig['ENROL_SEOID']."';
@@ -103,7 +103,7 @@ class uisubjectlist extends CommonFunctions
                   $(document).ready(function() {
                     initSubjectsList();
                   }); 
-                ]]>                
+                //]]>                
               </script>";
               
     return $html;

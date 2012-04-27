@@ -135,7 +135,7 @@ class uisubject extends CommonFunctions
       }else{        
         $ReadOnly = "false";
       }
-
+    
       $proc->setParameter('','ReadOnly',$ReadOnly);
       
       $proc->setParameter('','ProfileId',$profileId);
@@ -191,18 +191,18 @@ class uisubject extends CommonFunctions
            $customVar = $StudyEventTag->item(0)->getAttribute($key);
            $proc->setParameter('',$key,$customVar);
          }
-       }
+      }
        
-       //HOOK => uisubject_getInterface_xslParameters
-       $this->callHook(__FUNCTION__,"xslParameters",array($FormOID,$proc,$this));
+      //HOOK => uisubject_getInterface_xslParameters
+      $this->callHook(__FUNCTION__,"xslParameters",array($FormOID,$proc,$this));
         
-       $doc = $proc->transformToDoc($doc);
+      $doc = $proc->transformToDoc($doc);
   
       //HOOK => uisubject_getInterface_afterXSLT
       $doc = $this->callHook(__FUNCTION__,"afterXSLT",array($MetaDataVersionOID,$FormOID,$this,$doc));
       
       $htmlForm = $doc->saveXML($doc->childNodes->item(0));
-
+      
       //Hack to manage a saveXML feature, which transform <textarea></textarea> into <textarea/>
       $htmlForm = str_replace(">EMPTY</textarea>","></textarea>",$htmlForm);
          
@@ -261,8 +261,7 @@ class uisubject extends CommonFunctions
                       $htmlForm
                     </div>
                   </div>
-                  
-                  
+                                    
                   <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/helpers.js') . "'></SCRIPT>
                   <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/queries.js') . "'></SCRIPT>
                   <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/query.js') . "'></SCRIPT>
@@ -348,11 +347,8 @@ class uisubject extends CommonFunctions
     //HOOK => uisubject_getMenu_saveSubjectStatus
     $this->callHook(__FUNCTION__,"saveSubjectStatus",array($SubjectKey,$tblForm,$this));
 
-    $htmlRet = "";  
-    foreach($doc->childNodes as $node){
-      $htmlRet .= $doc->saveXML($node,LIBXML_NOEMPTYTAG);
-    }
-    
+    $htmlRet .= $doc->saveXML($doc->childNodes->item(0));
+
     return $htmlRet;
   }
   

@@ -48,7 +48,7 @@
                 <xsl:element name="input">
   				    	 <xsl:attribute name="class">inputItem</xsl:attribute>
                  <xsl:attribute name="type">radio</xsl:attribute>
-  				    	 <xsl:attribute name="name"><xsl:value-of select="$InputId"/></xsl:attribute>
+  				    	 <xsl:attribute name="name">radio_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/></xsl:attribute>
   				    	 <xsl:attribute name="id"><xsl:value-of select="$InputId"/></xsl:attribute>
   				    	 <xsl:attribute name="itemoid"><xsl:value-of select="$Item/@OID"/></xsl:attribute>
   							 <xsl:attribute name="value"><xsl:value-of select="@CodedValue"/></xsl:attribute>

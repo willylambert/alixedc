@@ -22,7 +22,7 @@
 \**************************************************************************/
 -->
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-<xsl:output method="html" encoding="UTF-8" indent="no"/>
+<xsl:output method="xml" encoding="UTF-8" indent="no"/>
 <xsl:include href="include/item.xsl"/>
 <xsl:include href="include/annotation.xsl"/>
 <xsl:include href="include/query.xsl"/>
@@ -194,40 +194,35 @@
 </xsl:template>
 
 <xsl:template match="Form">
-
-  <!--Pagination navigation-->
-  <xsl:if test="$Paginate='true'">
-    <xsl:variable name="url">index.php?menuaction=<xsl:value-of select="$CurrentApp"/>.uietude.subjectInterface&amp;action=view&amp;SubjectKey=<xsl:value-of select="$SubjectKey"/>&amp;StudyEventOID=<xsl:value-of select="$StudyEventOID"/>&amp;StudyEventRepeatKey=<xsl:value-of select="$StudyEventRepeatKey"/>&amp;FormOID=<xsl:value-of select="$FormOID"/>&amp;FormRepeatKey=<xsl:value-of select="$FormRepeatKey"/></xsl:variable>
-
-    <xsl:call-template name="pagination">
-      <xsl:with-param name="pageNumber" select="$CurrentPage"/>
-      <xsl:with-param name="recordsPerPage" select="$IGperPage" />
-      <xsl:with-param name="numberOfRecords" select="$NumberOfRecords" />
-      <xsl:with-param name="url" select="$url"/>
-    </xsl:call-template>
-  </xsl:if>
-  
   <div id="Form">
-    <xsl:apply-templates/>
-  </div>
-  
-  <!-- Boutons de modification nécessaire en ReadOnly=false -->
-  <div id="ActionsButtons">
-    <xsl:if test="$ReadOnly='false'">
-      <button id="btnCancel" class="ui-state-default ui-corner-all">Cancel</button>
-      <button id="btnSave" class="ui-state-default ui-corner-all">Save</button>
-    </xsl:if>
-  </div>  
 
-  <div id="dialog-modal-save" title="Processing...">
-	 <p>Please wait while your request is processed...</p>
-	 <div style="text-align: center;"><img src="{$CurrentApp}/templates/default/images/ajax_loader_77.gif" alt="Loading" /></div>
+    <!--Pagination navigation-->
+    <xsl:if test="$Paginate='true'">
+      <xsl:variable name="url">index.php?menuaction=<xsl:value-of select="$CurrentApp"/>.uietude.subjectInterface&amp;action=view&amp;SubjectKey=<xsl:value-of select="$SubjectKey"/>&amp;StudyEventOID=<xsl:value-of select="$StudyEventOID"/>&amp;StudyEventRepeatKey=<xsl:value-of select="$StudyEventRepeatKey"/>&amp;FormOID=<xsl:value-of select="$FormOID"/>&amp;FormRepeatKey=<xsl:value-of select="$FormRepeatKey"/></xsl:variable>
+  
+      <xsl:call-template name="pagination">
+        <xsl:with-param name="pageNumber" select="$CurrentPage"/>
+        <xsl:with-param name="recordsPerPage" select="$IGperPage" />
+        <xsl:with-param name="numberOfRecords" select="$NumberOfRecords" />
+        <xsl:with-param name="url" select="$url"/>
+      </xsl:call-template>
+    </xsl:if>
+                                               
+    <xsl:apply-templates/>
+
+    <!-- Boutons de modification nécessaire en ReadOnly=false -->
+    <div id="ActionsButtons">
+      <xsl:if test="$ReadOnly='false'">
+        <button id="btnCancel" class="ui-state-default ui-corner-all">Cancel</button>
+        <button id="btnSave" class="ui-state-default ui-corner-all">Save</button>
+      </xsl:if>
+    </div>  
+  
+    <div id="dialog-modal-save" title="Processing...">
+  	 <p>Please wait while your request is processed...</p>
+  	 <div style="text-align: center;"><img src="{$CurrentApp}/templates/default/images/ajax_loader_77.gif" alt="Loading" /></div>
+    </div>  
   </div>
-  <!--
-  <div id="dialog-modal-info" title="Information">
-	 <p>Information on study</p>
-  </div>
-  -->  
 </xsl:template>
 
 </xsl:stylesheet>

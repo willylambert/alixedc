@@ -97,7 +97,7 @@ class uietude extends CommonFunctions
 	public function create_footer($bBuffering=true)
 	{	
 		$GLOBALS['egw']->common->egw_footer();
-		if($bBuffering)
+    if($bBuffering)
 		{
   		$htmlRet = ob_get_clean();
   		$htmlRet = str_replace("&","&amp;",$htmlRet);

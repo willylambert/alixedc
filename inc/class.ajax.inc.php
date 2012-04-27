@@ -279,6 +279,8 @@ public function checkFormData(){
   public function getDeviationsDataList(){
     $this->addlog(__METHOD__ ,INFO);  
   
+    $response = new StdClass;
+  
     //Extraction des paramètres       
     $MetaDataVersion = "1.0.0";
     $SubjectKey = "";
@@ -681,7 +683,9 @@ public function checkFormData(){
  */
   public function getQueriesDataList(){
     $this->addlog(__METHOD__,INFO);  
-  
+
+    $response = new StdClass;
+
     //Extraction des paramètres       
     $MetaDataVersion = "1.0.0";
     $SubjectKey = "";
@@ -1483,6 +1487,8 @@ public function checkFormData(){
  */
   public function getSubjectsDataList(){
     $this->addlog(__METHOD__ ,INFO);  
+
+    $response = new StdClass;
   
     //Extraction des paramètres       
     $MetaDataVersion = "1.0.0";
