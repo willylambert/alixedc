@@ -1508,8 +1508,12 @@ public function checkFormData(){
     $limit = $_POST['rows']; // get how many rows we want to have into the grid
     $sidx = $_POST['sidx']; // get index row - i.e. user click to sort
     $sord = $_POST['sord']; // get the direction
-    if(!$sidx) $sidx =1;
-    
+    if(!$sidx) $sidx = 'colSUBJID';
+    if($sord=="asc"){
+      $sort_sign = "-1";
+    }else{
+      $sort_sign = "1";
+    }
     //application du filtre de recherche
     $where = "";
     
@@ -1524,7 +1528,9 @@ public function checkFormData(){
     foreach($tblSubjs as $subj){ //ordering => using an array !
       $subjs[] = $subj;
     }
-    usort($subjs, create_function('$a,$b', 'return ((integer)$a->SubjectKey<(integer)$b->SubjectKey ? -1 : 1);'));
+    //usort($subjs, create_function('$a,$b', "return ((integer)\$a->$sidx<(integer)\$b->$sidx ? -1*$sort_sign : 1*$sort_sign);"));
+    usort($subjs, create_function('$a,$b', "return ($sort_sign * strcmp(\$a->$sidx,\$b->$sidx));"));
+  
     $count = count($subjs);
     for($i=0; $i<$count; $i++){
       //Est-ce l'utilisateur connecté a le droit d'accéder à ce patient ?
