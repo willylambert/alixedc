@@ -82,7 +82,7 @@
           <xsl:variable name="ItemValue" select="$ItemGroupData/ItemData[@OID=$Item/@OID]/@Value"/>
           <xsl:variable name="ItemDecode" select="$ItemGroupData/ItemData[@OID=$Item/@OID]/@Decode"/>
           <xsl:variable name="Annotation" select="$ItemGroupData/ItemData[@OID=$Item/@OID]/Annotation"/>
-          <tr class="ItemData" id="{$Item/@OID}_{$ItemGroupData/@ItemGroupRepeatKey}" name="{$Item/@OID}">
+          <tr class="ItemData" id="{$Item/@OID}_{$ItemGroupData/@ItemGroupOID}_{$ItemGroupData/@ItemGroupRepeatKey}" name="{$Item/@OID}">
             <!--Audi Trail-->
             <td class="ItemDataAudit" name="{$Item/@OID}">
   	          <!--On n'affiche l'icône que s'il y a du contenu d'audit trail-->
@@ -121,6 +121,7 @@
                    <xsl:with-param name="ItemValue" select="$ItemValue"/>
                    <xsl:with-param name="FlagValue" select="$Annotation/@FlagValue"/>
                    <xsl:with-param name="TabIndex" select="concat($ItemGroupPos,position())"/>
+                   <xsl:with-param name="CurrentItemGroupOID" select="$ItemGroupData/@ItemGroupOID"/>                    
                    <xsl:with-param name="CurrentItemGroupRepeatKey" select="$ItemGroupData/@ItemGroupRepeatKey"/>
                    <xsl:with-param name="ForceSelect" select="contains($CodeListForceSelect,./CodeList/@OID)"/>
                 </xsl:call-template>

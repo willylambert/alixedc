@@ -29,7 +29,8 @@
   	<xsl:param name="FlagValue" />
 	  <xsl:param name="MaxAuditRecordID"/>
   	<xsl:param name="TabIndex"/>
-  	<xsl:param name="CurrentItemGroupRepeatKey"/>
+  	<xsl:param name="CurrentItemGroupOID"/>
+    <xsl:param name="CurrentItemGroupRepeatKey"/>
     <xsl:param name="Item"/>
     <xsl:param name="ForceSelect"/> <!--Force l'utilisation d'un select, même si on a moins de 4 réponses-->
     <xsl:param name="CurrentApp"/>
@@ -44,7 +45,7 @@
         <xsl:choose>
    				<xsl:when test="$ForceSelect='' and($ItemOID='TRT@ACTION' or count($Item/CodeList/CodeListItem)&lt;=4 and string-length($Item/CodeList/CodeListItem[position()=1]/@Decode)&lt;5)">
   				    <xsl:for-each select="$Item/CodeList/CodeListItem">
-                <xsl:variable name="InputId">radio_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/>_<xsl:value-of select="position()"/></xsl:variable>
+                <xsl:variable name="InputId">radio_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/>_<xsl:value-of select="position()"/></xsl:variable>
                 <xsl:element name="input">
   				    	 <xsl:attribute name="class">inputItem</xsl:attribute>
                  <xsl:attribute name="type">radio</xsl:attribute>

@@ -45,8 +45,8 @@
 <xsl:template match="td[../@name='PE.PEOTH' and @class='ItemDataLabel']">
   <xsl:copy>
 		<xsl:copy-of select="@*"/>
-Other Examination
-</xsl:copy>  	
+      Other Examination
+  </xsl:copy>  	
 </xsl:template>
 
 <!-- Resizing of PEREASND -->
@@ -61,7 +61,7 @@ Other Examination
 <!-- Change PETER format -->
 <xsl:template match="select[@itemoid='PE.PETEST']">
 	<xsl:attribute name="align">left</xsl:attribute>
-	<xsl:value-of select="option[@selected='true']/text()"/>
+	<xsl:value-of select="option[@selected='selected']/text()"/>
 	<xsl:element name="input">
     <xsl:attribute name="type">hidden</xsl:attribute>
     <xsl:attribute name="name"><xsl:value-of select="@name"/></xsl:attribute>
