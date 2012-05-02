@@ -54,7 +54,8 @@ else
 {
 	$app = 'alixedc';
 	$class = 'uietude';
-	$method = 'dashboardInterface';
+	//$method = 'dashboardInterface';
+	$method = 'startupInterface';
 }
 
 if($app == 'phpgwapi')
