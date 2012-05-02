@@ -67,11 +67,11 @@ class uisubject extends CommonFunctions
       //HOOK => uisubject_getInterface_start
       $this->callHook(__FUNCTION__,"start",array($FormOID,$this));
            
-      //Xsl de transformation commun
+      //Common XSL transformation - For main design
       $xsl = new DOMDocument;
       $xsl->load(EGW_INCLUDE_ROOT . "/".$this->getCurrentApp(false)."/xsl/StudyEventForm.xsl"); 
      
-      //Recuperation du formulaire 
+      //Get Form Data / without design 
       $xml = $this->m_ctrl->bocdiscoo()->getStudyEventForms($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,false,$paginateStart,$paginateEnd);    
       
       $FormTag = $xml->getElementsByTagName("Form");  
@@ -82,7 +82,7 @@ class uisubject extends CommonFunctions
       $SiteId = $StudyEventTag->item(0)->getAttribute("SiteId");
       $MetaDataVersionOID = $StudyEventTag->item(0)->getAttribute("MetaDataVersionOID");
              
-      //Cas de l'inclusion
+      //Inclusion case
       if($SubjectKey=="BLANK"){
         //On va chercher dans les profiles le premier centre pour lequel l'utilisateur connecté est investigateur
         $profiles = $this->m_ctrl->boacl()->getUserProfiles();
@@ -113,16 +113,14 @@ class uisubject extends CommonFunctions
       }
       $profileId = $profile['profileId'];
 
-      //Menu gauche : liste des visites et des formulaires
-      $formStatus = ""; //Variable passé par ref à la fonction getMenu
+      //Study Flow Chart : Contains Visits and Forms
+      $formStatus = ""; //By Ref parameters
       $htmlMenu = $this->getMenu($SubjectKey,$MetaDataVersionOID,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$formStatus,$profileId);
                
-      //Création du processeur XSLT et application sur le doc xml
       $proc = new XSLTProcessor;     
       $proc->importStyleSheet($xsl);
       $proc->setParameter('','lang',$GLOBALS['egw_info']['user']['preferences']['common']['lang']);
       
-      //Les variables de base du ou des ItemGroupDatas à rendre
       $proc->setParameter('','CurrentApp',$this->getCurrentApp(false));
       $proc->setParameter('','SubjectKey',$SubjectKey);
       $proc->setParameter('','StudyEventOID',$StudyEventOID);
@@ -150,7 +148,7 @@ class uisubject extends CommonFunctions
         $proc->setParameter('','Paginate',"false");
       }
       
-      //Possibilité de renseigner des déviations sur le formulaire
+      //Current form can show deviations ?
       $ShowDeviation = 'false';
       if($this->m_ctrl->bodeviations()->formCanHaveDeviation($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey)){
         $ShowDeviation = 'true';
@@ -174,7 +172,7 @@ class uisubject extends CommonFunctions
       echo "</pre>";
       echo "##############<br>";   
 */
-      //Xsl spécifique au form - si présent
+      //Custom XSL Form - Applied only if exists
       $xslFormFile = EGW_INCLUDE_ROOT ."/".$this->getCurrentApp(false)."/custom/$MetaDataVersionOID/xsl/$FormOID.xsl";
 
       if(file_exists($xslFormFile))
@@ -185,7 +183,7 @@ class uisubject extends CommonFunctions
        $proc->importStyleSheet($xslForm);
        $proc->setParameter('','ReadOnly',$ReadOnly);
        
-       //Passage des variables venant d'un autre endroit (cf config.inc)
+       //Extra vars could be passed to the XSL - see config.inc.php
        if(isset($this->m_tblConfig['FORM_VAR'][$FormOID])){
          foreach($this->m_tblConfig['FORM_VAR'][$FormOID] as $key=>$col){
            $customVar = $StudyEventTag->item(0)->getAttribute($key);
