@@ -189,12 +189,13 @@ class uisubject extends CommonFunctions
            $customVar = $StudyEventTag->item(0)->getAttribute($key);
            $proc->setParameter('',$key,$customVar);
          }
-      }
+       }
        
-      //HOOK => uisubject_getInterface_xslParameters
-      $this->callHook(__FUNCTION__,"xslParameters",array($FormOID,$proc,$this));
-        
-      $doc = $proc->transformToDoc($doc);
+       //HOOK => uisubject_getInterface_xslParameters
+       $this->callHook(__FUNCTION__,"xslParameters",array($FormOID,$proc,$this));
+          
+       $doc = $proc->transformToDoc($doc);
+      }	
   
       //HOOK => uisubject_getInterface_afterXSLT
       $doc = $this->callHook(__FUNCTION__,"afterXSLT",array($MetaDataVersionOID,$FormOID,$this,$doc));
@@ -226,15 +227,12 @@ class uisubject extends CommonFunctions
         $bCheckFormData = "true";
       }
       
-      //May be override by the config.inc.php file
+      //May be overrided by the config.inc.php file
       if(isset($this->m_tblConfig['FORM_DO_NOT_CHECK'][$FormOID]) && $this->m_tblConfig['FORM_DO_NOT_CHECK'][$FormOID]==true){
         $bCheckFormData = "false";
       }else{
         $bCheckFormData = "true";
       }      
-      
-      //variable ajoutée aux URLs Javascript afin de forcer le rechargement coté navigateur
-      $jsVersion = $this->m_tblConfig['JS_VERSION'];
         
       $htmlRet = "                  
                   $topMenu
@@ -279,8 +277,7 @@ class uisubject extends CommonFunctions
                                      }); 
                   //]]>
                   </script>
-                  ";
-      }	         
+                  ";         
       return $htmlRet;  
   }
 
