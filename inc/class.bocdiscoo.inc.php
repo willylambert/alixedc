@@ -1674,15 +1674,14 @@ class bocdiscoo extends CommonFunctions
 
         declare function local:getValue(\$ItemData as node()*) as xs:string?
         {
-          let \$v := '' (:car il nous faut un let :)
-          (:Gestion particulière pour les PartialDate:)
+          let \$lastItemData := \$ItemData[last()]
           return
-            if(\$ItemData/name()='ItemDataPartialDate')
-            then local:fillPartialDate(\$ItemData[last()]/string())
+            if(\$lastItemData/name()='ItemDataPartialDate')
+            then local:fillPartialDate(\$lastItemData/string())
             else
-              if(\$ItemData/name()='ItemDataAny')
-              then local:fillAny(\$ItemData[last()]/string())
-              else \$ItemData[last()]/string()
+              if(\$lastItemData/name()='ItemDataAny')
+              then local:fillAny(\$lastItemData/string())
+              else \$lastItemData/string()
         };
 
         declare function local:getValue(\$ItemData as node(),\$ItemOID as xs:string) as xs:string?
