@@ -272,6 +272,8 @@ public function checkFormData(){
   public function getDeviationsDataList(){
     $this->addlog(__METHOD__ ,INFO);  
   
+    $response = new StdClass;
+  
     //Extraction des paramètres       
     $MetaDataVersion = "1.0.0";
     $SubjectKey = "";
@@ -675,7 +677,9 @@ public function checkFormData(){
  */
   public function getQueriesDataList(){
     $this->addlog(__METHOD__,INFO);  
-  
+
+    $response = new StdClass;
+
     //Extraction des paramètres       
     $MetaDataVersion = "1.0.0";
     $SubjectKey = "";
@@ -1477,6 +1481,8 @@ public function checkFormData(){
  */
   public function getSubjectsDataList(){
     $this->addlog(__METHOD__ ,INFO);  
+
+    $response = new StdClass;
   
     //Extraction des paramètres       
     $MetaDataVersion = "1.0.0";
@@ -1496,8 +1502,12 @@ public function checkFormData(){
     $limit = $_POST['rows']; // get how many rows we want to have into the grid
     $sidx = $_POST['sidx']; // get index row - i.e. user click to sort
     $sord = $_POST['sord']; // get the direction
-    if(!$sidx) $sidx =1;
-    
+    if(!$sidx) $sidx = 'colSUBJID';
+    if($sord=="asc"){
+      $sort_sign = "-1";
+    }else{
+      $sort_sign = "1";
+    }
     //application du filtre de recherche
     $where = "";
     
@@ -1512,15 +1522,15 @@ public function checkFormData(){
     foreach($tblSubjs as $subj){ //ordering => using an array !
       $subjs[] = $subj;
     }
-    usort($subjs, create_function('$a,$b', 'return ((integer)$a->SubjectKey<(integer)$b->SubjectKey ? -1 : 1);'));
+    usort($subjs, create_function('$a,$b', "return ($sort_sign * strcmp(\$a->$sidx,\$b->$sidx));"));
+  
     $count = count($subjs);
     for($i=0; $i<$count; $i++){
-      //Est-ce l'utilisateur connecté a le droit d'accéder à ce patient ?
+      //Does current user have access to the patient ?
       $profileId = $this->m_ctrl->boacl()->getUserProfileId("",(string)$subjs[$i]->colSITEID);
       
-      if(isset($profileId) && $profileId!="" && $subjs[$i]->fileOID!="BLANK" || $defaultProfilId=="SPO"){
-        
-        //filtres avancés
+      if( (isset($profileId) && $profileId!="" || $defaultProfilId=="SPO") && $subjs[$i]->fileOID!="BLANK" ){        
+        //filters
         if(isset($_REQUEST['_search']) && $_REQUEST['_search']=="true"){
           foreach($this->m_tblConfig['SUBJECT_LIST']['COLS'] as $key=>$col){
             if(isset($_REQUEST['col'.$key])){
@@ -1532,7 +1542,7 @@ public function checkFormData(){
             }
           }
           
-          //autres filtres avancées
+          //more filters
           if(isset($subjs[$i])){
             if(isset($_REQUEST['SUBJECTSTATUS'])){
               if(stripos($subjs[$i]->SUBJECTSTATUS, $_REQUEST['SUBJECTSTATUS']) === false){

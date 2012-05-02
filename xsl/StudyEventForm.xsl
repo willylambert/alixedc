@@ -22,7 +22,7 @@
 \**************************************************************************/
 -->
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-<xsl:output method="html" encoding="UTF-8" indent="no"/>
+<xsl:output method="xml" encoding="UTF-8" indent="no"/>
 <xsl:include href="include/item.xsl"/>
 <xsl:include href="include/annotation.xsl"/>
 <xsl:include href="include/query.xsl"/>
@@ -82,7 +82,7 @@
           <xsl:variable name="ItemValue" select="$ItemGroupData/ItemData[@OID=$Item/@OID]/@Value"/>
           <xsl:variable name="ItemDecode" select="$ItemGroupData/ItemData[@OID=$Item/@OID]/@Decode"/>
           <xsl:variable name="Annotation" select="$ItemGroupData/ItemData[@OID=$Item/@OID]/Annotation"/>
-          <tr class="ItemData" id="{$Item/@OID}_{$ItemGroupData/@ItemGroupRepeatKey}" name="{$Item/@OID}">
+          <tr class="ItemData" id="{$Item/@OID}_{$ItemGroupData/@ItemGroupOID}_{$ItemGroupData/@ItemGroupRepeatKey}" name="{$Item/@OID}">
             <!--Audi Trail-->
             <td class="ItemDataAudit" name="{$Item/@OID}">
   	          <!--On n'affiche l'icône que s'il y a du contenu d'audit trail-->
@@ -121,6 +121,7 @@
                    <xsl:with-param name="ItemValue" select="$ItemValue"/>
                    <xsl:with-param name="FlagValue" select="$Annotation/@FlagValue"/>
                    <xsl:with-param name="TabIndex" select="concat($ItemGroupPos,position())"/>
+                   <xsl:with-param name="CurrentItemGroupOID" select="$ItemGroupData/@ItemGroupOID"/>                    
                    <xsl:with-param name="CurrentItemGroupRepeatKey" select="$ItemGroupData/@ItemGroupRepeatKey"/>
                    <xsl:with-param name="ForceSelect" select="contains($CodeListForceSelect,./CodeList/@OID)"/>
                 </xsl:call-template>
@@ -194,40 +195,35 @@
 </xsl:template>
 
 <xsl:template match="Form">
-
-  <!--Pagination navigation-->
-  <xsl:if test="$Paginate='true'">
-    <xsl:variable name="url">index.php?menuaction=<xsl:value-of select="$CurrentApp"/>.uietude.subjectInterface&amp;action=view&amp;SubjectKey=<xsl:value-of select="$SubjectKey"/>&amp;StudyEventOID=<xsl:value-of select="$StudyEventOID"/>&amp;StudyEventRepeatKey=<xsl:value-of select="$StudyEventRepeatKey"/>&amp;FormOID=<xsl:value-of select="$FormOID"/>&amp;FormRepeatKey=<xsl:value-of select="$FormRepeatKey"/></xsl:variable>
-
-    <xsl:call-template name="pagination">
-      <xsl:with-param name="pageNumber" select="$CurrentPage"/>
-      <xsl:with-param name="recordsPerPage" select="$IGperPage" />
-      <xsl:with-param name="numberOfRecords" select="$NumberOfRecords" />
-      <xsl:with-param name="url" select="$url"/>
-    </xsl:call-template>
-  </xsl:if>
-  
   <div id="Form">
-    <xsl:apply-templates/>
-  </div>
-  
-  <!-- Boutons de modification nécessaire en ReadOnly=false -->
-  <div id="ActionsButtons">
-    <xsl:if test="$ReadOnly='false'">
-      <button id="btnCancel" class="ui-state-default ui-corner-all">Cancel</button>
-      <button id="btnSave" class="ui-state-default ui-corner-all">Save</button>
-    </xsl:if>
-  </div>  
 
-  <div id="dialog-modal-save" title="Processing...">
-	 <p>Please wait while your request is processed...</p>
-	 <div style="text-align: center;"><img src="{$CurrentApp}/templates/default/images/ajax_loader_77.gif" alt="Loading" /></div>
+    <!--Pagination navigation-->
+    <xsl:if test="$Paginate='true'">
+      <xsl:variable name="url">index.php?menuaction=<xsl:value-of select="$CurrentApp"/>.uietude.subjectInterface&amp;action=view&amp;SubjectKey=<xsl:value-of select="$SubjectKey"/>&amp;StudyEventOID=<xsl:value-of select="$StudyEventOID"/>&amp;StudyEventRepeatKey=<xsl:value-of select="$StudyEventRepeatKey"/>&amp;FormOID=<xsl:value-of select="$FormOID"/>&amp;FormRepeatKey=<xsl:value-of select="$FormRepeatKey"/></xsl:variable>
+  
+      <xsl:call-template name="pagination">
+        <xsl:with-param name="pageNumber" select="$CurrentPage"/>
+        <xsl:with-param name="recordsPerPage" select="$IGperPage" />
+        <xsl:with-param name="numberOfRecords" select="$NumberOfRecords" />
+        <xsl:with-param name="url" select="$url"/>
+      </xsl:call-template>
+    </xsl:if>
+                                               
+    <xsl:apply-templates/>
+
+    <!-- Boutons de modification nécessaire en ReadOnly=false -->
+    <div id="ActionsButtons">
+      <xsl:if test="$ReadOnly='false'">
+        <button id="btnCancel" class="ui-state-default ui-corner-all">Cancel</button>
+        <button id="btnSave" class="ui-state-default ui-corner-all">Save</button>
+      </xsl:if>
+    </div>  
+  
+    <div id="dialog-modal-save" title="Processing...">
+  	 <p>Please wait while your request is processed...</p>
+  	 <div style="text-align: center;"><img src="{$CurrentApp}/templates/default/images/ajax_loader_77.gif" alt="Loading" /></div>
+    </div>  
   </div>
-  <!--
-  <div id="dialog-modal-info" title="Information">
-	 <p>Information on study</p>
-  </div>
-  -->  
 </xsl:template>
 
 </xsl:stylesheet>

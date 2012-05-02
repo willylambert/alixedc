@@ -33,7 +33,7 @@
    </xsl:copy>
 </xsl:template>
 
-<!--Mask IECAT -->
+<!--Hide IECAT -->
 <xsl:template match="div[@id='Form']">
    <xsl:copy>
        <xsl:copy-of select="@*"/>
@@ -66,7 +66,7 @@
 <xsl:template match="select[@itemoid='IE.IETEST']">
      <xsl:attribute name="align">left</xsl:attribute>
 	   <xsl:attribute name="style">width:60%;</xsl:attribute>
-	   <xsl:value-of select="option[@selected='true']/text()"/>
+	   <xsl:value-of select="option[@selected='selected']/text()"/>
 	<xsl:element name="input">
     <xsl:attribute name="type">hidden</xsl:attribute>
     <xsl:attribute name="name"><xsl:value-of select="@name"/></xsl:attribute>
