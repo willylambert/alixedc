@@ -39,7 +39,7 @@
 <xsl:template match="input[@name='text_integer_LB@LBSEQ_17' or @name='text_string_LB@LBORRES_17' or @name='text_string_LB@LBORNRHI_17' or @name='text_string_LB@LBORNRLO_17' or @name='text_string_LB@LBORRESU_17']">
   <xsl:copy>
     <xsl:if test="$SEX='1'">
-      <xsl:attribute name="disabled">true</xsl:attribute>
+      <xsl:attribute name="disabled">disabled</xsl:attribute>
     </xsl:if>   
   <xsl:copy-of select="@*"/>
   </xsl:copy>
@@ -48,7 +48,7 @@
 <xsl:template match="select[@name='select_LB@LBCLSIG_17' or @name ='select_LB@LBORNRCL_17' or @name = 'select_LB@LBORNRCH_17' or @name = 'select_LB@LBNAM_17']">
   <xsl:copy>
     <xsl:if test="$SEX='1'">
-      <xsl:attribute name="disabled">true</xsl:attribute>
+      <xsl:attribute name="disabled">disabled</xsl:attribute>
     </xsl:if> 
     <xsl:copy-of select="@*"/>
     <xsl:apply-templates/>
@@ -57,7 +57,7 @@
 
 <!--Cath select value for LBTEST and hide dropdown list -->
 <xsl:template match="select[starts-with(@name,'select_LB@LBTEST')]">
-   <xsl:value-of select="option[@selected='true']/text()"/>
+   <xsl:value-of select="option[@selected='selected']/text()"/>
    <!--Pour les besoins de l'enregistrement, un input doit être présent, on le met dans un input hidden-->
    <xsl:element name="input">
     <xsl:attribute name="type">hidden</xsl:attribute>
@@ -91,12 +91,11 @@
   <div id="Form">
 		<xsl:apply-templates/>
 		  <style>
-    th[name='LB.LBCAT'], th[name='LB.LBDTC'], th[name='LB.BRTHDTC'],th[name='LB.SEX'],th[name='LB.LBSTAT'],th[name='LB.LBNRIND'],th[name='LB.LBFAST'],th[name='LB.LBREFID'],th[name='LB.LBREASND'],
-    td[name='LB.LBREFID'],td[name='LB.LBFAST'],td[name='LB.LBNRIND'],td[name='LB.LBREASND'],td[name='LB.SEX'],td[name='LB.LBSTAT'],td[name='LB.BRTHDTC'], td[name='LB.LBCAT'],td[name='LB.LBSEQ'][class='ItemDataAnnot']{
-      display : none;      
-    }
-    
-  </style> 
+        th[name='LB.LBCAT'], th[name='LB.LBDTC'], th[name='LB.BRTHDTC'],th[name='LB.SEX'],th[name='LB.LBSTAT'],th[name='LB.LBNRIND'],th[name='LB.LBFAST'],th[name='LB.LBREFID'],th[name='LB.LBREASND'],
+        td[name='LB.LBREFID'],td[name='LB.LBFAST'],td[name='LB.LBNRIND'],td[name='LB.LBREASND'],td[name='LB.SEX'],td[name='LB.LBSTAT'],td[name='LB.BRTHDTC'], td[name='LB.LBCAT'],td[name='LB.LBSEQ'][class='ItemDataAnnot']{
+          display : none;      
+        }    
+      </style> 
 			<script language="JavaScript">
 				function updateUI(origin,loading,ItemGroupOID,ItemGroupRepeatKey)
 				{        

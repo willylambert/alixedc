@@ -35,23 +35,23 @@
 
 <!--Hide IECAT-->
 <xsl:template match="div[@id='Form']">
-   <xsl:copy>
-       <xsl:copy-of select="@*"/>
-       <xsl:apply-templates/>
+   <xsl:copy>   
+    <xsl:copy-of select="@*"/>
+    <style>
+      th[name='IE.IECAT'], td[name='IE.IECAT']{
+        display : none;      
+      }
+      table td{
+        color:black;
+        font-weight:normal;
+      }
+      table th{
+        color:black;
+        font-weight:normal;
+      }    
+    </style>  
+    <xsl:apply-templates/>
    </xsl:copy>
-  <style>
-    th[name='IE.IECAT'], td[name='IE.IECAT']{
-      display : none;      
-    }
-    table td{
-      color:black;
-      font-weight:normal;
-    }
-    table th{
-      color:black;
-      font-weight:normal;
-    }    
-  </style>     
 </xsl:template>
 
 <!--Delete "Add" button because record are predifined for IG IE -->
@@ -66,22 +66,12 @@
 <xsl:template match="select[@itemoid='IE.IETEST']">
      <xsl:attribute name="align">left</xsl:attribute>
 	   <xsl:attribute name="style">width:60%;</xsl:attribute>
-	   <xsl:value-of select="option[@selected='true']/text()"/>
+	   <xsl:value-of select="option[@selected='selected']/text()"/>
   <xsl:element name="input">
     <xsl:attribute name="type">hidden</xsl:attribute>
     <xsl:attribute name="name"><xsl:value-of select="@name"/></xsl:attribute>
-    <xsl:attribute name="value"><xsl:value-of select="option[@selected='true']/@value"/></xsl:attribute>
+    <xsl:attribute name="value"><xsl:value-of select="option[@selected='selected']/@value"/></xsl:attribute>
    </xsl:element>
-</xsl:template>
-
-<!--Hide respons NA for IEORRES for record 8, 9 -->
-<xsl:template match="input[@itemoid='IE.IEORRES' and (@name!='radio_IE@IEORRES_8' and @name!='radio_IE@IEORRES_9')]">
-  <xsl:if test="@value!='9'">
-       <xsl:copy>
-       <xsl:copy-of select="@*"/>
-       <xsl:apply-templates/>
-   </xsl:copy>
-  </xsl:if>
 </xsl:template>
 
 <!-- Add header and create table pour IG IE-->
