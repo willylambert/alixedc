@@ -103,11 +103,13 @@ class boalixws extends CommonFunctions
       $uploadfile = $uploaddir . $params['shortFileName'];
 
        file_put_contents($uploaddir . $params['shortFileName'],$xmlContent);
-      try{
+      //try{
         $this->m_ctrl->socdiscoo()->addDocument($uploadfile,false,$containerName);
+      /*
       }catch(Exception $e){
           $this->m_ctrl->socdiscoo()->replaceDocument($uploadfile,false,$containerName);
       }
+      */
       return array("result"=>"ok");
     }else{
    		$GLOBALS['server']->xmlrpc_error($GLOBALS['xmlrpcerr']['no_access'],$GLOBALS['xmlrpcstr']['no_access']);  

@@ -153,7 +153,7 @@ class uidbadmin extends CommonFunctions{
   private function getDefaultInterface(){
     $menu_admin = "";
         
-    if($this->m_ctrl->boacl()->checkModuleAccess("viewDocs"))
+    if($this->m_ctrl->boacl()->checkModuleAccess("ViewDocs"))
     {
       $menu_admin .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
 				                                                                        'container' => 'ClinicalData',
