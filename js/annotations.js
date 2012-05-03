@@ -119,8 +119,7 @@ function freezeFields(ItemOID,ItemGroupOID, CurrentItemGroupRepeatKey, bFreeze, 
   
   ItemOID = ItemOID.replace(".","\\.");  
   ItemOID = ItemOID.replace("-","\\.");  
-  //alert("*[name='"+ItemGroupOID+"'] #"+ItemOID+"_"+CurrentItemGroupRepeatKey+" :input.inputItem"+ filterEmpty);
-  $("*[name='"+ItemGroupOID+"'] #"+ItemOID+"_"+CurrentItemGroupRepeatKey+" :input.inputItem"+ filterEmpty).attr('disabled',function () {
+  $("#"+ItemOID+"_"+ItemGroupOID+"_"+CurrentItemGroupRepeatKey+" :input.inputItem"+ filterEmpty).attr('disabled',function () {
                                                                       if(!(keepDisabled * this.disabled)) return bFreeze;
                                                                     });
 }

@@ -137,9 +137,9 @@ I, the undersigned Dr
 			<script language="JavaScript">
 				function updateUI(origin,loading,ItemGroupOID,ItemGroupRepeatKey)
 				{   
-				//// Masquage DSTERM et DSTERMN
-            $("tr[name='DS.DSTERMN']").hide();
-            $("tr[name='DS.DSTERM']").hide();
+          //// Masquage DSTERM et DSTERMN
+          $("tr[name='DS.DSTERMN']").hide();
+          $("tr[name='DS.DSTERM']").hide();
             
           //// grisage DM.PUBES
 					input_destination = 'DM.PUBES'; /*ITEMOID=destination*/
@@ -148,8 +148,7 @@ I, the undersigned Dr
 					if(origin.name==input_origin) 
 					{
 						action = $("input[name='radio_DM@SEX_0']:checked").val();
-			
-						if(action == 1||typeof(action)=="undefined")
+						if(action==1 || typeof(action)=="undefined")
 						{
 							freezeFields(input_destination,ItemGroupOID,ItemGroupRepeatKey,true,false,false);
 						}
