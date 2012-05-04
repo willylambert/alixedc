@@ -137,8 +137,8 @@ function loadSubjectsGrid(CurrentApp, config)
     	height: "auto",
      	colNames: colNames,
      	colModel: colModel,
-     	rowNum:20,
-     	rowList:[10,20,50,100,200],
+     	rowNum: 20,
+     	rowList: [10,20,50,100,200],
      	pager: '#pagerSubjects',
      	sortname: 'SUBJKEY',
       viewrecords: true,
@@ -149,6 +149,17 @@ function loadSubjectsGrid(CurrentApp, config)
         ids = id.split('_');
         subjkey = ids[1];
         goSubject(subjkey);
+      },
+      ajaxGridOptions: {
+        dataFilter: function(data,dataType){    // preprocess the data
+          if (data == "NOBLANK") {   // check for a warning of missing BLANK file
+              alert("The subjects list could not be found. Have you imported the BLANK file and Metadata ?");
+              window.location="index.php?menuaction="+CurrentApp+".uietude.dbadminInterface&action=importDocInterface";
+              return false;
+          }else{
+            return data;
+          }
+        }
       }
     });
     

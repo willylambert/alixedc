@@ -29,7 +29,7 @@ class socdiscoo extends CommonFunctions
    * on the different port (say 5051) modify host value like:
    * $host = 'localhost:5051' */
   var $host      = 'localhost';
-  var $database  = 'alixdb';
+  var $database  = 'emptydb';
   var $user      = 'SYSTEM';
   var $password  = 'MANAGER';
   var $collections = array("ClinicalData", "MetaDataVersion");

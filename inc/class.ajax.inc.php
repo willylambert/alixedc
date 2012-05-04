@@ -1512,7 +1512,12 @@ public function checkFormData(){
     $where = "";
     
     //retrieving subjects list
-    $tblSubj = $this->m_ctrl->bosubjects()->getSubjectsList("");
+    try{
+      $tblSubj = $this->m_ctrl->bosubjects()->getSubjectsList("");
+    }catch(Exception $e){
+      //Warn is the BLANK is missing
+      die("NOBLANK");
+    }
 
     //Profil par défaut de l'utilisateur
     $defaultProfilId = $this->m_ctrl->boacl()->getUserProfileId();
