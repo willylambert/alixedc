@@ -26,7 +26,6 @@ require_once(EGW_SERVER_ROOT . "/".$GLOBALS['egw_info']['flags']['currentapp']."
 
 class uidbadmin extends CommonFunctions{
  	var $public_functions = array(
-			'viewDoc'	=> True,
 			'getExportFile'	=> True,
 			'getImportFile' => True,
 		);
@@ -45,13 +44,7 @@ class uidbadmin extends CommonFunctions{
   
   //Appel direct depuis la liste des patients (par ex)
   function viewDoc()
-  {
-    //Check right
-    
-    if(!$GLOBALS['egw_info']['user']['apps']['admin']){
-      $this->addLog("Unauthorized Access to Admin Module - Administrator has been notified",FATAL);
-    }
-    
+  {    
     $content = ob_get_contents();
     ob_end_clean();
     
@@ -109,6 +102,15 @@ class uidbadmin extends CommonFunctions{
 
                 break;  
 
+          case 'viewDoc' : 
+                if($this->m_ctrl->boacl()->checkModuleAccess("viewDocs")){
+                  $this->viewDoc();
+                }else{
+                  $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
+                }
+
+                break;  
+
           case 'viewDocs' : 
                 if($this->m_ctrl->boacl()->checkModuleAccess("viewDocs")){
                   $htmlRet = $this->getMainInterface($_GET['container']);
@@ -121,6 +123,7 @@ class uidbadmin extends CommonFunctions{
                 $this->m_ctrl->bosubjects()->updateSubjectInList($_GET['doc']);
                 $htmlRet = $this->getMainInterface("ClinicalData");
                 break;            
+          
         }        
       }
 
