@@ -2281,6 +2281,8 @@ class bocdiscoo extends CommonFunctions
       die($str);
     }
     
+    //$this->dumpPre($doc->saveXML());
+    
     //Set StudyEvent and Form status according to associated queries
     
     //Loop through visits
@@ -2324,6 +2326,12 @@ class bocdiscoo extends CommonFunctions
           $visitStatus = "FROZEN"; 
         }else{
           $visitStatus = $this->m_ctrl->boqueries()->getStudyEventStatus($SubjectKey,$StudyEventOID ,$StudyEventRepeatKey);
+          if($visitStatus=="FILLED"){
+            //FILLED only if there is no empty forms
+            if($nbFormEmpty>0){
+              $visitStatus = "PARTIAL";
+            }
+          }
         }           
       }
       $visit->setAttribute("Status",$visitStatus);
@@ -2859,7 +2867,7 @@ class bocdiscoo extends CommonFunctions
           }
         }
       }else{
-        $FlagValue = $result->item(0);
+        $result->item(0)->nodeValue = "FILLED";
       }
     
       //On a à notre disposition $FormData pour ajouter les ItemGroup

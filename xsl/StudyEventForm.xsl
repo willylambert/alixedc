@@ -222,7 +222,12 @@
     <div id="dialog-modal-save" title="Processing...">
   	 <p>Please wait while your request is processed...</p>
   	 <div style="text-align: center;"><img src="{$CurrentApp}/templates/default/images/ajax_loader_77.gif" alt="Loading" /></div>
-    </div>  
+    </div>
+    
+    <!--Used to display info box into CRF pages-->
+    <div id="dialog-modal-info" title="Information">
+	     <p>Information on study</p>
+    </div>     
   </div>
 </xsl:template>
 

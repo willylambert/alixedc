@@ -79,38 +79,6 @@ I, the undersigned Dr
   </xsl:copy>  
 </xsl:template>
 
-<!--Add tabs for condition field -->
-<xsl:template match="td[../@name='DM.CONTR' and @class='ItemDataLabel underCondition']">
-  <xsl:copy>
-		<xsl:copy-of select="@*"/>  
-		&#160;&#160;&#160;	
-	  <xsl:value-of select="."/>
-  </xsl:copy>  
-	</xsl:template>
-
-<!--Add tabs for condition field-->
-<xsl:template match="td[../@name='DM.CONTROTH' and @class='ItemDataLabel underCondition']">
-  <xsl:copy>
-		<xsl:copy-of select="@*"/>  
-		&#160;&#160;&#160;&#160;&#160;&#160;
-	  <xsl:value-of select="."/>
-  </xsl:copy>  
-</xsl:template>
-
-<!-- For keeping DSCAT value specified in Blank file, do not delete just hide -->
-<xsl:template match="input[@itemoid='DS.DSCAT']">
-  <xsl:copy>
-    <xsl:copy-of select="@* [name()!='type']"/>
-    <xsl:attribute name="type">hidden</xsl:attribute>
-    <xsl:apply-templates/>
-  </xsl:copy>
-</xsl:template>
-
-<!--Delete DSCAT except input field -->
-<xsl:template match="tr[@name='DS.DSCAT']">
-  <xsl:apply-templates select="td/input"/>   
-</xsl:template>
-
 <!-- Call GETage-->
 <xsl:template match="input[parent::td[@name='DS.DSSTDTC' or @name='DM.BRTHDTC']]">
   <xsl:copy>
@@ -129,26 +97,20 @@ I, the undersigned Dr
   </xsl:copy>
 </xsl:template>
 
-<!-- Javascript treatment -->
+<!-- Dynamism -->
 <xsl:template match="div[@id='Form']">
   <div id="Form">
 		<xsl:apply-templates/>
-		<style>.ItemDataLabel{width:30%;}</style>
 			<script language="JavaScript">
 				function updateUI(origin,loading,ItemGroupOID,ItemGroupRepeatKey)
 				{   
-          //// Masquage DSTERM et DSTERMN
-          $("tr[name='DS.DSTERMN']").hide();
-          $("tr[name='DS.DSTERM']").hide();
-            
-          //// grisage DM.PUBES
 					input_destination = 'DM.PUBES'; /*ITEMOID=destination*/
 					input_origin = 'radio_DM@SEX_0';
 			
 					if(origin.name==input_origin) 
 					{
 						action = $("input[name='radio_DM@SEX_0']:checked").val();
-						if(action==1 || typeof(action)=="undefined")
+            if(action==1 || typeof(action)=="undefined")
 						{
 							freezeFields(input_destination,ItemGroupOID,ItemGroupRepeatKey,true,false,false);
 						}
@@ -158,7 +120,6 @@ I, the undersigned Dr
 						}
 					}
 					
-					//// grisage DM.CONTR
 					input_destination1 = 'DM.CONTR'; /*ITEMOID=destination*/
 					input_origin = 'radio_DM@SEX_0';
 					input_origin1 = 'radio_DM@PUBES_0';
@@ -177,7 +138,6 @@ I, the undersigned Dr
 						}
 					}		
 
-					//// grisage DM.CONTROTH
 					input_destination2 = 'DM.CONTROTH'; /*ITEMOID=destination*/
 					input_origin = 'radio_DM@SEX_0';
 					input_origin1 = 'radio_DM@PUBES_0';
@@ -197,41 +157,11 @@ I, the undersigned Dr
 						{
 							freezeFields(input_destination2,ItemGroupOID,ItemGroupRepeatKey,false,false,false);
 						}
-					}	
-
-					////remplissage de DSTERM et DSTERMN
-					input_origin3 = 'text_yy_DS@DSSTDTC_0';
-
-					if(origin.name==input_origin3) 
-					{
-
-						action3 = $("input[name='text_yy_DS@DSSTDTC_0']").val();
-						if(typeof(action3)!="undefined"){
-							if(action3!='')
-							{
-								document.getElementsByName('text_string_DS@DSTERM_0')[0].value = 'INFORMED CONSENT OBTAINED';
-								document.getElementsByName('select_DS@DSTERMN_0')[0].value = 0;
-							}
-							else
-							{
-								document.getElementsByName('text_string_DS@DSTERM_0')[0].value = '';
-								document.getElementsByName('select_DS@DSTERMN_0')[0].value = '';
-							}
-						}
-						else
-						{
-							document.getElementsByName('text_string_DS@DSTERM_0')[0].value = '';
-							document.getElementsByName('select_DS@DSTERMN_0')[0].value = '';
-						}
-						$("input[name='text_string_DS@DSTERM_0']").attr("readonly",true);
-						$("select[name='select_DS@DSTERMN_0']").attr("readonly","true");					
-					}					
-					
+					}						
 				}
 
 				function getAge()
 				{
-					//Calcul de l'âge  
 					JourNaissance = parseInt(document.getElementsByName('text_dd_DM@BRTHDTC_0')[0].value,10);
 					MoisNaissance = parseInt(document.getElementsByName('text_mm_DM@BRTHDTC_0')[0].value,10);
 					AnneeNaissance = parseInt(document.getElementsByName('text_yy_DM@BRTHDTC_0')[0].value);
@@ -270,7 +200,7 @@ I, the undersigned Dr
 		getAge();
 
 	</script>
-	    </div>  
+  </div>  
 </xsl:template>
     
 </xsl:stylesheet>

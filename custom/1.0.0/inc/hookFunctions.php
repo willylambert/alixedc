@@ -47,33 +47,13 @@ function uisubject_getInterface_xslParameters($FormOID,$xslProc,$uisubject){
     $xslProc->setParameter('','CodeListForceSelect','CL.$YN CL.$SYMB'); //valeurs séparées par un espace
       
   }
-  
+  $profile = $uisubject->m_ctrl->boacl()->getUserProfile();
+
   switch($FormOID){
     case 'FORM.ENROL' : 
-      //Liste des centres où l'utilisateur connecté est investigateur
-      $profiles = $uisubject->m_ctrl->boacl()->getUserProfiles();
-      
-      $sitesList = "<select name='text_string_ENROL@SITEID_0'>";
-      foreach($profiles as $profile){
-          $sitesList .= "<option value='{$profile['siteId']}'>{$profile['siteName']}</option>";  
-      }
-      $sitesList .= "</select>";
-      
-      $xslProc->setParameter('','sitesList',$sitesList);
-      $xslProc->setParameter('','SubjectKey',$_GET['SubjectKey']);
-      
-      break;
-      
-      case 'FORM.SV' : 
-      $xslProc->setParameter('','StudyEventOID',$_GET['StudyEventOID']);
-      break;
-      
-      case 'FORM.HE' : 
-      $xslProc->setParameter('','BRTHDTC',$uisubject->m_ctrl->bocdiscoo()->getValue($_GET['SubjectKey'],"1","0","FORM.IC","0","DM","0","DM.BRTHDTC"));
-      break;
-      
-      case 'FORM.ASS' : 
-      $xslProc->setParameter('','StudyEventOID',$_GET['StudyEventOID']);
+      $xslProc->setParameter('','SiteId',$profile['siteId']);
+      $xslProc->setParameter('','SiteName',$profile['siteName']);
+      $xslProc->setParameter('','SubjectKey',$_GET['SubjectKey']);      
       break;
 
       case 'FORM.AE' : 
@@ -122,84 +102,6 @@ function bosubjects_updateSubjectInList_customVisitStatus($SubjectKey,$tblForm,$
  * @author tpi 
  */ 
 function uisubject_getMenu_beforeRendering($SubjectKey,&$tblForm,$uisubject){
-  $SubjectStatus = "";
-  $endOfStudyStatus = "";
-  $EMPTY = 0;
-  $PARTIAL = 0;
-  $INCONSISTENT = 0;
-  $FILLED = 0;
-  $StudyEventDatas = $tblForm->firstChild->childNodes;
-  
-  //Mise à jour du statut de la visite pour la visite Inclusion Visit (VO) => cas particulier, un formulaire est caché
-  $V0_StudyEventOID = "2";
-  $V0_StudyEventRepeatKey = "0";
-  $V0_forms = 0;
-  $V0_filledForms = 0;
-  foreach($StudyEventDatas as $StudyEventData){
-    if((string)$StudyEventData->getAttribute('StudyEventOID') == $V0_StudyEventOID &&(string)$StudyEventData->getAttribute('StudyEventRepeatKey') == $V0_StudyEventRepeatKey ){
-      foreach($StudyEventData->childNodes as $FormData){
-        $V0_forms++;
-        foreach($FormData->childNodes as $FormDataChild){
-          if($FormDataChild->nodeName=="status"){
-            if($FormDataChild->nodeValue=="FILLED" || $FormDataChild->nodeValue=="FROZEN"){
-              $V0_filledForms++;
-            }
-          }
-        }
-      }
-      break;
-    }
-  }
-  if($V0_filledForms == ($V0_forms-1)){
-    //seul le formulaire caché est empty => la visite est FILLED
-    $xPath = new DOMXPath($tblForm);
-    $result = $xPath->query("StudyEventData[@StudyEventOID='$V0_StudyEventOID' and @StudyEventRepeatKey='$V0_StudyEventRepeatKey']");
-    if($result->length==1){
-      $StudyEventData = $result->item(0);
-      $StudyEventData->setAttribute("Status","FILLED");
-    }
-  }
-  
-  //Calcul du statut du patient
-  
-  $notEmpty = 0;
-  foreach($StudyEventDatas as $StudyEventData){
-    $FormDatas = $StudyEventData->childNodes;
-    foreach($FormDatas as $FormData){
-      $FormDataChilds = $FormData->childNodes;
-      foreach($FormDataChilds as $FormDataChild){
-        if($FormDataChild->nodeName=="status"){
-          if($FormDataChild->nodeValue!="EMPTY" && $FormDataChild->nodeValue!=""){
-            $notEmpty++;
-          }
-        }
-      }
-    }
-  }
-  if($notEmpty<=1){ //considéré encore vide si uniquement le formulaire de la fiche signalétique a été saisi
-    $SubjectStatus = "EMPTY";
-  }else{
-    foreach($StudyEventDatas as $StudyEventData){
-      $status = $StudyEventData->getAttribute('Status');
-      eval("\$". strtoupper($status) ."++;" );
-      
-      if($StudyEventData->getAttribute('StudyEventOID')=="13"){
-        $endOfStudyStatus = $status;
-      }
-    }
-    if($INCONSISTENT>0){
-      $SubjectStatus = "INCONSISTENT";
-    }else{
-      if($PARTIAL>0 || $endOfStudyStatus!="FILLED"){
-        $SubjectStatus = "PARTIAL";
-      }else{
-        if($EMPTY==0 && $PARTIAL==0 && $INCONSISTENT==0 && $endOfStudyStatus=="FILLED"){
-        $SubjectStatus = "FILLED";
-        }
-      }
-    }
-  }
-  $uisubject->m_ctrl->bocdiscoo()->setSubjectStatus($SubjectKey,$SubjectStatus);
 }
 
 function bocdiscoo_getNewPatientID_customSubjId($bocdiscoo){

@@ -24,7 +24,8 @@
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 <xsl:output method="xml" encoding="UTF-8" indent="no"/>
 
-<xsl:param name="sitesList"/>
+<xsl:param name="SiteId"/>
+<xsl:param name="SiteName"/>
 <xsl:param name="SubjectKey"/>
 
 <!--Catch all non treated tags, print them without treatment-->
@@ -42,9 +43,6 @@
      To enrol a new patient :
      <ul>
      <li>
-     Choose your Country and Site 
-     </li>
-     <li>
      Complete Patient's Initials (if needed)
      </li>
      <li>
@@ -60,11 +58,23 @@
   </xsl:copy>
 </xsl:template>
 
-<xsl:template match="input[@id='ENROL.SITEID']">
-  <xsl:value-of select="$sitesList" disable-output-escaping="yes" />
+<xsl:template match="input[@name='text_string_ENROL@SITEID_0']">
+  <xsl:copy>
+    <xsl:attribute name="value">
+      <xsl:value-of select="$SiteId"/>
+    </xsl:attribute>
+    <xsl:attribute name="readonly">true</xsl:attribute>
+    <xsl:for-each select="@*">
+      <xsl:if test="name()!='value'">
+        <xsl:attribute name="{name()}">
+          <xsl:value-of select="string()"/>
+        </xsl:attribute>
+      </xsl:if>
+    </xsl:for-each>
+  </xsl:copy>
 </xsl:template>
 
-  <!-- Format for calculated fields -->
+  <!-- Format readonly fields -->
 <xsl:template match="td[(../@name='ENROL.STUDYID' or ../@name='ENROL.SUBJID' or ../@name='ENROL.PATID' or ../@name='ENROL.SITENAME') and @class='ItemDataLabel']">
    <xsl:copy>
        <xsl:copy-of select="@*"/>
@@ -74,9 +84,8 @@
    </xsl:copy>
 </xsl:template>
 
-  <!-- Disabled STUDYID -->
-  
-<xsl:template match="input[@id='ENROL.STUDYID']">
+<!-- Disabled STUDYID -->  
+<xsl:template match="input[@itemoid='ENROL.STUDYID']">
    <xsl:copy>
        <xsl:copy-of select="@*"/>
        <xsl:attribute name="readonly">true</xsl:attribute>
@@ -84,11 +93,11 @@
    </xsl:copy>
 </xsl:template>
 
-  <!-- Attribution of patient number -->
-<xsl:template match="input[@id='ENROL.PATID']">
+<!-- Set patient number -->
+<xsl:template match="input[@itemoid='ENROL.PATID']">
    <xsl:copy>
        <xsl:copy-of select="@*"/>
-       <!--<xsl:attribute name="readonly">true</xsl:attribute>-->
+       <xsl:attribute name="readonly">true</xsl:attribute>
        <xsl:if test="$SubjectKey!='' and $SubjectKey!='BLANK'">
         <xsl:attribute name="value"><xsl:value-of select="substring($SubjectKey,3)"/></xsl:attribute>
        </xsl:if>
@@ -96,63 +105,44 @@
    </xsl:copy>
 </xsl:template>
 
-  <!-- SUBJID creation -->
-<xsl:template match="input[@id='ENROL.SUBJID']">
+<!-- Set subject number -->
+<xsl:template match="input[@itemoid='ENROL.SUBJID']">
    <xsl:copy>
        <xsl:copy-of select="@*"/>
-       <!--<xsl:attribute name="readonly">true</xsl:attribute>-->
-       <xsl:if test="$SubjectKey!='' and $SubjectKey!='BLANK' and not(@value)">
-        <script>
-        $(document).ready(function(){
-          
-          sitename = $("select[name='text_string_ENROL@SITEID_0'] option:selected").text();		
-					document.getElementsByName('text_string_ENROL@SITENAME_0')[0].value =	sitename;	
-        
-          document.getElementsByName('text_string_ENROL@SUBJID_0')[0].value =	"<xsl:value-of select="$SubjectKey"/>";
-          
-          setTimeout("$('#btnSave').click();",2000);	
-        });
-        </script>
+       <xsl:attribute name="readonly">true</xsl:attribute>
+       <xsl:if test="$SubjectKey!='' and $SubjectKey!='BLANK'">
+        <xsl:attribute name="value"><xsl:value-of select="$SubjectKey"/></xsl:attribute>
        </xsl:if>
        <xsl:apply-templates/>
    </xsl:copy>
 </xsl:template>
 
-  <!-- Javascript treatment -->
+<!-- Set subject number -->
+<xsl:template match="input[@itemoid='ENROL.SITENAME']">
+   <xsl:copy>
+       <xsl:copy-of select="@*"/>
+       <xsl:attribute name="readonly">true</xsl:attribute>
+       <xsl:if test="$SubjectKey!='' and $SubjectKey!='BLANK'">
+        <xsl:attribute name="value"><xsl:value-of select="$SiteName"/></xsl:attribute>
+       </xsl:if>
+       <xsl:apply-templates/>
+   </xsl:copy>
+</xsl:template>
+
+<!-- Javascript treatment -->
 <xsl:template match="button[@id='btnSave']">
    <xsl:copy>
      <xsl:copy-of select="@*"/> 
        <xsl:if test="$SubjectKey='BLANK'">
           Enroll
        </xsl:if>
-        <xsl:if test="$SubjectKey!='BLANK' and //input[@id='ENROL.SUBJID']/@value">
+        <xsl:if test="$SubjectKey!='BLANK' and //input[@itemoid='ENROL.SUBJID']/@value">
           Save
        </xsl:if>
-        <xsl:if test="not(//input[@id='ENROL.SUBJID']/@value) and $SubjectKey!='BLANK'">
+        <xsl:if test="not(//input[@itemoid='ENROL.SUBJID']/@value) and $SubjectKey!='BLANK'">
           Confirm Enrolment of subject <xsl:value-of select="$SubjectKey"/>
        </xsl:if>
        </xsl:copy>
 </xsl:template>
-
-<xsl:template match="div[@id='Form']">
-  <div id="Form">
-		<xsl:apply-templates/>
-			<script language="JavaScript">
-        function updateUI(origin,loading,ItemGroupOID,ItemGroupRepeatKey)
-        {
-					if (origin.name == 'text_string_ENROL@SITEID_0'){
-						/*
-            sitename = $("select[name='text_string_ENROL@SITEID_0'] option:selected").text();		
-						document.getElementsByName('text_string_ENROL@SITENAME_0')[0].value =	sitename;	
-						*/
-          $("input[name='text_string_ENROL@SITEID_0']").attr("readonly",true);
-          $("input[name='text_string_ENROL@SITENAME_0']").attr("readonly",true);
-          $("input[name='text_string_ENROL@SUBJID_0']").attr("readonly",true);
-          $("input[name='text_string_ENROL@PATID_0']").attr("readonly",true);
-					}
-				}
-      </script>
-  </div>
-</xsl:template>  
 
 </xsl:stylesheet>

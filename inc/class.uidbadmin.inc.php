@@ -240,7 +240,7 @@ class uidbadmin extends CommonFunctions{
 			<tbody><tr>
 			<th class='tabloGrisTitle'>Name</th>
 			<th class='tabloGrisTitle'>Status</th>
-			<th class='tabloGrisTitle' colspan='3'>Actions</th>
+			<th class='tabloGrisTitle' colspan='4'>Actions</th>
 			</tr>" ;  
       
       $class = "";
