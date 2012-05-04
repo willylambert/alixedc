@@ -148,37 +148,52 @@ class uidbadmin extends CommonFunctions{
 
   private function getDefaultInterface(){
     $menu = "";
-        
-    if($this->m_ctrl->boacl()->checkModuleAccess("viewDocs"))
-    {
-      $submenu = "";
+    
+    if($this->m_ctrl->boacl()->checkModuleAccess("viewDocs||importDoc")){
+      if($this->m_ctrl->boacl()->checkModuleAccess("viewDocs"))
+      {
+        $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
+  				                                                                        'container' => 'ClinicalData',
+                                                                                  'action' => 'viewDocs'),
+                                            "ClinicalData");
+        $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
+  				                                                                        'container' => 'MetaDataVersion',
+                                                                                  'action' => 'viewDocs'),      
+                                            "MetaData");
+        $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
+  				                                                                        'container' => '',
+                                                                                  'action' => 'viewDocs'),      
+                                            "Root");
+      }
       
-      $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
-				                                                                        'container' => 'ClinicalData',
-                                                                                'action' => 'viewDocs'),
-                                          "ClinicalData");
-      $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
-				                                                                        'container' => 'MetaDataVersion',
-                                                                                'action' => 'viewDocs'),      
-                                          "MetaData");
-      $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
-				                                                                        'container' => '',
-                                                                                'action' => 'viewDocs'),      
-                                          "Root");
-                                          
+      if($this->m_ctrl->boacl()->checkModuleAccess("importDoc"))
+      {
+        $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
+  				                                                                        'action' => 'importDocInterface'),
+                                            "Import Metadata / ClinicalData");
+      }
+      
       $menu .= $this->getSubMenu("Database", $submenu);
     }
     
-    if($this->m_ctrl->boacl()->checkModuleAccess("importDoc"))
-    {
+    if($this->m_ctrl->boacl()->checkModuleAccess("ManageUsers||ManageSites")){
       $submenu = "";
-      
-      $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
-				                                                                        'action' => 'importDocInterface'),
-                                          "Import Metadata / ClinicalData");
-      $submenu .= "<h3 class='ui-accordion-header ui-helper-reset ui-state-default ui-corner-all ui-state-highlight'><a href=\"javascript:helper.showPrompt('Please configure class.boimport.inc.php according to your purposes.', 'noon()', 1);\">Import Clinical Data</a></h3>";
-                                          
-      $menu .= $this->getSubMenu("Import", $submenu);
+
+      if($this->m_ctrl->boacl()->checkModuleAccess("ManageUsers"))
+      {
+        $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.usersInterface',
+                                                                         'title' => urlencode(lang('Users'))),
+                                          "Users");
+      }
+  
+      if($this->m_ctrl->boacl()->checkModuleAccess("ManageSites"))
+      {
+        $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.sitesInterface',
+                                                                         'title' => urlencode(lang('Sites'))),
+                                          "Sites");
+      }
+                                            
+      $menu .= $this->getSubMenu("Accounts", $submenu);
     }
 
     if($this->m_ctrl->boacl()->checkModuleAccess("EditDocs"))
@@ -192,36 +207,22 @@ class uidbadmin extends CommonFunctions{
       $menu .= $this->getSubMenu("Design", $submenu);
     }
 
-    if($this->m_ctrl->boacl()->checkModuleAccess("ManageUsers"))
+    if($this->m_ctrl->boacl()->checkModuleAccess("ExportData||importDoc"))
     {
       $submenu = "";
       
-      $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.usersInterface',
-                                                                       'title' => urlencode(lang('Users'))),
-                                        "Users");
-                                          
-      $menu .= $this->getSubMenu("Accounts", $submenu);
-    }
+      if($this->m_ctrl->boacl()->checkModuleAccess("importDoc"))
+      {
+        $submenu .= "<h3 class='ui-accordion-header ui-helper-reset ui-state-default ui-corner-all ui-state-highlight'><a href=\"javascript:helper.showPrompt('Please configure class.boimport.inc.php according to your purposes.', 'noon()', 1);\">Import Clinical Data</a></h3>";
+      }
 
-    if($this->m_ctrl->boacl()->checkModuleAccess("ManageSites"))
-    {
-      $submenu = "";
-      
-      $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.sitesInterface',
-                                                                       'title' => urlencode(lang('Sites'))),
-                                        "Sites");
-                                          
-      $menu .= $this->getSubMenu("Sites", $submenu);
-    }
-
-    if($this->m_ctrl->boacl()->checkModuleAccess("ExportData"))
-    {
-      $submenu = "";
-      
-      $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.exportInterface'),
+      if($this->m_ctrl->boacl()->checkModuleAccess("ExportData"))
+      {
+        $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.exportInterface'),
                                         "Data export");  
+      }
                                           
-      $menu .= $this->getSubMenu("Export", $submenu);                                                                                                                     
+      $menu .= $this->getSubMenu("Clinical data", $submenu);                                                                                                                     
     }
 
     return $menu;  

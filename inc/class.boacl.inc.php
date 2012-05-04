@@ -201,31 +201,34 @@ class boacl extends CommonFunctions
   }
 
   /**
- *Check if current user has access to the module
+ *Check if current user has access to the module (or one of the modules listed and separated by a double-pipe)
  *@return boolean true if module is enable for current user
  *@author wlt        
  **/  
   public function checkModuleAccess($moduleName){
     $access = false;
     
-    switch($moduleName)
-    {
-      case "importDoc" :
-      case "deleteDoc" :
-      case "viewDocs" :
-      case "EditDocs" :
-         if( $GLOBALS['egw_info']['user']['apps']['admin']){
-          $access = true; 
-         }
-         break;    
-      case "ManageUsers" :
-      case "ManageSites" :
-      case "ExportData" :
-         if($GLOBALS['egw_info']['user']['apps']['admin'] || 
-            $this->m_ctrl->boacl()->existUserProfileId(array("DM","SPO"))){
-          $access = true; 
-         }
-         break;    
+    $moduleNames = explode("||", $moduleName);
+    foreach($moduleNames as $moduleName){
+      switch($moduleName)
+      {
+        case "importDoc" :
+        case "deleteDoc" :
+        case "viewDocs" :
+        case "EditDocs" :
+           if( $GLOBALS['egw_info']['user']['apps']['admin']){
+            $access = true; 
+           }
+           break;    
+        case "ManageUsers" :
+        case "ManageSites" :
+        case "ExportData" :
+           if($GLOBALS['egw_info']['user']['apps']['admin'] || 
+              $this->m_ctrl->boacl()->existUserProfileId(array("DM","SPO"))){
+            $access = true; 
+           }
+           break;    
+      }
     }
     return $access;
   }
