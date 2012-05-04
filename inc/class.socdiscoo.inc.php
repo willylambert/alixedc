@@ -28,12 +28,12 @@ class socdiscoo extends CommonFunctions
    * The default port is 5050. If Sedna server is listening
    * on the different port (say 5051) modify host value like:
    * $host = 'localhost:5051' */
-  var $host      = 'localhost';
-  var $database  = 'emptydb';
-  var $user      = 'SYSTEM';
-  var $password  = 'MANAGER';
+  var $host;
+  var $database;
+  var $user;
+  var $password;
+  var $odm_declaration;
   var $collections = array("ClinicalData", "MetaDataVersion");
-  var $odm_declaration = "declare namespace odm = 'http://www.cdisc.org/ns/odm/v1.3';\n";
   
   //Constructeur
   function socdiscoo(&$tblConfig)
@@ -58,6 +58,12 @@ class socdiscoo extends CommonFunctions
   function initContext(){
     /* Don't print anything. We'll handle errors ... */
     ini_set("sedna.verbosity","0");
+    
+    $this->host      = $this->m_tblConfig['SEDNA_HOST'];
+    $this->database  = $this->m_tblConfig['SEDNA_DATABASE'];
+    $this->user      = $this->m_tblConfig['SEDNA_USER'];
+    $this->password  = $this->m_tblConfig['SEDNA_PASSWORD'];
+    $this->odm_declaration = "declare namespace odm = '".$this->m_tblConfig['SEDNA_NAMESPACE_ODM']."';\n";
     
     /* Try to connect to the testdb on the localhost with default credentials */
     $this->conn = sedna_connect($this->host,$this->database,$this->user,$this->password);
@@ -366,12 +372,12 @@ class socdiscoo extends CommonFunctions
         if(sedna_ercls() == "SE2002"){ //Collection with the same name already exists.
           break; //I consider all collections and indices already exists (otherwise continue;)
         }
-        $bInit = true;
         $str = "Could create collection '$col': " . sedna_error() ." (". __METHOD__ .")";
         $this->addLog($str,FATAL);
       }
+      $bInit = true; //yes, first initialization
     }
-    if($bInit){ //indices have to be created once
+    if($bInit){ //indices have to be created the first time that the database is opened
       $this->setIndexes();
     }
   }

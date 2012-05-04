@@ -43,6 +43,13 @@
   $configEtude["EXPORT_BASE_PATH"] = "$basePath/$moduleName/export/";
   $configEtude["IMPORT_BASE_PATH"] = "$basePath/alixdb_dev/import/";
   $configEtude["DBXML_BASE_DEMO_PATH"] = "$basePath/$moduleName/dbxmlDemoBase/";
+  
+  //Sedna database configuration
+  $configEtude["SEDNA_HOST"] = "localhost";
+  $configEtude["SEDNA_DATABASE"] = "alixdb";
+  $configEtude["SEDNA_USER"] = "SYSTEM";
+  $configEtude["SEDNA_PASSWORD"] = "MANAGER";
+  $configEtude["SEDNA_NAMESPACE_ODM"] = "http://www.cdisc.org/ns/odm/v1.3";
 
   $configEtude["ODM_1_3_SCHEMA"] = "/var/www/alix/docs/demo/$moduleName/xsd/ODM1-3-0-foundation.xsd";
   $configEtude["ODM_1_2_SCHEMA"] = "/var/www/alix/docs/demo/$moduleName/xsd/ODM1-2-1-foundation.xsd";

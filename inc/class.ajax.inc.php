@@ -1516,7 +1516,11 @@ public function checkFormData(){
       $tblSubj = $this->m_ctrl->bosubjects()->getSubjectsList("");
     }catch(Exception $e){
       //Warn is the BLANK is missing
-      die("NOBLANK");
+      try{
+        $blank = $this->m_ctrl->socdiscoo()->getDocument("ClinicalData", $this->config("BLANK_OID"));
+      }catch(Exception $e){
+        die("NOBLANK");
+      }
     }
 
     //Profil par défaut de l'utilisateur

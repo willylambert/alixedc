@@ -183,6 +183,20 @@ class CommonFunctions{
     }
  
   }
+
+  /**
+  * @desc Subsitut à l'accès direct au tableau m_tblConfig (plus intuitif à mon goût, tpi)
+  * @param string congifuration param  
+  * @return valeur du paramètre de configuration
+  * @author TPI
+  **/   
+  public function config($param){
+    if(isset($this->m_tblConfig[$param])){
+      return $this->m_tblConfig[$param];       
+    }else{
+      throw new Exception("Unkonwn configuration parameter '$param'");
+    }
+  }
   
   public function dumpPre($mixed = null, $expandable=false)
   {

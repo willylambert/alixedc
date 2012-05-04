@@ -136,14 +136,7 @@ class uidbadmin extends CommonFunctions{
                 $menu
 
                 <div id='mainFormOnly' class='ui-dialog ui-widget ui-widget-content ui-corner-all'>
-                  <div class='ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix'>
-                    <span class='ui-dialog-title'>Admin</span>
-                  </div>
-                  <div class='ui-dialog-content ui-widget-content'>
-                    <div class='ui-accordion ui-widget ui-helper-reset ui-accordion-icons'>
-                    $htmlRet
-                    </div>
-                  </div>
+                  $htmlRet
                 </div>";
      return $htmlRet;      
       
@@ -154,56 +147,98 @@ class uidbadmin extends CommonFunctions{
   }
 
   private function getDefaultInterface(){
-    $menu_admin = "";
+    $menu = "";
         
     if($this->m_ctrl->boacl()->checkModuleAccess("viewDocs"))
     {
-      $menu_admin .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
+      $submenu = "";
+      
+      $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
 				                                                                        'container' => 'ClinicalData',
                                                                                 'action' => 'viewDocs'),
                                           "ClinicalData");
-      $menu_admin .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
+      $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
 				                                                                        'container' => 'MetaDataVersion',
                                                                                 'action' => 'viewDocs'),      
                                           "MetaData");
+      $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
+				                                                                        'container' => '',
+                                                                                'action' => 'viewDocs'),      
+                                          "Root");
+                                          
+      $menu .= $this->getSubMenu("Database", $submenu);
     }
     
     if($this->m_ctrl->boacl()->checkModuleAccess("importDoc"))
     {
-      $menu_admin .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
+      $submenu = "";
+      
+      $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
 				                                                                        'action' => 'importDocInterface'),
                                           "Import Metadata / ClinicalData");
-      $menu_admin .= "<h3 class='ui-accordion-header ui-helper-reset ui-state-default ui-corner-all ui-state-highlight'><a href=\"javascript:helper.showPrompt('Please configure class.boimport.inc.php according to your purposes.', 'noon()', 1);\">Import Clinical Data</a></h3>";
+      $submenu .= "<h3 class='ui-accordion-header ui-helper-reset ui-state-default ui-corner-all ui-state-highlight'><a href=\"javascript:helper.showPrompt('Please configure class.boimport.inc.php according to your purposes.', 'noon()', 1);\">Import Clinical Data</a></h3>";
+                                          
+      $menu .= $this->getSubMenu("Import", $submenu);
     }
 
     if($this->m_ctrl->boacl()->checkModuleAccess("EditDocs"))
     {
-      $menu_admin .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.editorInterface',
+      $submenu = "";
+      
+      $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.editorInterface',
 			                                                                        'action' => ''),
-                                        "Editor"); 
+                                        "Editor");
+                                          
+      $menu .= $this->getSubMenu("Design", $submenu);
     }
 
     if($this->m_ctrl->boacl()->checkModuleAccess("ManageUsers"))
     {
-      $menu_admin .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.usersInterface',
+      $submenu = "";
+      
+      $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.usersInterface',
                                                                        'title' => urlencode(lang('Users'))),
                                         "Users");
+                                          
+      $menu .= $this->getSubMenu("Accounts", $submenu);
     }
 
     if($this->m_ctrl->boacl()->checkModuleAccess("ManageSites"))
     {
-      $menu_admin .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.sitesInterface',
+      $submenu = "";
+      
+      $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.sitesInterface',
                                                                        'title' => urlencode(lang('Sites'))),
                                         "Sites");
+                                          
+      $menu .= $this->getSubMenu("Sites", $submenu);
     }
 
     if($this->m_ctrl->boacl()->checkModuleAccess("ExportData"))
     {
-      $menu_admin .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.exportInterface'),
-                                        "Data export");                                                                                                                       
+      $submenu = "";
+      
+      $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.exportInterface'),
+                                        "Data export");  
+                                          
+      $menu .= $this->getSubMenu("Export", $submenu);                                                                                                                     
     }
 
-    return $menu_admin;  
+    return $menu;  
+  }
+  
+  private function getSubMenu($title,$html){
+    return "
+          <div style='width: 300px; float: left; min-height: 200px; padding: 0px 1px 0px 1px;'>
+            <div class='ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix'>
+              <span class='ui-dialog-title'>$title</span>
+            </div>
+            <div class='ui-dialog-content ui-widget-content'>
+              <div class='ui-accordion ui-widget ui-helper-reset ui-accordion-icons'>
+              $html
+              </div>
+            </div>
+          </div>";
   }
 
   private function getMainInterface($containerName)
@@ -297,13 +332,15 @@ class uidbadmin extends CommonFunctions{
                                                                                               'container' => $containerName));
       $htmlRet .= "
                    <script>
-                    function deleteDocument(doc)
-                    {
-                      if(confirm('Supprimer le document '+doc+' ?'))
+                    //<![CDATA[
+                      function deleteDocument(doc)
                       {
-                        window.location = \"".$deleteUrl."&doc=\"+doc;
+                        if(confirm('Delete the document '+doc+' ?'))
+                        {
+                          window.location = \"".$deleteUrl."&doc=\"+doc;
+                        }
                       }
-                    }
+                    //]]>
                    </script>
                    ";  
       
@@ -400,25 +437,40 @@ class uidbadmin extends CommonFunctions{
   }
   
   function importDoc($container){
+    $html = "";
+    
 	  $uploaddir = $this->m_tblConfig['CDISCOO_PATH'] . "/xml/";
     $uploadfile = $uploaddir . basename($_FILES['uploadedDoc']['name']);
     
     if($container=="MetaDataVersion"){
       $containerName = "MetaDataVersion";
     }else{
-      $containerName=$container;
+      $containerName = $container;
     }
     
     if (move_uploaded_file($_FILES['uploadedDoc']['tmp_name'], $uploadfile)){
+      $html .= "<div style='text-align: left'><ul>";
       try{
-        echo "adding {$_FILES['uploadedDoc']['name']}...<br/>";
-        $this->m_ctrl->socdiscoo()->addDocument($uploadfile,false,$containerName);
+        $html .= "<li>adding {$_FILES['uploadedDoc']['name']}...</li>";
+        $fileOID = $this->m_ctrl->socdiscoo()->addDocument($uploadfile,false,$containerName);
       }catch(Exception $e){
-          //déjà présent, on va essayer de le remplacer
-          echo "document already imported, replacing...<br/>";
-          $this->m_ctrl->socdiscoo()->replaceDocument($uploadfile,false,$containerName);
+          //document already existing, we will try to replace it
+          $html .= "<li>document already imported, replacing...</li>";
+          $fileOID = $this->m_ctrl->socdiscoo()->replaceDocument($uploadfile,false,$containerName);
       }
-      echo "import successfull !<br/>";         
+      $html .= "<li>import successfull !</li>";
+      $html .= "</ul>";
+      $html .= "<a href='".$GLOBALS['egw']->link('/index.php', array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
+  				                                                                        'container' => $container,
+                                                                                  'action' => 'viewDocs')) ."'>See $container</a><br/>";
+      $html .= "</div>";
+      
+      //Updaate the subject in the SubjectsList
+      if(is_numeric($fileOID)){
+        $this->m_ctrl->bosubjects()->updateSubjectInList($fileOID);
+      }
+      
+      return $html;
     }
   }
 }
