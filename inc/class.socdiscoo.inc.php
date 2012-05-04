@@ -359,15 +359,28 @@ class socdiscoo extends CommonFunctions
   }
   
   private function initDB(){
+    $bInit = false; //first initialization ?
     //Create collections
     foreach($this->collections as $col){
       if(!sedna_execute("CREATE COLLECTION '$col'")){
         if(sedna_ercls() == "SE2002"){ //Collection with the same name already exists.
-          break; //I consider all collections already exists (otherwise continue;)
+          break; //I consider all collections and indices already exists (otherwise continue;)
         }
+        $bInit = true;
         $str = "Could create collection '$col': " . sedna_error() ." (". __METHOD__ .")";
         $this->addLog($str,FATAL);
       }
     }
+    if($bInit){ //indices have to be created once
+      $this->setIndexes();
+    }
+  }
+  
+  private function setIndexes(){
+    $query = " 
+        CREATE INDEX \"SubjectODM\"
+        ON collection('ClinicalData')/odm:ODM BY @FileOID
+        AS xs:string";
+    $this->query($query);
   }
 }

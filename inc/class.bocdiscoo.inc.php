@@ -2217,15 +2217,17 @@ class bocdiscoo extends CommonFunctions
   }
 
   /**
-   *Get all subject forms and visitq, with lock status for each form
+   *Get all subject forms and visits, with lock status for each form
    @return array 
    *@author wlt     
    **/  
   function getSubjectTblForm($SubjectKey)
   {
     $this->addLog("bocdiscoo->getSubjectTblForm($SubjectKey)",INFO);
-    $query = "        
-        let \$SubjectData := collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData
+    $query = "     
+        (: let \$SubjectData := collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData :)
+        
+        let \$SubjectData := index-scan('SubjectODM', '$SubjectKey', 'EQ')/odm:ClinicalData/odm:SubjectData
 
         let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
         return
@@ -2273,7 +2275,11 @@ class bocdiscoo extends CommonFunctions
           </SubjectData>";
 
     try{
+      //$start = microtime();
       $doc = $this->m_ctrl->socdiscoo()->query($query,false);
+      //$stop = microtime();
+      //echo "-duration-".($stop-$start);
+      //$this->dumpPre($doc->saveXML());
     }catch(xmlexception $e){
       $str = "Error in xQuery : " . $e->getMessage() . "<br/><br/>" . $query . "</html> (". __METHOD__ .")";
       $this->addLog($str,FATAL);
@@ -2293,6 +2299,7 @@ class bocdiscoo extends CommonFunctions
       
       //Loop through forms
       foreach($visit->childNodes as $form){
+        if($form->nodeType!=1) continue; //tpi, why are there some DOMText ?
         if(!$form->hasAttribute('Status')){
           $nbForm++;
           $FormOID = $form->getAttribute('FormOID');
@@ -2310,7 +2317,7 @@ class bocdiscoo extends CommonFunctions
               $frmStatus = "FROZEN";
               $nbFormFrozen++;  
             }else{
-              $frmStatus = $this->m_ctrl->boqueries()->getFormStatus($SubjectKey,$StudyEventOID ,$StudyEventRepeatKey, $FormOID,$FormRepeatKey);
+              $frmStatus = $this->m_ctrl->boqueries()->getFormStatus($SubjectKey, $StudyEventOID ,$StudyEventRepeatKey, $FormOID, $FormRepeatKey);
             }           
           }
           $form->setAttribute("Status",$frmStatus);

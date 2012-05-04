@@ -47,7 +47,6 @@ class uidbadmin extends CommonFunctions{
   function viewDoc()
   {
     //Check right
-    
     if(!$GLOBALS['egw_info']['user']['apps']['admin']){
       $this->addLog("Unauthorized Access to Admin Module - Administrator has been notified",FATAL);
     }
@@ -108,6 +107,14 @@ class uidbadmin extends CommonFunctions{
           case 'viewDocs' : 
                 if($this->m_ctrl->boacl()->checkModuleAccess("viewDocs")){
                   $htmlRet = $this->getMainInterface($_GET['container']);
+                }else{
+                  $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
+                }
+                break;  
+
+          case 'viewDoc' : 
+                if($this->m_ctrl->boacl()->checkModuleAccess("viewDocs")){
+                  $htmlRet = $this->viewDoc();
                 }else{
                   $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
                 }

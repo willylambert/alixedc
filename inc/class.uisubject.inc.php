@@ -179,29 +179,37 @@ class uisubject extends CommonFunctions
 
       if(file_exists($xslFormFile))
       {        
-       $xslForm = new DOMDocument;
-       $xslForm->load($xslFormFile); 
-      
-       $proc->importStyleSheet($xslForm);
-       $proc->setParameter('','ReadOnly',$ReadOnly);
-       
-       //Passage des variables venant d'un autre endroit (cf config.inc)
-       if(isset($this->m_tblConfig['FORM_VAR'][$FormOID])){
-         foreach($this->m_tblConfig['FORM_VAR'][$FormOID] as $key=>$col){
-           $customVar = $StudyEventTag->item(0)->getAttribute($key);
-           $proc->setParameter('',$key,$customVar);
-         }
-      }
-       
-      //HOOK => uisubject_getInterface_xslParameters
-      $this->callHook(__FUNCTION__,"xslParameters",array($FormOID,$proc,$this));
+        $xslForm = new DOMDocument;
+        $xslForm->load($xslFormFile); 
         
-      $doc = $proc->transformToDoc($doc);
+        $proc->importStyleSheet($xslForm);
+        $proc->setParameter('','ReadOnly',$ReadOnly);
+        
+        //Passage des variables venant d'un autre endroit (cf config.inc)
+        if(isset($this->m_tblConfig['FORM_VAR'][$FormOID])){
+          foreach($this->m_tblConfig['FORM_VAR'][$FormOID] as $key=>$col){
+            $customVar = $StudyEventTag->item(0)->getAttribute($key);
+            $proc->setParameter('',$key,$customVar);
+          }
+        }
+        
+        //HOOK => uisubject_getInterface_xslParameters
+        $this->callHook(__FUNCTION__,"xslParameters",array($FormOID,$proc,$this));
+        
+        $doc = $proc->transformToDoc($doc);
+      }
   
       //HOOK => uisubject_getInterface_afterXSLT
       $doc = $this->callHook(__FUNCTION__,"afterXSLT",array($MetaDataVersionOID,$FormOID,$this,$doc));
-      
-      $htmlForm = $doc->saveXML($doc->childNodes->item(0));
+/*
+      echo "**************<br>";
+      echo "<pre>";
+      echo $doc->saveXML();
+      echo "</pre>";
+      echo "**************<br>";
+*/
+      //$htmlForm = $doc->saveXML($doc->childNodes->item(0)); //tpi: why item(0) ?
+      $htmlForm = $doc->saveXML();
       
       //Hack to manage a saveXML feature, which transform <textarea></textarea> into <textarea/>
       $htmlForm = str_replace(">EMPTY</textarea>","></textarea>",$htmlForm);
@@ -282,7 +290,7 @@ class uisubject extends CommonFunctions
                   //]]>
                   </script>
                   ";
-      }	         
+      
       return $htmlRet;  
   }
 
