@@ -61,7 +61,7 @@ class uidbadmin extends CommonFunctions{
 
   function deleteDoc()
   {
-    $this->m_ctrl->socdiscoo()->deleteDocument("{$_GET['doc']}.dbxml",$_GET['doc']);
+    $this->m_ctrl->socdiscoo()->deleteDocument("{$_GET['container']}.dbxml",$_GET['doc']);
   }
   
   function getInterface()
