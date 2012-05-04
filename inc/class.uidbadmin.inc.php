@@ -229,18 +229,8 @@ class uidbadmin extends CommonFunctions{
         $str = "xQuery error : " . $e->getMessage() . "<br/><br/>" . $query . "</html>";
         die($str);
       }
-
-      $htmlRet = '<table width="100%"><tr><td valign="top">';
-      
-      //Pour les containers SAS, on ajoute un bouton d'import des fichers depuis le container correspondant en ODM 1.3
-      
-      if($containerName=="ClinicalDataSAS" || $containerName=="MetaDataVersionSAS"){
-        $htmlRet .= "<a href='" . $GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
-                                                                           'action' => 'importToSAS',
-                                                                           'container' => substr($containerName,0,strlen($containerName)-3))) . "'>Mettre à jour la base SAS</a>";
-      }
-      
-      $htmlRet .= '<div class="divSidebox">
+            
+      $htmlRet = '
             	<div class="divSideboxHeader" align="center"><span>'.$containerName.'</span></div>';
       
 			$htmlRet .= "<table align='center' width='80%' cellspacing='0' cellpadding='2' class='tabloGris'>
