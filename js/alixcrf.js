@@ -415,18 +415,19 @@ function removeFormData(CurrentApp,dataString){
 
 /*
 *@desc boucle sur les formulaires, et les soumets individuellement
-*@author wlt
+*@author wlt, tpi
 */
 function saveAllItemGroup(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey,bCheckFormData){
 
   bSanityErrors = false;
+  newSubjectKey = "";
 
   //Boucle sur les formulaires
   $("form").each( 
     function(index){
       dataString = $(this).serialize();
-      if(dataString!=$(this).data('initials_values') ||
-         index==$("form").length-1 )
+      if(dataString!=$(this).data('initials_values')/* ||
+         index==$("form").length-1 */)
       {
         //Form is modified - we submit it
         $.ajax({
@@ -452,28 +453,20 @@ function saveAllItemGroup(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventR
                   $("#formQueries").append("<div id='query_"+ItemOID.replace(".","_")+"_"+ItemGroupRepeatKey+"' class='QueryType QueryTypeCM'>"+ Description +"</div>");
                 }
               };   
-  
-              //Appel de la verification des controles, uniquement sur le dernier itemGroup sauvegardé (car verif au niveau du Form)
-              //And only if we have less than XX forms
-              //If there is more than XX forms, run checks are executed when leaving the form
+              
+              //Verfication des controles uniquement si pas d'erreur bad_format
+              if(bSanityErrors==false){
+                //20120504 tpi: je sors le checkFormData et le rechargement de page de cette fin boucle (création variables newSubjectId) (raison: on évite un saveItemGroupData aupravant forcé à chaque fois sur le dernier Form de la page)
+                if(typeof(data.newSubjectId)!='undefined'){
+                  newSubjectKey = data.newSubjectId[0];
+                  SubjectKey = newSubjectKey;
+                  //All forms must have the good SubjectKey value
+                  $("form input[name='SubjectKey']").val(SubjectKey);
+                }
+              }
+              
               if(index==$("form").length-1){
-                //Verfication des controles uniquement si pas d'erreur bad_format
-                if(bSanityErrors==false){
-                  //Si la sauvegarde a conduit à l'enregistrement d'un nouveau patient, on recharge la page
-                  if(typeof(data.newSubjectId)!='undefined'){
-                    newSubjectId = data.newSubjectId[0];
-                    newUrl = "index.php?menuaction="+CurrentApp+".uietude.subjectInterface&action=view&SubjectKey="+newSubjectId+"&StudyEventOID="+StudyEventOID+"&StudyEventRepeatKey="+StudyEventRepeatKey+"&FormOID="+FormOID+"&FormRepeatKey="+FormRepeatKey;
-                    $(location).attr('href',newUrl);
-                  }else{
-                    //Mise à jour des queries
-                    if(bCheckFormData!==false && $("div[class='pagination']").length==0){ //uniquement si le check à l'enregistrement n'est pas désactivé dans la configuration du centre
-                      checkFormData(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey);                        
-                      location.replace(location.href + "&donotcheck");
-                    }else{
-                      location.reload();
-                    }   
-                  }             
-                }else{
+                if(bSanityErrors!=false){
                   //alert("Data NOT SAVED - Please input sane data");
                   regexp = new RegExp("(<b>)|(</b>)","gi");
                   Description = Description.replace(regexp,"");
@@ -488,7 +481,24 @@ function saveAllItemGroup(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventR
         }
     }
   );
+  
+  //Si la sauvegarde a conduit à l'enregistrement d'un nouveau patient, on recharge la page
+  if(typeof(newSubjectKey)!='undefined' && newSubjectKey!=""){
+    SubjectKey = newSubjectKey;
+    newUrl = "index.php?menuaction="+CurrentApp+".uietude.subjectInterface&action=view&SubjectKey="+SubjectKey+"&StudyEventOID="+StudyEventOID+"&StudyEventRepeatKey="+StudyEventRepeatKey+"&FormOID="+FormOID+"&FormRepeatKey="+FormRepeatKey;
+    $(location).attr('href',newUrl);
+  }else{
+    //Mise à jour des queries
+    if(bCheckFormData!==false && $("div[class='pagination']").length==0){ //uniquement si le check à l'enregistrement n'est pas désactivé dans la configuration du centre
+      checkFormData(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey);                        
+      location.replace(location.href + "&donotcheck");
+    }else{
+      location.reload();
+    }   
+  }
+  
   $("#dialog-modal-save").dialog("close");
+
 }
 
 /*

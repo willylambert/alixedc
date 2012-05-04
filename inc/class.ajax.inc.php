@@ -177,18 +177,26 @@ public function checkFormData(){
     
     //Si il y a des erreurs, l'enregistrement est impossible, on ne va pas plus loin, et l'on retourne les erreurs au browser
     if(count($tblRet["errors"])==0){
-      //Faut-il créer un nouveau patient ?
-      if($SubjectKey=="BLANK"){
+      $isNewSubject = false;
+      //Do we have to create a new subject?
+      if($SubjectKey==$this->config("BLANK_OID")){
+          $isNewSubject = true;
           $SubjectKey = $this->m_ctrl->bocdiscoo()->enrolNewSubject();
           $tblRet["newSubjectId"] = $SubjectKey; 
       }
       
-      //Enregistrement des données 
+      $this->addlog(__METHOD__ ." before save subject '$SubjectKey'",INFO);
+      
+      //Saving data
       $this->m_ctrl->bocdiscoo()->saveItemGroupData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$_POST,$who,$where,$why,$fillst="");
 
       //HOOK => ajax_saveItemGroupData_afterSave
       $this->callHook(__FUNCTION__,"afterSave",array($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$this));      
-        
+      
+      //update SubjectsList if it is a new subject
+      if($isNewSubject){
+        $this->m_ctrl->bosubjects()->updateSubjectsList($SubjectKey);
+      }
     }
     
     echo json_encode($tblRet);   
