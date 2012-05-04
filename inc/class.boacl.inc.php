@@ -212,7 +212,7 @@ class boacl extends CommonFunctions
     {
       case "importDoc" :
       case "deleteDoc" :
-      case "ViewDocs" :
+      case "viewDocs" :
       case "EditDocs" :
          if( $GLOBALS['egw_info']['user']['apps']['admin']){
           $access = true; 
