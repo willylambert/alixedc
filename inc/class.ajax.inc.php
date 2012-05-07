@@ -170,13 +170,6 @@ public function checkFormData(){
        $FormOID=="" || $FormRepeatKey=="" || $ItemGroupOID=="" || $ItemGroupRepeatKey==""){
       $this->addlog(__METHOD__ ." : missing variables : $MetaDataVersion || $SubjectKey || $StudyEventOID || $StudyEventRepeatKey ||
        $FormOID || $FormRepeatKey || $ItemGroupOID || $ItemGroupRepeatKey",FATAL);       
-    } 
-  
-    //Do we need to create a new patient ? if yes, we need to browser the entire patient collection
-    if($SubjectKey=="BLANK"){
-      $this->m_ctrl->socdiscoo();
-    }else{
-      $this->m_ctrl->socdiscoo($SubjectKey);   
     }
     
     //Première vérification : est-ce que les données de notre formulaire sont saines
@@ -184,18 +177,26 @@ public function checkFormData(){
     
     //Si il y a des erreurs, l'enregistrement est impossible, on ne va pas plus loin, et l'on retourne les erreurs au browser
     if(count($tblRet["errors"])==0){
-      //Faut-il créer un nouveau patient ?
-      if($SubjectKey=="BLANK"){
+      $isNewSubject = false;
+      //Do we have to create a new subject?
+      if($SubjectKey==$this->config("BLANK_OID")){
+          $isNewSubject = true;
           $SubjectKey = $this->m_ctrl->bocdiscoo()->enrolNewSubject();
           $tblRet["newSubjectId"] = $SubjectKey; 
       }
       
-      //Enregistrement des données 
+      $this->addlog(__METHOD__ ." before save subject '$SubjectKey'",INFO);
+      
+      //Saving data
       $this->m_ctrl->bocdiscoo()->saveItemGroupData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$_POST,$who,$where,$why,$fillst="");
 
       //HOOK => ajax_saveItemGroupData_afterSave
       $this->callHook(__FUNCTION__,"afterSave",array($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$this));      
-        
+      
+      //update SubjectsList if it is a new subject
+      if($isNewSubject){
+        $this->m_ctrl->bosubjects()->updateSubjectsList($SubjectKey);
+      }
     }
     
     echo json_encode($tblRet);   
@@ -602,6 +603,7 @@ public function checkFormData(){
   public function setFileContent(){
     $this->addlog(__METHOD__ ." : _POST=".$this->dumpRet($_POST),TRACE);  
     
+    //print_r($_POST);
     $file = $_POST['file'];
     $content = $_POST['content'];
     $content = urldecode($content);
@@ -1518,7 +1520,16 @@ public function checkFormData(){
     $where = "";
     
     //retrieving subjects list
-    $tblSubj = $this->m_ctrl->bosubjects()->getSubjectsList("");
+    try{
+      $tblSubj = $this->m_ctrl->bosubjects()->getSubjectsList("");
+    }catch(Exception $e){
+      //Warn is the BLANK is missing
+      try{
+        $blank = $this->m_ctrl->socdiscoo()->getDocument("ClinicalData", $this->config("BLANK_OID"));
+      }catch(Exception $e){
+        die("NOBLANK");
+      }
+    }
 
     //Profil par défaut de l'utilisateur
     $defaultProfilId = $this->m_ctrl->boacl()->getUserProfileId();
@@ -1881,6 +1892,7 @@ public function checkFormData(){
       }
       if($fileOID != $newFileOID){
         $newName = $this->m_ctrl->boeditor()->renameDbxmlFile($containerName, $fileOID, $newFileOID);
+        $newName .= ".xml"; //tpi 20120402, extension was missing
       }else{
         $newName = $newFileOID .".xml";
       }

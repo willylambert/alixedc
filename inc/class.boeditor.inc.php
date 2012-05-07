@@ -62,13 +62,8 @@ class boeditor extends CommonFunctions
   public function getDbxmlFileContent($containerName, $fileOID){
     $content = "";
     
-    if($containerName=="ClinicalData"){
-      $document = $this->m_ctrl->socdiscoo($fileOID)->getDocument("$fileOID.dbxml",$fileOID,false);
-      $document->formatOutput = true;
-      $document->normalizeDocument();
-      $content = $document->saveXML();
-    }elseif($containerName=="MetaDataVersion"){
-      $document = $this->m_ctrl->socdiscoo()->getDocument("$containerName.dbxml",$fileOID,false);
+    if($containerName!=""){
+      $document = $this->m_ctrl->socdiscoo($fileOID)->getDocument($containerName,$fileOID,false);
       $document->formatOutput = true;
       $document->normalizeDocument();
       $content = $document->saveXML();
@@ -159,11 +154,6 @@ class boeditor extends CommonFunctions
   public function setDbxmlFileContent($container, $fileOID, $content){
     $res = "";
     
-    if($container=="ClinicalData"){
-      $containerName = "";
-    }elseif($container!=""){
-      $containerName = $container .".dbxml";
-    }
     
     try{
       //let's check if the FileOID has not been modified. If so we have to change the filename
@@ -175,12 +165,12 @@ class boeditor extends CommonFunctions
         $this->setXmlFiles();
       }
       
-      $this->m_ctrl->socdiscoo()->replaceDocument($content,true,$containerName);
+      $this->m_ctrl->socdiscoo()->replaceDocument($content,true,$container);
         
       $res = "../../../custom/dbxml/". $container ."/". $fileOID .".xml";
       
     }catch(Exception $e){
-      $res = $e->getMessage();
+      $res = "Error: ". $e->getMessage() ." (". __METHOD__ .")";
     }
     
     return $res;   
@@ -222,7 +212,7 @@ class boeditor extends CommonFunctions
       $newClinicalXml = '<?xml version="1.0" encoding="UTF-8"?><ODM xmlns="http://www.cdisc.org/ns/odm/v1.3" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ODMVersion="1.3" FileOID="'. $fileOID .'" FileType="Transactional" Description="ClinicalData of a patient" CreationDateTime="'. date('Y-m-d\TH:i:s') .'" Originator="http://www.alix-edc.com/"><ClinicalData StudyOID="ALIXSTUDYXXX" MetaDataVersionOID="1.0.0"><SubjectData SubjectKey="'. $fileOID .'" TransactionType="Insert"><Annotation SeqNum="1"><Flag><FlagValue CodeListOID="CL.SSTATUS">EMPTY</FlagValue><FlagType CodeListOID="CL.FLAGTYPE">STATUS</FlagType></Flag></Annotation><!-- Screening Visit --><StudyEventData StudyEventOID="1" StudyEventRepeatKey="0"><FormData FormOID="FORM.ENROL" FormRepeatKey="0"><ItemGroupData ItemGroupOID="ENROL" ItemGroupRepeatKey="0"><Annotation SeqNum="1"><Flag><FlagValue CodeListOID="CL.IGSTATUS">EMPTY</FlagValue><FlagType CodeListOID="CL.FLAGTYPE">STATUS</FlagType></Flag></Annotation><ItemDataString ItemOID="ENROL.STUDYID" AuditRecordID="Audit-00000" TransactionType="Insert">ALIX EDC</ItemDataString></ItemGroupData></FormData></StudyEventData></SubjectData></ClinicalData></ODM>';
       ?><?
       try{
-        $this->m_ctrl->socdiscoo($fileOID)->addDocument($newClinicalXml,true);
+        $this->m_ctrl->socdiscoo($fileOID)->addDocument($newClinicalXml,true,$container);
         $res = "../../../custom/dbxml/". $container ."/". $fileOID .".xml";
         $this->setXmlFiles();
       }catch(Exception $e){
@@ -232,7 +222,7 @@ class boeditor extends CommonFunctions
       $newMetaDataXml = '<?xml version="1.0" encoding="UTF-8" standalone="no"?><ODM xmlns="http://www.cdisc.org/ns/odm/v1.3" ODMVersion="1.3" FileOID="'. $fileOID .'" FileType="Transactional" Description="ALIX EDC Study" CreationDateTime="'. date('Y-m-d\TH:i:s') .'" Originator="http://www.alix-edc.com/"><Study OID="ALIXSTUDYXXX"><!-- Study definition --><GlobalVariables><StudyName>ALIX EDC Study</StudyName><StudyDescription>ALIX EDC Study</StudyDescription><ProtocolName>ALIX XXX</ProtocolName></GlobalVariables><BasicDefinitions></BasicDefinitions><MetaDataVersion OID="'. $fileOID .'" Name="Version 1.0.0"><Protocol><!-- List of StudyEvents in the study --><StudyEventRef StudyEventOID="1" OrderNumber="1" Mandatory="Yes"/></Protocol><!-- Definition of StudyEvents and list of forms linked --><StudyEventDef OID="1" Name="1" Repeating="No" Type="Common"><Description><TranslatedText xml:lang="en">Screening Visit</TranslatedText></Description><FormRef FormOID="FORM.ENROL" OrderNumber="1" Mandatory="Yes"/></StudyEventDef><!-- Definition of Forms and ItemGroups linked --><FormDef OID="FORM.ENROL" Name="ENROL" Repeating="No"><Description><TranslatedText xml:lang="en">Enrolment</TranslatedText></Description><ItemGroupRef ItemGroupOID="ENROL" Mandatory="Yes"/></FormDef><ItemGroupDef OID="ENROL" Name="ENROL" SASDatasetName="ENROL" Repeating="No" IsReferenceData="No"><Description><TranslatedText xml:lang="en">Enrolment</TranslatedText></Description><ItemRef ItemOID="ENROL.COUNTID" OrderNumber="1" Mandatory="Yes" Role="NOAN"/><ItemRef ItemOID="ENROL.SITEID" OrderNumber="2" Mandatory="Yes" Role="NOAN"/><ItemRef ItemOID="ENROL.PATID" OrderNumber="3" Mandatory="Yes" Role="NOAN"/><ItemRef ItemOID="ENROL.SUBJINIT" OrderNumber="4" Mandatory="No" Role="NOAN"/><ItemRef ItemOID="ENROL.SITENAME" OrderNumber="5" Mandatory="Yes" Role="NOAN"/><ItemRef ItemOID="ENROL.SUBJID" OrderNumber="6" Mandatory="Yes" Role="NOAN"/><ItemRef ItemOID="ENROL.STUDYID" OrderNumber="7" Mandatory="Yes" Role="NOAN"/></ItemGroupDef><!-- Definition of Items --><ItemDef OID="ENROL.SUBJINIT" Name="SUBJINIT" SASFieldName="SUBJINIT" DataType="string" Length="2"><Question><TranslatedText xml:lang="en">Patient Initials</TranslatedText></Question></ItemDef><ItemDef OID="ENROL.COUNTID" Name="COUNTID" SASFieldName="COUNTID" DataType="string" Length="3"><Question><TranslatedText xml:lang="en">Country</TranslatedText></Question><CodeListRef CodeListOID="CL.$COUNT"/></ItemDef><ItemDef OID="ENROL.SITEID" Name="SITEID" SASFieldName="SITEID" DataType="string" Length="2"><Question><TranslatedText xml:lang="en">Site number</TranslatedText></Question></ItemDef><ItemDef OID="ENROL.SITENAME" Name="SITENAME" SASFieldName="SITENAME" DataType="string" Length="50"><Question><TranslatedText xml:lang="en">Site name</TranslatedText></Question></ItemDef><ItemDef OID="ENROL.SUBJID" Name="SUBJID" SASFieldName="SUBJID" DataType="string" Length="32"><Question><TranslatedText xml:lang="en">Subject ID</TranslatedText></Question></ItemDef><ItemDef OID="ENROL.STUDYID" Name="STUDYID" SASFieldName="STUDYID" DataType="string" Length="22"><Question><TranslatedText xml:lang="en">Study ID</TranslatedText></Question></ItemDef><ItemDef OID="ENROL.PATID" Name="PATID" SASFieldName="PATID" DataType="string" Length="3"><Question><TranslatedText xml:lang="en">Patient number</TranslatedText></Question></ItemDef></MetaDataVersion></Study></ODM>';
       ?><?  
       try{
-        $this->m_ctrl->socdiscoo()->addDocument($newMetaDataXml,true,"$container.dbxml");
+        $this->m_ctrl->socdiscoo()->addDocument($newMetaDataXml,true,$container);
         $res = "../../../custom/dbxml/". $container ."/". $fileOID .".xml";
         $this->setXmlFiles();
       }catch(Exception $e){
@@ -272,16 +262,8 @@ class boeditor extends CommonFunctions
   public function deleteDbxmlFile($container, $fileOID){
     $res = false;
     
-    if($container == "ClinicalData"){
-      $containerName = $fileOID .".dbxml";
-    }elseif($container == "MetaDataVersion"){
-      $containerName = $container .".dbxml";
-    }else{
-      throw new Exception("Error file not deleted : unknown container '$container'");
-    }
-    
     try{
-      $this->m_ctrl->socdiscoo()->deleteDocument($containerName,$fileOID);
+      $this->m_ctrl->socdiscoo()->deleteDocument($container,$fileOID);
       $res = "../../../custom/dbxml/". $container ."/". $fileOID .".xml";
       $this->setXmlFiles();
     }catch(Exception $e){
@@ -320,22 +302,12 @@ class boeditor extends CommonFunctions
   public function renameDbxmlFile($container, $fileOID, $newFileOID){
     $res = false;
     
-    if($container=="ClinicalData"){
-      $oldContainerName = $fileOID .".dbxml";
-      $newContainerName = $newFileOID .".dbxml";
-    }elseif($container=="MetaDataVersion"){
-      $oldContainerName = $container .".dbxml";
-      $newContainerName = $container .".dbxml";
-    }else{
-      throw new Exception("Error file not renamed : unknown container '$container'");
-    }
-    
     try{
-      $document = $this->m_ctrl->socdiscoo()->getDocument($oldContainerName,$fileOID);
+      $document = $this->m_ctrl->socdiscoo()->getDocument($container,$fileOID);
       $document['FileOID'] = $newFileOID;
-      $this->m_ctrl->socdiscoo()->addDocument($document->asXML(), true, $newContainerName);
-      $this->m_ctrl->socdiscoo()->deleteDocument($oldContainerName,$fileOID);
-      $res = $newFileOID .".xml";
+      $this->m_ctrl->socdiscoo()->addDocument($document->asXML(), true, $container);
+      $this->m_ctrl->socdiscoo()->deleteDocument($container,$fileOID);
+      $res = $newFileOID;
       $this->setXmlFiles();
     }catch(Exception $e){
         $res = $e->getMessage();
@@ -401,41 +373,18 @@ class boeditor extends CommonFunctions
       }
     }
     
-    //creating xml files for ClinicalData
-    $subjectContainers = $this->m_ctrl->socdiscoo()->getSubjectsContainers();
-    $subjectContainers[] = "BLANK.dbxml"; //special file : BLANK.xml
-    foreach($subjectContainers as $subjectContainer){
-      $filename = $root."/dbxml/ClinicalData/".substr($subjectContainer, 0, -6).".xml";
-      $h = fopen($filename, 'w');
-      fwrite($h, "This is a virtual file only.");
-      fclose($h);
-      chmod($filename, 0664);
-    }
-    
-    //creating xml files for MetaDataVersion
-    $query = "<docs>
-                {
-                let \$Col := collection('MetaDataVersion.dbxml')
-                for \$doc in \$Col 
-                return 
-                <doc>{dbxml:metadata('dbxml:name', \$doc)}</doc>
-                }
-                </docs>
-                "; 
-
-    try{
-      $docs = $this->m_ctrl->socdiscoo()->query($query);
-    }catch(xmlexception $e){
-      $str = "xQuery error : " . $e->getMessage() . "<br/><br/>" . $query . "</html>";
-      die($str);
-    }
-    foreach($docs[0] as $doc)
-    {
-      $filename = $root."/dbxml/MetaDataVersion/".$doc.".xml";
-      $h = fopen($filename, 'w');
-      fwrite($h, "This is a virtual file only.");
-      fclose($h);
-      chmod($filename, 0664);
+    //creating xml files for each container/collection
+    $collections = array("ClinicalData", "MetaDataVersion");    
+    foreach($collections as $collection){
+      $subjects = $this->m_ctrl->socdiscoo()->getDocumentsList($collection);
+      if($collection=="ClinicalData") $subjects[] = "BLANK"; //special file : BLANK.xml
+      foreach($subjects as $subjectId){
+        $filename = $root."/dbxml/$collection/".$subjectId.".xml";
+        $h = fopen($filename, 'w');
+        fwrite($h, "This is a virtual file only.");
+        fclose($h);
+        chmod($filename, 0664);
+      }
     }
   }
   

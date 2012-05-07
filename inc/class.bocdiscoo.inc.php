@@ -49,6 +49,7 @@ class bocdiscoo extends CommonFunctions
     //Ouverture du patient
     try{
       $subj = $this->m_ctrl->socdiscoo($SubjectKey)->getDocument("$SubjectKey.dbxml",$SubjectKey,false);
+      $subj = $this->m_ctrl->socdiscoo()->getDocument("ClinicalData",$SubjectKey,false);
     }catch(xmlexception $e){
       $str= "Patient $SubjectKey non trouvé dans la base : " . $e->getMessage() ." (". __METHOD__ .")";
       $this->addLog($str,FATAL);
@@ -57,13 +58,13 @@ class bocdiscoo extends CommonFunctions
 
     //Recuperation du dernier FormRepeatKey
     $query = "
-          let \$FormRepeatKey := max(collection('$SubjectKey.dbxml')/odm:ODM/odm:ClinicalData/odm:SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']/odm:FormData/@FormRepeatKey)
+          let \$FormRepeatKey := max(collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']/odm:FormData/@FormRepeatKey)
           return
             <FormRepeatKey max='{\$FormRepeatKey}'/>
          ";
 
     try{
-      $result = $this->m_ctrl->socdiscoo($SubjectKey)->query($query);
+      $result = $this->m_ctrl->socdiscoo()->query($query);
     }catch(xmlexception $e){
       $str = "Erreur de la requete : " . $e->getMessage() . $query ." (". __METHOD__ .")";
       $this->addLog($str,FATAL);
@@ -143,7 +144,7 @@ class bocdiscoo extends CommonFunctions
     }
 
     //Mise à jour de notre document dans la base
-    $this->m_ctrl->socdiscoo($SubjectKey)->replaceDocument($subj);
+    $this->m_ctrl->socdiscoo()->replaceDocument($subj,false,"ClinicalData");
 
     return $newRepeatKey;
   }
@@ -383,7 +384,7 @@ class bocdiscoo extends CommonFunctions
     
     //Le document de note patient (c'est un DOMDocument)
     try{
-      $subj = $this->m_ctrl->socdiscoo($SubjectKey)->getDocument("$SubjectKey.dbxml",$SubjectKey,false);
+      $subj = $this->m_ctrl->socdiscoo()->getDocument("ClinicalData",$SubjectKey,false);
     }catch(xmlexception $e){
       $str= "Patient $SubjectKey non trouvé dans la base : " . $e->getMessage() ." (". __METHOD__ .")";
       $this->addLog($str,FATAL);
@@ -426,7 +427,7 @@ class bocdiscoo extends CommonFunctions
       }
       
       //Mise à jour de notre document dans la base
-      $this->m_ctrl->socdiscoo($SubjectKey)->replaceDocument($subj);
+      $this->m_ctrl->socdiscoo()->replaceDocument($subj,false,"ClinicalData");
       
       $str = "bocdiscoo->addItemGroupStatus() Un FlagValue non trouvé a été créé/restauré sur un ItemGroupData (".__METHOD__.")";
       $this->addLog($str,INFO);
@@ -443,7 +444,7 @@ class bocdiscoo extends CommonFunctions
     
     //Le document de note patient (c'est un DOMDocument)
     try{
-      $subj = $this->m_ctrl->socdiscoo($SubjectKey)->getDocument("$SubjectKey.dbxml",$SubjectKey,false);
+      $subj = $this->m_ctrl->socdiscoo()->getDocument("ClinicalData",$SubjectKey,false);
     }catch(xmlexception $e){
       $str= "Patient $SubjectKey non trouvé dans la base : " . $e->getMessage() ." (". __METHOD__ .")";
       $this->addLog($str,FATAL);
@@ -486,7 +487,7 @@ class bocdiscoo extends CommonFunctions
       }
       
       //Mise à jour de notre document dans la base
-      $this->m_ctrl->socdiscoo($SubjectKey)->replaceDocument($subj);
+      $this->m_ctrl->socdiscoo()->replaceDocument($subj,false,"ClinicalData");
       
       $str = "bocdiscoo->addSubjectStatus() Un FlagValue non trouvé a été créé/restauré sur un SubjectData (".__METHOD__.")";
       $this->addLog($str,INFO);
@@ -499,8 +500,8 @@ class bocdiscoo extends CommonFunctions
 
     //Boucle sur les ItemDatas ayant un ItemDef contenant un FormalExpression
     $query = "
-        let \$SubjectData := collection('$SubjectKey.dbxml')/odm:ODM/odm:ClinicalData/odm:SubjectData
-        let \$MetaDataVersion := collection('MetaDataVersion.dbxml')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
+        let \$SubjectData := collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData
+        let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
         for \$ItemGroupData in \$SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']
                                             /odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey' and @TransactionType!='Remove']
                                             /odm:ItemGroupData[@TransactionType!='Remove']
@@ -528,7 +529,7 @@ class bocdiscoo extends CommonFunctions
         ";
 
     try{
-      $ctrls = $this->m_ctrl->socdiscoo($SubjectKey)->query($query);
+      $ctrls = $this->m_ctrl->socdiscoo()->query($query);
     }catch(xmlexception $e){
       $str = "Erreur de la requete : " . $e->getMessage() . " " . $query ." (". __METHOD__ .")";
       $this->addLog($str,FATAL);
@@ -542,7 +543,7 @@ class bocdiscoo extends CommonFunctions
     {
       $testXQuery = $macros . $this->getXQueryConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ctrl);
       try{
-        $ctrlResult = $this->m_ctrl->socdiscoo($SubjectKey)->query($testXQuery);
+        $ctrlResult = $this->m_ctrl->socdiscoo()->query($testXQuery);
       }catch(xmlexception $e){
         //L'erreur est probablement liée à l"ecriture du contrôle contenu dans les metadatas,
         //ainsi on présente cela d'une façon élégante à l'utilsateur. On conserve la notification par e-mail,
@@ -609,8 +610,8 @@ class bocdiscoo extends CommonFunctions
     
     //Boucle sur les ItemDatas ayant un ItemDef contenant un FormalExpression
     $query = "
-        let \$SubjectData := collection(\"$SubjectKey.dbxml\")/odm:ODM/odm:ClinicalData/odm:SubjectData
-        let \$MetaDataVersion := collection(\"MetaDataVersion.dbxml\")/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
+        let \$SubjectData := collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData
+        let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
         for \$ItemGroupData in \$SubjectData/odm:StudyEventData[@StudyEventOID=\"$StudyEventOID\" and @StudyEventRepeatKey=\"$StudyEventRepeatKey\"]
                                             /odm:FormData[@FormOID=\"$FormOID\" and @FormRepeatKey=\"$FormRepeatKey\" and @TransactionType!=\"Remove\"]
                                             /odm:ItemGroupData[@TransactionType!=\"Remove\"]
@@ -636,7 +637,7 @@ class bocdiscoo extends CommonFunctions
         ";
     //return $query;
     try{
-      $ctrls = $this->m_ctrl->socdiscoo($SubjectKey)->query($query);
+      $ctrls = $this->m_ctrl->socdiscoo()->query($query);
       //return $ctrls;
     }catch(xmlexception $e){
       $str = "Erreur de la requete : " . $e->getMessage() . " " . $query ." (". __METHOD__ .")";
@@ -652,7 +653,7 @@ class bocdiscoo extends CommonFunctions
       $testXQuery = $macros . $this->getXQueryConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ctrl,$Value);
       //return $testXQuery;
       try{
-        $ctrlResult = $this->m_ctrl->socdiscoo($SubjectKey)->query($testXQuery);
+        $ctrlResult = $this->m_ctrl->socdiscoo()->query($testXQuery);
         //return $ctrlResult;
       }catch(xmlexception $e){
         //L'erreur est probablement liée à l"ecriture du contrôle contenu dans les metadatas,
@@ -739,7 +740,7 @@ class bocdiscoo extends CommonFunctions
     //on se base sur le patient $SubjectKey pour utiliser les metadatas correspondantes,
     //on requete ici les variables de notre FormOID
     $query = "
-    let \$MetaDataVersion := collection('MetaDataVersion.dbxml')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID='$MetaDataVersion']
+    let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID='$MetaDataVersion']
     let \$ItemGroupDef := \$MetaDataVersion/odm:ItemGroupDef[@OID='$ItemGroupOID']
     return
     <ItemGroupDef>
@@ -758,7 +759,7 @@ class bocdiscoo extends CommonFunctions
     ";
 
     try{
-      $results = $this->m_ctrl->socdiscoo($SubjectKey)->query($query);
+      $results = $this->m_ctrl->socdiscoo()->query($query);
     }catch(xmlexception $e){
       $str= "Erreur de la requete : " . $e->getMessage() . " " . $query ." (". __METHOD__ .")";
       $this->addLog($str,FATAL);
@@ -937,8 +938,8 @@ class bocdiscoo extends CommonFunctions
     $this->addLog("bocdiscoo->checkMandatoryData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey)", TRACE);
 
     $query = "
-        let \$SubjectData := collection('$SubjectKey.dbxml')/odm:ODM/odm:ClinicalData/odm:SubjectData
-        let \$MetaDataVersion := collection('MetaDataVersion.dbxml')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
+        let \$SubjectData := collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData
+        let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
         return
             <errors>
             {       
@@ -975,7 +976,7 @@ class bocdiscoo extends CommonFunctions
             </errors>
         ";
     try{
-      $errors = $this->m_ctrl->socdiscoo($SubjectKey)->query($query);
+      $errors = $this->m_ctrl->socdiscoo()->query($query);
     }catch(xmlexception $e){
       $str = "Erreur de la requete : " . $e->getMessage() . " " . $query ." (". __METHOD__ .")";
       $this->addLog($str,FATAL);
@@ -1013,7 +1014,7 @@ class bocdiscoo extends CommonFunctions
       if($error['FormalExpression']!=""){
         $testXQuery = $macros . $this->getXQueryConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$error);//-
         try{
-          $ctrlResult = $this->m_ctrl->socdiscoo($SubjectKey)->query($testXQuery);
+          $ctrlResult = $this->m_ctrl->socdiscoo()->query($testXQuery);
         }catch(xmlexception $e){
           //L'erreur est probablement liée à l"ecriture du contrôle contenu dans les metadatas,
           //ainsi on présente cela d'une façon élégante à l'utilsateur. On conserve la notification par e-mail,
@@ -1069,7 +1070,7 @@ class bocdiscoo extends CommonFunctions
 
     //Recuperation de la visite à inserer
     $query = "
-          let \$StudyEventData := collection('$SubjectKeySource.dbxml')/odm:ODM/odm:ClinicalData/odm:SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID']
+          let \$StudyEventData := collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKeySource']/odm:ClinicalData/odm:SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID']
           return
             <StudyEventData xmlns='" . ODM_NAMESPACE . "' StudyEventOID='$StudyEventOID'>
               {
@@ -1088,7 +1089,7 @@ class bocdiscoo extends CommonFunctions
 
     //Ouverture du patient cible
     try{
-      $subj = $this->m_ctrl->socdiscoo()->getDocument("$SubjectKeyDest.dbxml",$SubjectKeyDest,false);
+      $subj = $this->m_ctrl->socdiscoo()->getDocument("ClinicalData",$SubjectKeyDest,false);
     }catch(xmlexception $e){
       $str= "Patient $SubjectKey non trouvé dans la base : " . $e->getMessage() ." (". __METHOD__ .")";
       $this->addLog($str,FATAL);
@@ -1097,7 +1098,7 @@ class bocdiscoo extends CommonFunctions
 
     //Recuperation du dernier StudyEventRepeatKey
     $query = "
-          let \$StudyEventRepeatKey := max(collection('$SubjectKeyDest.dbxml')/odm:ODM/odm:ClinicalData/odm:SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID']/@StudyEventRepeatKey)
+          let \$StudyEventRepeatKey := max(collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKeyDest']/odm:ClinicalData/odm:SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID']/@StudyEventRepeatKey)
           return
             <StudyEventRepeatKey max='{\$StudyEventRepeatKey}'/>
          ";
@@ -1131,7 +1132,7 @@ class bocdiscoo extends CommonFunctions
     }
 
     //Mise à jour de notre document dans la base
-    $this->m_ctrl->socdiscoo()->replaceDocument($subj);
+    $this->m_ctrl->socdiscoo()->replaceDocument($subj,false,"ClinicalData");
 
     return $newRepeatKey;
   }
@@ -1172,7 +1173,7 @@ class bocdiscoo extends CommonFunctions
     }
     
     $query = "
-      let \$SubjectData := collection('$SubjectKey.dbxml')/odm:ODM/odm:ClinicalData/odm:SubjectData
+      let \$SubjectData := collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData
       let \$value := count(\$SubjectData/$path/odm:*[@ItemOID])
       return
         <result value='{\$value}' />
@@ -1195,7 +1196,7 @@ class bocdiscoo extends CommonFunctions
 */
   function enrolNewSubject()
   {
-    $newSubj = $this->m_ctrl->socdiscoo()->getDocument("BLANK.dbxml",'BLANK');
+    $newSubj = $this->m_ctrl->socdiscoo()->getDocument("ClinicalData",$this->config('BLANK_OID'));
 
     //Calcul du nouveau numéro patient
     $subjKey = $this->getNewPatientID($site);
@@ -1208,7 +1209,7 @@ class bocdiscoo extends CommonFunctions
     $newSubj->ClinicalData->SubjectData['SubjectKey'] = $subjKey;
 
     //Enregistrement de notre patient
-    $this->m_ctrl->socdiscoo($subjKey,true)->addDocument($newSubj->asXML(),true);
+    $this->m_ctrl->socdiscoo()->addDocument($newSubj->asXML(),true,"ClinicalData");
 
     return $newSubj['FileOID'];
   }
@@ -1217,8 +1218,8 @@ class bocdiscoo extends CommonFunctions
   function getAnnotedCRF($FormOID)
   {
     $this->addLog("bocdiscoo->getAnnotedCRF($FormOID)",INFO);
-    $query = "let \$SubjectData := collection('BLANK.dbxml')/odm:ODM/odm:ClinicalData/odm:SubjectData
-              let \$MetaDataVersion := collection('MetaDataVersion.dbxml')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
+    $query = "let \$SubjectData := collection('ClinicalData')/odm:ODM[@FileOID='BLANK']/odm:ClinicalData/odm:SubjectData
+              let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
               for \$ItemGroupRef in \$MetaDataVersion/odm:FormDef[@OID='$FormOID']/odm:ItemGroupRef
                 let \$ItemGroupDef := \$MetaDataVersion/odm:ItemGroupDef[@OID=\$ItemGroupRef/@ItemGroupOID]
                 for \$ItemRef in \$ItemGroupDef/odm:ItemRef
@@ -1259,8 +1260,8 @@ class bocdiscoo extends CommonFunctions
 
               declare function local:getDecode(\$ItemData as node()*) as xs:string?
               {
-                let \$SubjectData := collection('$SubjectKey.dbxml')/odm:ODM/odm:ClinicalData/odm:SubjectData
-                let \$MetaDataVersion := collection('MetaDataVersion.dbxml')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
+                let \$SubjectData := collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData
+                let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
                 let \$value := local:getLastValue(\$ItemData)
                 let \$CodeListOID := \$MetaDataVersion/odm:ItemDef[@OID=\$ItemData/@ItemOID]/odm:CodeListRef/@CodeListOID
                 return
@@ -1269,7 +1270,7 @@ class bocdiscoo extends CommonFunctions
                   else \$value
               };
         
-              let \$SubjectData := collection('$SubjectKey.dbxml')/odm:ODM/odm:ClinicalData/odm:SubjectData
+              let \$SubjectData := collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData
               let \$StudyEventData := \$SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']
               let \$ItemGroupData := \$StudyEventData/odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']/odm:ItemGroupData[@ItemGroupOID='$ItemGroupOID' and @ItemGroupRepeatKey='$ItemGroupRepeatKey']
               let \$ItemDatas := \$ItemGroupData/odm:*[@ItemOID='$ItemOID']
@@ -1297,7 +1298,7 @@ class bocdiscoo extends CommonFunctions
               ";
 
     try{
-      $doc = $this->m_ctrl->socdiscoo($SubjectKey)->query($query,false);
+      $doc = $this->m_ctrl->socdiscoo()->query($query,false);
     }catch(xmlexception $e){
       $str = __METHOD__." Erreur de la requete : " . $e->getMessage() . " " . $query ." (". __METHOD__ .")";
       $this->addLog($str,FATAL);
@@ -1315,7 +1316,7 @@ class bocdiscoo extends CommonFunctions
   */
   function getCodelist($metaDataVersionOID,$CodeListOID,$lang)
   {
-    $query = "let \$MetaDataVersion := collection('MetaDataVersion.dbxml')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID='$metaDataVersionOID']
+    $query = "let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID='$metaDataVersionOID']
               let \$CL := \$MetaDataVersion/odm:CodeList[@OID='$CodeListOID']
               for \$CLItem in \$CL/odm:CodeListItem
               return
@@ -1365,9 +1366,9 @@ class bocdiscoo extends CommonFunctions
         return \$ItemData[last()]/string()
       };
       
-      let \$SubjectData := collection('$SubjectKey.dbxml')/odm:ODM/odm:ClinicalData/odm:SubjectData
+      let \$SubjectData := collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData
       let \$value := local:getLastValue(\$SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' $andStudyEventRepeatKey]/odm:FormData[@FormOID='$FormOID' $andFormRepeatKey]/odm:ItemGroupData[@ItemGroupOID='$ItemGroupOID' $andItemGroupRepeatKey and (@TransactionType!='Remove' or not(@TransactionType))]/odm:*[@ItemOID='$ItemOID'])
-      let \$MetaDataVersion := doc(concat('MetaDataVersion.dbxml/',\$SubjectData/../@MetaDataVersionOID))/odm:ODM/odm:Study/odm:MetaDataVersion
+      let \$MetaDataVersion := doc(concat('MetaDataVersion/',\$SubjectData/../@MetaDataVersionOID))/odm:ODM/odm:Study/odm:MetaDataVersion
       let \$codeListOID := \$MetaDataVersion/odm:ItemDef[@OID='$ItemOID']/odm:CodeListRef/@CodeListOID
       let \$decodedValue := \$MetaDataVersion/odm:CodeList[@OID=\$codeListOID]/odm:CodeListItem[@CodedValue=\$value]/odm:Decode/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()
       return
@@ -1375,7 +1376,7 @@ class bocdiscoo extends CommonFunctions
     ";
     
     try{
-      $doc = $this->m_ctrl->socdiscoo($SubjectKey)->query($query);
+      $doc = $this->m_ctrl->socdiscoo()->query($query);
     }catch(xmlexception $e){
       $str = "Erreur de la requete : " . $e->getMessage() . "<br/><br/>" . $query . "</html> (". __METHOD__ .")";
       $this->addLog($str,FATAL);
@@ -1416,7 +1417,7 @@ class bocdiscoo extends CommonFunctions
     */
     
     $query = "
-                let \$MetaDataVersion := collection('MetaDataVersion.dbxml')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID='$MetaDataVersionOID']
+                let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID='$MetaDataVersionOID']
                 let \$StudyEventDefs := \$MetaDataVersion/odm:StudyEventDef
                 let \$FormDefs := \$MetaDataVersion/odm:FormDef
                 let \$ItemGroupDefs := \$MetaDataVersion/odm:ItemGroupDef
@@ -1496,7 +1497,7 @@ class bocdiscoo extends CommonFunctions
     }
     
     $query = "
-              let \$SubjectData := collection('$SubjectKey.dbxml')/odm:ODM/odm:ClinicalData/odm:SubjectData
+              let \$SubjectData := collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData
               for \$FormData in \$SubjectData/odm:StudyEventData$whereStudy/
                                                    odm:FormData$whereNotEmpty
               return
@@ -1508,7 +1509,7 @@ class bocdiscoo extends CommonFunctions
              ";
 
     try{
-      $FormDatas = $this->m_ctrl->socdiscoo($SubjectKey)->query($query);
+      $FormDatas = $this->m_ctrl->socdiscoo()->query($query);
     }catch(xmlexception $e){
       $str = "<html>Erreur de la requete : " . htmlentities($e->getMessage()) . "<br/><br/>" . htmlentities($query) . "</html> (". __METHOD__ .")";
       $this->addLog("Erreur : getItemGroupData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey) => $str",FATAL);
@@ -1520,8 +1521,8 @@ class bocdiscoo extends CommonFunctions
   function getItemDataTypes($igoid, $subj)
   {
               
-    $query = "  let \$SubjectData := collection('$subj.dbxml')/odm:ODM/odm:ClinicalData/odm:SubjectData
-                let \$Meta := collection('MetaDataVersion.dbxml')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
+    $query = "  let \$SubjectData := collection('ClinicalData')/odm:ODM[@FileOID='$subj']/odm:ClinicalData/odm:SubjectData
+                let \$Meta := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
                 return
                     <Types>
                     {
@@ -1556,7 +1557,7 @@ class bocdiscoo extends CommonFunctions
   public function getItemGroupData($SubjectKey,$StudyEventOID,$FormOID,$ItemGroupOID,$RepeatKey)
   {
     $query = "
-              let \$SubjectData := collection('$SubjectKey.dbxml')/odm:ODM/odm:ClinicalData/odm:SubjectData
+              let \$SubjectData := collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData
               let \$ItemGroupData := \$SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID']/
                                                    odm:FormData[@FormOID='$FormOID']/
                                                    odm:ItemGroupData[@ItemGroupOID='$ItemGroupOID' and (@ItemGroupRepeatKey='$RepeatKey' or not(@ItemGroupRepeatKey))]
@@ -1569,7 +1570,7 @@ class bocdiscoo extends CommonFunctions
              ";
 
     try{
-    $ItemGroupData = $this->m_ctrl->socdiscoo($SubjectKey)->query($query);
+    $ItemGroupData = $this->m_ctrl->socdiscoo()->query($query);
     }catch(xmlexception $e){
       $str = "<html>Erreur de la requete : " . htmlentities($e->getMessage()) . "<br/><br/>" . htmlentities($query) . "</html> (". __METHOD__ .")";
       $this->addLog("Erreur : getItemGroupData($SubjectKey,$StudyEventOID,$FormOID,$ItemGroupOID,$RepeatKey) => $str",FATAL);
@@ -1588,7 +1589,7 @@ class bocdiscoo extends CommonFunctions
   {
     $this->addLog("bocdiscoo->getItemGroupDatas($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey)",INFO);
     $query = "
-              let \$SubjectData := collection('$SubjectKey.dbxml')/odm:ODM/odm:ClinicalData/odm:SubjectData
+              let \$SubjectData := collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData
               let \$FormData := \$SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey' or 
                                                                  '$StudyEventOID'='' and '$StudyEventRepeatKey'='']/
                                               odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey' or 
@@ -1601,7 +1602,7 @@ class bocdiscoo extends CommonFunctions
              ";
 
     try{
-    $ItemGroupData = $this->m_ctrl->socdiscoo($SubjectKey)->query($query);
+    $ItemGroupData = $this->m_ctrl->socdiscoo()->query($query);
     }catch(xmlexception $e){
       $str = "<html>Erreur de la requete : " . htmlentities($e->getMessage()) . "<br/><br/>" . htmlentities($query) . "</html> (". __METHOD__ .")";
       $this->addLog("Erreur : getItemGroupData($SubjectKey,$StudyEventOID,$FormOID,$ItemGroupOID,$RepeatKey) => $str",FATAL);
@@ -1616,7 +1617,7 @@ class bocdiscoo extends CommonFunctions
   {
     $this->addLog("bocdiscoo->getItemGroupDataCount($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey)",TRACE);
     $query = "
-              let \$SubjectData := collection('$SubjectKey.dbxml')/odm:ODM/odm:ClinicalData/odm:SubjectData
+              let \$SubjectData := collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData
               let \$FormData := \$SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey' or 
                                                                  '$StudyEventOID'='' and '$StudyEventRepeatKey'='']/
                                               odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey' or 
@@ -1627,7 +1628,7 @@ class bocdiscoo extends CommonFunctions
              ";
 
     try{
-    $ItemGroupDataCount = $this->m_ctrl->socdiscoo($SubjectKey)->query($query);
+    $ItemGroupDataCount = $this->m_ctrl->socdiscoo()->query($query);
     }catch(xmlexception $e){
       $str = "<html>xQuery error : " . htmlentities($e->getMessage()) . "<br/><br/>" . htmlentities($query) . "</html> (". __METHOD__ .")";
       $this->addLog("Erreur : getItemGroupDataCount($SubjectKey,$StudyEventOID,$FormOID,$ItemGroupOID,$RepeatKey) => $str",FATAL);
@@ -1852,7 +1853,7 @@ class bocdiscoo extends CommonFunctions
         
         declare function local:getAnnotation(\$ItemData as node()*) as xs:string?
         {
-          let \$ClinicalData := collection('$SubjectKey.dbxml')/odm:ODM/odm:ClinicalData
+          let \$ClinicalData := collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData
           let \$AnnotationId := \$ItemData[last()]/@AnnotationID
           return
             if(\$AnnotationId)
@@ -1869,15 +1870,13 @@ class bocdiscoo extends CommonFunctions
   */
   protected function getNewPatientID()
   {   
-    $clinicalCollection = $this->m_ctrl->socdiscoo()->getClinicalDataCollection();
-    
-    $query = "let \$SubjectsCol := $clinicalCollection
-              let \$maxSubjId := max(\$SubjectsCol/odm:ODM/odm:ClinicalData/odm:SubjectData[@SubjectKey!='BLANK']/@SubjectKey)
+    $query = "let \$SubjectsCol := collection('ClinicalData')
+              let \$maxSubjId := max(\$SubjectsCol/odm:ODM/odm:ClinicalData/odm:SubjectData[@SubjectKey!='". $this->config('BLANK_OID') ."']/@SubjectKey)
               return <MaxSubjId>{\$maxSubjId}</MaxSubjId>";   
     
     try
     {
-      $Result = $this->m_ctrl->socdiscoo()->query($query, true, true);
+      $Result = $this->m_ctrl->socdiscoo()->query($query, true);
     }
     catch(xmlexception $e)
     {
@@ -1885,9 +1884,10 @@ class bocdiscoo extends CommonFunctions
       $this->addLog("bocdiscoo->getNewPatientID() Erreur : $str",FATAL);
       die($str);
     }
-    if($ligneResult = $Result->next())
+    
+    if($ligneResult = $Result[0])
     {
-      $subjKey = $ligneResult->asString() + 1;
+      $subjKey = (string)$ligneResult + 1;
     }
     else
     {
@@ -1969,10 +1969,10 @@ class bocdiscoo extends CommonFunctions
                   else \$value
               };
         
-              let \$SubjectData := collection('$SubjectKey.dbxml')/odm:ODM/odm:ClinicalData/odm:SubjectData
+              let \$SubjectData := collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData
               let \$StudyEventData := \$SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']
-              let \$MetaDataVersion := collection('MetaDataVersion.dbxml')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
-              let \$BasicDefinitions := collection('MetaDataVersion.dbxml')/odm:ODM/odm:Study/odm:BasicDefinitions[../odm:MetaDataVersion/@OID=\$SubjectData/../@MetaDataVersionOID]
+              let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
+              let \$BasicDefinitions := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:BasicDefinitions[../odm:MetaDataVersion/@OID=\$SubjectData/../@MetaDataVersionOID]
 
               let \$SiteId := \$SubjectData/odm:StudyEventData[@StudyEventOID='{$this->m_tblConfig['SUBJECT_LIST']['COLS']['SITEID']['Value']['SEOID']}' and @StudyEventRepeatKey='{$this->m_tblConfig['SUBJECT_LIST']['COLS']['SITEID']['Value']['SERK']}']/
                                                         odm:FormData[@FormOID='{$this->m_tblConfig['SUBJECT_LIST']['COLS']['SITEID']['Value']['FRMOID']}' and @FormRepeatKey='{$this->m_tblConfig['SUBJECT_LIST']['COLS']['SITEID']['Value']['FRMRK']}']/
@@ -2084,7 +2084,7 @@ class bocdiscoo extends CommonFunctions
               ";
 
     try{
-      $doc = $this->m_ctrl->socdiscoo($SubjectKey)->query($query,false);
+      $doc = $this->m_ctrl->socdiscoo()->query($query,false);
     }catch(xmlexception $e){
       $str = "bocdiscoo->getStudyEventForms() Erreur de la requete : " . $e->getMessage() . " " . $query ." (". __METHOD__ .")";
       $this->addLog($str,FATAL);
@@ -2121,8 +2121,6 @@ class bocdiscoo extends CommonFunctions
       }
     }
 
-    $clinicalCollection = $this->m_ctrl->socdiscoo()->getClinicalDataCollection();
-    
     //L'audit trail engendre plusieurs ItemData avec le même ItemOID, ce qui nous oblige
     //pour chaque item à rechercher le dernier en regardant l'attribut AuditRecordID qui est le plus grand, et ce pour chaque item
     $query = "
@@ -2134,7 +2132,7 @@ class bocdiscoo extends CommonFunctions
 
           <subjs>
               {
-                let \$SubjectsCol := $clinicalCollection
+                let \$SubjectsCol := collection('ClinicalData')
                 for \$SubjectData in \$SubjectsCol/odm:ODM/odm:ClinicalData/odm:SubjectData
 				        let \$FileOID := \$SubjectData/../../@FileOID
                 ";
@@ -2178,12 +2176,12 @@ class bocdiscoo extends CommonFunctions
   {
     $this->addLog("bocdiscoo->getSubjectStatus($SubjectKey)",INFO);
 
-    $query = "let \$value := collection('$SubjectKey.dbxml')/odm:ODM/odm:ClinicalData/odm:SubjectData/odm:Annotation[odm:Flag/odm:FlagValue[@CodeListOID='CL.SSTATUS']]/odm:Flag/odm:FlagValue/string()
+    $query = "let \$value := collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData/odm:Annotation[odm:Flag/odm:FlagValue[@CodeListOID='CL.SSTATUS']]/odm:Flag/odm:FlagValue/string()
               return
                 <result value='{\$value}' />";
 
     try{
-      $doc = $this->m_ctrl->socdiscoo($SubjectKey)->query($query);
+      $doc = $this->m_ctrl->socdiscoo()->query($query);
     }catch(xmlexception $e){
       $str = "Erreur de la requete : " . $e->getMessage() . " : " . $query;
       $this->addLog("bocdiscoo->getSubjectStatus() Erreur : $str",TRACE);
@@ -2200,7 +2198,7 @@ class bocdiscoo extends CommonFunctions
   public function getStudyEventList()
   {
     $query = "
-        let \$MetaDataVersion := collection('MetaDataVersion.dbxml')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID='".$this->m_tblConfig['METADATAVERSION']."']
+        let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID='".$this->m_tblConfig['METADATAVERSION']."']
         for \$StudyEventRef in \$MetaDataVersion/odm:Protocol/odm:StudyEventRef
         let \$StudyEventDef := \$MetaDataVersion/odm:StudyEventDef[@OID=\$StudyEventRef/@StudyEventOID] 
         return
@@ -2218,17 +2216,19 @@ class bocdiscoo extends CommonFunctions
   }
 
   /**
-   *Get all subject forms and visitq, with lock status for each form
+   *Get all subject forms and visits, with lock status for each form
    @return array 
    *@author wlt     
    **/  
   function getSubjectTblForm($SubjectKey)
   {
     $this->addLog("bocdiscoo->getSubjectTblForm($SubjectKey)",INFO);
-    $query = "        
-        let \$SubjectData := collection('$SubjectKey.dbxml')/odm:ODM/odm:ClinicalData/odm:SubjectData
+    $query = "     
+        (: let \$SubjectData := collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData :)
+        
+        let \$SubjectData := index-scan('SubjectODM', '$SubjectKey', 'EQ')/odm:ClinicalData/odm:SubjectData
 
-        let \$MetaDataVersion := collection('MetaDataVersion.dbxml')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
+        let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
         return
           <SubjectData>
           {
@@ -2274,7 +2274,11 @@ class bocdiscoo extends CommonFunctions
           </SubjectData>";
 
     try{
-    $doc = $this->m_ctrl->socdiscoo($SubjectKey)->query($query,false);
+      //$start = microtime();
+      $doc = $this->m_ctrl->socdiscoo()->query($query,false);
+      //$stop = microtime();
+      //echo "-duration-".($stop-$start);
+      //$this->dumpPre($doc->saveXML());
     }catch(xmlexception $e){
       $str = "Error in xQuery : " . $e->getMessage() . "<br/><br/>" . $query . "</html> (". __METHOD__ .")";
       $this->addLog($str,FATAL);
@@ -2296,6 +2300,7 @@ class bocdiscoo extends CommonFunctions
       
       //Loop through forms
       foreach($visit->childNodes as $form){
+        if($form->nodeType!=1) continue; //tpi, why are there some DOMText ?
         if(!$form->hasAttribute('Status')){
           $nbForm++;
           $FormOID = $form->getAttribute('FormOID');
@@ -2313,7 +2318,7 @@ class bocdiscoo extends CommonFunctions
               $frmStatus = "FROZEN";
               $nbFormFrozen++;  
             }else{
-              $frmStatus = $this->m_ctrl->boqueries()->getFormStatus($SubjectKey,$StudyEventOID ,$StudyEventRepeatKey, $FormOID,$FormRepeatKey);
+              $frmStatus = $this->m_ctrl->boqueries()->getFormStatus($SubjectKey, $StudyEventOID ,$StudyEventRepeatKey, $FormOID, $FormRepeatKey);
             }           
           }
           $form->setAttribute("Status",$frmStatus);
@@ -2379,14 +2384,14 @@ class bocdiscoo extends CommonFunctions
         return \$ItemData[last()]/string()
       };
       
-      let \$SubjectData := collection('$SubjectKey.dbxml')/odm:ODM/odm:ClinicalData/odm:SubjectData
+      let \$SubjectData := collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData
       let \$value := local:getLastValue(\$SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' $andStudyEventRepeatKey]/odm:FormData[@FormOID='$FormOID' $andFormRepeatKey]/odm:ItemGroupData[true() $andItemGroupOID $andItemGroupRepeatKey and (@TransactionType!='Remove' or not(@TransactionType)) $whereIGString]/odm:*[@ItemOID='$ItemOID'])
       return
         <result value='{\$value}' />
     ";
     
     try{
-      $doc = $this->m_ctrl->socdiscoo($SubjectKey)->query($query);
+      $doc = $this->m_ctrl->socdiscoo()->query($query);
     }catch(xmlexception $e){
       $str = "Erreur de la requete : " . $e->getMessage() . "<br/><br/>" . $query . "</html> (". __METHOD__ .")";
       $this->addLog($str,FATAL);
@@ -2487,8 +2492,8 @@ class bocdiscoo extends CommonFunctions
       let \$FormRepeatKey := '$FormRepeatKey'
       let \$ItemGroupOID := '{$ctrl['ItemGroupOID']}'
       let \$ItemGroupRepeatKey := '{$ctrl['ItemGroupRepeatKey']}'
-      let \$SubjectData := collection('$SubjectKey.dbxml')/odm:ODM/odm:ClinicalData/odm:SubjectData
-      let \$MetaDataVersion := collection('MetaDataVersion.dbxml')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
+      let \$SubjectData := collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData
+      let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
       let \$StudyEventData := \$SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']
       let \$FormData := \$StudyEventData/odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']
       let \$ItemGroupData := \$FormData/odm:ItemGroupData[@ItemGroupOID='{$ctrl['ItemGroupOID']}' and @ItemGroupRepeatKey='{$ctrl['ItemGroupRepeatKey']}']
@@ -2523,12 +2528,17 @@ class bocdiscoo extends CommonFunctions
   public function removeFormData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey)
   {
     $this->addLog("bocdiscoo->removeFormData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey)",INFO);
-
-    $query = "replace value of node collection('$SubjectKey.dbxml')/odm:ODM/odm:ClinicalData/odm:SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']/odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']/@TransactionType 
+    
+    /*
+    $query = "replace value of node collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']/odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']/@TransactionType 
               with 'Remove'";
+    */
+    //SEDNA 3.5 syntax (still not conform with the XQuery Update Facility 1.0)
+    $query = "UPDATE REPLACE \$x in collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']/odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']/@TransactionType
+              WITH attribute {'TransactionType'} {'Remove'}";
 
     try{
-      $res = $this->m_ctrl->socdiscoo($SubjectKey)->query($query);
+      $res = $this->m_ctrl->socdiscoo()->query($query);
     }catch(xmlexception $e){
       $str = "Erreur de la requete : " . $e->getMessage() . " : " . $query;
       $this->addLog("bocdiscoo->removeItemGroupData() Erreur : $str",FATAL);
@@ -2539,12 +2549,16 @@ class bocdiscoo extends CommonFunctions
   public function removeItemGroupData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey)
   {
     $this->addLog("bocdiscoo->removeItemGroupData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey)",INFO);
-
-    $query = "replace value of node collection('$SubjectKey.dbxml')/odm:ODM/odm:ClinicalData/odm:SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']/odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']/odm:ItemGroupData[@ItemGroupOID='$ItemGroupOID' and @ItemGroupRepeatKey='$ItemGroupRepeatKey']/@TransactionType 
+    /*
+    $query = "replace value of node collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']/odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']/odm:ItemGroupData[@ItemGroupOID='$ItemGroupOID' and @ItemGroupRepeatKey='$ItemGroupRepeatKey']/@TransactionType 
               with 'Remove'";
+    */
+    //SEDNA 3.5 syntax (still not conform with the XQuery Update Facility 1.0)
+    $query = "UPDATE REPLACE \$x in collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']/odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']/odm:ItemGroupData[@ItemGroupOID='$ItemGroupOID' and @ItemGroupRepeatKey='$ItemGroupRepeatKey']/@TransactionType
+              WITH attribute {'TransactionType'} {'Remove'}";
 
     try{
-      $res = $this->m_ctrl->socdiscoo($SubjectKey)->query($query);
+      $res = $this->m_ctrl->socdiscoo()->query($query);
     }catch(xmlexception $e){
       $str = "Erreur de la requete : " . $e->getMessage() . " : " . $query;
       $this->addLog("bocdiscoo->removeItemGroupData() Erreur : $str",FATAL);
@@ -2567,7 +2581,7 @@ class bocdiscoo extends CommonFunctions
       
       //DomDocument of Subject
       try{
-        $subj = $this->m_ctrl->socdiscoo($SubjectKey)->getDocument("$SubjectKey.dbxml",$SubjectKey,false);
+        $subj = $this->m_ctrl->socdiscoo()->getDocument("ClinicalData",$SubjectKey,false);
       }catch(xmlexception $e){
         $str= "(". __METHOD__ .") Patient $SubjectKey not found : " . $e->getMessage();
         $this->addLog($str,FATAL);
@@ -2741,8 +2755,8 @@ class bocdiscoo extends CommonFunctions
       //a partir du FormOID et de l'ItemGroupOID
       //On regarde également pour chaque item si nous avions une valeur précédente (utile pour le TransactionType)
       $query = "
-      let \$SubjectData := collection('$SubjectKey.dbxml')/odm:ODM/odm:ClinicalData/odm:SubjectData
-      let \$MetaDataVersion := collection('MetaDataVersion.dbxml')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
+      let \$SubjectData := collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData
+      let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
       let \$ItemGroupRef := \$MetaDataVersion/odm:FormDef[@OID='$FormOID']/odm:ItemGroupRef[@ItemGroupOID='$ItemGroupOID']
       let \$ItemGroupDef := \$MetaDataVersion/odm:ItemGroupDef[@OID=\$ItemGroupRef/@ItemGroupOID]
       return
@@ -2772,7 +2786,7 @@ class bocdiscoo extends CommonFunctions
       ";
   
       try{
-        $results = $this->m_ctrl->socdiscoo($SubjectKey)->query($query);
+        $results = $this->m_ctrl->socdiscoo()->query($query);
         $this->addLog("bocdiscoo()->saveItemGroupData() : results = ".$this->dumpRet($results),TRACE);
       }catch(xmlexception $e){
         $str = "Erreur de la requete : " . $e->getMessage() . " " . $query ." (".__METHOD__.")";
@@ -2882,7 +2896,7 @@ class bocdiscoo extends CommonFunctions
       //Update XML DB only if needed
       if($hasModif)
       { 
-        $this->m_ctrl->socdiscoo($SubjectKey)->replaceDocument($subj);      
+        $this->m_ctrl->socdiscoo()->replaceDocument($subj,false,"ClinicalData");      
       }
     }
     catch(Exception $e)
@@ -2900,18 +2914,28 @@ met à jour le statut FROZEN / FILLED / INCONSISTENT / PARTIAL / EMPTY d'un Item
   protected function setItemGroupStatus($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$status)
   {
     $this->addLog("bocdiscoo->setItemGroupStatus($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$status)",INFO);
-
-    $query = "replace value of node collection('$SubjectKey.dbxml')
-                                          /odm:ODM/odm:ClinicalData/odm:SubjectData
+    
+    /*
+    $query = "replace value of node collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']
+                                          /odm:ClinicalData/odm:SubjectData
                                           /odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']
                                           /odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']
                                           /odm:ItemGroupData[@ItemGroupOID='$ItemGroupOID' and @ItemGroupRepeatKey='$ItemGroupRepeatKey']
-                                          /odm:Annotation/odm:Flag[odm:FlagType/@CodeListOID='CL.FLAGTYPE']/odm:FlagValue 
+                                          /odm:Annotation/odm:Flag[odm:FlagType/@CodeListOID='CL.FLAGTYPE']/odm:FlagValue
               with '$status'";
+    */
+    //SEDNA 3.5 syntax (still not conform with the XQuery Update Facility 1.0)
+    $query = "UPDATE REPLACE \$x in collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']
+                                          /odm:ClinicalData/odm:SubjectData
+                                          /odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']
+                                          /odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']
+                                          /odm:ItemGroupData[@ItemGroupOID='$ItemGroupOID' and @ItemGroupRepeatKey='$ItemGroupRepeatKey']
+                                          /odm:Annotation/odm:Flag[odm:FlagType/@CodeListOID='CL.FLAGTYPE']/odm:FlagValue
+             WITH <odm:FlagValue CodeListOID=\"CL.IGSTATUS\">$status</odm:FlagValue>";
+    
 
     try{
-      $this->m_ctrl->socdiscoo($SubjectKey)->lock("$SubjectKey.dbxml",LOCK_EX);
-      $res = $this->m_ctrl->socdiscoo($SubjectKey)->query($query,true,false);
+      $res = $this->m_ctrl->socdiscoo()->query($query,true,false);
     }catch(xmlexception $e){
       $str = "Erreur de la requete : " . $e->getMessage() . " : " . $query;
       $this->addLog("bocdiscoo->setItemGroupStatus() Erreur : $str",TRACE);
@@ -2949,14 +2973,19 @@ public function setLock($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID
   public function setSubjectStatus($SubjectKey,$status)
   {
     $this->addLog("bocdiscoo->setSubjectStatus($SubjectKey,$status)",INFO);
-
-    $query = "replace value of node collection('$SubjectKey.dbxml')
-                                          /odm:ODM/odm:ClinicalData/odm:SubjectData/odm:Annotation/odm:Flag[odm:FlagType/@CodeListOID='CL.FLAGTYPE']/odm:FlagValue 
+    
+    /*
+    $query = "replace value of node collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']
+                                            /odm:ClinicalData/odm:SubjectData/odm:Annotation/odm:Flag[odm:FlagType/@CodeListOID='CL.FLAGTYPE']/odm:FlagValue 
               with '$status'";
+    */
+    //SEDNA 3.5 syntax (still not conform with the XQuery Update Facility 1.0)
+    $query = "UPDATE REPLACE \$x in collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']
+                                            /odm:ClinicalData/odm:SubjectData/odm:Annotation/odm:Flag[odm:FlagType/@CodeListOID='CL.FLAGTYPE']/odm:FlagValue
+             WITH <odm:FlagValue CodeListOID=\"CL.SSTATUS\">$status</odm:FlagValue>";
 
     try{
-      $this->m_ctrl->socdiscoo($SubjectKey)->lock("$SubjectKey.dbxml",LOCK_EX);
-      $res = $this->m_ctrl->socdiscoo($SubjectKey)->query($query);
+      $res = $this->m_ctrl->socdiscoo()->query($query);
     }catch(xmlexception $e){
       $str = "Erreur de la requete : " . $e->getMessage() . " : " . $query;
       $this->addLog("bocdiscoo->setSubjectStatus() Erreur : $str",TRACE);

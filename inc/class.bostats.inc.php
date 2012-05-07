@@ -35,14 +35,13 @@ class bostats extends CommonFunctions
   {
 
     $this->addLog("bocstats->getSiteStats($sitelist)",INFO);
-    $clinicalCollection = $this->m_ctrl->socdiscoo()->getClinicalDataCollection();
     $query = "for \$site in $sitelist
-                let \$NbPatSite := count($clinicalCollection/odm:ODM/odm:ClinicalData/odm:SubjectData
+                let \$NbPatSite := count(collection('ClinicalData')/odm:ODM/odm:ClinicalData/odm:SubjectData
                                          [odm:StudyEventData[@StudyEventOID='".$this->m_tblConfig['SITEID']['SEOID']."']/
                                           odm:FormData[@FormOID='".$this->m_tblConfig['SITEID']['FRMOID']."']/
                                           odm:ItemGroupData[@ItemGroupOID='".$this->m_tblConfig['SITEID']['IGOID']."']/
                                           odm:ItemDataString[@ItemOID='".$this->m_tblConfig['SITEID']['ITEMOID']."']=\$site])
-                let \$NbPatWithQueries := count($clinicalCollection/odm:ODM/odm:ClinicalData/odm:SubjectData
+                let \$NbPatWithQueries := count(collection('ClinicalData')/odm:ODM/odm:ClinicalData/odm:SubjectData
                                          [odm:StudyEventData[@StudyEventOID='".$this->m_tblConfig['SITEID']['SEOID']."']/
                                           odm:FormData[@FormOID='".$this->m_tblConfig['SITEID']['FRMOID']."']/
                                           odm:ItemGroupData[@ItemGroupOID='".$this->m_tblConfig['SITEID']['IGOID']."']/
@@ -69,8 +68,6 @@ class bostats extends CommonFunctions
   function getSAElist(){
     $this->addLog("bostats->getAElist()",INFO);
     
-    $clinicalCollection = $this->m_ctrl->socdiscoo()->getClinicalDataCollection();
-    
     //L'audit trail engendre plusieurs ItemData avec le même ItemOID, ce qui nous oblige
     //pour chaque item à rechercher le dernier en regardant l'attribut AuditRecordID qui est le plus grand, et ce pour chaque item
     $query = "  
@@ -82,10 +79,10 @@ class bostats extends CommonFunctions
       
           <aes>
               { 
-                let \$SubjCol := $clinicalCollection
+                let \$SubjCol := collection('ClinicalData')
                 for \$ItemGroupDataAE in \$SubjCol/odm:ODM/odm:ClinicalData/odm:SubjectData/odm:StudyEventData[@StudyEventOID='AE']/odm:FormData[@FormOID='FORM.AE']/odm:ItemGroupData[@ItemGroupOID='AE' and @TransactionType!='Remove']
                 let \$SubjectData := \$ItemGroupDataAE/../../../../odm:SubjectData
-                let \$MetaDataVersion := collection('MetaDataVersion.dbxml')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
+                let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
                 let \$ItemGroupDataENROL := \$SubjectData/odm:StudyEventData[@StudyEventOID='1']/odm:FormData[@FormOID='FORM.ENROL']/odm:ItemGroupData[@ItemGroupOID='ENROL']
 
                 let \$SiteId := local:getLastValue(\$ItemGroupDataENROL/odm:ItemDataString[@ItemOID='ENROL.SITEID'])                

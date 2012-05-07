@@ -206,7 +206,8 @@ class uiusers extends CommonFunctions
       //Construction de la liste des profils-centre
       $htmlUser = "
       <div class='ui-grid ui-widget ui-widget-content ui-corner-all'>
-		    <div class='ui-grid-header ui-widget-header ui-corner-top'>User $userId profiles list</div>
+		    <div class='ui-grid-header ui-widget-header ui-corner-top'>User <span style='color: #dd0000;'>$userId</span> profiles list</div>
+		    <div style='text-align: left;'><a href='index.php?menuaction=".$this->getCurrentApp(false).".uietude.usersInterface&title=users'>&lt;&lt; back to user list</a></div>
         <table id='tblProfiles' class='ui-grid-content ui-widget-content'>
   			<thead>
   				<tr>

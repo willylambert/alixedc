@@ -125,10 +125,10 @@ function freezeFields(ItemOID,ItemGroupOID, CurrentItemGroupRepeatKey, bFreeze, 
 }
 
 //Mise à jour de l'image de l'annotation
-function updateAnnotPict(annotation_comment_name, annotation_picure_id)
+function updateAnnotPict(CurrentApp,annotation_comment_name, annotation_picure_id)
 {
-  var emptyPic = 'alixedc/templates/default/images/post_note_empty.gif';
-  var annotPic = 'alixedc/templates/default/images/post_note.gif';
+  var emptyPic = CurrentApp+'/templates/default/images/post_note_empty.gif';
+  var annotPic = CurrentApp+'/templates/default/images/post_note.gif';
   
   element = document.getElementsByName(annotation_comment_name);
   if(element[0].value.length>1)

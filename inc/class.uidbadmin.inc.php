@@ -44,24 +44,25 @@ class uidbadmin extends CommonFunctions{
   
   //Appel direct depuis la liste des patients (par ex)
   function viewDoc()
-  {    
+  {
+    //Check right
+    if(!$GLOBALS['egw_info']['user']['apps']['admin']){
+      $this->addLog("Unauthorized Access to Admin Module - Administrator has been notified",FATAL);
+    }
+    
     $content = ob_get_contents();
     ob_end_clean();
     
     header("content-type: text/xml");
     if(isset($_GET['asxml'])) header('Content-Disposition: attachment; filename="'.$_GET['doc'].'.xml"');
     //with SimpleXmlElement
-    if($_GET['container']=="MetaDataVersion"){
-      echo $this->m_ctrl->socdiscoo($_GET['doc'])->getDocument("MetaDataVersion.dbxml",$_GET['doc'])->asXML();
-    }else{
-      echo $this->m_ctrl->socdiscoo($_GET['doc'])->getDocument("{$_GET['doc']}.dbxml",$_GET['doc'])->asXML();
-    }
-    exit(0); 
+    echo $this->m_ctrl->socdiscoo()->getDocument($_GET['container'],$_GET['doc'])->asXML();
+    exit(0);
   }
 
   function deleteDoc()
   {
-    $this->m_ctrl->socdiscoo()->deleteDocument("{$_GET['container']}.dbxml",$_GET['doc']);
+    $this->m_ctrl->socdiscoo()->deleteDocument($_GET['container'],$_GET['doc']);
   }
   
   function getInterface()
@@ -118,6 +119,14 @@ class uidbadmin extends CommonFunctions{
                   $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
                 }
                 break;  
+
+          case 'viewDoc' : 
+                if($this->m_ctrl->boacl()->checkModuleAccess("viewDocs")){
+                  $htmlRet = $this->viewDoc();
+                }else{
+                  $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
+                }
+                break;  
                 
           case 'updateSubjectStatus' : 
                 $this->m_ctrl->bosubjects()->updateSubjectInList($_GET['doc']);
@@ -136,14 +145,7 @@ class uidbadmin extends CommonFunctions{
                 $menu
 
                 <div id='mainFormOnly' class='ui-dialog ui-widget ui-widget-content ui-corner-all'>
-                  <div class='ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix'>
-                    <span class='ui-dialog-title'>Admin</span>
-                  </div>
-                  <div class='ui-dialog-content ui-widget-content'>
-                    <div class='ui-accordion ui-widget ui-helper-reset ui-accordion-icons'>
-                    $htmlRet
-                    </div>
-                  </div>
+                  $htmlRet
                 </div>";
      return $htmlRet;      
       
@@ -154,82 +156,133 @@ class uidbadmin extends CommonFunctions{
   }
 
   private function getDefaultInterface(){
-    $menu_admin = "";
-        
-    if($this->m_ctrl->boacl()->checkModuleAccess("viewDocs"))
-    {
-      $menu_admin .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
-				                                                                        'container' => 'ClinicalData',
-                                                                                'action' => 'viewDocs'),
-                                          "ClinicalData");
-      $menu_admin .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
-				                                                                        'container' => 'MetaDataVersion',
-                                                                                'action' => 'viewDocs'),      
-                                          "MetaData");
+    $menu = "";
+    
+    if($this->m_ctrl->boacl()->checkModuleAccess("viewDocs||importDoc")){
+      if($this->m_ctrl->boacl()->checkModuleAccess("viewDocs"))
+      {
+        $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
+  				                                                                        'container' => 'ClinicalData',
+                                                                                  'action' => 'viewDocs'),
+                                            "ClinicalData");
+        $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
+  				                                                                        'container' => 'MetaDataVersion',
+                                                                                  'action' => 'viewDocs'),      
+                                            "MetaData");
+        $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
+  				                                                                        'container' => '',
+                                                                                  'action' => 'viewDocs'),      
+                                            "Root");
+      }
+      
+      if($this->m_ctrl->boacl()->checkModuleAccess("importDoc"))
+      {
+        $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
+  				                                                                        'action' => 'importDocInterface'),
+                                            "Import Metadata / ClinicalData");
+      }
+      
+      $menu .= $this->getSubMenu("Database", $submenu);
     }
     
-    if($this->m_ctrl->boacl()->checkModuleAccess("importDoc"))
-    {
-      $menu_admin .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
-				                                                                        'action' => 'importDocInterface'),
-                                          "Import Metadata / ClinicalData");
-      $menu_admin .= "<h3 class='ui-accordion-header ui-helper-reset ui-state-default ui-corner-all ui-state-highlight'><a href=\"javascript:helper.showPrompt('Please configure class.boimport.inc.php according to your purposes.', 'noon()', 1);\">Import Clinical Data</a></h3>";
+    if($this->m_ctrl->boacl()->checkModuleAccess("ManageUsers||ManageSites")){
+      $submenu = "";
+
+      if($this->m_ctrl->boacl()->checkModuleAccess("ManageUsers"))
+      {
+        $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.usersInterface',
+                                                                         'title' => urlencode(lang('Users'))),
+                                          "Users");
+      }
+  
+      if($this->m_ctrl->boacl()->checkModuleAccess("ManageSites"))
+      {
+        $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.sitesInterface',
+                                                                         'title' => urlencode(lang('Sites'))),
+                                          "Sites");
+      }
+                                            
+      $menu .= $this->getSubMenu("Accounts", $submenu);
     }
 
     if($this->m_ctrl->boacl()->checkModuleAccess("EditDocs"))
     {
-      $menu_admin .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.editorInterface',
+      $submenu = "";
+      
+      $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.editorInterface',
 			                                                                        'action' => ''),
-                                        "Editor"); 
+                                        "Editor");
+                                          
+      $menu .= $this->getSubMenu("Design", $submenu);
     }
 
-    if($this->m_ctrl->boacl()->checkModuleAccess("ManageUsers"))
+    if($this->m_ctrl->boacl()->checkModuleAccess("ExportData||importDoc"))
     {
-      $menu_admin .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.usersInterface',
-                                                                       'title' => urlencode(lang('Users'))),
-                                        "Users");
+      $submenu = "";
+      
+      if($this->m_ctrl->boacl()->checkModuleAccess("importDoc"))
+      {
+        $submenu .= "<h3 class='ui-accordion-header ui-helper-reset ui-state-default ui-corner-all ui-state-highlight'><a href=\"javascript:helper.showPrompt('Please configure class.boimport.inc.php according to your purposes.', 'noon()', 1);\">Import Clinical Data</a></h3>";
+      }
+
+      if($this->m_ctrl->boacl()->checkModuleAccess("ExportData"))
+      {
+        $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.exportInterface'),
+                                        "Data export");  
+      }
+                                          
+      $menu .= $this->getSubMenu("Clinical data", $submenu);                                                                                                                     
     }
 
-    if($this->m_ctrl->boacl()->checkModuleAccess("ManageSites"))
-    {
-      $menu_admin .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.sitesInterface',
-                                                                       'title' => urlencode(lang('Sites'))),
-                                        "Sites");
-    }
-
-    if($this->m_ctrl->boacl()->checkModuleAccess("ExportData"))
-    {
-      $menu_admin .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.exportInterface'),
-                                        "Data export");                                                                                                                       
-    }
-
-    return $menu_admin;  
+    return $menu;  
+  }
+  
+  private function getSubMenu($title,$html){
+    return "
+          <div style='width: 300px; float: left; min-height: 200px; padding: 0px 1px 0px 1px;'>
+            <div class='ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix'>
+              <span class='ui-dialog-title'>$title</span>
+            </div>
+            <div class='ui-dialog-content ui-widget-content'>
+              <div class='ui-accordion ui-widget ui-helper-reset ui-accordion-icons'>
+              $html
+              </div>
+            </div>
+          </div>";
   }
 
   private function getMainInterface($containerName)
-  {             
- 		  if($containerName=="SubjectsList"){
-        $collection = "collection('SubjectsList.dbxml')";
-      }elseif($containerName=="ClinicalData"){
-        $collection = $this->m_ctrl->socdiscoo()->getClinicalDataCollection();
-      }else{
-        $collection = "collection('MetaDataVersion.dbxml')";
-      }
+  {
+      $containerName = $_GET['container'];
+      
       //Boucle sur les documents
-      $query = "<docs>
-                {
-                let \$Col := $collection
-                for \$doc in \$Col 
-                return 
-                <doc>{dbxml:metadata('dbxml:name', \$doc)}</doc>
-                }
-                </docs>
-                "; 
+      if($containerName!=""){
+        $query = "<docs>
+                  {
+                    for \$doc in document('\$documents')/documents/collection[@name='$containerName']/document
+                    return 
+                    <doc>{\$doc/string(@name)}</doc>
+                  }
+                  </docs>
+                  ";
+      }else{
+        $query = "<docs>
+                  {
+                    for \$doc in document('\$documents')/documents/document
+                    return 
+                    <doc>{\$doc/string(@name)}</doc>
+                  }
+                  </docs>
+                  ";
+      }
 
-      try{
+      try
+      {
         $docs = $this->m_ctrl->socdiscoo()->query($query);
-      }catch(xmlexception $e){
-        $str = "xQuery error : " . $e->getMessage() . "<br/><br/>" . $query . "</html>";
+      }
+      catch(xmlexception $e)
+      {
+        $str = "Erreur de la requete : " . $e->getMessage() . "<br/><br/>" . $query . "</html>";
         die($str);
       }
             
@@ -244,72 +297,47 @@ class uidbadmin extends CommonFunctions{
 			</tr>" ;  
       
       $class = "";
-
+      
       foreach($docs[0] as $doc)
       {
-        //checking if document can be accessed
         $status = "ok";
-        try{
-          if($containerName=="SubjectsList"){
-            $xquery = "let \$FileOID := collection('SubjectsList.dbxml')/odm:ODM/@FileOID";
-          }elseif($containerName=="ClinicalData"){
-            $xquery = "let \$FileOID := collection('$doc.dbxml')/odm:ODM/@FileOID";
-          }else{
-            $xquery = "let \$FileOID := doc('MetaDataVersion.dbxml/$doc')/odm:ODM/@FileOID";
+        if($containerName!=""){
+          try{
+            $xquery = "let \$res := exists(collection('$containerName')/odm:ODM/@FileOID='$doc')
+                       return<res>{\$res}</res>";
+            $results = $this->m_ctrl->socdiscoo()->query($xquery);
+            if((string)$results[0] != 'true') throw new xmlexception("Cannot find doc('$doc')/odm:ODM/@FileOID");
+          }catch(xmlexception $e){
+            $status = "<input type='button' value='ko' onClick=\"alert('". addslashes($e->getMessage()) ."')\" />";
           }
-          $xquery .= "
-                     return
-                           <result FileOID='{\$FileOID}' />";
-          $results = $this->m_ctrl->socdiscoo()->query($xquery);
-          if((string)$results[0]['FileOID'] == '') throw new xmlexception("Cannot find doc('$containerName.dbxml/$doc')/odm:ODM/@FileOID");
-        }catch(xmlexception $e){
-          $status = "<input type='button' value='ko' onClick=\"alert('". addslashes($e->getMessage()) ."')\" />";
         }
         
         $class = ($class=="row_off" ? "row_on" : "row_off");
-        
         $htmlRet .= "
-           <tr class='$class'><td>" . $doc ."</td>
-             <td style='text-align: center;'>$status</td> 
-             <td><small><a target='_new' href='" . $GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
+           <tr class='$class' style='".($status != "ok"?'background-color: red; color: white;':'').";' onMouseOver=\"this.oldBGC = this.style.backgroundColor; this.style.backgroundColor='yellow';\" onMouseOut=\"this.style.backgroundColor=this.oldBGC;\"><td>" . $doc ."</td>
+             <td style='text-align: center;'><small>$status</small></td> 
+             <td style='text-align: center; font-weight: bold;'><small><a target='_new' href='" . $GLOBALS['egw']->link('/index.php',array('menuaction' => $GLOBALS['egw_info']['flags']['currentapp'].'.uietude.dbadminInterface',
                                                                                               'action' => 'viewDoc',
                                                                                               'container' => $containerName,
-                                                                                              'doc'=>$doc)) . "'>View</a></small></td>   
-             <td><small><a href='" . $GLOBALS['egw']->link('/index.php',array('menuaction' => $GLOBALS['egw_info']['flags']['currentapp'].'.uietude.dbadminInterface',
+                                                                                              'doc'=>$doc)) . "'>View</a></small></td>  
+             <td style='text-align: center; font-weight: bold;'><small><a href='" . $GLOBALS['egw']->link('/index.php',array('menuaction' => $GLOBALS['egw_info']['flags']['currentapp'].'.uietude.dbadminInterface',
                                                                                               'action' => 'viewDoc',
                                                                                               'container' => $containerName,
                                                                                               'doc'=>$doc,
-                                                                                              'asxml'=>'true')) . "'>Download</a></small></td>
-             <td><small><a href='" . $GLOBALS['egw']->link('/index.php',array('menuaction' => $GLOBALS['egw_info']['flags']['currentapp'].'.uietude.dbadminInterface',
-                                                                                              'action' => 'updateSubjectStatus',
-                                                                                              'container' => $containerName,
-                                                                                              'doc'=>$doc)) . "'>Update Subject Status</a></small></td>
-             <td><small><a href=\"javascript:deleteDocument('".$doc."')\">Delete</a></small></td>
-
-           </tr>";        
+                                                                                              'asxml'=>'true')) . "'>Download</a></small></td>                       
+             <td style='text-align: center; font-weight: bold;'><small><a href=\"javascript:deleteDocument('".$doc."')\">Delete</a></small></td>                                                
+           </tr>";      
       }
-
-      //Ajout du BLANK
-      if($containerName=="ClinicalData"){
-        $htmlRet .= "
-           <tr class='$class'><td>BLANK</td>
-             <td style='text-align: center;'>--</td> 
-             <td><small><a target='_new' href='" . $GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
-                                                                                              'action' => 'viewDoc',
-                                                                                              'doc'=>"BLANK")) . "'>View</a></small></td>   
-             <td><small><a href='" . $GLOBALS['egw']->link('/index.php',array('menuaction' => $GLOBALS['egw_info']['flags']['currentapp'].'.uietude.dbadminInterface',
-                                                                                              'action' => 'viewDoc',
-                                                                                              'doc'=>"BLANK",
-                                                                                              'asxml'=>'true')) . "'>Download</a></small></td>
-             <td><small><a href=\"javascript:deleteDocument('".$doc."')\">Delete</a></small></td>
-           </tr>";  
-      }
-      $htmlRet .= "</tbody></table>";
       
-      $htmlRet .= "<form action='".$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
+      $htmlRet .= "</tbody></table>";
+      $htmlRet .= count($docs[0]) ." fichiers";
+      $htmlRet .= "</div>";
+      
+      
+      $htmlRet .= "<form action='".$GLOBALS['egw']->link('/index.php',array('menuaction' => $GLOBALS['egw_info']['flags']['currentapp'].'.uietude.dbadminInterface',
                                                                                               'action' => 'execXQuery',
                                                                                               'container' => $containerName))."' method='post'>
-                    <textarea name='p_xquery' rows='15' cols='140'>".(isset($_POST['p_xquery'])?$_POST['p_xquery']:'')."</textarea><br/>
+                    <textarea name='p_xquery' rows='15' cols='140'>".(isset($_POST['p_xquery'])?stripslashes($_POST['p_xquery']):'')."</textarea><br/>
                     <input type='submit'/></form>";
       
       $deleteUrl = $GLOBALS['egw']->link('/index.php',array('menuaction' => $GLOBALS['egw_info']['flags']['currentapp'].'.uietude.dbadminInterface',
@@ -317,13 +345,15 @@ class uidbadmin extends CommonFunctions{
                                                                                               'container' => $containerName));
       $htmlRet .= "
                    <script>
-                    function deleteDocument(doc)
-                    {
-                      if(confirm('Delete document '+doc+' ?'))
+                    //<![CDATA[
+                      function deleteDocument(doc)
                       {
-                        window.location = \"".$deleteUrl."&doc=\"+doc;
+                        if(confirm('Delete the document '+doc+' ?'))
+                        {
+                          window.location = \"".$deleteUrl."&doc=\"+doc;
+                        }
                       }
-                    }
+                    //]]>
                    </script>
                    ";  
       
@@ -420,25 +450,40 @@ class uidbadmin extends CommonFunctions{
   }
   
   function importDoc($container){
+    $html = "";
+    
 	  $uploaddir = $this->m_tblConfig['CDISCOO_PATH'] . "/xml/";
     $uploadfile = $uploaddir . basename($_FILES['uploadedDoc']['name']);
     
     if($container=="MetaDataVersion"){
-      $containerName = "MetaDataVersion.dbxml";
+      $containerName = "MetaDataVersion";
     }else{
-      $containerName="";
+      $containerName = $container;
     }
     
     if (move_uploaded_file($_FILES['uploadedDoc']['tmp_name'], $uploadfile)){
+      $html .= "<div style='text-align: left'><ul>";
       try{
-        echo "adding {$_FILES['uploadedDoc']['name']}...<br/>";
-        $this->m_ctrl->socdiscoo()->addDocument($uploadfile,false,$containerName);
+        $html .= "<li>adding {$_FILES['uploadedDoc']['name']}...</li>";
+        $fileOID = $this->m_ctrl->socdiscoo()->addDocument($uploadfile,false,$containerName);
       }catch(Exception $e){
-          //déjà présent, on va essayer de le remplacer
-          echo "document already imported, replacing...<br/>";
-          $this->m_ctrl->socdiscoo()->replaceDocument($uploadfile,false,$containerName);
+          //document already existing, we will try to replace it
+          $html .= "<li>document already imported, replacing...</li>";
+          $fileOID = $this->m_ctrl->socdiscoo()->replaceDocument($uploadfile,false,$containerName);
       }
-      echo "import successfull !<br/>";         
+      $html .= "<li>import successfull !</li>";
+      $html .= "</ul>";
+      $html .= "<a href='".$GLOBALS['egw']->link('/index.php', array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
+  				                                                                        'container' => $container,
+                                                                                  'action' => 'viewDocs')) ."'>See $container</a><br/>";
+      $html .= "</div>";
+      
+      //Updaate the subject in the SubjectsList
+      if(is_numeric($fileOID)){
+        $this->m_ctrl->bosubjects()->updateSubjectInList($fileOID);
+      }
+      
+      return $html;
     }
   }
 }
