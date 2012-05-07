@@ -23,12 +23,13 @@
 // Annotations
 function initAnnotation(ItemOID,IGRK){
 
-  ItemOIDdashed = ItemOID.replace(".","-");
+  var elementId = "#annotation_div_"+ItemOID+"_"+IGRK;
+  var elementIdEsc = elementId.replace(".","-");
 
-  $("#annotation_div_"+ItemOIDdashed+"_"+IGRK).dialog({
+  $(elementIdEsc).dialog({
     	autoOpen: false,
-    	height: 270,
-    	width: 320,
+    	height: 300,
+    	width: 380,
     	modal: false,
     	buttons: {
     		'Close': function() {
@@ -38,12 +39,24 @@ function initAnnotation(ItemOID,IGRK){
     	close: function() {
     	}
     });
-    
+  
+  $(elementIdEsc).attr('initialized','true');
 }
 
 
-function toggleAnnotation(elementId){
-  $("#"+elementId).dialog('open');
+function toggleAnnotation(ItemOID,IGRK){
+  var elementId = "#annotation_div_"+ItemOID+"_"+IGRK;
+  var elementIdEsc = elementId.replace(".","-");
+  
+  //dialog initialized ?
+  if($(elementIdEsc).attr('initialized')=='false'){
+    //Initialisation of AuditTrail
+    if(typeof(initAnnotation)=="function"){
+      initAnnotation(ItemOID,IGRK);
+    }
+  }
+  
+  $(elementIdEsc).dialog('open');
 }
 
 function setState(ItemOID,ItemGroupOID, CurrentItemGroupRepeatKey, FlagValue)

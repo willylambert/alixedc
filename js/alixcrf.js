@@ -320,7 +320,7 @@ function initDyn(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,
 
 
                       //Initialisation of annotation dialog
-                      initAnnotation(ItemOID,IGRK);
+                      //initAnnotation(ItemOID,IGRK);
                       
                       //Initialisation of AuditTrail dialog
                       initAuditTrail(ItemOID,IGRK);

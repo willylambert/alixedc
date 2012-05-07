@@ -133,6 +133,7 @@
                     <xsl:with-param name="Comment" select="$Annotation/@Comment"/>
                     <xsl:with-param name="CurrentItemGroupOID" select="$ItemGroupData/@ItemGroupOID"/>
                     <xsl:with-param name="CurrentItemGroupRepeatKey" select="$ItemGroupData/@ItemGroupRepeatKey"/>
+                    <xsl:with-param name="CurrentTransactionType" select="$ItemGroupData/@TransactionType"/>
                     <xsl:with-param name="ShowFlag" select="true()"/>
                     <xsl:with-param name="Role" select="$Item/@Role"/>
                     <xsl:with-param name="DataType" select="$Item/@DataType"/>
