@@ -157,7 +157,14 @@ function loadSubjectsGrid(CurrentApp, config)
               window.location="index.php?menuaction="+CurrentApp+".uietude.dbadminInterface&action=importDocInterface";
               return false;
           }else{
-            return data;
+            //is data evaluable as JSON ?
+            try{
+              var myTestObject = eval('(' + data + ')');
+            }catch(e){
+              alert(e+"\n"+data);
+            }finally{
+              return data;
+            }
           }
         }
       }
