@@ -23,15 +23,11 @@
   /**
   * @desc Hook appellé avant la restitution de l'html d'un formulaire
   * @param $FormOID OID du Form 
-  * @param $uisubject instance uisubject appelante
-  * @return rien
+  * @param $uisubject instance of uisubject
+  * @return nothing
   * @author WLT
   **/  
-function uisubject_getInterface_start($FormOID,$uisubject){
- 
-  $siteId = substr($_GET['SubjectKey'],0,2);
-  $subjId = substr($_GET['SubjectKey'],2,2);
-  
+function uisubject_getInterface_start($FormOID,$uisubject){  
 }
 
   /**
@@ -39,14 +35,13 @@ function uisubject_getInterface_start($FormOID,$uisubject){
   * @param XSLTProcessor $xslProc Processeur XSL  
   * @return XSLTProcessor HTML à afficher
   * @author WLT
-  * @history le 17/02/2011 par WLT : suppression du filtre investigateur pour la liste des centres  
   **/  
 function uisubject_getInterface_xslParameters($FormOID,$xslProc,$uisubject){
-  //Paramètres passés au StudyEventForm pour permettre d'afficher les codelistes en liste déroulantes
   if($FormOID==""){  
-    $xslProc->setParameter('','CodeListForceSelect','CL.$YN CL.$SYMB'); //valeurs séparées par un espace
-      
+    //Here we force the display of a select instead of radios buttons - multiple codelist could be used - separe them with white space
+    $xslProc->setParameter('','CodeListForceSelect','CL.$YN CL.$SYMB');    
   }
+    
   $profile = $uisubject->m_ctrl->boacl()->getUserProfile();
 
   switch($FormOID){
@@ -59,6 +54,53 @@ function uisubject_getInterface_xslParameters($FormOID,$xslProc,$uisubject){
       case 'FORM.AE' : 
       $xslProc->setParameter('','FormRepeatKey',$_GET['FormRepeatKey']);
       break;                     
+
+    case 'FORM.ELIG' :
+    case 'FORM.STDD' :      
+      $siteId = substr($_GET['SubjectKey'],0,2);
+      $subjId = substr($_GET['SubjectKey'],2,2);
+
+      $country = $uisubject->m_ctrl->bocdiscoo()->getValue($_GET['SubjectKey'],"1","0","FORM.ENROL","0","ENROL","0","ENROL.COUNTID");  
+      $subjInit = $uisubject->m_ctrl->bocdiscoo()->getValue($_GET['SubjectKey'],"1","0","FORM.ENROL","0","ENROL","0","ENROL.SUBJINIT");
+      $subjWeight = $uisubject->m_ctrl->bocdiscoo()->getValue($_GET['SubjectKey'],$_GET['StudyEventOID'],$_GET['StudyEventRepeatKey'],$_GET['FormOID'],$_GET['FormRepeatKey'],"DA","0","DA.WEIGHT");
+      $poso = $uisubject->m_ctrl->bocdiscoo()->getValue($_GET['SubjectKey'],$_GET['StudyEventOID'],$_GET['StudyEventRepeatKey'],$_GET['FormOID'],$_GET['FormRepeatKey'],"DA","0","DA.DAPOS");
+    
+      switch($_GET['StudyEventOID']){
+        case '2' : $visit = "D0"; break;
+        case '3' : $visit = "W4"; break;
+        case '5' : $visit = "W13"; break;
+        case '6' : $visit = "W26"; break;
+        case '7' : $visit = "W39"; break;
+        case '8' : $visit = "W52"; break;
+        case '9' : $visit = "W66"; break;
+        case '10' : $visit = "W78"; break;
+        case '11' : $visit = "W91"; break;
+      }
+      
+      $randoId = "9999";
+      $nbUT = 3;
+      $tblUTdisp1 = array();
+      for($i=0;$i<$nbUT;$i++){
+        $tblUTdisp1[$i] = 9000 + $i;    
+      }
+
+      //Passage des listes d'UT à l'XSL
+      for($i=1;$i<=count($tblUTdisp1);$i++){
+        $xslProc->setParameter('',"tblUTdisp1_$i",$tblUTdisp1[$i-1]);        
+      }
+      
+      $xslProc->setParameter('',"RANDOID",$randoId);
+      $xslProc->setParameter('',"currentApp",$GLOBALS['egw_info']['flags']['currentapp']);
+      $xslProc->setParameter('',"country",$country);
+      $xslProc->setParameter('',"subjWeight",$subjWeight);
+      $xslProc->setParameter('',"poso",$poso);
+      $xslProc->setParameter('',"siteId",$siteId);
+      $xslProc->setParameter('',"subjId",$subjId);
+      $xslProc->setParameter('',"subjInit",$subjInit);
+      $xslProc->setParameter('',"visit",$visit); 
+      $xslProc->setParameter('',"nbUTtotal",count($tblUTdisp1));
+      
+      break;
   }
 }
 
@@ -79,8 +121,7 @@ function uisubject_getInterface_afterXSLT($MetaDataVersionOID,$FormOID,$uisubjec
 }
 
 function uisubject_getMenu_xslParameters($xslProc,$uisubject){
-  
-  //on va chercher les dates de visites
+  //Extraction of dates for insertion into menu
   $selDT = $uisubject->m_ctrl->bocdiscoo()->getValue($_GET['SubjectKey'],"1","0","FORM.SV","0","SV","0","SV.SVSTDTC");  
   $incDT =  $uisubject->m_ctrl->bocdiscoo()->getValue($_GET['SubjectKey'],"2","0","FORM.SV","0","SV","0","SV.SVSTDTC");
   $dmAge = $uisubject->m_ctrl->bocdiscoo()->getValue($_GET['SubjectKey'],"1","0","FORM.IC","0","DM","0","DM.AGE");
@@ -97,17 +138,12 @@ function bosubjects_updateSubjectInList_customVisitStatus($SubjectKey,$tblForm,$
   uisubject_getMenu_beforeRendering($SubjectKey,$tblForm,$uisubject);
 }
 
-/**
- * @desc Calcul et enregistrement du statut du CRF du patient
- * @author tpi 
- */ 
 function uisubject_getMenu_beforeRendering($SubjectKey,&$tblForm,$uisubject){
 }
 
 function bocdiscoo_getNewPatientID_customSubjId($bocdiscoo){
-  //Récupération du nouveau subjectKey, incrémenté par centre
+  //Return the new SubjectKey, incremented by site in this example
 
-  //Extraction de la variable $_POST du numéro de centre
   $siteId = $_POST['text_string_ENROL@SITEID_0'];
 
   $clinicalCollection = $bocdiscoo->m_ctrl->socdiscoo()->getClinicalDataCollection();

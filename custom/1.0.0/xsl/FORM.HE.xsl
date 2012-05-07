@@ -118,27 +118,6 @@
    </xsl:copy>
 </xsl:template>
 
-<!--Add Help label on screen -->
-<xsl:template match="tr[@name='DC.UPMEMBER']">
-   <tr><td></td><td colspan="3">
-     <b>History of surgery</b>
-    </td>
-   </tr>
-   <xsl:copy>
-       <xsl:copy-of select="@*"/>
-       <xsl:apply-templates/>
-   </xsl:copy>
-</xsl:template>
-
-<!--Add tabs before label -->
-<xsl:template match="td[(../@name='DC.CORSET' or ../@name='DC.SURGERY') and @class='ItemDataLabel underCondition']">
-  <xsl:copy>
-		<xsl:copy-of select="@*"/>  
-		&#160;&#160;
-	  <xsl:value-of select="."/>
-  </xsl:copy>  
-</xsl:template>
-
 <!--Call function getAge-->
 <xsl:template match="input[@type='text']">
   <xsl:copy>
@@ -148,24 +127,13 @@
   </xsl:copy>
 </xsl:template>
 
-<!--Add label "month" -->
-<xsl:template match="input[@name='text_mm_DC@DCSTDTC_0' or @name='text_mm_DC@DIAGDTC_0' or @name='text_mm_DC@MEMBDTC_0' or @name='text_mm_DC@HIPSDTC_0' or @name='text_mm_DC@KNEESDTC_0'
-                     or @name='text_mm_DC@FEETDTC_0' or @name='text_mm_DC@SPINEDTC_0']">
-		month:
-  <xsl:copy>
-		<xsl:copy-of select="@*"/>  
-	  <xsl:value-of select="."/>
-  </xsl:copy>  
-</xsl:template>
 
 <!--Delete day -->
-<xsl:template match="input[@name='text_dd_DC@DCSTDTC_0' or @name='text_dd_DC@DIAGDTC_0' or @name='text_dd_DC@MEMBDTC_0' or @name='text_dd_DC@HIPSDTC_0' or @name='text_dd_DC@KNEESDTC_0'
- or @name='text_dd_DC@FEETDTC_0' or @name='text_dd_DC@SPINEDTC_0' or @name='text_dd_YN@VTSTDTC_0']">
+<xsl:template match="input[@name='text_dd_DC@DCSTDTC_0' or @name='text_dd_DC@DIAGDTC_0']">
 </xsl:template>
 
 <!--Delete information-->
-<xsl:template match="span[(@class='optionalText inputItem' or @class='optionalText') and (../@name = 'DC.DCSTDTC' or ../@name = 'DC.DIAGDTC' or ../@name = 'DC.MEMBDTC' or ../@name = 'DC.HIPSDTC' or ../@name = 'DC.KNEESDTC'
- or ../@name = 'DC.FEETDTC' or ../@name = 'DC.SPINEDTC')]">
+<xsl:template match="span[(@class='optionalText inputItem' or @class='optionalText') and (../@name = 'DC.DCSTDTC' or ../@name = 'DC.DIAGDTC' or ../@name = 'DC.MEMBDTC' or ../@name = 'DC.HIPSDTC')]">
 </xsl:template>
 
 <!-- Javascript treatment -->
@@ -234,208 +202,7 @@
 							freezeFields(input_destination3,ItemGroupOID,ItemGroupRepeatKey,false,false,false);
 						}
 					}
-         if(ItemGroupOID =='DCH'){
-  					//// grisage DC.COBBANGL
-  					input_destination4 = 'DC.COBBANGL'; /*ITEMOID=destination*/		
-  					input_origin2 = 'select_DC@SCOLIOS_0';
-  			
-  					if(origin.name==input_origin2) 
-  					{
-  						action2 = $("select[name='select_DC@SCOLIOS_0']").val();
-  
-  						if(typeof(action2)=="undefined"||action2!=1||action2=='')
-  						{
-  							freezeFields(input_destination4,ItemGroupOID,ItemGroupRepeatKey,true,true,false);
-  						}
-  						else
-  						{
-  							freezeFields(input_destination4,ItemGroupOID,ItemGroupRepeatKey,false,false,false);
-  						}
-  					}	
-          }
-					//// grisage DC.CORSET and DC.SURGERY
-					input_destination5 = 'DC.CORSET'; /*ITEMOID=destination*/	
-					input_destination6 = 'DC.SURGERY'; /*ITEMOID=destination*/						
-					input_origin2 = 'select_DC@SCOLIOS_0';
-					input_origin3 = 'text_integer_DC@COBBANGL_0';
-			
-					if(origin.name==input_origin2||origin.name==input_origin3) 
-					{
-						action2 = $("select[name='select_DC@SCOLIOS_0']").val();
-						action3 = $("input[name='text_integer_DC@COBBANGL_0']").val();
-						
-						if(typeof(action2)=="undefined"||action2!=1||action2=='')
-						{
-							freezeFields(input_destination5,ItemGroupOID,ItemGroupRepeatKey,true,false,false);
-							freezeFields(input_destination6,ItemGroupOID,ItemGroupRepeatKey,true,false,false);
-						}
-						else
-						{					
-							if(Math.max(action3,19)==19||Math.min(action3,41)==41)
-							{
-								freezeFields(input_destination5,ItemGroupOID,ItemGroupRepeatKey,true,false,false);
-							}
-							else
-							{
-								freezeFields(input_destination5,ItemGroupOID,ItemGroupRepeatKey,false,false,false);
-							}
-							
-							if(Math.max(action3,45)==45)
-							{
-								freezeFields(input_destination6,ItemGroupOID,ItemGroupRepeatKey,true,false,false);
-							}
-							else
-							{						
-								freezeFields(input_destination6,ItemGroupOID,ItemGroupRepeatKey,false,false,false);
-							}
-              
-              if(action3==''||typeof(action3)=="undefined") 
-              {
-							freezeFields(input_destination5,ItemGroupOID,ItemGroupRepeatKey,false,false,false);
-							freezeFields(input_destination6,ItemGroupOID,ItemGroupRepeatKey,false,false,false);              
-              }							
-  					}	
-					}	
-					
-					//// grisage DC.MEMBDTC
-					input_destination7 = 'DC.MEMBDTC'; /*ITEMOID=destination*/		
-					input_origin4 = 'select_DC@UPMEMBER_0';
-			
-					if(origin.name==input_origin4) 
-					{
-						action4 = $("select[name='select_DC@UPMEMBER_0']").val();
 
-						if(typeof(action4)=="undefined"||action4!=1||action4=='')
-						{
-							freezeFields(input_destination7,ItemGroupOID,ItemGroupRepeatKey,true,false,false);
-						}
-						else
-						{
-							freezeFields(input_destination7,ItemGroupOID,ItemGroupRepeatKey,false,false,false);
-						}
-					}	
-
-					//// grisage DC.HIPSDTC
-					input_destination8 = 'DC.HIPSDTC'; /*ITEMOID=destination*/		
-					input_origin5 = 'select_DC@HIPS_0';
-			
-					if(origin.name==input_origin5) 
-					{
-						action5 = $("select[name='select_DC@HIPS_0']").val();
-
-						if(typeof(action5)=="undefined"||action5!=1||action5=='')
-						{
-							freezeFields(input_destination8,ItemGroupOID,ItemGroupRepeatKey,true,false,false);
-						}
-						else
-						{
-							freezeFields(input_destination8,ItemGroupOID,ItemGroupRepeatKey,false,false,false);
-						}
-					}						
-
-					//// grisage DC.KNEESDTC
-					input_destination9 = 'DC.KNEESDTC'; /*ITEMOID=destination*/		
-					input_origin6 = 'select_DC@KNEES_0';
-			
-					if(origin.name==input_origin6) 
-					{
-						action6 = $("select[name='select_DC@KNEES_0']").val();
-
-						if(typeof(action6)=="undefined"||action6!=1||action6=='')
-						{
-							freezeFields(input_destination9,ItemGroupOID,ItemGroupRepeatKey,true,false,false);
-						}
-						else
-						{
-							freezeFields(input_destination9,ItemGroupOID,ItemGroupRepeatKey,false,false,false);
-						}
-					}							
-					
-					//// grisage DC.FEETDTC
-					input_destination10 = 'DC.FEETDTC'; /*ITEMOID=destination*/		
-					input_origin7 = 'select_DC@FEET_0';
-			
-					if(origin.name==input_origin7) 
-					{
-						action7 = $("select[name='select_DC@FEET_0']").val();
-
-						if(typeof(action7)=="undefined"||action7!=1||action7=='')
-						{
-							freezeFields(input_destination10,ItemGroupOID,ItemGroupRepeatKey,true,false,false);
-						}
-						else
-						{
-							freezeFields(input_destination10,ItemGroupOID,ItemGroupRepeatKey,false,false,false);
-						}
-					}								
-
-					//// grisage DC.SPINEDTC
-					input_destination11 = 'DC.SPINEDTC'; /*ITEMOID=destination*/		
-					input_origin8 = 'select_DC@SPINE_0';
-			
-					if(origin.name==input_origin8) 
-					{
-						action8 = $("select[name='select_DC@SPINE_0']").val();
-
-						if(typeof(action8)=="undefined"||action8!=1||action8=='')
-						{
-							freezeFields(input_destination11,ItemGroupOID,ItemGroupRepeatKey,true,false,false);
-						}
-						else
-						{
-							freezeFields(input_destination11,ItemGroupOID,ItemGroupRepeatKey,false,false,false);
-						}
-					}		
-
-					//// grisage DC.WAGEY and DC.WAGEM
-					input_destination12 = 'DC.WAGEY'; /*ITEMOID=destination*/		
-					input_destination13 = 'DC.WAGEM'; /*ITEMOID=destination*/		
-					input_origin9 = 'select_DC@OUTWALK_0';
-					input_origin10 = 'select_DC@INDWALK_0';
-			
-					if(origin.name==input_origin9||origin.name==input_origin10) 
-					{
-						action9 = $("select[name='select_DC@OUTWALK_0']").val();
-						action10 = $("select[name='select_DC@INDWALK_0']").val();
-
-						if(typeof(action9)=="undefined"||action9!=0||action9=='')
-						{
-						if(typeof(action10)=="undefined"||action10!=0||action10=='')
-						{
-							freezeFields(input_destination12,ItemGroupOID,ItemGroupRepeatKey,true,false,false);
-							freezeFields(input_destination13,ItemGroupOID,ItemGroupRepeatKey,true,false,false);
-						}
-						else
-					{
-							freezeFields(input_destination12,ItemGroupOID,ItemGroupRepeatKey,false,false,false);
-							freezeFields(input_destination13,ItemGroupOID,ItemGroupRepeatKey,false,false,false);			
-					}
-						}
-						else
-						{
-							freezeFields(input_destination12,ItemGroupOID,ItemGroupRepeatKey,false,false,false);
-							freezeFields(input_destination13,ItemGroupOID,ItemGroupRepeatKey,false,false,false);
-						}
-					}	
-			
-					
-					//// grisage DC.APPARPY
-					input_destination17 = 'DC.APPARPY'; /*ITEMOID=destination*/		
-					input_origin12 = 'select_DC@APPARYN_0';
-			
-					if(origin.name==input_origin12) 
-					{
-						action12 = $("select[name='select_DC@APPARYN_0']").val();
-
-						if(typeof(action12)=="undefined"||action12!=1||action12=='')
-						{
-							freezeFields(input_destination17,ItemGroupOID,ItemGroupRepeatKey,true,false,false);
-						}
-						else
-						{
-							freezeFields(input_destination17,ItemGroupOID,ItemGroupRepeatKey,false,false,false);
-						}
-					}	
           if (loading==false){
 					 getAge();
 					}

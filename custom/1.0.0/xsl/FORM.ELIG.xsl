@@ -35,8 +35,6 @@
 <xsl:param name="subjWeight"/>
 <xsl:param name="subjInit"/>
 <xsl:param name="visit"/> 
-<xsl:param name="nbUT1"/>
-<xsl:param name="nbUT2"/>
 <xsl:param name="nbUTtotal"/>
 
 <!--Initial Dispensation for visit-->
@@ -46,45 +44,12 @@
 <xsl:param name="tblUTdisp1_4"/>
 <xsl:param name="tblUTdisp1_5"/>
 
-<!--New dispensation for the visit (broken, loss, ...)-->
-<xsl:param name="tblUTdisp2_1"/>
-<xsl:param name="tblUTdisp2_2"/>
-<xsl:param name="tblUTdisp2_3"/>
-<xsl:param name="tblUTdisp2_4"/>
-<xsl:param name="tblUTdisp2_5"/>
-
 <!--Catch all non treated tags, print them with no treatment-->
 <xsl:template match="*">
    <xsl:copy>
        <xsl:copy-of select="@*"/>
        <xsl:apply-templates/>
    </xsl:copy>
-</xsl:template>
-
-<!--Add help Label-->
-<xsl:template match="tr[@name='DA.DADISPN']">
-   
-   <tr style="background-color:#F4F8FF;"><td colspan="2"></td>
-	 <td colspan = "4">
-	 <table>
-	 <tr><td><b>NEW DISPENSATION</b></td></tr>
-<tr><td colspan = "3" class="ItemDataLabel underCondition">
-In case of lost or broken bottle :
-</td></tr>
-<tr><td class="ItemDataLabel underCondition">
-	<ul>
-  <li><b>Fill the number of bottles lost/broken in the dispensed field</b></li>
-	<li><b>Click on the "Save" button</b></li>
-   </ul>
-   </td></tr>
-		</table>
-		</td>
-   </tr>
-   
-   <xsl:copy>
-       <xsl:copy-of select="@*"/>
-       <xsl:apply-templates/>
-   </xsl:copy>   
 </xsl:template>
 
 <!--Add help label -->
@@ -117,29 +82,18 @@ Complete <b>Posology</b> to download dispensation prescription
    </xsl:copy>   
 </xsl:template>
 
-<!--Button to show prescription -->
+<!--Button to get prescription as PDF -->
 <xsl:template match="form[@name='DA']">
    <xsl:copy>
        <xsl:copy-of select="@*"/>
        <xsl:apply-templates/>
-       <xsl:if test="$subjWeight!='' and $nbUT1!='0' and $poso !=''">
-        <a class="ui-state-default ui-corner-all" href="{$currentApp}/custom/1.0.0/inc/getOrdonnance.php?country={$country}&amp;siteid={$siteId}&amp;subjWeight={$subjWeight}&amp;poso={$poso}&amp;subjid={$subjId}&amp;subjinit={$subjInit}&amp;visit={$visit}&amp;nbut={$nbUT1}&amp;ut1={$tblUTdisp1_1}&amp;ut2={$tblUTdisp1_2}&amp;ut3={$tblUTdisp1_3}&amp;ut4={$tblUTdisp1_4}&amp;ut5={$tblUTdisp1_5}" target="new">Download dispensation prescription</a>
+       <xsl:if test="$subjWeight!='' and $nbUTtotal!='0' and $poso !=''">
+        <a class="ui-state-default ui-corner-all" href="{$currentApp}/custom/1.0.0/inc/getPrescription.php?country={$country}&amp;siteid={$siteId}&amp;subjWeight={$subjWeight}&amp;poso={$poso}&amp;subjid={$subjId}&amp;subjinit={$subjInit}&amp;visit={$visit}&amp;nbut={$nbUTtotal}&amp;ut1={$tblUTdisp1_1}&amp;ut2={$tblUTdisp1_2}&amp;ut3={$tblUTdisp1_3}&amp;ut4={$tblUTdisp1_4}&amp;ut5={$tblUTdisp1_5}" target="new">Download dispensation prescription</a>
        </xsl:if> 
    </xsl:copy>
 </xsl:template>
 
-<!--Button to show prescription - new dispensation broken bottles-->
-<xsl:template match="form[@name='EXN']">
-   <xsl:copy>
-       <xsl:copy-of select="@*"/>
-       <xsl:apply-templates/>
-       <xsl:if test="$subjWeight!='' and $nbUT2!='0' and $poso !=''">
-        <a class="ui-state-default ui-corner-all" href="{$currentApp}/custom/1.0.0/inc/getOrdonnance.php?country={$country}&amp;siteid={$siteId}&amp;subjWeight={$subjWeight}&amp;poso={$poso}&amp;subjid={$subjId}&amp;subjinit={$subjInit}&amp;visit={$visit}&amp;nbut={$nbUT2}&amp;ut1={$tblUTdisp2_1}&amp;ut2={$tblUTdisp2_2}&amp;ut3={$tblUTdisp2_3}&amp;ut4={$tblUTdisp2_4}&amp;ut5={$tblUTdisp2_5}" target="new">Download dispensation prescription</a>
-       </xsl:if> 
-   </xsl:copy>
-</xsl:template>
-
-<!--Add Format for calculated field-->
+<!--Add Format for computerized field-->
 <xsl:template match="td[../@name='DA.DADISP' and @class='ItemDataLabel underCondition']">
   <xsl:copy>
     <xsl:attribute name="style">
@@ -150,18 +104,18 @@ Complete <b>Posology</b> to download dispensation prescription
   </xsl:copy>  	
 </xsl:template>
 
-<xsl:template match="input[@id='DA.DADISP']">
+<xsl:template match="input[@itemoid='DA.DADISP']">
    <xsl:copy>
        <xsl:copy-of select="@*"/>
        <xsl:if test="$nbUTtotal!='0'">
         <xsl:attribute name="value"><xsl:value-of select="$nbUTtotal"/></xsl:attribute>
        </xsl:if>
-      <xsl:attribute name="readonly">true</xsl:attribute>       
+      <xsl:attribute name="readonly">readonly</xsl:attribute>       
        <xsl:apply-templates/>
    </xsl:copy> 
 </xsl:template>
 
-<xsl:template match="input[@id='EXI.RDNUM']">
+<xsl:template match="input[@itemoid='EXI.RDNUM']">
    <xsl:copy>
        <xsl:copy-of select="@*"/>
        <xsl:attribute name="value"><xsl:value-of select="$RANDOID"/></xsl:attribute>     
@@ -169,7 +123,7 @@ Complete <b>Posology</b> to download dispensation prescription
    </xsl:copy>  
 </xsl:template>
 
-<xsl:template match="input[@id='EXI.EXLOT1']">
+<xsl:template match="input[@itemoid='EXI.EXLOT1']">
    <xsl:copy>
        <xsl:copy-of select="@*"/>
        <xsl:attribute name="value"><xsl:value-of select="$tblUTdisp1_1"/></xsl:attribute>
@@ -177,7 +131,7 @@ Complete <b>Posology</b> to download dispensation prescription
    </xsl:copy>  
 </xsl:template>
 
-<xsl:template match="input[@id='EXI.EXLOT2']">
+<xsl:template match="input[@itemoid='EXI.EXLOT2']">
    <xsl:copy>
        <xsl:copy-of select="@*"/>
        <xsl:attribute name="value"><xsl:value-of select="$tblUTdisp1_2"/></xsl:attribute>
@@ -185,7 +139,7 @@ Complete <b>Posology</b> to download dispensation prescription
    </xsl:copy>  
 </xsl:template>
 
-<xsl:template match="input[@id='EXI.EXLOT3']">
+<xsl:template match="input[@itemoid='EXI.EXLOT3']">
    <xsl:copy>
        <xsl:copy-of select="@*"/>
        <xsl:attribute name="value"><xsl:value-of select="$tblUTdisp1_3"/></xsl:attribute>
@@ -193,7 +147,7 @@ Complete <b>Posology</b> to download dispensation prescription
    </xsl:copy>  
 </xsl:template>
 
-<xsl:template match="input[@id='EXI.EXLOT4']">
+<xsl:template match="input[@itemoid='EXI.EXLOT4']">
    <xsl:copy>
        <xsl:copy-of select="@*"/>
        <xsl:attribute name="value"><xsl:value-of select="$tblUTdisp1_4"/></xsl:attribute>
@@ -201,50 +155,10 @@ Complete <b>Posology</b> to download dispensation prescription
    </xsl:copy>  
 </xsl:template>
 
-<xsl:template match="input[@id='EXI.EXLOT5']">
+<xsl:template match="input[@itemoid='EXI.EXLOT5']">
    <xsl:copy>
        <xsl:copy-of select="@*"/>
        <xsl:attribute name="value"><xsl:value-of select="$tblUTdisp1_5"/></xsl:attribute>
-       <xsl:apply-templates/>
-   </xsl:copy>  
-</xsl:template>
-
-<xsl:template match="input[@id='EXN.EXLOT1']">
-   <xsl:copy>
-       <xsl:copy-of select="@*"/>
-       <xsl:attribute name="value"><xsl:value-of select="$tblUTdisp2_1"/></xsl:attribute>
-       <xsl:apply-templates/>
-   </xsl:copy>  
-</xsl:template>
-
-<xsl:template match="input[@id='EXN.EXLOT2']">
-   <xsl:copy>
-       <xsl:copy-of select="@*"/>
-       <xsl:attribute name="value"><xsl:value-of select="$tblUTdisp2_2"/></xsl:attribute>
-       <xsl:apply-templates/>
-   </xsl:copy>  
-</xsl:template>
-
-<xsl:template match="input[@id='EXN.EXLOT3']">
-   <xsl:copy>
-       <xsl:copy-of select="@*"/>
-       <xsl:attribute name="value"><xsl:value-of select="$tblUTdisp2_3"/></xsl:attribute>
-       <xsl:apply-templates/>
-   </xsl:copy>  
-</xsl:template>
-
-<xsl:template match="input[@id='EXN.EXLOT4']">
-   <xsl:copy>
-       <xsl:copy-of select="@*"/>
-       <xsl:attribute name="value"><xsl:value-of select="$tblUTdisp2_4"/></xsl:attribute>
-       <xsl:apply-templates/>
-   </xsl:copy>  
-</xsl:template>
-
-<xsl:template match="input[@id='EXN.EXLOT5']">
-   <xsl:copy>
-       <xsl:copy-of select="@*"/>
-       <xsl:attribute name="value"><xsl:value-of select="$tblUTdisp2_5"/></xsl:attribute>
        <xsl:apply-templates/>
    </xsl:copy>  
 </xsl:template>
