@@ -22,14 +22,14 @@
 //////////////////////////////////////////////////////////////
 // Queries manuelles
 function initQueries(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey,ProfileId,ItemOID,IGRK){
-
   ItemOIDdashed = ItemOID.replace(".","-");
+  var elementId = "query_div_"+ItemOIDdashed+"_"+IGRK;
 
   //Formulaire d'ajout d'une query
-  $("#query_div_"+ItemOIDdashed+"_"+IGRK).dialog({
+  $("#"+elementId).dialog({
     	autoOpen: false,
-    	height: 300,
-    	width: 430,
+    	height: 350,
+    	width: 480,
     	modal: false,
     	open: function() {
         if(!$(this).attr("title")) $(this).attr("title", $(this).find("input").val()); //sauvegarde du contenu de l'input dans un atrribut title (nom de l'item)
@@ -55,11 +55,24 @@ function initQueries(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeat
     	close: function() {
     	}    
   });
+  
+  $("#"+elementId).attr('initialized','true');
 
 }
 
 
-function toggleQuery(elementId){
+function toggleQuery(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey,ProfileId,ItemOID,IGRK){
+  ItemOIDdashed = ItemOID.replace(".","-");
+  var elementId = "query_div_"+ItemOIDdashed+"_"+IGRK;
+  
+  //dialog initialized ?
+  if($("#"+elementId).attr('initialized')=='false'){
+    //Initialisation of Manual Query Dialog
+    if(typeof(initQueries)=="function"){
+      initQueries(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey,ProfileId,ItemOID,IGRK);
+    }
+  }
+  
   $("#"+elementId).dialog('open');
 }
 

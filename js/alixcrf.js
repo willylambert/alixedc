@@ -323,10 +323,10 @@ function initDyn(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,
                       //initAnnotation(ItemOID,IGRK);
                       
                       //Initialisation of AuditTrail dialog
-                      initAuditTrail(ItemOID,IGRK);
+                      //initAuditTrail(ItemOID,IGRK);
                                      
                       //Initialisation of Manual Query Dialog
-                      initQueries(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey,ProfileId,ItemOID,IGRK);
+                      //initQueries(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey,ProfileId,ItemOID,IGRK);
 
                       //Initialisation of Deviation Dialog
                       initDeviations(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey,ProfileId,ItemOID,IGRK);

@@ -36,6 +36,7 @@
 <xsl:param name="ShowDeviations"/>
 
 <xsl:param name="CurrentApp"/>
+<xsl:param name="SiteId"/>
 <xsl:param name="SubjectKey"/>
 <xsl:param name="StudyEventOID"/>
 <xsl:param name="StudyEventRepeatKey"/>
@@ -104,7 +105,7 @@
                     <xsl:attribute name="altbox">Edit the history of this item</xsl:attribute>
                   </xsl:element>
                 </a-->
-                <div id="{concat('auditTrail_div_',$Item/@OID,'_',$ItemGroupData/@ItemGroupRepeatKey)}" class='dialog-auditTrail' title='{@Title}' style="display:none;" keys="{$CurrentApp},{$SubjectKey},{$StudyEventOID},{$StudyEventRepeatKey},{$FormOID},{$FormRepeatKey},{$ItemGroup/@OID},{$ItemGroupData/@ItemGroupRepeatKey},{$Item/@OID}">
+                <div id="{concat('auditTrail_div_',$Item/@OID,'_',$ItemGroupData/@ItemGroupRepeatKey)}" initialized='false' class='dialog-auditTrail' title='{@Title}' style="display:none;" keys="{$CurrentApp},{$SubjectKey},{$StudyEventOID},{$StudyEventRepeatKey},{$FormOID},{$FormRepeatKey},{$ItemGroup/@OID},{$ItemGroupData/@ItemGroupRepeatKey},{$Item/@OID}">
                   Loading ...
                 </div>
               </xsl:if>
@@ -161,6 +162,12 @@
                     <xsl:with-param name="DataType" select="$Item/@DataType"/>
                     <xsl:with-param name="Title" select="@Title"/>
                     <xsl:with-param name="ProfileId" select="$ProfileId"/>
+                    <xsl:with-param name="SiteId" select="$SiteId"/>
+                    <xsl:with-param name="SubjectKey" select="$SubjectKey"/>
+                    <xsl:with-param name="StudyEventOID" select="$StudyEventOID"/>
+                    <xsl:with-param name="StudyEventRepeatKey" select="$StudyEventRepeatKey"/>
+                    <xsl:with-param name="FormOID" select="$ItemGroup/../@OID"/>
+                    <xsl:with-param name="FormRepeatKey" select="$ItemGroup/../@FormRepeatKey"/>
                 </xsl:call-template>
             </td>
             <td class="ItemDataDevia" name="{$Item/@OID}">
