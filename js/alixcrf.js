@@ -317,19 +317,6 @@ function initDyn(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,
                       if(typeof(updateUI) == 'function') {
                         updateUI(this,true,IGOID,IGRK);
                       }
-
-
-                      //Initialisation of annotation dialog
-                      //initAnnotation(ItemOID,IGRK);
-                      
-                      //Initialisation of AuditTrail dialog
-                      //initAuditTrail(ItemOID,IGRK);
-                                     
-                      //Initialisation of Manual Query Dialog
-                      //initQueries(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey,ProfileId,ItemOID,IGRK);
-
-                      //Initialisation of Deviation Dialog
-                      //initDeviations(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey,ProfileId,ItemOID,IGRK);
                     }
                   }
                 });  
