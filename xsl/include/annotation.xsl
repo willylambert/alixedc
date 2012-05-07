@@ -94,7 +94,7 @@
               <xsl:attribute name="altbox">Add an annotation on this item</xsl:attribute>
             </xsl:element>
           </a-->
-          <div id="{$DivId}" class='dialog-annotation TransactionType{$CurrentTransactionType}' title='{$Title}' style="display:none;">
+          <div id="{$DivId}" initialized='false' class='dialog-annotation TransactionType{$CurrentTransactionType}' title='{$Title}' style="display:none;">
             <input type="radio" value="Ø">
                <xsl:attribute name="onClick">updateFlag('<xsl:value-of select="$ItemOID"/>','<xsl:value-of select="$CurrentItemGroupOID"/>','<xsl:value-of select="$CurrentItemGroupRepeatKey"/>',this.value,false,false)</xsl:attribute>
                <!--Mémo : l'utilisation du onChange a ici été abandonnée, le comportement étant différent selon les navigateurs-->
