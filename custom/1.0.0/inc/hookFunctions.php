@@ -55,6 +55,11 @@ function uisubject_getInterface_xslParameters($FormOID,$xslProc,$uisubject){
       $xslProc->setParameter('','FormRepeatKey',$_GET['FormRepeatKey']);
       break;                     
 
+    case 'FORM.HE' : 
+      $dob = $uisubject->m_ctrl->bocdiscoo()->getValue($_GET['SubjectKey'],"1","0","FORM.IC","0","DM","0","DM.BRTHDTC");
+      $xslProc->setParameter('','BRTHDTC',$dob);
+      break;
+      
     case 'FORM.ELIG' :
     case 'FORM.STDD' :      
       $siteId = substr($_GET['SubjectKey'],0,2);
