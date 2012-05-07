@@ -1218,6 +1218,7 @@ public function checkFormData(){
       
       $ItemGroupDataAT = $itemAT->firstChild;
       foreach($ItemGroupDataAT->childNodes as $ItemDataAT){
+        if($ItemDataAT->nodeType!=1) continue; //tpi, why are there some DOMText ?
         $item = array();
         $item['type'] = "Value";
         $item['itemoid'] = $ItemDataAT->getAttribute("ItemOID");

@@ -81,7 +81,7 @@
               <xsl:attribute name='class'>imageOnly image16</xsl:attribute>
               <xsl:attribute name="style">background-image: url('<xsl:value-of select="$CurrentApp" />/templates/default/images/post_note<xsl:if test="string-length($Comment)=0 or $Comment='&#160;'">_empty</xsl:if>.gif');</xsl:attribute>
               <xsl:attribute name="onclick">updateAnnotPict('<xsl:value-of select="$CurrentApp"/>', 'annotation_comment_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/>','<xsl:value-of select="concat($DivId,'_picture')"/>');toggleAnnotation('<xsl:value-of select="$ItemOID"/>','<xsl:value-of select="$CurrentItemGroupRepeatKey"/>');</xsl:attribute>
-              <xsl:attribute name="altbox">Ajouter une annotation à cet élément</xsl:attribute>
+              <xsl:attribute name="altbox">Add an annotation on this item</xsl:attribute>
               &#0160;
             </xsl:element>
           </a>

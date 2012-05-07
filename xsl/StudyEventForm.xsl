@@ -88,12 +88,22 @@
   	          <!--On n'affiche l'icône que s'il y a du contenu d'audit trail-->
               <xsl:if test="$ItemGroupData/ItemData[@OID=$Item/@OID]/@TransactionType!='Insert'">
               	<a href="javascript:void(0)">
+                  <xsl:element name='span'>
+                    <xsl:attribute name='class'>imageOnly image16</xsl:attribute>
+                    <xsl:attribute name="style">background-image: url('<xsl:value-of select="$CurrentApp"/>/templates/default/images/clock-history.png');</xsl:attribute>
+                    <xsl:attribute name="onclick">toggleAuditTrail('<xsl:value-of select="$Item/@OID" />','<xsl:value-of select="$ItemGroupData/@ItemGroupRepeatKey" />');</xsl:attribute>
+                    <xsl:attribute name="altbox">Edit the history of this item</xsl:attribute>
+                    &#0160;
+                  </xsl:element>
+                </a>
+                <!--ancienne img, ne marche pas sous IE-->
+              	<!--a href="javascript:void(0)">
                   <xsl:element name='img'>
                     <xsl:attribute name="src"><xsl:value-of select="$CurrentApp"/>/templates/default/images/clock-history.png</xsl:attribute>
                     <xsl:attribute name="onClick">toggleAuditTrail('<xsl:value-of select="concat('auditTrail_div_',$Item/@OID,'_',$ItemGroupData/@ItemGroupRepeatKey)"/>');</xsl:attribute>
                     <xsl:attribute name="altbox">Edit the history of this item</xsl:attribute>
                   </xsl:element>
-                </a>
+                </a-->
                 <div id="{concat('auditTrail_div_',$Item/@OID,'_',$ItemGroupData/@ItemGroupRepeatKey)}" class='dialog-auditTrail' title='{@Title}' style="display:none;" keys="{$CurrentApp},{$SubjectKey},{$StudyEventOID},{$StudyEventRepeatKey},{$FormOID},{$FormRepeatKey},{$ItemGroup/@OID},{$ItemGroupData/@ItemGroupRepeatKey},{$Item/@OID}">
                   Loading ...
                 </div>
