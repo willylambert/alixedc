@@ -319,6 +319,9 @@ class bosubjects extends CommonFunctions
     
     $value = (string)$doc[0]->subj["col$key"];
     
+    //HOOK => bosubjects_getSubjectColValue_customValue
+    $this->callHook(__FUNCTION__,"customValue",array($SubjectKey,$key,&$value,$this));
+    
     return $value;
   }
   
