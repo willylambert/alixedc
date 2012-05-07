@@ -78,7 +78,7 @@
             <xsl:element name='img'>
               <xsl:attribute name='id'><xsl:value-of select="concat($DivId,'_picture')"/></xsl:attribute>
               <xsl:attribute name="src"><xsl:value-of select="$CurrentApp"/>/templates/default/images/post_note<xsl:if test="string-length($Comment)=0 or $Comment='&#160;'">_empty</xsl:if>.gif</xsl:attribute>
-              <xsl:attribute name="onClick">updateAnnotPict('annotation_comment_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/>','<xsl:value-of select="concat($DivId,'_picture')"/>');toggleAnnotation('<xsl:value-of select="$DivId"/>');</xsl:attribute>
+              <xsl:attribute name="onClick">updateAnnotPict('<xsl:value-of select="$CurrentApp"/>', 'annotation_comment_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/>','<xsl:value-of select="concat($DivId,'_picture')"/>');toggleAnnotation('<xsl:value-of select="$DivId"/>');</xsl:attribute>
               <xsl:attribute name="altbox">Add an annotation on this item</xsl:attribute>
             </xsl:element>
           </a>
