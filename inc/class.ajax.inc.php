@@ -267,9 +267,9 @@ public function checkFormData(){
     if(isset($_POST['status'])) $status = $_POST['status'];
     if(isset($_POST['isLast'])) $isLast = $_POST['isLast'];
     
-    $queries = $this->m_ctrl->bodeviations()->getDeviationsList($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupKey,$ItemOID,$status,$isLast);
+    $deviations = $this->m_ctrl->bodeviations()->getDeviationsList($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupKey,$ItemOID,$status,$isLast);
     
-    echo json_encode($queries);
+    echo json_encode($deviations);
   }
 
  /*

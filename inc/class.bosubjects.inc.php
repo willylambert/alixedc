@@ -269,4 +269,57 @@ class bosubjects extends CommonFunctions
     return $doc;
   }
   
+  /**
+   * @description returns a specified parameter for a subject. The paramter as to be defined in config.inc.phph into $configEtude['SUBJECT_LIST']['COLS']
+   * @param $SubjectKey => the subject
+   * @param $key => the parameter for which a value is requested
+   * @return the value   
+   * @author tpi
+   */ 
+  public function getSubjectColValue($SubjectKey,$key){
+    $this->addLog(__METHOD__."($SubjectKey)",INFO);
+    if(!$SubjectKey) throw new Exception("Error: SubjectKey is empty (". __METHOD__ .")");
+    if(!$key) throw new Exception("Error: Requested Key is not specified (". __METHOD__ .")");
+    if(!isset($this->m_tblConfig['SUBJECT_LIST']['COLS'][$key])) throw new Exception("Error: Requested Key is not defined in config.inc.php (". __METHOD__ .")");
+    
+    //We will find the Key in the CRF
+    $col = $this->m_tblConfig['SUBJECT_LIST']['COLS'][$key];
+    
+    //L'audit trail engendre plusieurs ItemData avec le même ItemOID, ce qui nous oblige
+    //pour chaque item à rechercher le dernier en regardant l'attribut AuditRecordID qui est le plus grand, et ce pour chaque item
+    $query = "
+      declare function local:getLastValue(\$ItemData as node()*) as xs:string?
+      {
+        let \$v := ''
+        return \$ItemData[last()]/string()
+      };
+
+          <subjs>
+              {
+                let \$SubjectsCol := collection('ClinicalData')[/odm:ODM/@FileOID='$SubjectKey']
+                for \$SubjectData in \$SubjectsCol/odm:ODM/odm:ClinicalData/odm:SubjectData
+				        let \$FileOID := \$SubjectData/../../@FileOID
+                let \$col$key := local:getLastValue(\$SubjectData/odm:StudyEventData[@StudyEventOID='{$col['Value']['SEOID']}' and @StudyEventRepeatKey='{$col['Value']['SERK']}']/
+                                                        odm:FormData[@FormOID='{$col['Value']['FRMOID']}' and @FormRepeatKey='{$col['Value']['FRMRK']}']/
+                                                        odm:ItemGroupData[@ItemGroupOID='{$col['Value']['IGOID']}' and @ItemGroupRepeatKey='{$col['Value']['IGRK']}']/
+                                                        odm:*[@ItemOID='{$col['Value']['ITEMOID']}'])
+                return 
+                  <subj col$key ='{\$col$key}' />
+              }
+          </subjs>";
+    
+    try{
+      $this->addLog(__METHOD__."() Run query",TRACE);
+      $doc = $this->m_ctrl->socdiscoo()->query($query);
+      $this->addLog(__METHOD__."() Query OK",TRACE);
+    }catch(xmlexception $e){
+      $str = "Erreur de la requete : " . $e->getMessage() . "<br/><br/>" . $query . __METHOD__ .")";
+      $this->addLog($str,FATAL);
+    }
+    
+    $value = (string)$doc[0]->subj["col$key"];
+    
+    return $value;
+  }
+  
 }

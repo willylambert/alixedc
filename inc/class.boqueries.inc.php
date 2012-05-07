@@ -492,7 +492,7 @@ function closeQuery($queryId,$userId,$profileId){
     $this->callHook(__FUNCTION__,"form",array($FormOID, $FormRepeatKey, $queryType, &$queries));
 
     $userId = $this->m_ctrl->boacl()->getUserId(); 
-    $siteId = substr($SubjectKey, 0, 2);
+    $siteId = $this->m_ctrl->bosubjects()->getSubjectColValue($SubjectKey,"SITEID");
     $profileId = $this->m_ctrl->boacl()->getUserProfileId("",$siteId);
     
     if($queryType=="C"){

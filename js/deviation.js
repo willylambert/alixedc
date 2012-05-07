@@ -22,14 +22,14 @@
 //////////////////////////////////////////////////////////////
 // Deviations manuelles
 function initDeviations(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey,ProfileId,ItemOID,IGRK){
-
   ItemOIDdashed = ItemOID.replace(".","-");
+  var elementId = "deviation_div_"+ItemOIDdashed+"_"+IGRK;
 
   //Formulaire d'ajout d'une deviation
-  $("#deviation_div_"+ItemOIDdashed+"_"+IGRK).dialog({
+  $("#"+elementId).dialog({
     	autoOpen: false,
-    	height: 250,
-    	width: 430,
+    	height: 350,
+    	width: 480,
     	modal: false,
     	open: function() {
     	  if($(this).find("textarea").val()=="."){
@@ -52,10 +52,23 @@ function initDeviations(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRep
     	close: function() {
     	}
   });
+  
+  $("#"+elementId).attr('initialized','true');
 }
 
 
-function toggleDeviation(elementId){
+function toggleDeviation(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey,ProfileId,ItemOID,IGRK){
+  ItemOIDdashed = ItemOID.replace(".","-");
+  var elementId = "deviation_div_"+ItemOIDdashed+"_"+IGRK;
+  
+  //dialog initialized ?
+  if($("#"+elementId).attr('initialized')=='false'){
+    //Initialisation of Manual Deviation Dialog
+    if(typeof(initDeviations)=="function"){
+      initDeviations(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey,ProfileId,ItemOID,IGRK);
+    }
+  }
+  
   $("#"+elementId).dialog('open');
 }
 

@@ -180,6 +180,12 @@
                       <xsl:with-param name="DataType" select="$Item/@DataType"/>
                       <xsl:with-param name="Title" select="@Title"/>
                       <xsl:with-param name="ProfileId" select="$ProfileId"/>
+                      <xsl:with-param name="SiteId" select="$SiteId"/>
+                      <xsl:with-param name="SubjectKey" select="$SubjectKey"/>
+                      <xsl:with-param name="StudyEventOID" select="$StudyEventOID"/>
+                      <xsl:with-param name="StudyEventRepeatKey" select="$StudyEventRepeatKey"/>
+                      <xsl:with-param name="FormOID" select="$ItemGroup/../@OID"/>
+                      <xsl:with-param name="FormRepeatKey" select="$ItemGroup/../@FormRepeatKey"/>
                   </xsl:call-template>
                 </xsl:if>
             </td>

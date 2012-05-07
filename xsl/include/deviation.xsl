@@ -32,6 +32,12 @@
     <xsl:param name="DataType"/>
     <xsl:param name="Title"/>
     <xsl:param name="ProfileId"/>
+  	<xsl:param name="SiteId"/>
+  	<xsl:param name="SubjectKey"/>
+  	<xsl:param name="StudyEventOID"/>
+  	<xsl:param name="StudyEventRepeatKey"/>
+  	<xsl:param name="FormOID"/>
+  	<xsl:param name="FormRepeatKey"/>
     
     <xsl:if test="$ProfileId='INV' or $ProfileId='DM'">
   
@@ -41,14 +47,25 @@
   	  <!--Valeurs modifiables-->          
       <xsl:variable name="DivId" select="concat('deviation_div_',$ItemOID,'_',$CurrentItemGroupRepeatKey)"/>
       <a href="javascript:void(0)">
+        <xsl:element name='span'>
+          <xsl:attribute name='id'><xsl:value-of select="concat($DivId,'_picture')"/></xsl:attribute>
+          <xsl:attribute name='class'>imageOnly image16</xsl:attribute>
+          <xsl:attribute name="style">background-image: url('<xsl:value-of select="$CurrentApp" />/templates/default/images/delta_add_16.png');</xsl:attribute>
+          <xsl:attribute name="onclick">toggleDeviation('<xsl:value-of select="$CurrentApp"/>','<xsl:value-of select="$SiteId"/>','<xsl:value-of select="$SubjectKey"/>','<xsl:value-of select="$StudyEventOID"/>','<xsl:value-of select="$StudyEventRepeatKey"/>','<xsl:value-of select="$FormOID"/>','<xsl:value-of select="$FormRepeatKey"/>','<xsl:value-of select="$ProfileId"/>','<xsl:value-of select="$ItemOID"/>','<xsl:value-of select="$CurrentItemGroupRepeatKey"/>');</xsl:attribute>
+          <xsl:attribute name="altbox">Add a deviation on this item</xsl:attribute>
+          &#0160;
+        </xsl:element>
+      </a>
+      <!--ancienne img, ne marche pas sous IE-->
+      <!--a href="javascript:void(0)">
         <xsl:element name='img'>
           <xsl:attribute name='id'><xsl:value-of select="concat($DivId,'_picture')"/></xsl:attribute>
           <xsl:attribute name="src"><xsl:value-of select="$CurrentApp" />/templates/default/images/delta_add_16.png</xsl:attribute>
           <xsl:attribute name="onClick">toggleDeviation('<xsl:value-of select="$DivId"/>');</xsl:attribute>
           <xsl:attribute name="altbox">Add a deviation on this item</xsl:attribute>
         </xsl:element>
-      </a>
-      <div id="{$DivId}" class='dialog-deviation' title='{$Title}' style="display:none;" itemgroupoid='{$CurrentItemGroupOID}' itemgrouprepeatkey='{$CurrentItemGroupRepeatKey}' itemoid='{$ItemOID}' itemtitle='{$Title}'>
+      </a-->
+      <div id="{$DivId}" initialized='false' class='dialog-deviation' title='{$Title}' style="display:none;" itemgroupoid='{$CurrentItemGroupOID}' itemgrouprepeatkey='{$CurrentItemGroupRepeatKey}' itemoid='{$ItemOID}' itemtitle='{$Title}'>
         Please fill this field in case of deviation :<br /> <br />                 
         <xsl:element name="textarea">
           <xsl:attribute name="cols">60</xsl:attribute>
