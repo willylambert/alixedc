@@ -22,8 +22,8 @@
 var defaultPostItText = "Drag and drop me...";
 
 function getDropZoneSelector(ItemOID,ItemGroupRepeatKey,ItemGroupOID){
-  id = ItemOID +"_"+ ItemGroupRepeatKey;
-  if($("table.ItemGroup[name='"+ItemGroupOID+"']").length==0){ //distinction entre repeating yes et no
+  id = ItemOID +"_"+ ItemGroupOID +"_"+ ItemGroupRepeatKey;
+  if($("form[name='"+ItemGroupOID+"']").length==1){ //distinction entre repeating yes et no
     return jq(id) +" td.ItemDataInput"; //repeating=no
   }else{
     return "td."+ jq(id); //repeating=yes
@@ -200,7 +200,7 @@ function setDroppable(el){
       }else{
         ids = $(this).closest("tr").attr("id").split(new RegExp("_")); //repeating=no
       }
-      ItemGroupRepeatKey = ids[1];
+      ItemGroupRepeatKey = ids[2];
       ItemOID = ids[0];
       newId = "PostIt_"+ SubjectKey +"_"+ StudyEventOID +"_"+ StudyEventRepeatKey +"_"+ FormOID +"_"+ FormRepeatKey +"_"+ ItemGroupOID +"_"+ ItemGroupRepeatKey +"_"+ ItemOID;
       

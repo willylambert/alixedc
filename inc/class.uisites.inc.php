@@ -50,7 +50,7 @@ class uisites extends CommonFunctions
       
       //Demande de creation d'un centre
       if(isset($_GET['action']) && $_GET['action']=='createSite'){
-        $this->m_ctrl->boacl()->addSite($_POST['siteId'],$_POST['siteName'],$_POST['siteCountry'],$_POST['checkOnSave']);
+        $this->m_ctrl->bosites()->addSite($_POST['siteId'],$_POST['siteName'],$_POST['siteCountry'],$_POST['checkOnSave']);
       }
     
       //Construction de la liste des centres
@@ -68,7 +68,7 @@ class uisites extends CommonFunctions
   			</thead>
         <tbody>";
 			
-			$tblSite = $this->m_ctrl->boacl()->getSites();
+			$tblSite = $this->m_ctrl->bosites()->getSites();
       foreach($tblSite as $site)
 			{
 			   $htmlSites .= "<tr id='".$site['siteId']."'>

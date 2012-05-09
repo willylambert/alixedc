@@ -74,10 +74,19 @@ class uisubjectlist extends CommonFunctions
                       'Orientation' => $col['Orientation']);
     }
     
+    //ARC and DM can download PDF
+    $bShowChecks = false;
+    if($this->m_ctrl->boacl()->existUserProfileId(array("DM","CRA"))){
+      $bShowPDF = true;
+    }
+    
+    //variable ajoutée aux URLs Javascript afin de forcer le rechargement coté navigateur
+    $jsVersion = $this->m_tblConfig['JS_VERSION'];
+    
     $html .= "<SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jqGrid/grid.locale-en.js') . "'></SCRIPT>
               <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jqGrid/jquery.jqGrid.min.js') . "'></SCRIPT>
-              <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/helpers.js') . "'></SCRIPT>
-              <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/alixcrf.subjects.js') . "'></SCRIPT>
+              <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/helpers.js') . "?$jsVersion'></SCRIPT>
+              <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/alixcrf.subjects.js') . "?$jsVersion'></SCRIPT>
               
               <table id='listSubjects'></table>
               <div id='pagerSubjects'></div>
@@ -85,7 +94,7 @@ class uisubjectlist extends CommonFunctions
               
               <script>
                 //<![CDATA[
-                  loadAlixCRFSubjectsJS('".$this->getCurrentApp(false)."','".json_encode($cols)."');
+                  loadAlixCRFSubjectsJS('".$this->getCurrentApp(false)."','".json_encode($cols)."', ".($bShowPDF?'true':'false').");
                 //]]>
               </script>";
     

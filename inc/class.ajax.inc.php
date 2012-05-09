@@ -1494,7 +1494,7 @@ public function checkFormData(){
     $response = new StdClass;
   
     //Extraction des paramètres       
-    $MetaDataVersion = "1.0.0";
+    $MetaDataVersion = $this->config("METADATAVERSION");
     $SubjectKey = "";
     $search = "";
     if(isset($_POST['MetaDataVersionOID'])) $MetaDataVersion = $_POST['MetaDataVersionOID'];
@@ -1604,13 +1604,18 @@ public function checkFormData(){
         }else{
           $statusCRF = $statut;
         }
+        if($this->m_ctrl->boacl()->existUserProfileId(array("DM","CRA"),"",$subj->colSITEID)){
+          $pdf = "<button class='ui-state-default ui-corner-all' onClick=\"if(window.event){ var e = window.event; e.cancelBubble = true; if(e && e.stopPropagation){ e.stopPropagation();};}else{event.stopPropagation();}; window.location='index.php?menuaction=". $GLOBALS['egw_info']['flags']['currentapp'] .".uietude.subjectPDF&SubjectKey=". $subj->fileOID ."';\">PDF</button>";
+        }else{
+          $pdf = "";
+        }
+        /*
         if($this->m_ctrl->boacl()->existUserProfileId("DM","",$subj->colSITEID)){
           $check = "<button class='ui-state-default ui-corner-all' onClick=\"if(window.event){ var e = window.event; e.cancelBubble = true; if(e && e.stopPropagation){ e.stopPropagation();};}else{event.stopPropagation();}; runConsistencyChecks('". $GLOBALS['egw_info']['flags']['currentapp'] ."', '". $subj->colSITEID ."', '". $subj->fileOID ."');\">Run consistency checks</button>";
         }else{
           $check = "";
         }
-        
-        //$this->m_ctrl->bosubjects()->updateSubjectsList($subj->fileOID);
+        */
         
         $response->rows[$j]['id'] = "subject_". $subj->fileOID;
         $response->rows[$j]['cell']=array();
@@ -1635,10 +1640,11 @@ public function checkFormData(){
           }
         }
         $response->rows[$j]['cell'][] = (string)$subj->SUBJECTSTATUS;
-        $response->rows[$j]['cell'][] = $this->m_ctrl->bopostit()->getPostItCount($subj->fileOID);
+        //$response->rows[$j]['cell'][] = $this->m_ctrl->bopostit()->getPostItCount($subj->fileOID);
         $response->rows[$j]['cell'][] = $this->m_ctrl->boqueries()->getQueriesCount($subj->fileOID,"","","","","","","","","","Y","QUERYSTATUS<>'C'");
         $response->rows[$j]['cell'][] = $statusCRF;
-        $response->rows[$j]['cell'][] = $check;
+        $response->rows[$j]['cell'][] = $pdf;
+        //$response->rows[$j]['cell'][] = $check;
         $j++;
       }
       $i++;

@@ -1213,6 +1213,148 @@ class bocdiscoo extends CommonFunctions
 
     return $newSubj['FileOID'];
   }
+  
+
+/*  
+@desc returns the list of the visits, forms and itemgroups to display a full CRF (usefull for PDF generation)
+*/
+  function getAllSubjectFormsAndIGsForPDF($SubjectKey, $insertAuditTrail=false)
+  {
+    $this->addLog(__METHOD__."($SubjectKey,$insertAuditTrail)",INFO);
+    
+    $ItemGroupDataAT = "";
+    if($insertAuditTrail){
+      $ItemGroupDataAT = "
+      {
+      (:Insertion des données d'Audit Trail:)
+      let \$ItemGroupData := \$StudyEventData/odm:FormData[@FormOID=\$FormOID and (@FormRepeatKey=\$FormData/@FormRepeatKey or not(\$FormData/@FormRepeatKey))]/odm:ItemGroupData[@ItemGroupOID=\$ItemGroupOID]
+      return
+          <ItemGroupDataAT OID='{\$ItemGroupData/@ItemGroupOID}'>
+          {
+              for \$ItemData in \$ItemGroupData/odm:*
+                  let \$AuditRecord := \$SubjectData/../odm:AuditRecords/odm:AuditRecord[@ID=\$ItemData/@AuditRecordID]
+                  order by \$ItemData/@ItemOID,\$ItemData/@AuditRecordID descending
+                  return
+                      <ItemDataAT ItemOID='{\$ItemData/@ItemOID}'
+                                  Value='{\$ItemData/string()}'
+                                  AuditRecordID='{\$ItemData/@AuditRecordID}'
+                                  TransactionType='{\$ItemData/@TransactionType}'>
+                          <AuditRecord    User='{\$AuditRecord/odm:UserRef/@UserOID}'
+                                          Location='{\$AuditRecord/odm:LocationRef/@LocationOID}'
+                                          Date='{\$AuditRecord/odm:DateTimeStamp/string()}'
+                                          Reason='{\$AuditRecord/odm:ReasonForChange/string()}'/>
+                      </ItemDataAT>
+          }
+          </ItemGroupDataAT>
+      }";
+    }
+    
+    $query = "
+              declare function local:getLastValue(\$ItemData as node()*) as xs:string?
+              {
+                let \$v := ''
+                return \$ItemData[last()]/string()
+              };
+
+              let \$SubjectData := collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData
+              let \$SubjectBLANK := collection('ClinicalData')/odm:ODM[@FileOID='". $this->config("BLANK_OID") ."']/odm:ClinicalData/odm:SubjectData
+              let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
+              let \$BasicDefinitions := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:BasicDefinitions[../odm:MetaDataVersion/@OID=\$SubjectData/../@MetaDataVersionOID]
+              return
+                <SubjectData>
+                {
+                    for \$StudyEventData in \$SubjectData/odm:StudyEventData
+                    return
+                        <StudyEvent OID='{\$StudyEventData/@StudyEventOID}'
+                                    StudyEventRepeatKey='{\$StudyEventData/@StudyEventRepeatKey}'
+                                    Title='{\$MetaDataVersion/odm:StudyEventDef[@OID=\$StudyEventData/@StudyEventOID]/odm:Description/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()}'>
+                        {
+                            for \$FormData in \$MetaDataVersion/odm:StudyEventDef[@OID=\$StudyEventData/@StudyEventOID]/odm:FormRef
+                                let \$FormRef := \$MetaDataVersion/odm:StudyEventDef[@OID=\$StudyEventData/@StudyEventOID]/odm:FormRef[@FormOID=\$FormData/@FormOID]
+                                let \$FormOID := \$FormData/@FormOID
+                                let \$FormDef := \$MetaDataVersion/odm:FormDef[@OID=\$FormData/@FormOID]
+                                return
+                                <Form   OID='{\$FormOID}'
+                                        FormReapeatKey='{\$FormData/@FormRepeatKey}'
+										                    Title='{\$MetaDataVersion/odm:FormDef[@OID=\$FormData/@FormOID]/odm:Description/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()}'>
+                                {
+                                    for \$ItemGroupRef in \$FormDef/odm:ItemGroupRef
+                                    let \$ItemGroupOID := \$ItemGroupRef/@ItemGroupOID
+                                    let \$ItemGroupDef := \$MetaDataVersion/odm:ItemGroupDef[@OID=\$ItemGroupOID]
+                                    return
+                                        <ItemGroup  OID='{\$ItemGroupOID}'
+                                                    Title='{\$ItemGroupDef/odm:Description/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()}'
+                                                    Repeating='{\$ItemGroupDef/@Repeating}'>
+                                        {
+                                            (:Insertion des MetaData de l'item en cours, ainsi que de la dernière valeur saisie:)
+                                            for \$ItemRef in \$ItemGroupDef/odm:ItemRef
+                                            let \$ItemOID := \$ItemRef/@ItemOID
+                                            let \$ItemDef := \$MetaDataVersion/odm:ItemDef[@OID=\$ItemOID]
+                                            return
+                                                <Item   OID='{\$ItemOID}'
+                                                        Title='{\$ItemDef/odm:Question/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()}'
+                                                        DataType='{\$ItemDef/@DataType}'
+                                                        Length='{\$ItemDef/@Length}'
+                                                        SignificantDigits='{\$ItemDef/@SignificantDigits}'
+                                                        Mandatory='{\$ItemRef/@Mandatory}'
+                                                        CollectionExceptionConditionOID='{\$ItemRef/@CollectionExceptionConditionOID}'>
+                                                    <CodeList>
+                                                    {
+                                                        for \$CodeListItem in \$MetaDataVersion/odm:CodeList[@OID=\$ItemDef/odm:CodeListRef/@CodeListOID]/*
+                                                        return
+                                                            <CodeListItem   CodedValue='{\$CodeListItem/@CodedValue}'
+                                                                            Decode='{\$CodeListItem/odm:Decode/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()}'>
+                                                            </CodeListItem>
+                                                    }
+                                                    </CodeList>
+                                                    <MeasurementUnit>
+                                                    {
+                                                        for \$MeasurementUnitItem in \$BasicDefinitions/odm:MeasurementUnit[@OID=\$ItemDef/odm:MeasurementUnitRef/@MeasurementUnitOID]
+                                                        return
+                                                            <MeasurementUnitItem    OID='{\$MeasurementUnitItem/@MeasurementUnitOID}'
+                                                                                    Symbol='{\$MeasurementUnitItem/odm:Symbol/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()}'>
+                                                            </MeasurementUnitItem>
+                                                    }
+                                                    </MeasurementUnit>
+                                                    $ItemGroupDataAT
+                                                </Item>
+                                        }
+                                        {
+                                            for \$ItemGroupData in \$StudyEventData/odm:FormData[@FormOID=\$FormOID and (@FormRepeatKey=\$FormData/@FormRepeatKey or not(\$FormData/@FormRepeatKey))]/odm:ItemGroupData[@ItemGroupOID=\$ItemGroupOID]
+                                            return
+                                                <ItemGroupData  ItemGroupOID='{\$ItemGroupData/@ItemGroupOID}'
+                                                                ItemGroupRepeatKey='{\$ItemGroupData/@ItemGroupRepeatKey}'>
+                                                {
+                                                    for \$ItemData in \$ItemGroupData/odm:*
+                                                        let \$MaxAuditRecordID := max(\$ItemGroupData/odm:*[@ItemOID=\$ItemData/@ItemOID]/string(@AuditRecordID))
+                                                        let \$ItemDef := \$MetaDataVersion/odm:ItemDef[@OID=\$ItemData/@ItemOID]
+                                                        where \$ItemData/@AuditRecordID = \$MaxAuditRecordID
+                                                        return
+                                                            <ItemData   OID='{\$ItemData/@ItemOID}'
+                                                                        Title='{\$ItemDef/odm:Question/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()}'
+                                                                        DataType='{\$ItemDef/@DataType}'
+                                                                        Length='{\$ItemDef/@Length}'
+                                                                        Value='{\$ItemData/string()}'>
+                                                            </ItemData>
+                                                }
+                                                </ItemGroupData>
+                                        }
+                                        </ItemGroup>
+                                }
+                                </Form>
+                        }
+                        </StudyEvent>
+                }
+                </SubjectData>";
+
+    try{
+      $doc = $this->m_ctrl->socdiscoo()->query($query,false);
+    }catch(xmlexception $e){
+      $str = "xQuery error : " . $e->getMessage();
+      $this->addLog($str,FATAL);
+    }
+    return $doc;
+  }
 
   //Retourne pour un formulaire donnée un tableau des Items le composant, avec toutes les infos (cohérences, ...)
   function getAnnotedCRF($FormOID)

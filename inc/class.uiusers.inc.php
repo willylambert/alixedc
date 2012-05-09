@@ -196,7 +196,7 @@ class uiusers extends CommonFunctions
         $userId = $_POST['userId'];
       } 
                 
-      $tblSite = $this->m_ctrl->boacl()->getSites();
+      $tblSite = $this->m_ctrl->bosites()->getSites();
       $selSite = "<select name='siteId'><option value=''>";
       foreach($tblSite as $site){
         $selSite .= "<option value='".$site['siteId']."'>".$site['siteId']."-".$site['siteName']."</option>";

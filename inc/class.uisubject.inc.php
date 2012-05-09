@@ -447,4 +447,63 @@ class uisubject extends CommonFunctions
     return $htmlRet;
   }
   
+  /*
+  @desc return all subject data into PDF format (binary data)
+  @param $SubjectKey patient id
+  @return PDF data
+  */
+  public function getPDF($SubjectKey){
+    //////////////////////////////////////////////////////////////////////////////////////////
+    //récupérer l'ODM au format DOMDocument
+    $doc = $this->m_ctrl->bocdiscoo()->getAllSubjectFormsAndIGsForPDF($SubjectKey);
+      
+    
+    //////////////////////////////////////////////////////////////////////////////////////////
+    //convertir en HTML simple
+    //Application de l'XSL par défaut
+    $xsl = new DOMDocument;
+    $xsl->load(EGW_INCLUDE_ROOT . "/".$this->getCurrentApp(false)."/xsl/SubjectPDF.xsl"); 
+
+    //Création du processeur XSLT et application sur le doc xml
+    $proc = new XSLTProcessor;     
+    $proc->importStyleSheet($xsl);
+    
+    //Paramètes
+    $siteId = $this->m_ctrl->bosubjects()->getSubjectColValue($SubjectKey,"SITEID");
+    $subjId = sprintf($this->config("SUBJID_FORMAT"),$SubjectKey);
+    $siteName = $this->m_ctrl->bosites()->getSiteName($siteId);
+    //$this->m_ctrl->_unset("socdiscoo");
+    $proc->setParameter('','studyName',$this->config("APP_NAME"));
+    $proc->setParameter('','siteId',$siteId);
+    $proc->setParameter('','subjId',$subjId);
+    $proc->setParameter('','siteName',$siteName);
+    
+    $doc = $proc->transformToDoc($doc);
+    
+    $html = $doc->saveHTML();
+    //$html = "<!DOCTYPE html><html><body>Test :)</body></html>";
+    
+    //////////////////////////////////////////////////////////////////////////////////////////
+    //convertir en PDF
+    $htmlTemp = tempnam("/tmp","htmlDocGfpc");
+    $tmpHandle = fopen($htmlTemp,"w");
+    fwrite($tmpHandle,$html);
+    fclose($tmpHandle);
+    
+    # Tell HTMLDOC not to run in CGI mode...
+    putenv("HTMLDOC_NOCGI=1");
+    //Generation et affichage sur la sortie standard
+    //$cmd = "htmldoc -f $filename -t pdf --quiet --color --webpage --jpeg  --left 30 --top 20 --bottom 20 --right 20 --footer c.: --fontsize 10 --textfont {helvetica}";
+    $cmd = "htmldoc -t pdf --quiet --color --webpage --jpeg  --left 30 --top 20 --bottom 20 --right 20 --footer c.: --fontsize 10 --textfont {helvetica}";
+    ob_start();
+    $err = passthru("$cmd '$htmlTemp'");
+    $pdf = ob_get_contents();
+    ob_end_clean();
+    unlink($htmlTemp);
+    
+    //////////////////////////////////////////////////////////////////////////////////////////
+    //retourner le résultat binaire brute
+    return $pdf;
+  }
+  
 }

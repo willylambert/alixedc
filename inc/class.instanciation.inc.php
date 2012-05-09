@@ -42,6 +42,7 @@ class instanciation extends CommonFunctions
   protected $m_bopostit;
   protected $m_boqueries;
   protected $m_bosubjects;
+  protected $m_bosites;
 
   protected $m_boexport;
   protected $m_boimport;
@@ -193,6 +194,21 @@ class instanciation extends CommonFunctions
     }
     
     return $this->m_boqueries;   
+  }
+
+  /*
+  @desc accesseur de l'instance de la classe bosites, permet de ne pas instancier inutilement la classe
+  @return retourne la référence de notre objet bosites
+  */
+  public function bosites()
+  {
+    require_once("class.bosites.inc.php");
+    if(!isset($this->m_bosites)){
+      $this->addLog("uietude->bosites() : instanciation de bosites",TRACE);
+      $this->m_bosites = new bosites($this->m_tblConfig,$this);
+    }
+    
+    return $this->m_bosites;   
   }
 
   /*

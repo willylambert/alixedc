@@ -30,22 +30,23 @@ require_once(EGW_SERVER_ROOT . "/".$GLOBALS['egw_info']['flags']['currentapp']."
 class uietude extends CommonFunctions
 {
 	var $public_functions = array(
+		'changePasswordInterface' => True,
 		'dashboardInterface'	=> True,
 		'dbadminInterface'	=> True,
-		'changePasswordInterface' => True,
 		'deviationsInterface' => True,
 		'documentsInterface'	=> True,
 		'editorInterface' => True,
+		'exportInterface' => True,
+		'lockInterface' => True,
+		'logout' => True,
+		'preferencesInterface' => True,
 		'queriesInterface' => True,
     'sitesInterface' => True,
 		'startupInterface'	=> True,
-		'exportInterface' => True,
+		'subjectPDF' => True,
 		'subjectInterface' => True,
 		'subjectListInterface' => True,
-		'lockInterface' => True,
-		'usersInterface' => True,
-		'preferencesInterface' => True,
-		'logout' => True
+		'usersInterface' => True
 		);
 
   public function __construct()
@@ -327,7 +328,37 @@ class uietude extends CommonFunctions
         $this->create_header();
         echo $ui->getInterface();
         $this->create_footer();   
-   } 
+   }
+   
+   public function subjectPDF()
+   {
+        require_once('class.uisubject.inc.php');
+        global $configEtude;
+        $ui = new uisubject($configEtude,$this->m_ctrl);
+        
+        $content = ob_get_contents();
+        ob_end_clean();
+        
+        $SubjectKey = $_GET['SubjectKey'];
+        
+        $siteId = $ui->m_ctrl->bosubjects()->getSubjectColValue($SubjectKey,"SITEID");
+        $subjId = sprintf($this->config("SUBJID_FORMAT"),$SubjectKey);
+        $filename = $this->config("APP_NAME") ."_Site_". $siteId ."_Patient_". $subjId .".pdf";
+        
+        $pdf = $ui->getPDF($SubjectKey);
+        
+        if(!$pdf) $this->m_ctrl->addLog($pdf,FATAL);
+        
+        header("Content-Disposition: attachment; filename=\"$filename\"");
+        header("Expires: 0");
+        header("Pragma: public"); 
+        header("Cache-Control: private, must-revalidate");
+        header("Content-Type: application/pdf");
+        
+        echo $pdf;
+        
+        exit(0);  
+   }
      
    public function lockInterface()
    {
