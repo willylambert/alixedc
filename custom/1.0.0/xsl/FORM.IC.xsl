@@ -109,7 +109,7 @@ I, the undersigned Dr
 			
 					if(origin.name==input_origin) 
 					{
-						action = $("input[name='radio_DM@SEX_0']:checked").val();
+            action = $("input[name='radio_DM@SEX_0']:checked").val();
             if(action==1 || typeof(action)=="undefined")
 						{
 							freezeFields(input_destination,ItemGroupOID,ItemGroupRepeatKey,true,false,false);

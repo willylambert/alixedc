@@ -569,7 +569,7 @@ div.itemGroupLine:hover{
 .imageStatusEMPTY{
   background-image: url('./images/circle_lightgray_16.png')
 }
-.imageStatusPARTIAL{
+.imageStatusPARTIAL,.imageStatusMISSING{
   background-image: url('./images/circle_orange_16.png')
 }
 .imageStatusINCONSISTENT{
