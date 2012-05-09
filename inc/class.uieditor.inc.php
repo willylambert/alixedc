@@ -101,7 +101,7 @@ class uieditor extends CommonFunctions
       $toolbar .= "<li name='". $command ."' class='command'><img src='". $this->getCurrentApp(false) ."/templates/default/images/editor/". $params[1] ."' /> ". $params[0] ."</li>";
     }
     $toolbar .= "<li>Theme : <select id='editor_Theme' onChange=\"editor_SetTheme(this.value,true)\"><option value='cobalt'>Cobalt</option><option value='textmate'>TextMate</option><option value='twilight'>Twilight</option><option value='vibrant_ink'>Vibrant Ink</option></select></li>";
-    $toolbar .= "<li>Font size : <select id='editor_FontSize' onChange=\"editor_SetFontSize(this.value,true)\"><option value='10'>10px</option><option value='12'>12px</option></option><option value='14'>14px</option></option><option value='16'>16px</option></option><option value='18'>18px</option></select></li>";
+    $toolbar .= "<li>Font size : <select id='editor_FontSize' onChange=\"editor_SetFontSize(this.value,true)\"><option value='10'>10px</option><option value='12'>12px</option><option value='14'>14px</option><option value='16'>16px</option><option value='18'>18px</option></select></li>";
      $toolbar .= "</ul>";
     
     //Submenus
