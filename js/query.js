@@ -21,9 +21,9 @@
     
 //////////////////////////////////////////////////////////////
 // Queries manuelles
-function initQueries(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey,ProfileId,ItemOID,IGRK){
+function initQueries(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey,ProfileId,ItemOID,IGOID,IGRK){
   ItemOIDdashed = ItemOID.replace(".","-");
-  var elementId = "query_div_"+ItemOIDdashed+"_"+IGRK;
+  var elementId = "query_div_"+ItemOIDdashed+"_"+IGOID+"_"+IGRK;
 
   //Formulaire d'ajout d'une query
   $("#"+elementId).dialog({
@@ -61,15 +61,15 @@ function initQueries(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeat
 }
 
 
-function toggleQuery(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey,ProfileId,ItemOID,IGRK){
+function toggleQuery(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey,ProfileId,ItemOID,IGOID,IGRK){
   ItemOIDdashed = ItemOID.replace(".","-");
-  var elementId = "query_div_"+ItemOIDdashed+"_"+IGRK;
+  var elementId = "query_div_"+ItemOIDdashed+"_"+IGOID+"_"+IGRK;
   
   //dialog initialized ?
   if($("#"+elementId).attr('initialized')=='false'){
     //Initialisation of Manual Query Dialog
     if(typeof(initQueries)=="function"){
-      initQueries(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey,ProfileId,ItemOID,IGRK);
+      initQueries(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey,ProfileId,ItemOID,IGOID,IGRK);
     }
   }
   

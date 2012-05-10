@@ -45,13 +45,13 @@
     	<xsl:variable name="ItemOID" select="translate($ItemOID,'.','-')"/>
   
   	  <!--Valeurs modifiables-->          
-      <xsl:variable name="DivId" select="concat('query_div_',$ItemOID,'_',$CurrentItemGroupRepeatKey)"/>
+      <xsl:variable name="DivId" select="concat('query_div_',$ItemOID,'_',$CurrentItemGroupOID,'_',$CurrentItemGroupRepeatKey)"/>
       <a href="javascript:void(0)">
         <xsl:element name='span'>
           <xsl:attribute name='id'><xsl:value-of select="concat($DivId,'_picture')"/></xsl:attribute>
           <xsl:attribute name='class'>imageOnly image16</xsl:attribute>
           <xsl:attribute name="style">background-image: url('<xsl:value-of select="$CurrentApp" />/templates/default/images/query_add.png');</xsl:attribute>
-          <xsl:attribute name="onclick">toggleQuery('<xsl:value-of select="$CurrentApp"/>','<xsl:value-of select="$SiteId"/>','<xsl:value-of select="$SubjectKey"/>','<xsl:value-of select="$StudyEventOID"/>','<xsl:value-of select="$StudyEventRepeatKey"/>','<xsl:value-of select="$FormOID"/>','<xsl:value-of select="$FormRepeatKey"/>','<xsl:value-of select="$ProfileId"/>','<xsl:value-of select="$ItemOID"/>','<xsl:value-of select="$CurrentItemGroupRepeatKey"/>');</xsl:attribute>
+          <xsl:attribute name="onclick">toggleQuery('<xsl:value-of select="$CurrentApp"/>','<xsl:value-of select="$SiteId"/>','<xsl:value-of select="$SubjectKey"/>','<xsl:value-of select="$StudyEventOID"/>','<xsl:value-of select="$StudyEventRepeatKey"/>','<xsl:value-of select="$FormOID"/>','<xsl:value-of select="$FormRepeatKey"/>','<xsl:value-of select="$ProfileId"/>','<xsl:value-of select="$ItemOID"/>','<xsl:value-of select="$CurrentItemGroupOID"/>','<xsl:value-of select="$CurrentItemGroupRepeatKey"/>');</xsl:attribute>
           <xsl:attribute name="altbox">Add a query on this item</xsl:attribute>
           &#0160;
         </xsl:element>
