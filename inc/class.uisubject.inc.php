@@ -225,7 +225,11 @@ class uisubject extends CommonFunctions
       */
       $legend = "";
       
+      //Toolbox : buttons on top of the form
       $toolbox = $this->getToolbox($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$profileId);
+      
+      //Context menu : actions when user click right
+      $inputContextMenu = $this->getInputContextMenu();
       
       //Do we have to check the data consistency before saving => set for each site in their configuration
       if($profile['checkOnSave']==2){
@@ -240,9 +244,14 @@ class uisubject extends CommonFunctions
       }else{
         $bCheckFormData = "true";
       }      
-        
+      
+      //Version of Javascript scripts
+      $jsVersion = $this->m_tblConfig['JS_VERSION'];
+      
       $htmlRet = "                  
                   $topMenu
+                  
+                  $inputContextMenu
                   
                   <div id='formMenu' class='ui-dialog ui-widget ui-widget-content ui-corner-all'>
                     <div class='ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix'>
@@ -265,17 +274,20 @@ class uisubject extends CommonFunctions
                     </div>
                   </div>
                                     
-                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/helpers.js') . "'></SCRIPT>
-                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/queries.js') . "'></SCRIPT>
-                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/query.js') . "'></SCRIPT>
-                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/deviations.js') . "'></SCRIPT>
-                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/deviation.js') . "'></SCRIPT>
-                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/annotations.js') . "'></SCRIPT>
-                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/audittrail.js') . "'></SCRIPT>
-                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/postit.js') . "'></SCRIPT>
-                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/alixcrf.js') . "'></SCRIPT>
-                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/custom/'.$MetaDataVersionOID.'/js/alixlib.js') . "'></SCRIPT>
-                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jquery.jqAltBox.js') . "'></SCRIPT>
+                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/helpers.js') . "?$jsVersion'></SCRIPT>
+                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/queries.js') . "?$jsVersion'></SCRIPT>
+                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/query.js') . "?$jsVersion'></SCRIPT>
+                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/deviations.js') . "?$jsVersion'></SCRIPT>
+                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/deviation.js') . "?$jsVersion'></SCRIPT>
+                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/annotations.js') . "?$jsVersion'></SCRIPT>
+                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/audittrail.js') . "?$jsVersion'></SCRIPT>
+                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/postit.js') . "?$jsVersion'></SCRIPT>
+                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/alixcrf.js') . "?$jsVersion'></SCRIPT>
+                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/custom/'.$MetaDataVersionOID.'/js/alixlib.js') . "?$jsVersion'></SCRIPT>
+                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jquery.jqAltBox.js') . "?$jsVersion'></SCRIPT>
+                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jquery.contextMenu.js') . "?$jsVersion'></SCRIPT>
+                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/contextMenu.js') . "?$jsVersion'></SCRIPT>
+                  <link href='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/templates/default/jquery.contextMenu.css') . "' type='text/css' rel='StyleSheet' />
                   
                   <script>
                   //<![CDATA[
@@ -443,6 +455,25 @@ class uisubject extends CommonFunctions
       */
       }
     }
+    
+    return $htmlRet;
+  }
+  
+/*
+@desc return a context menu, can be used with a right click on inputs
+@return string html
+*/  
+  protected function getInputContextMenu(){
+    $htmlRet = "";
+    
+    $htmlRet .= "<ul id='inputContextMenu' class='contextMenu'>";
+    
+    $htmlRet .= "
+                  <li class='contextMenuItem contextMenuAuditTrail'>
+                      <a href='#contextMenuAuditTrail'>Audit Trail</a>
+                  </li>";
+    
+    $htmlRet .= "</ul>";
     
     return $htmlRet;
   }

@@ -45,7 +45,7 @@ function initAuditTrail(ItemOID,IGRK){
 }
 
 
-function toggleAuditTrail(elementId){
+function toggleAuditTrail(ItemOID,IGRK){
   var elementId = "#auditTrail_div_"+ItemOID+"_"+IGRK;
   var elementIdEsc = elementId.replace(".","\\.");
   
