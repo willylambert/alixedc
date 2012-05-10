@@ -32,7 +32,7 @@
     <html>
       <head>
         <title>
-          <xsl:value-of select="$studyName" /> - Centre <xsl:value-of select="$siteId" /> (<xsl:value-of select="$siteName" />) Patient <xsl:value-of select="$subjId" />
+          <xsl:value-of select="$studyName" /> - Site <xsl:value-of select="$siteId" /> (<xsl:value-of select="$siteName" />) Subject <xsl:value-of select="$subjId" />
         </title>
       </head>
       <body>

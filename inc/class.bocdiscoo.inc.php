@@ -1325,17 +1325,17 @@ class bocdiscoo extends CommonFunctions
                                                 <ItemGroupData  ItemGroupOID='{\$ItemGroupData/@ItemGroupOID}'
                                                                 ItemGroupRepeatKey='{\$ItemGroupData/@ItemGroupRepeatKey}'>
                                                 {
-                                                    for \$ItemData in \$ItemGroupData/odm:*
-                                                        let \$MaxAuditRecordID := max(\$ItemGroupData/odm:*[@ItemOID=\$ItemData/@ItemOID]/string(@AuditRecordID))
-                                                        let \$ItemDef := \$MetaDataVersion/odm:ItemDef[@OID=\$ItemData/@ItemOID]
-                                                        where \$ItemData/@AuditRecordID = \$MaxAuditRecordID
-                                                        return
-                                                            <ItemData   OID='{\$ItemData/@ItemOID}'
-                                                                        Title='{\$ItemDef/odm:Question/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()}'
-                                                                        DataType='{\$ItemDef/@DataType}'
-                                                                        Length='{\$ItemDef/@Length}'
-                                                                        Value='{\$ItemData/string()}'>
-                                                            </ItemData>
+                                                    for \$ItemOID in distinct-values(\$ItemGroupData/odm:*/@ItemOID)
+                                                    let \$ItemDatas := \$ItemGroupData/odm:*[@ItemOID=\$ItemOID]
+                                                    let \$ItemData := \$ItemDatas[last()]
+                                                    let \$ItemDef := \$MetaDataVersion/odm:ItemDef[@OID=\$ItemOID]
+                                                    return
+                                                        <ItemData   OID='{\$ItemData/@ItemOID}'
+                                                                    Title='{\$ItemDef/odm:Question/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()}'
+                                                                    DataType='{\$ItemDef/@DataType}'
+                                                                    Length='{\$ItemDef/@Length}'
+                                                                    Value='{\$ItemData/string()}'>
+                                                        </ItemData>
                                                 }
                                                 </ItemGroupData>
                                         }
