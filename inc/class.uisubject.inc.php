@@ -71,9 +71,9 @@ class uisubject extends CommonFunctions
       $xsl = new DOMDocument;
       $xsl->load(EGW_INCLUDE_ROOT . "/".$this->getCurrentApp(false)."/xsl/StudyEventForm.xsl"); 
      
-      //Get Form Data / without design 
+      //Get Form Data / without design      
       $xml = $this->m_ctrl->bocdiscoo()->getStudyEventForms($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,false,$paginateStart,$paginateEnd);    
-      
+      $this->dumpPre($xml->saveXML());      
       $FormTag = $xml->getElementsByTagName("Form");  
       $FormTitle = $FormTag->item(0)->getAttribute("Title");
 

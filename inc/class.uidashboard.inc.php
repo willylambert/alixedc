@@ -62,7 +62,7 @@ class uidashboard extends CommonFunctions
     switch($action){
       case "curve":
         $TITLE = "Inclusions curve";
-        $CONTENT = $this->getCurve();
+        //$CONTENT = $this->getCurve();
         break;
       case "inclusions":
         $TITLE = "Inclusions";

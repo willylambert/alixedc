@@ -32,7 +32,7 @@
   $configEtude["APP_NAME"] = "DEMO BD STUDY";
   
   $configEtude["JS_VERSION"] = "1706";
-  $configEtude["METADATAVERSION"] = "2.0.0";
+  $configEtude["METADATAVERSION"] = "1.0.0";
   $configEtude["META_TO_EXPORT"] = $configEtude["METADATAVERSION"];
   
   $configEtude["CODE_PROJET"] = "BDSLF999P01";
@@ -46,7 +46,7 @@
   
   //Sedna database configuration
   $configEtude["SEDNA_HOST"] = "localhost";
-  $configEtude["SEDNA_DATABASE"] = "alixdb";
+  $configEtude["SEDNA_DATABASE"] = "alixedc";
   $configEtude["SEDNA_USER"] = "SYSTEM";
   $configEtude["SEDNA_PASSWORD"] = "MANAGER";
   $configEtude["SEDNA_NAMESPACE_ODM"] = "http://www.cdisc.org/ns/odm/v1.3";
