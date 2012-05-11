@@ -97,9 +97,9 @@
 	<xsl:if test="@checked='checked'">
 		<xsl:value-of select="@value"/>
 		<xsl:element name="input">
-		<xsl:attribute name="type">hidden</xsl:attribute>
-		<xsl:attribute name="name"><xsl:value-of select="@name"/></xsl:attribute>
-		<xsl:attribute name="value"><xsl:value-of select="@value"/></xsl:attribute>
+		  <xsl:attribute name="type">hidden</xsl:attribute>
+		  <xsl:attribute name="name"><xsl:value-of select="@name"/></xsl:attribute>
+		  <xsl:attribute name="value"><xsl:value-of select="@value"/></xsl:attribute>
 		</xsl:element>
   </xsl:if>
 </xsl:template>
