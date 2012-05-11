@@ -23,13 +23,13 @@
 @desc point d'entrée - appelée pour initialiser le comportement AJAX de la page listant les patients
 @author tpi
 */
-function loadAlixCRFSubjectsJS(CurrentApp, jsonConfig)
+function loadAlixCRFSubjectsJS(CurrentApp, jsonConfig, bShowPDF)
 {
   var config = eval('(' + jsonConfig + ')');
-  loadSubjectsGrid(CurrentApp, config);
+  loadSubjectsGrid(CurrentApp, config, bShowPDF);
 }
 
-function loadSubjectsGrid(CurrentApp, config)
+function loadSubjectsGrid(CurrentApp, config, bShowPDF)
 {
   $(document).ready(function(){
     var colNames = new Array();
@@ -115,18 +115,30 @@ function loadSubjectsGrid(CurrentApp, config)
       search: false
     });
 */    
+    //PDF
+    if(bShowPDF){
+      colNames.push(" ");
+      colModel.push({
+        name: "PDF",
+        index: "PDF",
+        width: 35,
+        align:'center',
+        search: false
+      });
+    }
     /*
     //runConsistencyChecks
-    colNames.push("");
-    colModel.push({
-      name: "",
-      index: "",
-      width: 150,
-      align:'center',
-      search: false
-    });
+    if(bShowChecks){
+      colNames.push("");
+      colModel.push({
+        name: "",
+        index: "",
+        width: 150,
+        align:'center',
+        search: false
+      });
+    }
     */
-    
     //Chargement du tableau
     var mygrid = jQuery("#listSubjects").jqGrid({
       url: "index.php?menuaction="+CurrentApp+".ajax.getSubjectsDataList",

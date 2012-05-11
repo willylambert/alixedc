@@ -27,6 +27,7 @@
   <xsl:template name="Annotation">
   	<xsl:param name="CurrentItemGroupOID"/>
   	<xsl:param name="CurrentItemGroupRepeatKey"/>
+  	<xsl:param name="CurrentTransactionType"/>
     <xsl:param name="ItemOID"/>
     <xsl:param name="FlagValue"/>
     <xsl:param name="Comment"/>
@@ -75,14 +76,25 @@
             </xsl:element>
           </xsl:if>
           <a href="javascript:void(0)">
+            <xsl:element name='span'>
+              <xsl:attribute name='id'><xsl:value-of select="concat($DivId,'_picture')"/></xsl:attribute>
+              <xsl:attribute name='class'>imageOnly image16</xsl:attribute>
+              <xsl:attribute name="style">background-image: url('<xsl:value-of select="$CurrentApp" />/templates/default/images/post_note<xsl:if test="string-length($Comment)=0 or $Comment='&#160;'">_empty</xsl:if>.gif');</xsl:attribute>
+              <xsl:attribute name="onclick">updateAnnotPict('<xsl:value-of select="$CurrentApp"/>', 'annotation_comment_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/>','<xsl:value-of select="concat($DivId,'_picture')"/>');toggleAnnotation('<xsl:value-of select="$ItemOID"/>','<xsl:value-of select="$CurrentItemGroupRepeatKey"/>');</xsl:attribute>
+              <xsl:attribute name="altbox">Add an annotation on this item</xsl:attribute>
+              &#0160;
+            </xsl:element>
+          </a>
+          <!--ancienne img, ne marche pas sous IE-->
+          <!--a href="javascript:void(0)">
             <xsl:element name='img'>
               <xsl:attribute name='id'><xsl:value-of select="concat($DivId,'_picture')"/></xsl:attribute>
               <xsl:attribute name="src"><xsl:value-of select="$CurrentApp"/>/templates/default/images/post_note<xsl:if test="string-length($Comment)=0 or $Comment='&#160;'">_empty</xsl:if>.gif</xsl:attribute>
               <xsl:attribute name="onClick">updateAnnotPict('<xsl:value-of select="$CurrentApp"/>', 'annotation_comment_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/>','<xsl:value-of select="concat($DivId,'_picture')"/>');toggleAnnotation('<xsl:value-of select="$DivId"/>');</xsl:attribute>
               <xsl:attribute name="altbox">Add an annotation on this item</xsl:attribute>
             </xsl:element>
-          </a>
-          <div id="{$DivId}" class='dialog-annotation' title='{$Title}' style="display:none;">
+          </a-->
+          <div id="{$DivId}" initialized='false' class='dialog-annotation TransactionType{$CurrentTransactionType}' title='{$Title}' style="display:none;">
             <input type="radio" value="Ø">
                <xsl:attribute name="onClick">updateFlag('<xsl:value-of select="$ItemOID"/>','<xsl:value-of select="$CurrentItemGroupOID"/>','<xsl:value-of select="$CurrentItemGroupRepeatKey"/>',this.value,false,false)</xsl:attribute>
                <!--Mémo : l'utilisation du onChange a ici été abandonnée, le comportement étant différent selon les navigateurs-->

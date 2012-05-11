@@ -45,7 +45,7 @@ class bopostit extends CommonFunctions
     $this->addLog("bopostit->savePostIt($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$ItemOID,$txt)",INFO);
     
     $userId = $this->m_ctrl->boacl()->getUserId();
-    $siteId = substr($SubjectKey, 0, 2);
+    $siteId = $this->m_ctrl->bosubjects()->getSubjectColValue($SubjectKey,"SITEID");
     $profileId = $this->m_ctrl->boacl()->getUserProfileId("",$siteId);
     
     $sql = "REPLACE INTO egw_alix_postit

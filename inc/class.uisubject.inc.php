@@ -225,7 +225,11 @@ class uisubject extends CommonFunctions
       */
       $legend = "";
       
+      //Toolbox : buttons on top of the form
       $toolbox = $this->getToolbox($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$profileId);
+      
+      //Context menu : actions when user click right
+      $inputContextMenu = $this->getInputContextMenu();
       
       //Do we have to check the data consistency before saving => set for each site in their configuration
       if($profile['checkOnSave']==2){
@@ -240,9 +244,14 @@ class uisubject extends CommonFunctions
       }else{
         $bCheckFormData = "true";
       }      
-        
+      
+      //Version of Javascript scripts
+      $jsVersion = $this->m_tblConfig['JS_VERSION'];
+      
       $htmlRet = "                  
                   $topMenu
+                  
+                  $inputContextMenu
                   
                   <div id='formMenu' class='ui-dialog ui-widget ui-widget-content ui-corner-all'>
                     <div class='ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix'>
@@ -265,17 +274,20 @@ class uisubject extends CommonFunctions
                     </div>
                   </div>
                                     
-                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/helpers.js') . "'></SCRIPT>
-                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/queries.js') . "'></SCRIPT>
-                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/query.js') . "'></SCRIPT>
-                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/deviations.js') . "'></SCRIPT>
-                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/deviation.js') . "'></SCRIPT>
-                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/annotations.js') . "'></SCRIPT>
-                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/audittrail.js') . "'></SCRIPT>
-                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/postit.js') . "'></SCRIPT>
-                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/alixcrf.js') . "'></SCRIPT>
-                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/custom/'.$MetaDataVersionOID.'/js/alixlib.js') . "'></SCRIPT>
-                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jquery.jqAltBox.js') . "'></SCRIPT>
+                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/helpers.js') . "?$jsVersion'></SCRIPT>
+                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/queries.js') . "?$jsVersion'></SCRIPT>
+                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/query.js') . "?$jsVersion'></SCRIPT>
+                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/deviations.js') . "?$jsVersion'></SCRIPT>
+                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/deviation.js') . "?$jsVersion'></SCRIPT>
+                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/annotations.js') . "?$jsVersion'></SCRIPT>
+                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/audittrail.js') . "?$jsVersion'></SCRIPT>
+                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/postit.js') . "?$jsVersion'></SCRIPT>
+                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/alixcrf.js') . "?$jsVersion'></SCRIPT>
+                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/custom/'.$MetaDataVersionOID.'/js/alixlib.js') . "?$jsVersion'></SCRIPT>
+                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jquery.jqAltBox.js') . "?$jsVersion'></SCRIPT>
+                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jquery.contextMenu.js') . "?$jsVersion'></SCRIPT>
+                  <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/contextMenu.js') . "?$jsVersion'></SCRIPT>
+                  <link href='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/templates/default/jquery.contextMenu.css') . "' type='text/css' rel='StyleSheet' />
                   
                   <script>
                   //<![CDATA[
@@ -445,6 +457,84 @@ class uisubject extends CommonFunctions
     }
     
     return $htmlRet;
+  }
+  
+/*
+@desc return a context menu, can be used with a right click on inputs
+@return string html
+*/  
+  protected function getInputContextMenu(){
+    $htmlRet = "";
+    
+    $htmlRet .= "<ul id='inputContextMenu' class='contextMenu'>";
+    
+    $htmlRet .= "
+                  <li class='contextMenuItem contextMenuAuditTrail'>
+                      <a href='#contextMenuAuditTrail'>Audit Trail</a>
+                  </li>";
+    
+    $htmlRet .= "</ul>";
+    
+    return $htmlRet;
+  }
+  
+  /*
+  @desc return all subject data into PDF format (binary data)
+  @param $SubjectKey patient id
+  @return PDF data
+  */
+  public function getPDF($SubjectKey){
+    //////////////////////////////////////////////////////////////////////////////////////////
+    //récupérer l'ODM au format DOMDocument
+    $doc = $this->m_ctrl->bocdiscoo()->getAllSubjectFormsAndIGsForPDF($SubjectKey);
+      
+    
+    //////////////////////////////////////////////////////////////////////////////////////////
+    //convertir en HTML simple
+    //Application de l'XSL par défaut
+    $xsl = new DOMDocument;
+    $xsl->load(EGW_INCLUDE_ROOT . "/".$this->getCurrentApp(false)."/xsl/SubjectPDF.xsl"); 
+
+    //Création du processeur XSLT et application sur le doc xml
+    $proc = new XSLTProcessor;     
+    $proc->importStyleSheet($xsl);
+    
+    //Paramètes
+    $siteId = $this->m_ctrl->bosubjects()->getSubjectColValue($SubjectKey,"SITEID");
+    $subjId = sprintf($this->config("SUBJID_FORMAT"),$SubjectKey);
+    $siteName = $this->m_ctrl->bosites()->getSiteName($siteId);
+    //$this->m_ctrl->_unset("socdiscoo");
+    $proc->setParameter('','studyName',$this->config("APP_NAME"));
+    $proc->setParameter('','siteId',$siteId);
+    $proc->setParameter('','subjId',$subjId);
+    $proc->setParameter('','siteName',$siteName);
+    
+    $doc = $proc->transformToDoc($doc);
+    
+    $html = $doc->saveHTML();
+    //$html = "<!DOCTYPE html><html><body>Test :)</body></html>";
+    
+    //////////////////////////////////////////////////////////////////////////////////////////
+    //convertir en PDF
+    $htmlTemp = tempnam("/tmp","htmlDocGfpc");
+    $tmpHandle = fopen($htmlTemp,"w");
+    fwrite($tmpHandle,$html);
+    fclose($tmpHandle);
+    
+    # Tell HTMLDOC not to run in CGI mode...
+    putenv("HTMLDOC_NOCGI=1");
+    //Generation et affichage sur la sortie standard
+    //$cmd = "htmldoc -f $filename -t pdf --quiet --color --webpage --jpeg  --left 30 --top 20 --bottom 20 --right 20 --footer c.: --fontsize 10 --textfont {helvetica}";
+    $cmd = "htmldoc -t pdf --quiet --color --webpage --jpeg  --left 30 --top 20 --bottom 20 --right 20 --footer c.: --fontsize 10 --textfont {helvetica}";
+    ob_start();
+    $err = passthru("$cmd '$htmlTemp'");
+    $pdf = ob_get_contents();
+    ob_end_clean();
+    unlink($htmlTemp);
+    
+    //////////////////////////////////////////////////////////////////////////////////////////
+    //retourner le résultat binaire brute
+    return $pdf;
   }
   
 }

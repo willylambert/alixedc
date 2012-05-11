@@ -146,33 +146,6 @@ class boacl extends CommonFunctions
     
     return $tblRet;
   }
-  
-  
-/**************************************************** Accesseurs Site ****************************************************/
-
-/*
-@desc retourne la liste de tous les centres (de l'application en cours)
-@return array(siteId,sitename)
-@author wlt
-*/ 
-  public function getSites(){
-    $tblRet = array();
-    //Recuperation de la liste des centres
-    $sql = "SELECT SITEID,SITENAME,COUNTRY,CHECKONSAVE
-            FROM egw_alix_sites
-            WHERE CURRENTAPP='".$this->getCurrentApp(false)."'
-            ORDER BY SITEID";
-    
-    $GLOBALS['egw']->db->query($sql); 
-    while($GLOBALS['egw']->db->next_record()){
-      $siteId = (string)$GLOBALS['egw']->db->f('SITEID');
-      $tblRet["site$siteId"] = array('siteId'=>$siteId,
-                        'siteName'=>$GLOBALS['egw']->db->f('SITENAME'),
-                        'siteCountry'=>$GLOBALS['egw']->db->f('COUNTRY'),
-                        'checkOnSave'=>$GLOBALS['egw']->db->f('CHECKONSAVE'));
-    }
-    return $tblRet;
-  }
 
 
 /**************************************************** Modificateurs Profile ****************************************************/
@@ -192,13 +165,7 @@ class boacl extends CommonFunctions
   }
   
 
-/**************************************************** Modificateurs Site ****************************************************/
-  
-  public function addSite($siteId,$siteName,$siteCountry,$checkOnSave){
-    $sql = "INSERT INTO egw_alix_sites(CURRENTAPP,SITEID,SITENAME,COUNTRY,CHECKONSAVE) 
-          VALUES('".$this->getCurrentApp(false)."','$siteId','$siteName','$siteCountry','$checkOnSave');";
-    $GLOBALS['egw']->db->query($sql); 
-  }
+/**************************************************** Others ****************************************************/
 
   /**
  *Check if current user has access to the module (or one of the modules listed and separated by a double-pipe)

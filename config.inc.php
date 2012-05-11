@@ -72,6 +72,7 @@
   //Default language
   $configEtude["lang"] = "en";
 
+  //Number of digits for the SUBJID
   $configEtude["SUBJID_FORMAT"] = "%04d";
   
   //Where is the enrolment form ?  
@@ -288,6 +289,9 @@
   //Forms for which we enable pagination
   $configEtude['FORM_PAGINATE']['FORM.CM'] = array('FRMOID'=>'FORM.CM','IG_PER_PAGE'=>10);
 
+  //Forms for which a deviation can be entered
+  $configEtude['FORM_DEVIATIONS'][] =  array('SEOID'=>'ENROL','SERK'=>'0','FRMOID'=>'FORM.VDT','FRMRK'=>'0');
+  
  //Security                                                
   $configEtude['PASSWORD']['MIN_LENGTH'] = 6;         
   $configEtude['PASSWORD']['UPPER_LOWER_CASE'] = true;

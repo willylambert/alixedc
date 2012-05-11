@@ -39,14 +39,26 @@ function initAuditTrail(ItemOID,IGRK){
     	close: function() {
     	}
   });
+  
+  $(elementIdEsc).attr('initialized','true');
 
 }
 
 
-function toggleAuditTrail(elementId){
-  //$("#"+elementId).dialog('open');
-  $("#"+elementId.replace(".","\\.")).dialog('open');
-  $("#"+elementId.replace(".","\\.") +"[keys]").each(function(index){
+function toggleAuditTrail(ItemOID,IGRK){
+  var elementId = "#auditTrail_div_"+ItemOID+"_"+IGRK;
+  var elementIdEsc = elementId.replace(".","\\.");
+  
+  //dialog initialized ?
+  if($(elementIdEsc).attr('initialized')=='false'){
+    //Initialisation of AuditTrail
+    if(typeof(initAuditTrail)=="function"){
+      initAuditTrail(ItemOID,IGRK);
+    }
+  }
+  
+  $(elementIdEsc).dialog('open');
+  $(elementIdEsc +"[keys]").each(function(index){
     var keys = $(this).attr("keys").split(",");
     var CurrentApp = keys[0];
     var dataString = "SubjectKey="+keys[1]+"&StudyEventOID="+keys[2]+"&StudyEventRepeatKey="+keys[3]+"&FormOID="+keys[4]+"&FormRepeatKey="+keys[5]+"&ItemGroupOID="+keys[6]+"&ItemGroupRepeatKey="+keys[7]+"&ItemOID="+keys[8];
@@ -104,7 +116,7 @@ function toggleAuditTrail(elementId){
         
         
         //affichage
-        $("#"+elementId.replace(".","\\.")).html(html);
+        $(elementIdEsc).html(html);
       }
     });
   });

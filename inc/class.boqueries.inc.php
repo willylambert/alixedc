@@ -492,7 +492,7 @@ function closeQuery($queryId,$userId,$profileId){
     $this->callHook(__FUNCTION__,"form",array($FormOID, $FormRepeatKey, $queryType, &$queries));
 
     $userId = $this->m_ctrl->boacl()->getUserId(); 
-    $siteId = substr($SubjectKey, 0, 2);
+    $siteId = $this->m_ctrl->bosubjects()->getSubjectColValue($SubjectKey,"SITEID");
     $profileId = $this->m_ctrl->boacl()->getUserProfileId("",$siteId);
     
     if($queryType=="C"){
@@ -612,7 +612,7 @@ function closeQuery($queryId,$userId,$profileId){
     $this->addLog(__METHOD__."($SubjectKey, $StudyEventOID, $StudyEventRepeatKey, $FormOID, $FormRepeatKey, $isManual, $answer, {$query['ItemGroupOID']}/{$query['ItemGroupRepeatKey']}/{$query['Position']}/{$query['ItemOID']}, $queryStatus)",INFO);
     
     $userId = $this->m_ctrl->boacl()->getUserId(); 
-    $siteId = substr($SubjectKey, 0, 2);
+    $siteId = $this->m_ctrl->bosubjects()->getSubjectColValue($SubjectKey,"SITEID");
 
     if($isManual){
       $cIsManual = "Y";

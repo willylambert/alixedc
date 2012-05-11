@@ -120,8 +120,8 @@ class bodeviations extends CommonFunctions
   {
     $this->addLog(__METHOD__."($SubjectKey, $StudyEventOID, $StudyEventRepeatKey, $FormOID, $FormRepeatKey, {$deviation['ItemGroupOID']}/{$deviation['ItemGroupRepeatKey']}/{$deviation['ItemOID']}, $status)",INFO);
     
-    $userId = $this->m_ctrl->boacl()->getUserId(); 
-    $siteId = substr($SubjectKey, 0, 2);
+    $userId = $this->m_ctrl->boacl()->getUserId();
+    $siteId = $this->m_ctrl->bosubjects()->getSubjectColValue($SubjectKey,"SITEID");
     $profileId = $this->m_ctrl->boacl()->getUserProfileId("",$siteId);
 
     //Y a t il eu des changements ?
@@ -307,7 +307,7 @@ class bodeviations extends CommonFunctions
       $sql .= " LIMIT $limit";
     }
     
-    //echo $sql;
+    //$this->dumpPre($sql);
     $this->addLog(__METHOD__." : $sql",TRACE);
     $GLOBALS['egw']->db->query($sql); 
     while($GLOBALS['egw']->db->next_record()){

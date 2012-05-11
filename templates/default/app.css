@@ -1,5 +1,6 @@
 @import url('editor.css');
 @import url('helpers.css');
+@import url('jquery.contextMenu.css');
 
 #topmenu{
   display:none;
@@ -231,6 +232,14 @@ a:hover,a:active
 
 .ItemDataInputZoneEmpty{
   background-image: url(images/hash_7.png);
+}
+
+/*********************************** Context Menu ***********************************/
+.contextMenuItem{
+}
+
+.contextMenuAuditTrail a{
+  background-image: url(images/clock-history.png);
 }
 
 /*********************************** ItemGroup ***********************************/

@@ -22,7 +22,7 @@
 var defaultPostItText = "Drag and drop me...";
 
 function getDropZoneSelector(ItemOID,ItemGroupRepeatKey,ItemGroupOID){
-  id = ItemOID +"_"+ItemGroupOID+"_"+ ItemGroupRepeatKey;
+  id = ItemOID +"_"+ ItemGroupOID +"_"+ ItemGroupRepeatKey;
   if($("form[name='"+ItemGroupOID+"']").length==1){ //distinction entre repeating yes et no
     return jq(id) +" td.ItemDataInput"; //repeating=no
   }else{

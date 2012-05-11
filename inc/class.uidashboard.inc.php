@@ -476,7 +476,7 @@ class uidashboard extends CommonFunctions
 			</thead>
       <tbody>";
 		
-		$tblSite = $this->m_ctrl->boacl()->getSites();
+		$tblSite = $this->m_ctrl->bosites()->getSites();
 
     $query = "let \$SubjectsCol := doc('SubjectsList')
               for \$SubjectData in \$SubjectsCol/subjects/subject

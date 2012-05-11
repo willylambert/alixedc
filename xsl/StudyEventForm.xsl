@@ -36,6 +36,7 @@
 <xsl:param name="ShowDeviations"/>
 
 <xsl:param name="CurrentApp"/>
+<xsl:param name="SiteId"/>
 <xsl:param name="SubjectKey"/>
 <xsl:param name="StudyEventOID"/>
 <xsl:param name="StudyEventRepeatKey"/>
@@ -88,13 +89,23 @@
   	          <!--On n'affiche l'icône que s'il y a du contenu d'audit trail-->
               <xsl:if test="$ItemGroupData/ItemData[@OID=$Item/@OID]/@TransactionType!='Insert'">
               	<a href="javascript:void(0)">
+                  <xsl:element name='span'>
+                    <xsl:attribute name='class'>imageOnly image16</xsl:attribute>
+                    <xsl:attribute name="style">background-image: url('<xsl:value-of select="$CurrentApp"/>/templates/default/images/clock-history.png');</xsl:attribute>
+                    <xsl:attribute name="onclick">toggleAuditTrail('<xsl:value-of select="$Item/@OID" />','<xsl:value-of select="$ItemGroupData/@ItemGroupRepeatKey" />');</xsl:attribute>
+                    <xsl:attribute name="altbox">Edit the history of this item</xsl:attribute>
+                    &#0160;
+                  </xsl:element>
+                </a>
+                <!--ancienne img, ne marche pas sous IE-->
+              	<!--a href="javascript:void(0)">
                   <xsl:element name='img'>
                     <xsl:attribute name="src"><xsl:value-of select="$CurrentApp"/>/templates/default/images/clock-history.png</xsl:attribute>
                     <xsl:attribute name="onClick">toggleAuditTrail('<xsl:value-of select="concat('auditTrail_div_',$Item/@OID,'_',$ItemGroupData/@ItemGroupRepeatKey)"/>');</xsl:attribute>
                     <xsl:attribute name="altbox">Edit the history of this item</xsl:attribute>
                   </xsl:element>
-                </a>
-                <div id="{concat('auditTrail_div_',$Item/@OID,'_',$ItemGroupData/@ItemGroupRepeatKey)}" class='dialog-auditTrail' title='{@Title}' style="display:none;" keys="{$CurrentApp},{$SubjectKey},{$StudyEventOID},{$StudyEventRepeatKey},{$FormOID},{$FormRepeatKey},{$ItemGroup/@OID},{$ItemGroupData/@ItemGroupRepeatKey},{$Item/@OID}">
+                </a-->
+                <div id="{concat('auditTrail_div_',$Item/@OID,'_',$ItemGroupData/@ItemGroupRepeatKey)}" initialized='false' class='dialog-auditTrail' title='{@Title}' style="display:none;" keys="{$CurrentApp},{$SubjectKey},{$StudyEventOID},{$StudyEventRepeatKey},{$FormOID},{$FormRepeatKey},{$ItemGroup/@OID},{$ItemGroupData/@ItemGroupRepeatKey},{$Item/@OID}">
                   Loading ...
                 </div>
               </xsl:if>
@@ -133,6 +144,7 @@
                     <xsl:with-param name="Comment" select="$Annotation/@Comment"/>
                     <xsl:with-param name="CurrentItemGroupOID" select="$ItemGroupData/@ItemGroupOID"/>
                     <xsl:with-param name="CurrentItemGroupRepeatKey" select="$ItemGroupData/@ItemGroupRepeatKey"/>
+                    <xsl:with-param name="CurrentTransactionType" select="$ItemGroupData/@TransactionType"/>
                     <xsl:with-param name="ShowFlag" select="true()"/>
                     <xsl:with-param name="Role" select="$Item/@Role"/>
                     <xsl:with-param name="DataType" select="$Item/@DataType"/>
@@ -150,6 +162,12 @@
                     <xsl:with-param name="DataType" select="$Item/@DataType"/>
                     <xsl:with-param name="Title" select="@Title"/>
                     <xsl:with-param name="ProfileId" select="$ProfileId"/>
+                    <xsl:with-param name="SiteId" select="$SiteId"/>
+                    <xsl:with-param name="SubjectKey" select="$SubjectKey"/>
+                    <xsl:with-param name="StudyEventOID" select="$StudyEventOID"/>
+                    <xsl:with-param name="StudyEventRepeatKey" select="$StudyEventRepeatKey"/>
+                    <xsl:with-param name="FormOID" select="$ItemGroup/../@OID"/>
+                    <xsl:with-param name="FormRepeatKey" select="$ItemGroup/../@FormRepeatKey"/>
                 </xsl:call-template>
             </td>
             <td class="ItemDataDevia" name="{$Item/@OID}">
@@ -162,6 +180,12 @@
                       <xsl:with-param name="DataType" select="$Item/@DataType"/>
                       <xsl:with-param name="Title" select="@Title"/>
                       <xsl:with-param name="ProfileId" select="$ProfileId"/>
+                      <xsl:with-param name="SiteId" select="$SiteId"/>
+                      <xsl:with-param name="SubjectKey" select="$SubjectKey"/>
+                      <xsl:with-param name="StudyEventOID" select="$StudyEventOID"/>
+                      <xsl:with-param name="StudyEventRepeatKey" select="$StudyEventRepeatKey"/>
+                      <xsl:with-param name="FormOID" select="$ItemGroup/../@OID"/>
+                      <xsl:with-param name="FormRepeatKey" select="$ItemGroup/../@FormRepeatKey"/>
                   </xsl:call-template>
                 </xsl:if>
             </td>

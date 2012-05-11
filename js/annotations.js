@@ -23,12 +23,13 @@
 // Annotations
 function initAnnotation(ItemOID,IGRK){
 
-  ItemOIDdashed = ItemOID.replace(".","-");
+  var elementId = "#annotation_div_"+ItemOID+"_"+IGRK;
+  var elementIdEsc = elementId.replace(".","-");
 
-  $("#annotation_div_"+ItemOIDdashed+"_"+IGRK).dialog({
+  $(elementIdEsc).dialog({
     	autoOpen: false,
-    	height: 270,
-    	width: 320,
+    	height: 300,
+    	width: 380,
     	modal: false,
     	buttons: {
     		'Close': function() {
@@ -38,12 +39,24 @@ function initAnnotation(ItemOID,IGRK){
     	close: function() {
     	}
     });
-    
+  
+  $(elementIdEsc).attr('initialized','true');
 }
 
 
-function toggleAnnotation(elementId){
-  $("#"+elementId).dialog('open');
+function toggleAnnotation(ItemOID,IGRK){
+  var elementId = "#annotation_div_"+ItemOID+"_"+IGRK;
+  var elementIdEsc = elementId.replace(".","-");
+  
+  //dialog initialized ?
+  if($(elementIdEsc).attr('initialized')=='false'){
+    //Initialisation of AuditTrail
+    if(typeof(initAnnotation)=="function"){
+      initAnnotation(ItemOID,IGRK);
+    }
+  }
+  
+  $(elementIdEsc).dialog('open');
 }
 
 function setState(ItemOID,ItemGroupOID, CurrentItemGroupRepeatKey, FlagValue)
@@ -125,7 +138,7 @@ function freezeFields(ItemOID,ItemGroupOID, CurrentItemGroupRepeatKey, bFreeze, 
 }
 
 //Mise à jour de l'image de l'annotation
-function updateAnnotPict(CurrentApp,annotation_comment_name, annotation_picure_id)
+function updateAnnotPict(CurrentApp, annotation_comment_name, annotation_picure_id)
 {
   var emptyPic = CurrentApp+'/templates/default/images/post_note_empty.gif';
   var annotPic = CurrentApp+'/templates/default/images/post_note.gif';
@@ -133,10 +146,10 @@ function updateAnnotPict(CurrentApp,annotation_comment_name, annotation_picure_i
   element = document.getElementsByName(annotation_comment_name);
   if(element[0].value.length>1)
   {
-    document.getElementById(annotation_picure_id).src = annotPic;
+    document.getElementById(annotation_picure_id).style.backgroundImage = "url('"+ annotPic +"')";
   }
   else
   {
-    document.getElementById(annotation_picure_id).src = emptyPic;
+    document.getElementById(annotation_picure_id).style.backgroundImage = "url('"+ emptyPic +"')";
   }
 }
