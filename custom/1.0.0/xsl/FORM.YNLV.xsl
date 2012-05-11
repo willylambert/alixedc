@@ -24,43 +24,12 @@
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 <xsl:output method="xml" encoding="UTF-8" indent="no"/>
 <xsl:include href="include/alixlib.xsl"/>
-
-<xsl:param name="GENOTYP"/>
 	
 <!--Catch all non treated tags, print them with no treatment-->
 <xsl:template match="*">
 	<xsl:copy>
 		<xsl:copy-of select="@*"/>
 		<xsl:apply-templates/>
-  </xsl:copy>
-</xsl:template>
-
-<!--Add help label for data entry -->
-<xsl:template match="tr[@name='YN.GENSMA']">  
-   <tr id="TitleGeno"><td></td><td colspan="3">
-     <b>Genotyping</b>
-    </td>
-   </tr>
-   <xsl:copy>
-       <xsl:copy-of select="@*"/>
-       <xsl:apply-templates/>
-   </xsl:copy>
-</xsl:template>
-
-<!--Add help label -->
-<xsl:template match="td[../@name='YN.GENSMA' and @class='ItemDataLabel']">
-  <xsl:copy>
-		<xsl:copy-of select="@*"/>  
-If SMN1 genotyping done between V-1 and V0
-  </xsl:copy>
-</xsl:template>
-
-<!--Resizing -->
-<xsl:template match="input[@itemoid='YN.SNM1MUT']">
-  <xsl:copy>
-    <xsl:copy-of select="@*"/>
-    <xsl:attribute name="style">width:250px;</xsl:attribute>
-    <xsl:apply-templates/>
   </xsl:copy>
 </xsl:template>
 

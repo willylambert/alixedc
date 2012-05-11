@@ -73,18 +73,18 @@
 <xsl:template match="SubjectData">
   <div id="subjectMenu" class="ui-accordion ui-widget ui-helper-reset ui-accordion-icons">
     <xsl:apply-templates/>  
+    <script>
+      function changeLockStatus(formURL,formLabel,currentFormStatus){
+        if(currentFormStatus=="FILLED"){
+          lockLabel = "Do you want to lock the form "+formLabel+ "?";
+        }else{
+          lockLabel = "Do you want to unlock the form "+formLabel+ "?";
+        }
+        if(confirm(lockLabel)){
+          document.location = formURL;
+        }
+      }
+    </script>
   </div>
-  <script>
-    function changeLockStatus(formURL,formLabel,currentFormStatus){
-      if(currentFormStatus=="FILLED"){
-        lockLabel = "Do you want to lock the form "+formLabel+ "?";
-      }else{
-        lockLabel = "Do you want to unlock the form "+formLabel+ "?";
-      }
-      if(confirm(lockLabel)){
-        document.location = formURL;
-      }
-    }
-  </script>
 </xsl:template>
 </xsl:stylesheet>

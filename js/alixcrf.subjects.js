@@ -88,8 +88,7 @@ function loadSubjectsGrid(CurrentApp, config)
       width: 120,
       align:'center',
       search: true
-    });
-   /*
+    });   
     colNames.push("Post-it<br/>number");
     colModel.push({
       name: "POSTITNUM",
@@ -98,7 +97,6 @@ function loadSubjectsGrid(CurrentApp, config)
       align:'center',
       search: false
     });
-   */ 
     colNames.push("Queries<br/>number");
     colModel.push({
       name: "QUERIESNUM",
@@ -107,7 +105,7 @@ function loadSubjectsGrid(CurrentApp, config)
       align:'center',
       search: false
     });
-    
+/*    
     colNames.push("CRF<br/>status");
     colModel.push({
       name: "CRFSTATUS",
@@ -116,7 +114,7 @@ function loadSubjectsGrid(CurrentApp, config)
       align:'center',
       search: false
     });
-    
+*/    
     /*
     //runConsistencyChecks
     colNames.push("");

@@ -1,0 +1,106 @@
+
+/*********************************** Liste des patients ***********************************/
+#SubjectsList table{
+  border: 1px solid #326c6f;
+  border-top-width: 0px;
+  padding: 5px;
+  padding-top: 0px;
+  margin-top: 0px;
+}
+
+#SubjectsList th{
+  background-color: #326c6f;
+  color: white;
+}
+
+#SubjectsList tr.row_on:hover{
+  background-color: #326c6f;
+  color: white;
+}
+#SubjectsList table tr:hover, tr.row_on:hover{
+  background-color: #326c6f;
+  color: white;
+}
+
+
+/*********************************** ItemGroup ***********************************/
+/*Titre*/
+div#Form h3{
+  background-color: #326c6f;
+  border: 0px solid #22494b;
+  color: white;
+}
+
+/*ItemGroup en ligne*/
+div.itemGroupLine{
+  min-height: 20px;
+} 
+div.itemGroupLine:hover{
+  cursor: pointer;
+  background-color: #326c6f;
+}
+div.itemGroupLine.ui-widget-content:hover{ /*reset .ui-widget-content behavior on background*/
+  background-color: #326c6f;
+  background-image: none;
+}
+div.itemGroupLine:hover *{
+  background-color: inherit;
+  color: white;
+}
+div.itemGroupLine div{
+  padding: 2px;
+}
+
+/*ItemGroup en ligne : entêtes*/
+div.itemGroupHeadLine{
+  margin-top: 10px;
+}
+div.itemGroupHeadLine div{
+  font-size: 10px;
+  font-weight: bold;
+  padding: 2px;
+}
+
+/*********************************** Menu : Formulaires ***********************************/
+
+.FormTitle{
+  position: relative;
+  margin: 3px 0px;
+  margin-left: 10px;
+}
+.FormTitle:hover{
+  background-color: #326c6f;
+}
+/*Titre*/
+.FormTitle a{
+  font-size: 10px;
+  font-weight: bold;
+  margin-left: 5px;
+  text-decoration: none;
+}
+.FormTitle a:hover{
+  color: white;
+}
+/*Hack IE6 : car le background-color reste blanc (comme le texte)*/
+* html .FormTitle a:hover{
+  color: #00f;
+}
+
+.FormStatus{
+  position: absolute;
+  width:8px;
+  margin-right: 2px;
+  margin-left: -10px;
+}
+
+div.ui-state-highlight .FormStatus{
+  margin-left: -11px;
+}
+
+/*********************************** Menu : Visites ***********************************/
+/*Titre*/
+div#subjectMenu h3 a{
+  font-size: 10px;
+  font-weight: bold;
+  margin-left: 5px;
+}
