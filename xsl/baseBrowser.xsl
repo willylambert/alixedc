@@ -25,6 +25,7 @@
 <xsl:output method="xml" encoding="UTF-8" indent="no"/>
 
 <xsl:param name="CurrentApp"/>
+<xsl:param name="METADATAVERSION"/>
 <xsl:param name="UserId"/>
 <xsl:param name="UserInfo"/>
 
@@ -62,6 +63,9 @@
   <xsl:copy>
     <xsl:apply-templates/>
     <!-- CSS -->
+    <link rel='stylesheet' type='text/css'>
+      <xsl:attribute name="href"><xsl:value-of select="$CurrentApp"/>/custom/<xsl:value-of select="$METADATAVERSION"/>/css/app.css</xsl:attribute>
+    </link>
     <link rel='stylesheet' type='text/css'>
       <xsl:attribute name="href"><xsl:value-of select="$CurrentApp"/>/templates/default/jquery-ui/jquery-ui-1.8.16.custom.css</xsl:attribute>
     </link>

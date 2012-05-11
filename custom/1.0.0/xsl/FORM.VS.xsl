@@ -78,14 +78,14 @@
   <img src="alixedc/templates/default/images/calc.png" onClick='toggleConvert("text_int_VS@VSORRES_1","text_dec_VS@VSORRES_1","int_weight_kg","dec_weight_kg");' style='cursor:pointer' />  
   <div id='convert' class="divBorder" style="position:absolute;width:300px;background-color:white;display:none;">
       <table style="width:300px;" class="ItemGroupTable" cellspacing="0">
-        <tr class="th"><td colspan="3"><b>Convertion</b></td></tr>
+        <tr class="th"><td colspan="3"><b>Convert</b></td></tr>
         <tr><td>Weight : </td>
         <td>
           <input type="text" name="int_weight_kg" size="5" maxlength="5"/>.
           <input type="text" name="dec_weight_kg" size="2" maxlength="3"/>
         </td>
         <td>g</td></tr>
-        <tr><td colspan='3' align='center'><input type="button" value="Convertir" onClick="getConvertResult();"/>&#160;&#160;<input type="button" value="Fermer" onClick="toggleConvert();"/></td></tr>
+        <tr><td colspan='3' align='center'><input type="button" value="Convert" onClick="getConvertResult();"/>&#160;&#160;<input type="button" value="Close" onClick="toggleConvert();"/></td></tr>
       </table>
   </div> 
 </xsl:template>       
@@ -97,9 +97,9 @@
 	<xsl:if test="@checked='checked'">
 		<xsl:value-of select="@value"/>
 		<xsl:element name="input">
-		<xsl:attribute name="type">hidden</xsl:attribute>
-		<xsl:attribute name="name"><xsl:value-of select="@name"/></xsl:attribute>
-		<xsl:attribute name="value"><xsl:value-of select="@value"/></xsl:attribute>
+		  <xsl:attribute name="type">hidden</xsl:attribute>
+		  <xsl:attribute name="name"><xsl:value-of select="@name"/></xsl:attribute>
+		  <xsl:attribute name="value"><xsl:value-of select="@value"/></xsl:attribute>
 		</xsl:element>
   </xsl:if>
 </xsl:template>

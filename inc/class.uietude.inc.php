@@ -119,7 +119,8 @@ class uietude extends CommonFunctions
       $proc = new XSLTProcessor;     
       $proc->importStyleSheet($xsl);
       $proc->setParameter('',"UserInfo",$user['fullname'].' Last login : '.date('r',$user['lastlogin']));
-      $proc->setParameter('',"UserId",$user['login']);      
+      $proc->setParameter('',"UserId",$user['login']);
+      $proc->setParameter('',"METADATAVERSION",$this->m_tblConfig['METADATAVERSION']);      
       $proc->setParameter('',"CurrentApp",$this->getCurrentApp(false));
       $stdDoc = $proc->transformToDoc($stdDoc);
               

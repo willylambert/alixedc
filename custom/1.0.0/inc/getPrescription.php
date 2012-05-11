@@ -164,7 +164,7 @@ if($ut4!="") $tblUT .= ", " . $ut4;
 if($ut5!="") $tblUT .= ", " . $ut5;
 if($ut6!="") $tblUT .= ", " . $ut6;
   
-//Remplacement dans le fichier html
+//Replace into the template html file
 $code = array("VISITTITLE","SITEID","SUBJ_WEIGHT","SUBJ_POSO", "SUBJID","SUBJINIT", "TBLUT","NBUT");
 $value = array($visitTitle,$siteId,$weight,$poso, $subjId, $subjInit,$tblUT,$nbUT);
 
@@ -173,11 +173,11 @@ $tmpHandle = fopen($htmlTemp,"w");
 fwrite($tmpHandle,str_replace($code, $value, $htmlString));
 fclose($tmpHandle);
 
-$filename = "Ordonnance_".$siteId."_".$subjId."_".$visit.".pdf";
+$filename = "Prescription_".$siteId."_".$subjId."_".$visit.".pdf";
 
 # Tell HTMLDOC not to run in CGI mode...
 putenv("HTMLDOC_NOCGI=1");
-//Generation et affichage sur la sortie standard
+//Generation and display to std output
 $cmd = "htmldoc -t pdf --quiet --color --webpage --jpeg  --left 30 --top 20 --bottom 20 --right 20 --footer c.: --fontsize 10 --textfont {helvetica}";
 header("Content-Disposition: attachment; filename=\"$filename\"");
 header("Expires: 0");
