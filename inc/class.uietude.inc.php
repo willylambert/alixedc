@@ -30,6 +30,7 @@ require_once(EGW_SERVER_ROOT . "/".$GLOBALS['egw_info']['flags']['currentapp']."
 class uietude extends CommonFunctions
 {
 	var $public_functions = array(
+	  'auditTrailInterface' => True,
 		'changePasswordInterface' => True,
 		'dashboardInterface'	=> True,
 		'dbadminInterface'	=> True,
@@ -253,6 +254,18 @@ class uietude extends CommonFunctions
         require_once('class.uiqueries.inc.php');
         global $configEtude;
         $ui = new uiqueries($configEtude,$this->m_ctrl);
+        
+        $GLOBALS['egw_info']['flags']['app_header'];
+		    $this->create_header();
+        echo $ui->getInterface();
+		    $this->create_footer();  
+   } 
+
+   public function auditTrailInterface()
+   {
+        require_once('class.uiaudittrail.inc.php');
+        global $configEtude;
+        $ui = new uiaudittrail($configEtude,$this->m_ctrl);
         
         $GLOBALS['egw_info']['flags']['app_header'];
 		    $this->create_header();

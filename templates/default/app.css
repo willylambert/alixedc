@@ -1011,3 +1011,92 @@ form#addProfile input.text { margin-bottom:12px; width:95%; padding: .4em; }
   /*text-align:center;*/
   display:inline;  
 }
+
+/*********************************** Audit Trail exploration ***********************************/
+
+/*Calendar*/
+#ui-datepicker-div{
+  display: none;
+}
+
+#filterParamsAudit{
+  text-align: left;
+}
+
+.auditFilers{
+  border: 1px solid #AAAAAA;
+  height: 200px;
+  float: left;
+  width: 33%;
+}
+.auditFilers h4{
+  text-align: left;
+  padding-left: 5px;
+  background-color: #0a0a0a;
+  color: #FFF;
+  margin-top: 0px;
+}
+
+#siteFilter{
+}
+#siteFilterList{
+  overflow: auto;
+  height: 165px;
+}
+
+.auditSiteSelector{
+  background-color: #fff;
+  border-bottom: 1px solid #aaa;
+}
+.auditSiteSelector label{
+  display: block;
+}
+.auditSiteSelector:hover{
+  background-color: #ddd;
+}
+
+#dateFilter label{
+  display: inline-block;
+  width: 75px;
+  margin: 0px 5px;
+}
+
+#auditActions{
+  text-align: center;
+}
+#auditActions input{
+  margin: 10px;
+}
+
+#auditResults{
+  clear: both;
+}
+
+#auditResults table{
+  width: 100%;
+}
+#auditResults table thead{
+  background-color: #0a0a0a;
+  color: #FFF;
+}
+#auditResults table tbody td{
+  background-color: #c3deea;
+}
+#auditResults table tbody tr:hover td{
+  background-color: #53a1c4;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
