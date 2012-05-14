@@ -1393,6 +1393,84 @@ class bocdiscoo extends CommonFunctions
     return $doc;
   }
   
+  public function getAuditTrailByDate($sitesList,$startDate,$endDate){
+    //From sitesList, we extract a subject list
+    $query = "
+              for \$Subject in doc('SubjectsList')/subjects/subject
+              return
+                <subject siteId='{\$Subject/colSITEID}' subjectKey='{\$Subject/SubjectKey}'/>
+             ";
+    try{
+      $result = $this->m_ctrl->socdiscoo()->query($query);
+    }catch(xmlexception $e){
+      $str = "Erreur de la requete : " . $e->getMessage() . "<br/><br/>" . $query . "</html> (". __METHOD__ .")";
+      $this->addLog($str,FATAL);
+      die($str);
+    }
+    
+    $subjList = "";
+    foreach($result as $subj){
+      $siteId = (string)$subj['siteId'];
+      if(in_array($siteId,$sitesList)){
+         if($subjList!="") $subjList .= ",";
+         $subjList .= "'". (string)$subj['subjectKey'] ."'";
+      }
+    }
+
+    $startDate .= "T00:00:00";
+    $endDate .= "T00:00:00";
+    
+    $query = "
+              declare function local:getDecode(\$ItemData as node(),\$MetaDataVersion as node()) as xs:string?
+              {
+                let \$value := \$ItemData/string()
+                let \$CodeListOID := \$MetaDataVersion/odm:ItemDef[@OID=\$ItemData/@ItemOID]/odm:CodeListRef/@CodeListOID
+                return
+                  if(\$CodeListOID)
+                  then \$MetaDataVersion/odm:CodeList[@OID=\$CodeListOID]/odm:CodeListItem[@CodedValue=\$value]/odm:Decode/odm:TranslatedText[@xml:lang='".$this->m_lang."']/string()
+                  else \$value
+              };
+                  
+              for \$ClinicalData in collection('ClinicalData')/odm:ODM[exists(index-of(($subjList),@FileOID))]/odm:ClinicalData
+               let \$SubjectKey := \$ClinicalData/odm:SubjectData/@SubjectKey 
+               let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$ClinicalData/odm:SubjectData/../@MetaDataVersionOID]
+                 for \$AuditRecord in \$ClinicalData/
+                      odm:AuditRecords/odm:AuditRecord[xs:dateTime(odm:DateTimeStamp) > xs:dateTime('$startDate') and  
+                                                       xs:dateTime(odm:DateTimeStamp) < xs:dateTime('$endDate')]
+                 let \$AuditDate := \$AuditRecord/odm:DateTimeStamp 
+                 let \$UserOID := \$AuditRecord/odm:UserRef/@UserOID 
+                 let \$ID := \$AuditRecord/@ID
+                 for \$ItemData in \$ClinicalData/odm:SubjectData/odm:StudyEventData/odm:FormData/odm:ItemGroupData/odm:*[@AuditRecordID=\$ID]
+                   let \$Value := local:getDecode(\$ItemData,\$MetaDataVersion)
+                   let \$StudyEventOID := \$ItemData/../../../@StudyEventOID 
+                   let \$FormOID := \$ItemData/../../@FormOID
+                   let \$ItemOID := \$ItemData/@ItemOID
+                   let \$StudyEventTitle := \$MetaDataVersion/odm:StudyEventDef[@OID=\$StudyEventOID]/odm:Description/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()
+                   let \$FormTitle := \$MetaDataVersion/odm:FormDef[@OID=\$FormOID]/odm:Description/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()
+                   let \$ItemTitle := \$MetaDataVersion/odm:ItemDef[@OID=\$ItemOID]/odm:Question/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()
+
+                   return 
+                    <audit subjectKey='{\$SubjectKey}'
+                           studyEvent='{\$StudyEventTitle}'
+                           form='{\$FormTitle}'
+                           item='{\$ItemTitle}'
+                           value='{\$Value}'
+                           user='{\$UserOID}'
+                           auditDate='{\$AuditDate}'
+                           
+                    />
+                 
+    ";    
+    try{
+      $result = $this->m_ctrl->socdiscoo()->query($query);
+    }catch(xmlexception $e){
+      $str = "xQuery error : " . $e->getMessage() . "<br/><br/>" . $query . " (". __METHOD__ .")";
+      $this->addLog($str,FATAL);
+    }
+
+    return $result;
+  }
+  
   //Retourne l'audit trail d'une variable
   public function getAuditTrail($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$ItemOID)
   {

@@ -91,7 +91,7 @@ class uiqueries extends CommonFunctions
     }
     $(function() {
   		$( '#dateFilterPicker' ).datepicker({
-  			showOn: 'button',
+  			showOn: 'both',
   			buttonImage: '". $this->getCurrentApp(false) ."/templates/default/images/calendar.gif',
   			buttonImageOnly: true,
   			onSelect: function(dateText, inst) { filterQueriesList('". $this->getCurrentApp(false) ."'); }
