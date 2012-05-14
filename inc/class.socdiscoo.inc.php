@@ -146,7 +146,7 @@ class socdiscoo extends CommonFunctions
   Perform xQuery query on opened containers
   @return array of SimpleXML objects, DOMDocument object or XMLResult object
   */   
-  function query($query, $useSimpleXML = true, $raw = false) 
+  function query($query, $useSimpleXML = true, $raw = false,$throwException=false) 
   {
     $this->addLog("socdiscoo->query($query,$useSimpleXML,$raw)",TRACE);
     
@@ -156,14 +156,22 @@ class socdiscoo extends CommonFunctions
     try{
       if(!sedna_execute($query)){
         $str = "Could not execute query: $query\n" . sedna_error() ." (". __METHOD__ .")";
-        $this->addLog($str,FATAL);
+        if($throwException){
+          throw new Exception($str);
+        }else{
+          $this->addLog($str,FATAL);
+        }
       }
       
       $results = sedna_result_array();
       
       if(!$results){
         $str = "Could not get query result or result is empty for query: $query\n" . sedna_error() ." (". __METHOD__ .")";
-        $this->addLog($str,WARN);
+        if($throwException){
+          throw new Exception($str);
+        }else{
+          $this->addLog($str,WARN);
+        }
       }
       
       if($raw)

@@ -83,6 +83,23 @@ class uidbadmin extends CommonFunctions{
                   $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
                 }
                 break;
+
+          case 'runXQuery' :
+                
+                if($this->m_ctrl->boacl()->checkModuleAccess("importDoc")){
+                  $htmlRet = $this->getSandBoxInterface($_POST['xQueryCode']);
+                }else{
+                  $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
+                }
+                break;
+
+          case 'sandboxInterface' :
+                if($this->m_ctrl->boacl()->checkModuleAccess("importDoc")){
+                  $htmlRet = $this->getSandBoxInterface();
+                }else{
+                  $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
+                }
+                break;
                 
           case 'importDoc' :
                 if($this->m_ctrl->boacl()->checkModuleAccess("importDoc")){
@@ -180,6 +197,9 @@ class uidbadmin extends CommonFunctions{
         $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
   				                                                                        'action' => 'importDocInterface'),
                                             "Import Metadata / ClinicalData");
+        $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
+  				                                                                        'action' => 'sandboxInterface'),
+                                            "xQuery Sandbox");
       }
       
       $menu .= $this->getSubMenu("Database", $submenu);
@@ -385,14 +405,6 @@ class uidbadmin extends CommonFunctions{
                                                                               'action' => 'export','type'=>$exportType )) . "'>".$exportInfos['name']."</a></div>";
       
     }
-/*
-    $htmlRet .= "<div><a href='" . $GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
-                                                                            'action' => 'exportDSMB')) . "'>Export DSMB</a></div>
-                 <div><a href='" . $GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
-                                                                            'action' => 'exportCoding')) . "'>Export Coding</a></div>                        
-                 <div><a href='" . $GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
-                                                                            'action' => 'exportFullDB')) . "'>Export Full</a></div>";
-*/
     
     //On liste les exports déja réalisé
     $tblExport = $this->m_ctrl->boexport()->getExportList();
@@ -413,6 +425,26 @@ class uidbadmin extends CommonFunctions{
     $htmlRet .= "</table>";
       
     return $htmlRet;  
+  }
+
+  private function getSandBoxInterface($query=""){
+    if($query!=""){
+      try{
+        $result = $this->m_ctrl->socdiscoo()->query($query,true,false,true);
+        $resultMsg = $result[0]->asXML();
+      }catch(Exception $e){
+        $resultMsg = $e->getMessage();
+      }
+    }
+    
+    $htmlRet = "<div><h4>Execute xQuery</h4></div>
+                <form action='" . $GLOBALS['egw']->link('/index.php',array('menuaction'=>$this->getCurrentApp(false).'.uietude.dbadminInterface','action'=>'runXQuery')) . "' method='post'>
+                  <div>XQuery to run : </div><textarea name='xQueryCode' cols='100' rows='10'>$query</textarea>
+                  <div><input type='submit' value='Run'/></div>
+                </form>
+                <div><h4>Result : </h4></div><textarea name='xQueryCode' cols='100' rows='50'>$resultMsg</textarea>";
+    
+    return $htmlRet;      
   }
 
   function getExportFile(){
