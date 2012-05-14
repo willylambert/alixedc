@@ -62,7 +62,6 @@ class bosubjects extends CommonFunctions
     }
     return "";
   }
-
   
   /**
    * @description update subject(s) summary in SubjectsList.dbxml
@@ -78,7 +77,6 @@ class bosubjects extends CommonFunctions
       $this->initSubjectsList();
     }
   }
-
   
   /**
    * @description create the subjects summary list in SubjectsList.dbxml
@@ -108,8 +106,6 @@ class bosubjects extends CommonFunctions
       }
     }
   }
-
-
   
   /**
    * @description return Subjects List

@@ -77,220 +77,125 @@
   
   //Where is the enrolment form ?  
   $configEtude['BLANK_OID'] = "BLANK";
-  $configEtude['ENROL_SEOID'] = "ENROL";
+  $configEtude['ENROL_SEOID'] = "1";
   $configEtude['ENROL_SERK'] = "0";
-  $configEtude['ENROL_FORMOID'] = "FORM.SC";
+  $configEtude['ENROL_FORMOID'] = "FORM.ENROL";
   $configEtude['ENROL_FORMRK'] = "0";
     
   //SiteId = mandatory column
+  $configEtude['SUBJECT_LIST']['COLS']['COUNTRY'] = array('Visible' => true,
+                                                 'Title'=>'Country',
+                                                 'Width'=>60,
+                                                 'Value'=>array('SEOID'=>'1','SERK'=>'0','FRMOID'=>'FORM.ENROL','FRMRK'=>'0','IGOID'=>'ENROL','IGRK'=>'0','ITEMOID'=>'ENROL.COUNTID')); 
   $configEtude['SUBJECT_LIST']['COLS']['SITEID'] = array('Visible' => true,
                                                  'Title'=>'Site<br/>N°',
                                                  'Width'=>35,
-                                                 'Value'=>array('SEOID'=>'ENROL','SERK'=>'0','FRMOID'=>'FORM.SC','FRMRK'=>'0','IGOID'=>'SC','IGRK'=>'0','ITEMOID'=>'SC.SITEID')); 
+                                                 'Value'=>array('SEOID'=>'1','SERK'=>'0','FRMOID'=>'FORM.ENROL','FRMRK'=>'0','IGOID'=>'ENROL','IGRK'=>'0','ITEMOID'=>'ENROL.SITEID'));
   $configEtude['SUBJECT_LIST']['COLS']['SITENAME'] = array('Visible' => true,
                                                  'Title'=>'Site name',
                                                  'Width'=>110,
-                                                 'Value'=>array('SEOID'=>'ENROL','SERK'=>'0','FRMOID'=>'FORM.SC','FRMRK'=>'0','IGOID'=>'SC','IGRK'=>'0','ITEMOID'=>'SC.SITENAME'));
-  $configEtude['SUBJECT_LIST']['COLS']['SUBJID'] = array('Visible' => true,
-                                                 'Title'=>'Subject Id',
+                                                 'Value'=>array('SEOID'=>'1','SERK'=>'0','FRMOID'=>'FORM.ENROL','FRMRK'=>'0','IGOID'=>'ENROL','IGRK'=>'0','ITEMOID'=>'ENROL.SITENAME'));
+  $configEtude['SUBJECT_LIST']['COLS']['SUBJINIT'] = array('Visible' => true,
+                                                 'Title'=>'Initials',
                                                  'Width'=>55,
-                                                 'Value'=>'SUBJID');
-  
-  $configEtude['SUBJECT_LIST']['COLS']['INCDT'] = array('Visible' => true,
-                                                 'Title'=>'Enrolment',
-                                                 'Width'=>100,
-                                                 'Value'=>array('SEOID'=>'ENROL','SERK'=>'0','FRMOID'=>'FORM.SC','FRMRK'=>'0','IGOID'=>'SC','IGRK'=>'0','ITEMOID'=>'SC.INCDT'));
+                                                 'Value'=>array('SEOID'=>'1','SERK'=>'0','FRMOID'=>'FORM.ENROL','FRMRK'=>'0','IGOID'=>'ENROL','IGRK'=>'0','ITEMOID'=>'ENROL.SUBJINIT'));
+  $configEtude['SUBJECT_LIST']['COLS']['SUBJID'] = array('Visible' => true,
+                                                 'Title'=>'Patient<br/>Number',
+                                                 'Width'=>60,
+                                                 'Value'=>array('SEOID'=>'1','SERK'=>'0','FRMOID'=>'FORM.ENROL','FRMRK'=>'0','IGOID'=>'ENROL','IGRK'=>'0','ITEMOID'=>'ENROL.SUBJID'));
+
+  $configEtude['SUBJECT_LIST']['COLS']['SCREENINGSTATUS'] = array('Visible' => true,
+                                                 'Title'=>'Screening visit',
+                                                 'ShortTitle' => 'SC',
+                                                 'Orientation'=>'V',
+                                                 'Type' => 'VISITSTATUS',
+                                                 'Width'=>20,
+                                                 'Value'=>array('SEOID'=>'1','SERK'=>'0'));
   $configEtude['SUBJECT_LIST']['COLS']['V0'] = array('Visible' => true,
-                                                 'Title'=>'Inclusion Visit',
+                                                 'Title'=>'Inclusion Visit (V0)',
                                                  'ShortTitle' => 'V0',
                                                  'Orientation'=>'V',
                                                  'Type' => 'VISITSTATUS',
                                                  'Width'=>20,
-                                                 'Value'=>array('SEOID'=>'ENROL','SERK'=>'0'));
+                                                 'Value'=>array('SEOID'=>'2','SERK'=>'0'));
   $configEtude['SUBJECT_LIST']['COLS']['V1'] = array('Visible' => true,
-                                                 'Title'=>'Year 1 - V1',
-                                                 'ShortTitle' => 'Y1 - V1',
+                                                 'Title'=>'Visit V1',
+                                                 'ShortTitle' => 'V1',
                                                  'Orientation'=>'V',
                                                  'Type' => 'VISITSTATUS',
                                                  'Width'=>20,
-                                                 'Value'=>array('SEOID'=>'FOLLOWUP','SERK'=>'1'));
+                                                 'Value'=>array('SEOID'=>'3','SERK'=>'0'));
   $configEtude['SUBJECT_LIST']['COLS']['V2'] = array('Visible' => true,
-                                                 'Title'=>'Year 1 - V2',
-                                                 'ShortTitle' => 'V2',
+                                                 'Title'=>'Visit V1',
+                                                 'ShortTitle' => 'V1',
                                                  'Orientation'=>'V',
                                                  'Type' => 'VISITSTATUS',
                                                  'Width'=>20,
-                                                 'Value'=>array('SEOID'=>'FOLLOWUP','SERK'=>'2'));
-  $configEtude['SUBJECT_LIST']['COLS']['V3'] = array('Visible' => true,
-                                                 'Title'=>'Year 1 - V3',
-                                                 'ShortTitle' => 'V3',
-                                                 'Orientation'=>'V',
-                                                 'Type' => 'VISITSTATUS',
-                                                 'Width'=>20,
-                                                 'Value'=>array('SEOID'=>'FOLLOWUP','SERK'=>'3'));
-  $configEtude['SUBJECT_LIST']['COLS']['V4'] = array('Visible' => true,
-                                                 'Title'=>'Year 2 - V4',
-                                                 'ShortTitle' => 'V4',
-                                                 'Orientation'=>'V',
-                                                 'Type' => 'VISITSTATUS',
-                                                 'Width'=>20,
-                                                 'Value'=>array('SEOID'=>'FOLLOWUP','SERK'=>'4'));
-  $configEtude['SUBJECT_LIST']['COLS']['V5'] = array('Visible' => true,
-                                                 'Title'=>'Year 2 - V5',
-                                                 'ShortTitle' => 'V5',
-                                                 'Orientation'=>'V',
-                                                 'Type' => 'VISITSTATUS',
-                                                 'Width'=>20,
-                                                 'Value'=>array('SEOID'=>'FOLLOWUP','SERK'=>'5'));
-  $configEtude['SUBJECT_LIST']['COLS']['V6'] = array('Visible' => true,
-                                                 'Title'=>'Year 2 - V6',
-                                                 'ShortTitle' => 'V6',
-                                                 'Orientation'=>'V',
-                                                 'Type' => 'VISITSTATUS',
-                                                 'Width'=>20,
-                                                 'Value'=>array('SEOID'=>'FOLLOWUP','SERK'=>'6'));
-  $configEtude['SUBJECT_LIST']['COLS']['V7'] = array('Visible' => true,
-                                                 'Title'=>'Year 3 - V7',
-                                                 'ShortTitle' => 'V7',
-                                                 'Orientation'=>'V',
-                                                 'Type' => 'VISITSTATUS',
-                                                 'Width'=>20,
-                                                 'Value'=>array('SEOID'=>'FOLLOWUP','SERK'=>'7'));
-  $configEtude['SUBJECT_LIST']['COLS']['V8'] = array('Visible' => true,
-                                                 'Title'=>'Year 3 - V8',
-                                                 'ShortTitle' => 'V8',
-                                                 'Orientation'=>'V',
-                                                 'Type' => 'VISITSTATUS',
-                                                 'Width'=>20,
-                                                 'Value'=>array('SEOID'=>'FOLLOWUP','SERK'=>'8'));
-  $configEtude['SUBJECT_LIST']['COLS']['V9'] = array('Visible' => true,
-                                                 'Title'=>'Year 3 - V9',
-                                                 'ShortTitle' => 'V9',
-                                                 'Orientation'=>'V',
-                                                 'Type' => 'VISITSTATUS',
-                                                 'Width'=>20,
-                                                 'Value'=>array('SEOID'=>'FOLLOWUP','SERK'=>'9'));
-  $configEtude['SUBJECT_LIST']['COLS']['V10'] = array('Visible' => true,
-                                                 'Title'=>'Year 4 - V10',
-                                                 'ShortTitle' => 'V10',
-                                                 'Orientation'=>'V',
-                                                 'Type' => 'VISITSTATUS',
-                                                 'Width'=>20,
-                                                 'Value'=>array('SEOID'=>'FOLLOWUP','SERK'=>'10'));
-  $configEtude['SUBJECT_LIST']['COLS']['V11'] = array('Visible' => true,
-                                                 'Title'=>'Year 4 - V11',
-                                                 'ShortTitle' => 'V11',
-                                                 'Orientation'=>'V',
-                                                 'Type' => 'VISITSTATUS',
-                                                 'Width'=>20,
-                                                 'Value'=>array('SEOID'=>'FOLLOWUP','SERK'=>'11'));
-  $configEtude['SUBJECT_LIST']['COLS']['V12'] = array('Visible' => true,
-                                                 'Title'=>'Year 4 - V12',
-                                                 'ShortTitle' => 'V12',
-                                                 'Orientation'=>'V',
-                                                 'Type' => 'VISITSTATUS',
-                                                 'Width'=>20,
-                                                 'Value'=>array('SEOID'=>'FOLLOWUP','SERK'=>'12'));
-  $configEtude['SUBJECT_LIST']['COLS']['V13'] = array('Visible' => true,
-                                                 'Title'=>'Year 5 - V13',
-                                                 'ShortTitle' => 'V13',
-                                                 'Orientation'=>'V',
-                                                 'Type' => 'VISITSTATUS',
-                                                 'Width'=>20,
-                                                 'Value'=>array('SEOID'=>'FOLLOWUP','SERK'=>'13'));
-  $configEtude['SUBJECT_LIST']['COLS']['V14'] = array('Visible' => true,
-                                                 'Title'=>'Year 5 - V14',
-                                                 'ShortTitle' => 'V14',
-                                                 'Orientation'=>'V',
-                                                 'Type' => 'VISITSTATUS',
-                                                 'Width'=>20,
-                                                 'Value'=>array('SEOID'=>'FOLLOWUP','SERK'=>'14'));
-  $configEtude['SUBJECT_LIST']['COLS']['V15'] = array('Visible' => true,
-                                                 'Title'=>'Year 5 - V15',
-                                                 'ShortTitle' => 'V15',
-                                                 'Orientation'=>'V',
-                                                 'Type' => 'VISITSTATUS',
-                                                 'Width'=>20,
-                                                 'Value'=>array('SEOID'=>'FOLLOWUP','SERK'=>'15'));
-  $configEtude['SUBJECT_LIST']['COLS']['V16'] = array('Visible' => true,
-                                                 'Title'=>'Year 6 - V16',
-                                                 'ShortTitle' => 'V16',
-                                                 'Orientation'=>'V',
-                                                 'Type' => 'VISITSTATUS',
-                                                 'Width'=>20,
-                                                 'Value'=>array('SEOID'=>'FOLLOWUP','SERK'=>'16'));
-  $configEtude['SUBJECT_LIST']['COLS']['V17'] = array('Visible' => true,
-                                                 'Title'=>'Year 6 - V17',
-                                                 'ShortTitle' => 'V17',
-                                                 'Orientation'=>'V',
-                                                 'Type' => 'VISITSTATUS',
-                                                 'Width'=>20,
-                                                 'Value'=>array('SEOID'=>'FOLLOWUP','SERK'=>'17'));
-  $configEtude['SUBJECT_LIST']['COLS']['V18'] = array('Visible' => true,
-                                                 'Title'=>'Year 6 - V18',
-                                                 'ShortTitle' => 'V18',
-                                                 'Orientation'=>'V',
-                                                 'Type' => 'VISITSTATUS',
-                                                 'Width'=>20,
-                                                 'Value'=>array('SEOID'=>'FOLLOWUP','SERK'=>'18'));
-
-  $configEtude['SUBJECT_LIST']['COLS']['V19'] = array('Visible' => true,
-                                                 'Title'=>'Year 7 - V19',
-                                                 'ShortTitle' => 'V19',
-                                                 'Orientation'=>'V',
-                                                 'Type' => 'VISITSTATUS',
-                                                 'Width'=>20,
-                                                 'Value'=>array('SEOID'=>'FOLLOWUP','SERK'=>'19'));
-  $configEtude['SUBJECT_LIST']['COLS']['V20'] = array('Visible' => true,
-                                                 'Title'=>'Year 7 - V20',
-                                                 'ShortTitle' => 'V20',
-                                                 'Orientation'=>'V',
-                                                 'Type' => 'VISITSTATUS',
-                                                 'Width'=>20,
-                                                 'Value'=>array('SEOID'=>'FOLLOWUP','SERK'=>'20'));
-  $configEtude['SUBJECT_LIST']['COLS']['V21'] = array('Visible' => true,
-                                                 'Title'=>'Year 7 - V21',
-                                                 'ShortTitle' => 'V21',
-                                                 'Orientation'=>'V',
-                                                 'Type' => 'VISITSTATUS',
-                                                 'Width'=>20,
-                                                 'Value'=>array('SEOID'=>'FOLLOWUP','SERK'=>'21'));
-  $configEtude['SUBJECT_LIST']['COLS']['V22'] = array('Visible' => true,
-                                                 'Title'=>'Year 8 - V22',
-                                                 'ShortTitle' => 'V22',
-                                                 'Orientation'=>'V',
-                                                 'Type' => 'VISITSTATUS',
-                                                 'Width'=>20,
-                                                 'Value'=>array('SEOID'=>'FOLLOWUP','SERK'=>'22'));
-  $configEtude['SUBJECT_LIST']['COLS']['V23'] = array('Visible' => true,
-                                                 'Title'=>'Year 8 - V23',
-                                                 'ShortTitle' => 'V23',
-                                                 'Orientation'=>'V',
-                                                 'Type' => 'VISITSTATUS',
-                                                 'Width'=>20,
-                                                 'Value'=>array('SEOID'=>'FOLLOWUP','SERK'=>'23'));
-  $configEtude['SUBJECT_LIST']['COLS']['V24'] = array('Visible' => true,
-                                                 'Title'=>'Year 8 - V24',
-                                                 'ShortTitle' => 'V24',
-                                                 'Orientation'=>'V',
-                                                 'Type' => 'VISITSTATUS',
-                                                 'Width'=>20,
-                                                 'Value'=>array('SEOID'=>'FOLLOWUP','SERK'=>'24'));
-/*                                                 
+                                                 'Value'=>array('SEOID'=>'4','SERK'=>'0'));
   $configEtude['SUBJECT_LIST']['COLS']['ENDSTUDY'] = array('Visible' => true,
-                                                 'Title'=>'Appendices',
+                                                 'Title'=>'End of study',
                                                  'ShortTitle' => 'End',
                                                  'Orientation'=>'V',
                                                  'Type' => 'VISITSTATUS',
                                                  'Width'=>20,
-                                                 'Value'=>array('SEOID'=>'APPENDICES','SERK'=>'0'));
-*/
+                                                 'Value'=>array('SEOID'=>'5','SERK'=>'0'));
+  $configEtude['SUBJECT_LIST']['COLS']['CM'] = array('Visible' => true,
+                                                 'Title'=>'Concomitant TT',
+                                                 'ShortTitle' => 'TT',
+                                                 'Orientation'=>'V',
+                                                 'Type' => 'VISITSTATUS',
+                                                 'Width'=>20,
+                                                 'Value'=>array('SEOID'=>'CM','SERK'=>'0'));
+  $configEtude['SUBJECT_LIST']['COLS']['AE'] = array('Visible' => true,
+                                                 'Title'=>'Adverse Events',
+                                                 'ShortTitle' => 'AE',
+                                                 'Orientation'=>'V',
+                                                 'Type' => 'VISITSTATUS',
+                                                 'Width'=>20,
+                                                 'Value'=>array('SEOID'=>'AE','SERK'=>'0'));
+                                                                                                                                                   
+  $configEtude['SUBJECT_LIST']['COLS']['BRTHDTC'] = array('Visible' => false,
+                                                 'Title'=>'DOB',
+                                                 'Width'=>0,
+                                                 'Value'=>array('SEOID'=>'1','SERK'=>'0','FRMOID'=>'FORM.IC','FRMRK'=>'0','IGOID'=>'DM','IGRK'=>'0','ITEMOID'=>'DM.BRTHDTC'));
+  $configEtude['SUBJECT_LIST']['COLS']['DMAGE'] = array('Visible' => false,
+                                                 'Title'=>'Age',
+                                                 'Width'=>0,
+                                                 'Value'=>array('SEOID'=>'1','SERK'=>'0','FRMOID'=>'FORM.IC','FRMRK'=>'0','IGOID'=>'DM','IGRK'=>'0','ITEMOID'=>'DM.AGE'));
+  $configEtude['SUBJECT_LIST']['COLS']['WEIGHT'] = array('Visible' => false,
+                                                 'Title'=>'Weight',
+                                                 'Width'=>0,
+                                                 'Value'=>array('SEOID'=>'1','SERK'=>'0','FRMOID'=>'FORM.VS','FRMRK'=>'0','IGOID'=>'VS','IGRK'=>'1','ITEMOID'=>'VS.VSORRES'));
+  $configEtude['SUBJECT_LIST']['COLS']['SVSVSTDTC'] = array('Visible' => false,
+                                                 'Title'=>'Inclusion Date',
+                                                 'Width'=>0,
+                                                 'Value'=>array('SEOID'=>'2','SERK'=>'0','FRMOID'=>'FORM.SV','FRMRK'=>'0','IGOID'=>'SV','IGRK'=>'0','ITEMOID'=>'SV.SVSTDTC'));
+  $configEtude['SUBJECT_LIST']['COLS']['IEELIG'] = array('Visible' => false,
+                                                 'Title'=>'IEELIG',
+                                                 'Width'=>0,
+                                                 'Value'=>array('SEOID'=>'1','SERK'=>'0','FRMOID'=>'FORM.IEE','FRMRK'=>'0','IGOID'=>'IEE','IGRK'=>'0','ITEMOID'=>'IE.IEELIG'));
+  $configEtude['SUBJECT_LIST']['COLS']['IEYN'] = array('Visible' => false,
+                                                 'Title'=>'IEYN',
+                                                 'Width'=>0,
+                                                 'Value'=>array('SEOID'=>'2','SERK'=>'0','FRMOID'=>'FORM.ELIG','FRMRK'=>'0','IGOID'=>'IEEL','IGRK'=>'0','ITEMOID'=>'IE.IEYN'));
+  $configEtude['SUBJECT_LIST']['COLS']['RDNUM'] = array('Visible' => false,
+                                                 'Title'=>'RDNUM',
+                                                 'Width'=>0,
+                                                 'Value'=>array('SEOID'=>'2','SERK'=>'0','FRMOID'=>'FORM.ELIG','FRMRK'=>'0','IGOID'=>'EXI','IGRK'=>'0','ITEMOID'=>'EXI.RDNUM'));
+  $configEtude['SUBJECT_LIST']['COLS']['CONT'] = array('Visible' => false,
+                                                 'Title'=>'CONT',
+                                                 'Width'=>0,
+                                                 'Value'=>array('SEOID'=>'13','SERK'=>'0','FRMOID'=>'FORM.SS','FRMRK'=>'0','IGOID'=>'DSSS','IGRK'=>'0','ITEMOID'=>'DS.CONT'));
+  $configEtude['SUBJECT_LIST']['COLS']['DSTERMN'] = array('Visible' => false,
+                                                 'Title'=>'DSTERMN',
+                                                 'Width'=>0,
+                                                 'Value'=>array('SEOID'=>'13','SERK'=>'0','FRMOID'=>'FORM.SS','FRMRK'=>'0','IGOID'=>'DSSS','IGRK'=>'0','ITEMOID'=>'DS.DSTERMN'));
 
   //Forms for which we enable pagination
-  $configEtude['FORM_PAGINATE']['FORM.CM'] = array('FRMOID'=>'FORM.CM','IG_PER_PAGE'=>10);
+  //Example : $configEtude['FORM_PAGINATE']['FORM.CM'] = array('FRMOID'=>'FORM.CM','IG_PER_PAGE'=>10);
 
   //Forms for which a deviation can be entered
-  $configEtude['FORM_DEVIATIONS'][] =  array('SEOID'=>'ENROL','SERK'=>'0','FRMOID'=>'FORM.VDT','FRMRK'=>'0');
+  //Example : $configEtude['FORM_DEVIATIONS'][] =  array('SEOID'=>'ENROL','SERK'=>'0','FRMOID'=>'FORM.VDT','FRMRK'=>'0');
   
  //Security                                                
   $configEtude['PASSWORD']['MIN_LENGTH'] = 6;         

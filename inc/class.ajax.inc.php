@@ -1524,11 +1524,11 @@ public function checkFormData(){
     try{
       $tblSubj = $this->m_ctrl->bosubjects()->getSubjectsList("");
     }catch(Exception $e){
-      //Warn is the BLANK is missing
+      //Warn if BLANK is missing
       try{
         $blank = $this->m_ctrl->socdiscoo()->getDocument("ClinicalData", $this->config("BLANK_OID"));
       }catch(Exception $e){
-        die("NOBLANK");
+        $this->addLog("NO BLANK Subject Found - Please add it to continue.",FATAL);
       }
     }
 

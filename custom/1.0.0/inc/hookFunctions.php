@@ -148,11 +148,8 @@ function uisubject_getMenu_beforeRendering($SubjectKey,&$tblForm,$uisubject){
 
 function bocdiscoo_getNewPatientID_customSubjId($bocdiscoo){
   //Return the new SubjectKey, incremented by site in this example
-
   $siteId = $_POST['text_string_ENROL@SITEID_0'];
-
-  $clinicalCollection = $bocdiscoo->m_ctrl->socdiscoo()->getClinicalDataCollection();
-
+/*  
   $query = "let \$SubjectsCol := $clinicalCollection
             let \$maxSubjId := max(\$SubjectsCol/odm:ODM/odm:ClinicalData/odm:SubjectData[@SubjectKey!='BLANK' and odm:StudyEventData[@StudyEventOID='1']/odm:FormData[@FormOID='FORM.ENROL']/odm:ItemGroupData[@ItemGroupOID='ENROL']/odm:ItemDataString[@ItemOID='ENROL.SITEID']='$siteId']/@SubjectKey)   
             return <MaxSubjId>{\$maxSubjId}</MaxSubjId>";  
@@ -175,6 +172,8 @@ function bocdiscoo_getNewPatientID_customSubjId($bocdiscoo){
   {
       $subjKey = $siteId."01";
   }
+*/
+  $subjKey = $siteId."01";
   
   $bocdiscoo->addLog("bocdiscoo_getNewPatientID_customSubjId() : New SubjId = $subjKey",INFO);
   

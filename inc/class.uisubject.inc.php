@@ -73,7 +73,7 @@ class uisubject extends CommonFunctions
      
       //Get Form Data / without design      
       $xml = $this->m_ctrl->bocdiscoo()->getStudyEventForms($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,false,$paginateStart,$paginateEnd);    
-      $this->dumpPre($xml->saveXML());      
+
       $FormTag = $xml->getElementsByTagName("Form");  
       $FormTitle = $FormTag->item(0)->getAttribute("Title");
 

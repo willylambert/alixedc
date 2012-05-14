@@ -498,36 +498,41 @@ class bocdiscoo extends CommonFunctions
   {
     $this->addLog("bocdiscoo->checkFormConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID)", TRACE);
 
-    //Boucle sur les ItemDatas ayant un ItemDef contenant un FormalExpression
+    //Loop through ItemData having Edit Checks (RangeCheck in ODM)
     $query = "
         let \$SubjectData := collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData
         let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
-        for \$ItemGroupData in \$SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']
+        let \$ItemGroupDatas := \$SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']
                                             /odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey' and @TransactionType!='Remove']
-                                            /odm:ItemGroupData[@TransactionType!='Remove']
-        let \$ItemGroupOID := \$ItemGroupData/@ItemGroupOID
-        let \$ItemGroupRepeatKey := \$ItemGroupData/@ItemGroupRepeatKey
-        for \$ItemOID in distinct-values(\$ItemGroupData/odm:*/@ItemOID)
-          let \$ItemDatas := \$ItemGroupData/odm:*[@ItemOID=\$ItemOID]
-          let \$ItemData := \$ItemDatas[last()]
-          let \$ItemDef := \$MetaDataVersion/odm:ItemDef[@OID=\$ItemOID]
-          where exists(\$ItemDef/odm:RangeCheck) and \$ItemData/string()!=''
-          return
-            for \$RangeCheck at \$Position in \$ItemDef/odm:RangeCheck
-            return
-              <Control ItemOID='{\$ItemDef/@OID}'
-                       ItemGroupRepeatKey='{\$ItemGroupRepeatKey}'
-                       Position='{\$Position}'
-                       ItemGroupOID='{\$ItemGroupOID}'
-                       AuditRecordID='{\$ItemData/@AuditRecordID}'
-                       Name='{\$ItemDef/@Name}'
-                       SoftHard='{\$RangeCheck/@SoftHard}'
-                       ErrorMessage='{\$RangeCheck/odm:ErrorMessage/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()}'
-                       FormalExpression='{\$RangeCheck/odm:FormalExpression[@Context='XQuery']/string()}'
-                       FormalExpressionDecode='{\$RangeCheck/odm:FormalExpression[@Context='XQueryDecode']/string()}'
-                       Title='{\$ItemDef/odm:Question/odm:TranslatedText[@xml:lang='{$this->m_lang}']/text()}'/>
-        ";
-
+                                            /odm:ItemGroupData[@TransactionType!='Remove'] 
+        return
+          if (count(\$ItemGroupDatas)=0)
+          then <NoItemGroupData />      
+          else
+            for \$ItemGroupData in \$ItemGroupDatas
+            let \$ItemGroupOID := \$ItemGroupData/@ItemGroupOID
+            let \$ItemGroupRepeatKey := \$ItemGroupData/@ItemGroupRepeatKey
+            for \$ItemOID in distinct-values(\$ItemGroupData/odm:*/@ItemOID)
+              let \$ItemDatas := \$ItemGroupData/odm:*[@ItemOID=\$ItemOID]
+              let \$ItemData := \$ItemDatas[last()]
+              let \$ItemDef := \$MetaDataVersion/odm:ItemDef[@OID=\$ItemOID]
+              return
+                if (count(\$ItemDef/odm:RangeCheck) = 0 and \$ItemData/string()!='') 
+                then <NoControl />
+                else
+                  for \$RangeCheck at \$Position in \$ItemDef/odm:RangeCheck
+                  return
+                    <Control ItemOID='{\$ItemDef/@OID}'
+                             ItemGroupRepeatKey='{\$ItemGroupRepeatKey}'
+                             Position='{\$Position}'
+                             ItemGroupOID='{\$ItemGroupOID}'
+                             AuditRecordID='{\$ItemData/@AuditRecordID}'
+                             Name='{\$ItemDef/@Name}'
+                             SoftHard='{\$RangeCheck/@SoftHard}'
+                             ErrorMessage='{\$RangeCheck/odm:ErrorMessage/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()}'
+                             FormalExpression='{\$RangeCheck/odm:FormalExpression[@Context='XQuery']/string()}'
+                             FormalExpressionDecode='{\$RangeCheck/odm:FormalExpression[@Context='XQueryDecode']/string()}'
+                             Title='{\$ItemDef/odm:Question/odm:TranslatedText[@xml:lang='{$this->m_lang}']/text()}' />";
     try{
       $ctrls = $this->m_ctrl->socdiscoo()->query($query);
     }catch(xmlexception $e){
@@ -538,55 +543,57 @@ class bocdiscoo extends CommonFunctions
     $errors = array();
     
     $macros = $this->getMacros($SubjectKey);
-    
-    foreach($ctrls as $ctrl)
-    {
-      $testXQuery = $macros . $this->getXQueryConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ctrl);
-      try{
-        $ctrlResult = $this->m_ctrl->socdiscoo()->query($testXQuery);
-      }catch(xmlexception $e){
-        //L'erreur est probablement liée à l"ecriture du contrôle contenu dans les metadatas,
-        //ainsi on présente cela d'une façon élégante à l'utilsateur. On conserve la notification par e-mail,
-        //pour rectifier le tir.
-        $str = "Consistency : Erreur du controle : " . $e->getMessage() . " " . $testXQuery;
-        $this->addLog($str,ERROR);
-      }
 
-      $this->addLog("bocdiscoo->checkFormConsistency() Control[{$StudyEventOID}][{$FormOID}][{$ctrl['ItemGroupOID']}][{$ctrl['ItemGroupRepeatKey']}]['{$ctrl['ItemOID'] }'] => Result=" . $ctrlResult[0]->Result, INFO);
-      if($ctrlResult[0]->Result=='false'){
-        if($ctrl['SoftHard']=="Hard"){
-          $type = 'HC';
-        }else{
-          $type = 'SC';
+    if($ctrls[0]->getName()!="NoItemGroupData" && $ctrls[0]->getName()!="NoControl")
+    {
+      foreach($ctrls as $ctrl)
+      {
+        $testXQuery = $macros . $this->getXQueryConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ctrl);
+        try{
+          $ctrlResult = $this->m_ctrl->socdiscoo()->query($testXQuery);
+        }catch(xmlexception $e){
+          //L'erreur est probablement liée à l"ecriture du contrôle contenu dans les metadatas,
+          //ainsi on présente cela d'une façon élégante à l'utilsateur. On conserve la notification par e-mail,
+          //pour rectifier le tir.
+          $str = "Consistency : Erreur du controle : " . $e->getMessage() . " " . $testXQuery;
+          $this->addLog($str,ERROR);
         }
-        //On doit passer par un eval pour gérer les décodes multiples, que l'on passe en param de la func sprintf()
-        $nbS = substr_count($ctrl['ErrorMessage'],"%s");
-        if($nbS>0){
-          $tblParams = explode(' ',$ctrlResult[0]->Decode . str_pad("",$nbS));
-          $tblParams = str_replace("¤", " ", $tblParams); //restauration des espaces ' ' substitués (par des '¤', cf getXQueryConsistency())
-          $ctrl['ErrorMessage'] = str_replace("\"","'",$ctrl['ErrorMessage']);
-          $cmdEval = "\$desc = sprintf(\"".$ctrl['ErrorMessage']."\",\"".implode('","',$tblParams)."\");";
-          eval($cmdEval);
-        }else{
-          //Ici, pas de decode, on affiche simplement le message d'erreur
-          $desc = $ctrl['ErrorMessage'];
+  
+        $this->addLog("bocdiscoo->checkFormConsistency() Control[{$StudyEventOID}][{$FormOID}][{$ctrl['ItemGroupOID']}][{$ctrl['ItemGroupRepeatKey']}]['{$ctrl['ItemOID'] }'] => Result=" . $ctrlResult[0]->Result, INFO);
+        if($ctrlResult[0]->Result=='false'){
+          if($ctrl['SoftHard']=="Hard"){
+            $type = 'HC';
+          }else{
+            $type = 'SC';
+          }
+          //On doit passer par un eval pour gérer les décodes multiples, que l'on passe en param de la func sprintf()
+          $nbS = substr_count($ctrl['ErrorMessage'],"%s");
+          if($nbS>0){
+            $tblParams = explode(' ',$ctrlResult[0]->Decode . str_pad("",$nbS));
+            $tblParams = str_replace("¤", " ", $tblParams); //restauration des espaces ' ' substitués (par des '¤', cf getXQueryConsistency())
+            $ctrl['ErrorMessage'] = str_replace("\"","'",$ctrl['ErrorMessage']);
+            $cmdEval = "\$desc = sprintf(\"".$ctrl['ErrorMessage']."\",\"".implode('","',$tblParams)."\");";
+            eval($cmdEval);
+          }else{
+            //Ici, pas de decode, on affiche simplement le message d'erreur
+            $desc = $ctrl['ErrorMessage'];
+          }
+          $this->addLog("message = $desc",INFO);  
+          $errors[] = array( 
+                             'Description' => $desc,
+                             'Title' => $ctrl['Title'],
+                             'Type' => $type,
+  								           'ItemOID' => $ctrl['ItemOID'],
+  								           'ItemGroupOID' => $ctrl['ItemGroupOID'],
+  								           'ItemGroupRepeatKey' => $ctrl['ItemGroupRepeatKey'],
+  								           'Position' => $ctrl['Position'],
+  								           'ContextKey' => $ctrlResult[0]->ContextKey,
+  								           'Value' => $ctrlResult[0]->Value,
+  								           'Decode' => $ctrlResult[0]->DecodedValue
+                           );
         }
-        $this->addLog("message = $desc",INFO);  
-        $errors[] = array( 
-                           'Description' => $desc,
-                           'Title' => $ctrl['Title'],
-                           'Type' => $type,
-								           'ItemOID' => $ctrl['ItemOID'],
-								           'ItemGroupOID' => $ctrl['ItemGroupOID'],
-								           'ItemGroupRepeatKey' => $ctrl['ItemGroupRepeatKey'],
-								           'Position' => $ctrl['Position'],
-								           'ContextKey' => $ctrlResult[0]->ContextKey,
-								           'Value' => $ctrlResult[0]->Value,
-								           'Decode' => $ctrlResult[0]->DecodedValue
-                         );
       }
     }
-
     //Enregistrement des queries en base
     $this->m_ctrl->boqueries()->updateQueries($SubjectKey, $StudyEventOID, $StudyEventRepeatKey, $FormOID, $FormRepeatKey,'C',$errors);  
 
@@ -2546,8 +2553,7 @@ class bocdiscoo extends CommonFunctions
   //Retourne la xQuery à partir d'un ctrl[FormalExpression,FormalExpressionDecode]
   //@optional param Value for RunXQuery
   function getXQueryConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ctrl,$Value=false){
-    $testExpr = $ctrl['FormalExpression'];
-    
+    $testExpr = $ctrl['FormalExpression'];   
     /*******************************************************************************/
     //gestions des différentes valeurs utilisées dans l'expression : getValue, getRawValue, count, getAnnotation, etc
     //on va ajouter des let $a := getValue(...), $b:=getRawValue()... en dbut d'expression
