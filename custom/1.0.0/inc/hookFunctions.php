@@ -155,30 +155,27 @@ function bocdiscoo_getNewPatientID_customSubjId($bocdiscoo){
             return <MaxSubjId>{\$maxSubjId}</MaxSubjId>";  
   try
   {
-    $Result = $bocdiscoo->m_ctrl->socdiscoo()->query($query, true);
+    $Result = $bocdiscoo->m_ctrl->socdiscoo()->query($query);
   }
   catch(xmlexception $e)
   {
-    $str = "Erreur de la requete : " . $e->getMessage() . " : " . $query . " (". __METHOD__ .")";
-    $bocdiscoo->addLog("bocdiscoo->getNewPatientID() Erreur : $str",FATAL);
+    $str = "Query error : " . $e->getMessage() . " : " . $query . " (". __METHOD__ .")";
+    $bocdiscoo->addLog("bocdiscoo->getNewPatientID() Error : $str",FATAL);
     die($str);
   }
   
   if((string)$Result[0]!="")
   {
-    $subjKey = (string)$Result[0] + 1;
+    $subjKey = (int)$Result[0] + 1;
   }
   else
   {
       $subjKey = $siteId."01";
   }
-
-  $subjKey = $siteId."01";
   
   $bocdiscoo->addLog("bocdiscoo_getNewPatientID_customSubjId() : New SubjId = $subjKey",INFO);
   
-  return $subjKey;
-   
+  return $subjKey;  
 }
 
   /**

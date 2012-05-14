@@ -468,7 +468,7 @@ function saveAllItemGroup(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventR
         }
     }
   );
-/*  
+  
   //Si la sauvegarde a conduit à l'enregistrement d'un nouveau patient, on recharge la page
   if(typeof(newSubjectKey)!='undefined' && newSubjectKey!=""){
     SubjectKey = newSubjectKey;
@@ -483,7 +483,7 @@ function saveAllItemGroup(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventR
       location.reload();
     }   
   }
-*/ 
+ 
   $("#dialog-modal-save").dialog("close");
 
 }
