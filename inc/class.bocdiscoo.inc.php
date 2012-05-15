@@ -347,7 +347,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
           $ctrlResult = $this->m_ctrl->socdiscoo()->query($testXQuery);
         }catch(xmlexception $e){
           //Error is probably due to the edit check code. Error is not display to the user, and administrator notified by email 
-          $str = "Consistency : Erreur du controle : " . $e->getMessage() . " " . $testXQuery;
+          $str = "Consistency : Xquery error : " . $e->getMessage() . " " . $testXQuery;
           $this->addLog($str,ERROR);
         }
   
@@ -2177,21 +2177,21 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
     $testExpr = $ctrl['FormalExpression'];   
     /*******************************************************************************/
     //gestions des différentes valeurs utilisées dans l'expression : getValue, getRawValue, count, getAnnotation, etc
-    //on va ajouter des let $a := getValue(...), $b:=getRawValue()... en dbut d'expression
+    //on va ajouter des let $a := getValue(...), $b:=getRawValue()... en début d'expression
     //et remplacer les fonctions par la variable correspondante dans l'expression
-    $this->iVarForExpressionUpdate = 0; //identifiant de variable créée
-    $this->expressionForExpressionUpdate = ""; //code xQuery a ajouter au début de l'expression
-    $this->handeldExpressionsForExpressionUpdate = array(); //liste des sous-expressions gérées (getValue, etc) pour ne pas leur affecter 2 fois une variable (et ne pas les éxécuter 2 fois, et ne pas enregistréer 2 fois le résultat en base, etc)
-    $xQueryFunctions = array("getValue","getRawValue","getAnnotation","count","max","count"); //,"compareDate","DateISOtoFR","days-from-duration","getMonth"
+    $iVarForExpressionUpdate = 0; //identifiant de variable créée
+    $expressionForExpressionUpdate = ""; //code xQuery a ajouter au début de l'expression
+    $handeldExpressionsForExpressionUpdate = array(); //liste des sous-expressions gérées (getValue, etc) pour ne pas leur affecter 2 fois une variable (et ne pas les éxécuter 2 fois, et ne pas enregistréer 2 fois le résultat en base, etc)
+    $xQueryFunctions = array("alix:getValue","alix:getRawValue","alix:getAnnotation","count","max","count"); //,"compareDate","DateISOtoFR","days-from-duration","getMonth"
     $expressions = array();
     foreach($xQueryFunctions as $xQueryFunction){
       $expressions[] = "((". $xQueryFunction .")(\([^\(\)]*\)))";
     }
     $testExpr = preg_replace_callback($expressions, array($this, "updateFormalExpression"), $testExpr);
-    $testExpr = $this->expressionForExpressionUpdate ."[!]". $testExpr;
+    $testExpr = $expressionForExpressionUpdate ."[!]". $testExpr;
     //finalement on peut créé une clé, signature du contexte (fonction des valeurs testées dans l'expression)
     $contextKey = "";
-    for($i=0; $i<$this->iVarForExpressionUpdate; $i++){
+    for($i=0; $i<$iVarForExpressionUpdate; $i++){
       if($contextKey!=""){
         $contextKey .= ",'|',";
       }
@@ -2209,14 +2209,12 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
     $testExprDecode = "";
     if($ctrl['FormalExpressionDecode']!=""){
       $testExprDecode = $ctrl['FormalExpressionDecode']; 
-      $testExprDecode = str_replace("getDecode($","replace(alix:getDecode($",$testExprDecode); //added TPI 20110830
-      $testExprDecode = str_replace("getDecode()","replace(alix:getDecode(\$ItemData,\$SubjectData,\$MetaDataVersion),' ','¤')",$testExprDecode);
-      $testExprDecode = str_replace("getDecode('","replace(alix:getDecode(\$ItemData,\$SubjectData,\$MetaDataVersion,'",$testExprDecode);
+      //$testExprDecode = str_replace("alix:getDecode($","replace(alix:getDecode($",$testExprDecode); //added TPI 20110830
+      //$testExprDecode = str_replace("getDecode()","replace(alix:getDecode(\$ItemData,\$SubjectData,\$MetaDataVersion),' ','¤')",$testExprDecode);
+      //$testExprDecode = str_replace("getDecode('","replace(alix:getDecode(\$ItemData,\$SubjectData,\$MetaDataVersion,'",$testExprDecode);
 
-      $testExprDecode = str_replace("')","'),' ','¤')",$testExprDecode,$nbDecodeCall2);
+      //$testExprDecode = str_replace("')","'),' ','¤')",$testExprDecode);
 
-      $testExprDecode = str_replace("compareDate(","local:compareDate(",$testExprDecode);   
-      
       $testExprDecode = "
             <Decode>
             {
@@ -2270,7 +2268,6 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
           </Result>
           $testExprDecode
         </Ctrl>";
-    
     return $testXQuery;
   }
 
