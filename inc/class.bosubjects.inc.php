@@ -22,8 +22,6 @@
     
 require_once("class.CommonFunctions.php");
 
-define("ODM_NAMESPACE","http://www.cdisc.org/ns/odm/v1.3");
-
 /*
 @desc classe de gestion des droits utilisateurs
 @author tpi
@@ -217,7 +215,7 @@ class bosubjects extends CommonFunctions
       declare function local:getLastValue(\$ItemData as node()*) as xs:string?
       {
         let \$v := ''
-        return \$ItemData[last()]/string()
+        return \$ItemData[1]/string()
       };
 
           <subjs>
@@ -287,7 +285,7 @@ class bosubjects extends CommonFunctions
         declare function local:getLastValue(\$ItemData as node()*) as xs:string?
         {
           let \$v := ''
-          return \$ItemData[last()]/string()
+          return \$ItemData[1]/string()
         };
   
             <subjs>

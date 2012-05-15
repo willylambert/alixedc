@@ -63,7 +63,7 @@ class socdiscoo extends CommonFunctions
     $this->database  = $this->m_tblConfig['SEDNA_DATABASE'];
     $this->user      = $this->m_tblConfig['SEDNA_USER'];
     $this->password  = $this->m_tblConfig['SEDNA_PASSWORD'];
-    $this->odm_declaration = "declare namespace odm = '".$this->m_tblConfig['SEDNA_NAMESPACE_ODM']."';\n";
+    $this->odm_declaration = "declare namespace odm = '".$this->m_tblConfig['SEDNA_NAMESPACE_ODM']."';";
     
     /* Try to connect to the testdb on the localhost with default credentials */
     $this->conn = sedna_connect($this->host,$this->database,$this->user,$this->password);
@@ -164,7 +164,7 @@ class socdiscoo extends CommonFunctions
       }
       
       $results = sedna_result_array();
-      
+/*      
       if(!$results){
         $str = "Could not get query result or result is empty for query: $query\n" . sedna_error() ." (". __METHOD__ .")";
         if($throwException){
@@ -173,7 +173,7 @@ class socdiscoo extends CommonFunctions
           $this->addLog($str,WARN);
         }
       }
-      
+*/      
       if($raw)
       {
         $xmlResult = $results;

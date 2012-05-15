@@ -150,24 +150,20 @@ class bocdiscoo extends CommonFunctions
   }
 
 /*
-@desc Ajoute les items (requetes spécifique - saveItemGroupData) au $IG (DOMDocument)
-@param boolean $bEraseNotFoundItem met à "" les items non présent dans les données soumises. 
-                utile pour mettre à blanc les champs disable
-                En revanche en cas d'import (coding par ex.) on ne souhaite pas mettre à blanc les valeurs non présentes
-@return boolean : Retourne true si la mise à jour est effective, false si elle n'etait pas nécessaire (donnée identique)
+Convert input POSTed data to XML string ODM Compliant, regarding metadata
+@param boolean $bEraseNotFoundItem erase in XML Db Item not present in incoming data. usefull for clean disabled inputs 
+@return array array of ItemDatas to be inserted into ItemGroupData, empty string if no modification 
 @author wlt
 */
-  private function addItemData($IG,$ItemGroupRef,$formVars,&$tblFilledVar,$subj,$AuditRecordID,$bEraseNotFoundItem=true)
+  private function addItemData($ItemGroupRepeatKey,$ItemGroupRef,$formVars,&$tblFilledVar,$subj,$AuditRecordID,$bEraseNotFoundItem=true,$nbAnnotations)
   {
     $this->addLog("bocdiscoo->addItemData() : tblFilledVar = " . $this->dumpRet($tblFilledVar),TRACE);
-    $valRet = false;
+    $tblRet = array();
 
-    $ItemGroupRepeatKey = $IG->getAttribute("ItemGroupRepeatKey");
-
-    //Ajout des itemdata à notre $IG
+    //Loop through all ItemDef for current ItemGroup
     foreach($ItemGroupRef as $Item)
     {
-      //Gestion des annotations : RAS/ND/NSP + comment
+      //Annotations management : RAS/ND/NSP + comment
       $AnnotationID = "";
       $bAnnotationModif = false;
       $flag = $formVars["annotation_flag_" . str_replace(".","-",$Item['ItemOID']) . "_$ItemGroupRepeatKey"];
@@ -175,59 +171,33 @@ class bocdiscoo extends CommonFunctions
       $comment = $formVars["annotation_comment_" . str_replace(".","-",$Item['ItemOID']) . "_$ItemGroupRepeatKey"];
       $previouscomment = $formVars["annotation_previouscomment_" . str_replace(".","-",$Item['ItemOID']) . "_$ItemGroupRepeatKey"];
       
-      //Identification de l'annotation 
-      // Création d'un nouvelle annotation si la précédente a été modifiée
       if($flag != $previousflag || $comment != $previouscomment)
       {
         $bAnnotationModif = true;
         $hasModif = true;
-     
-        $xPath = new DOMXPath($subj); /*A optimiser*/
-        $xPath->registerNamespace("odm", ODM_NAMESPACE);
-        //Ajout d'une Annotation
-        $result = $xPath->query("/odm:ODM/odm:ClinicalData/odm:Annotations");
-        if($result->length==0){
-          $str = "Erreur : absence de Annotations";
-          $this->addLog($str,FATAL);
-          die($str);
-        }
-        else
-        {
-          $Annotations = $result->item(0);
+        
+        $AnnotationSeqNum = $nbAnnotations+1;
+        $AnnotationID = sprintf("Annot-%06s",$nbAnnotations+1);
+        $comment = htmlspecialchars(stripslashes($comment));     
+        $query = "UPDATE
+                  insert <Annotation ID='$AnnotationID' SeqNum='$AnnotationSeqNum'>
+                          <Comment>$comment</Comment>
+                          <Flag>
+                            <FlagValue CodeListOID='ANNOTFLA'>$flag</FlagValue> 
+                          </Flag>
+                         </Annotation> 
+                  into collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:Annotations";
+        $this->m_ctrl->socdiscoo()->query($query);
           
-          $Annotation = $subj->createElementNS(ODM_NAMESPACE,"Annotation");
-          
-          //Calcul du nouvel ID sous la forme d'un simple numéro :o)
-          $result = $xPath->query("/odm:ODM/odm:ClinicalData/odm:Annotations/odm:Annotation");
-          $AnnotationSeqNum = $result->length+1;
-          $AnnotationID = sprintf("Annot-%06s",$result->length+1);
-          $Annotation->setAttribute("SeqNum",$AnnotationSeqNum);
-          $Annotation->setAttribute("ID",$AnnotationID);
-           
-          //Comment
-          $comment = stripslashes($comment);
-          $aComment = $subj->createElementNS(ODM_NAMESPACE,"Comment",$comment);
-          $Annotation->appendChild($aComment);
-           
-          //Flag
-          $aFlag = $subj->createElementNS(ODM_NAMESPACE,"Flag");
-          //FlagValue
-          $FlagValue = $subj->createElementNS(ODM_NAMESPACE,"FlagValue",$flag);
-          $FlagValue->setAttribute("CodeListOID","ANNOTFLA");
-          $aFlag->appendChild($FlagValue);
-          $Annotation->appendChild($aFlag);
-          $Annotations->appendChild($Annotation);
-          
-          $str = "bocdiscoo->addItemData() Ajout de l'annotation $AnnotationID : ". $flag ." / ". $comment;
-          $this->addLog($str,TRACE);
-        }
+        $str = "bocdiscoo->addItemData() Adding annotation $AnnotationID : ". $flag ." / ". $comment;
+        $this->addLog($str,INFO);        
       }
       else
       {
         $AnnotationID = $Item['AnnotationID'];
       }
 
-      //Gestion particulière pour les types Date et PartialDate
+      //Specific handle of types Date and PartialDate
       switch($Item['DataType'])
       {
         case 'datetime' :
@@ -237,8 +207,7 @@ class bocdiscoo extends CommonFunctions
           $yy = $formVars["text_yy_" . str_replace(".","@",$Item['ItemOID']) . "_$ItemGroupRepeatKey"];
 
           if($dd=="" && $mm=="" && $yy==""){
-            //Si la valeurs est null, alors on ne peut l'enregistrer sous la bannière "ItemDataDate", on est
-            //obligé de passé en ItemDataAny
+            //If null value, it can't be save as "ItemDataDate", must use ItemDataAny
             $tblFilledVar["{$Item['ItemOID']}"] = "";
             $Item['DataType'] = "any";
           }else{
@@ -301,9 +270,8 @@ class bocdiscoo extends CommonFunctions
           break;
 
         case 'integer' :
-          //Si la valeurs est null, alors on ne peut l'enregistrer sous la bannière "ItemDataInteger", on est
-          //obligé de passé en ItemDataAny
-          if((string)$tblFilledVar["{$Item['ItemOID']}"]==""){ //ne pas confondre 0 et "" (cf http://www.php.net/manual/en/types.comparisons.php)
+          //If null value, it can't be save as "ItemDataDate", must use ItemDataAny
+          if((string)$tblFilledVar["{$Item['ItemOID']}"]==""){ //do not confuse 0 and "" (see http://www.php.net/manual/en/types.comparisons.php)
             $Item['DataType'] = "any";
           }
           break;
@@ -332,18 +300,13 @@ class bocdiscoo extends CommonFunctions
 
       if(isset($tblFilledVar["{$Item['ItemOID']}"]))
       {
-        if((string)$tblFilledVar["{$Item['ItemOID']}"]==NULL){  //ne pas confondre la valeur 0 (zéro) et la valeur NULL (cf http://www.php.net/manual/en/types.comparisons.php)
+        if((string)$tblFilledVar["{$Item['ItemOID']}"]==NULL){  //do not confuse value 0 (zéro) and value NULL (see http://www.php.net/manual/en/types.comparisons.php)
           $tblFilledVar["{$Item['ItemOID']}"] = "";
         }
       }
-      else
-      {
-        $this->addLog("Expected item (ItemGroup ".$IG->getAttribute("ItemGroupOID").") not found in POSTed vars .\nElement ".$Item['ItemOID'],TRACE);
-      }
       
-      //Nouvel ItemData uniquement si nous avons un nouvel Item ou une Mise à jour de la valeur
-      //Et que la valeur est présente dans les données soumises, sauf si on force l'insertion avec $bEraseNotFoundItem (cas par défaut)
-      if( isset($tblFilledVar["{$Item['ItemOID']}"]) && 
+      //New ItemData only if new Item or updated value and value present in POSTed vars, unless $bEraseNotFoundItem = true (default)
+      if(isset($tblFilledVar["{$Item['ItemOID']}"]) && 
           (
            !isset($Item->PreviousItemValue) ||
            isset($Item->PreviousItemValue) && 
@@ -353,25 +316,27 @@ class bocdiscoo extends CommonFunctions
           !isset($tblFilledVar["{$Item['ItemOID']}"]) && $bEraseNotFoundItem 
         )                                     
       {
-        $this->addLog("bocdiscoo->addItemData() Ajout de ItemData={$Item['ItemOID']} PreviousItemValue=".$Item->PreviousItemValue." Value=".$tblFilledVar["{$Item['ItemOID']}"],INFO);
+        $this->addLog("bocdiscoo->addItemData() Adding ItemData={$Item['ItemOID']} PreviousItemValue=".$Item->PreviousItemValue." Value=".$tblFilledVar["{$Item['ItemOID']}"],INFO);
 
         //Value may contains & caracters
         $encodedValue = htmlspecialchars($tblFilledVar["{$Item['ItemOID']}"],ENT_NOQUOTES); 
-
-        $valRet = true;
-        $ItemData = $subj->createElementNS(ODM_NAMESPACE,"ItemData" . ucfirst($Item['DataType']),$encodedValue);
-        $ItemData->setAttribute("ItemOID",$Item['ItemOID']);
-        $ItemData->setAttribute("AuditRecordID",$AuditRecordID);
-        if($AnnotationID != "") $ItemData->setAttribute("AnnotationID",$AnnotationID);
+        
         if(isset($Item->PreviousItemValue)){
-          $ItemData->setAttribute("TransactionType",'Update');
+          $$transacType='Update';
         }else{
-          $ItemData->setAttribute("TransactionType",'Insert');
+          $transacType='Insert';
         }
-        $IG->appendChild($ItemData);
+
+        $tblRet[] = "
+                    <ItemData".ucfirst($Item['DataType'])."
+                        ItemOID='".$Item['ItemOID']."' 
+                        AuditRecordID='$AuditRecordID'
+                        AnnotationID='$AnnotationID'
+                        TransactionType='$transacType'>$encodedValue</ItemData".ucfirst($Item['DataType']).">";
+                        
       }
     }
-    return $valRet;
+    return $tblRet;
   }
 
 /*
@@ -514,7 +479,7 @@ class bocdiscoo extends CommonFunctions
             let \$ItemGroupRepeatKey := \$ItemGroupData/@ItemGroupRepeatKey
             for \$ItemOID in distinct-values(\$ItemGroupData/odm:*/@ItemOID)
               let \$ItemDatas := \$ItemGroupData/odm:*[@ItemOID=\$ItemOID]
-              let \$ItemData := \$ItemDatas[last()]
+              let \$ItemData := \$ItemDatas[1]
               let \$ItemDef := \$MetaDataVersion/odm:ItemDef[@OID=\$ItemOID]
               return
                 if (count(\$ItemDef/odm:RangeCheck) = 0 and \$ItemData/string()!='') 
@@ -626,7 +591,7 @@ class bocdiscoo extends CommonFunctions
         let \$ItemGroupRepeatKey := \$ItemGroupData/@ItemGroupRepeatKey
           let \$ItemOID := \"$ItemOID\"
           let \$ItemDatas := \$ItemGroupData/odm:*[@ItemOID=\$ItemOID]
-          let \$ItemData := \$ItemDatas[last()]
+          let \$ItemData := \$ItemDatas[1]
           let \$ItemDef := \$MetaDataVersion/odm:ItemDef[@OID=\$ItemOID]
           $whereItemData
           return
@@ -960,7 +925,7 @@ class bocdiscoo extends CommonFunctions
               return                  
                  for \$ItemOID in distinct-values(\$ItemGroupData/odm:*/@ItemOID)
                   let \$ItemDatas := \$ItemGroupData/odm:*[@ItemOID=\$ItemOID]
-                  let \$ItemData := \$ItemDatas[last()]
+                  let \$ItemData := \$ItemDatas[1]
                   let \$FlagValue := \$SubjectData/../odm:Annotations/odm:Annotation[@ID=\$ItemData/@AnnotationID]/odm:Flag/odm:FlagValue/string()
                   let \$ItemRef := \$MetaDataVersion/odm:ItemGroupDef[@OID=\$ItemGroupOID]/odm:ItemRef[@ItemOID=\$ItemOID]
                   let \$CollectionException := \$MetaDataVersion/odm:ConditionDef[@OID=\$ItemRef/@CollectionExceptionConditionOID]
@@ -1260,7 +1225,7 @@ class bocdiscoo extends CommonFunctions
               declare function local:getLastValue(\$ItemData as node()*) as xs:string?
               {
                 let \$v := ''
-                return \$ItemData[last()]/string()
+                return \$ItemData[1]/string()
               };
 
               let \$SubjectData := collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData
@@ -1334,7 +1299,7 @@ class bocdiscoo extends CommonFunctions
                                                 {
                                                     for \$ItemOID in distinct-values(\$ItemGroupData/odm:*/@ItemOID)
                                                     let \$ItemDatas := \$ItemGroupData/odm:*[@ItemOID=\$ItemOID]
-                                                    let \$ItemData := \$ItemDatas[last()]
+                                                    let \$ItemData := \$ItemDatas[1]
                                                     let \$ItemDef := \$MetaDataVersion/odm:ItemDef[@OID=\$ItemOID]
                                                     return
                                                         <ItemData   OID='{\$ItemData/@ItemOID}'
@@ -1482,7 +1447,7 @@ class bocdiscoo extends CommonFunctions
               declare function local:getLastValue(\$ItemData as node()*) as xs:string?
               {
                 let \$v := '' (:car il nous faut un let :)
-                return \$ItemData[last()]/string()
+                return \$ItemData[1]/string()
               };
 
               declare function local:getDecode(\$ItemData as node()*) as xs:string?
@@ -1590,7 +1555,7 @@ class bocdiscoo extends CommonFunctions
       declare function local:getLastValue(\$ItemData as node()*) as xs:string?
       {
         let \$v := ''
-        return \$ItemData[last()]/string()
+        return \$ItemData[1]/string()
       };
       
       let \$SubjectData := collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData
@@ -1902,7 +1867,7 @@ class bocdiscoo extends CommonFunctions
 
         declare function local:getValue(\$ItemData as node()*) as xs:string?
         {
-          let \$lastItemData := \$ItemData[last()]
+          let \$lastItemData := \$ItemData[1]
           return
             if(\$lastItemData/name()='ItemDataPartialDate')
             then local:fillPartialDate(\$lastItemData/string())
@@ -1945,7 +1910,7 @@ class bocdiscoo extends CommonFunctions
         declare function local:getRawValue(\$ItemData as node()*) as xs:string?
         {
           let \$v := '' (:car il nous faut un let :)
-          return \$ItemData[last()]/string()
+          return \$ItemData[1]/string()
         };
 
         declare function local:getRawValue(\$ItemData as node(),\$ItemOID as xs:string) as xs:string?
@@ -2081,7 +2046,7 @@ class bocdiscoo extends CommonFunctions
         declare function local:getAnnotation(\$ItemData as node()*) as xs:string?
         {
           let \$ClinicalData := collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData
-          let \$AnnotationId := \$ItemData[last()]/@AnnotationID
+          let \$AnnotationId := \$ItemData[1]/@AnnotationID
           return
             if(\$AnnotationId)
               then \$ClinicalData/odm:Annotations/odm:Annotation[@ID=\$AnnotationId]/odm:Flag/odm:FlagValue/string()
@@ -2155,7 +2120,7 @@ class bocdiscoo extends CommonFunctions
         $customQueryLet .= "let \$$key := \$SubjectData/odm:StudyEventData[@StudyEventOID='{$col['SEOID']}' and @StudyEventRepeatKey='{$col['SERK']}']/
                                                           odm:FormData[@FormOID='{$col['FRMOID']}' and @FormRepeatKey='{$col['FRMRK']}']/
                                                           odm:ItemGroupData[@ItemGroupOID='{$col['IGOID']}' and @ItemGroupRepeatKey='{$col['IGRK']}']/
-                                                          odm:*[@ItemOID='{$col['ITEMOID']}'][last()]
+                                                          odm:*[@ItemOID='{$col['ITEMOID']}'][1]
                     ";
       $customQueryReturn .= " $key ='{\$$key}' ";
       }
@@ -2185,10 +2150,9 @@ class bocdiscoo extends CommonFunctions
     }
     
     //$SubjectKey correspond au nom du document dans le container ClinicalData
-    $query = "
-              declare function local:getDecode(\$ItemData as node()*,\$SubjectData as node(),\$MetaDataVersion as node()) as xs:string?
+    $query = "declare function local:getDecode(\$ItemData as node()*,\$SubjectData as node(),\$MetaDataVersion as node()) as xs:string?
               {
-                let \$value := \$ItemData[last()]
+                let \$value := \$ItemData[1]
                 let \$CodeListOID := \$MetaDataVersion/odm:ItemDef[@OID=\$ItemData/@ItemOID]/odm:CodeListRef/@CodeListOID
                 return
                   if(\$CodeListOID)
@@ -2204,7 +2168,7 @@ class bocdiscoo extends CommonFunctions
               let \$SiteId := \$SubjectData/odm:StudyEventData[@StudyEventOID='{$this->m_tblConfig['SUBJECT_LIST']['COLS']['SITEID']['Value']['SEOID']}' and @StudyEventRepeatKey='{$this->m_tblConfig['SUBJECT_LIST']['COLS']['SITEID']['Value']['SERK']}']/
                                                         odm:FormData[@FormOID='{$this->m_tblConfig['SUBJECT_LIST']['COLS']['SITEID']['Value']['FRMOID']}' and @FormRepeatKey='{$this->m_tblConfig['SUBJECT_LIST']['COLS']['SITEID']['Value']['FRMRK']}']/
                                                         odm:ItemGroupData[@ItemGroupOID='{$this->m_tblConfig['SUBJECT_LIST']['COLS']['SITEID']['Value']['IGOID']}' and @ItemGroupRepeatKey='{$this->m_tblConfig['SUBJECT_LIST']['COLS']['SITEID']['Value']['IGRK']}']/
-                                                        odm:ItemDataString[@ItemOID='{$this->m_tblConfig['SUBJECT_LIST']['COLS']['SITEID']['Value']['ITEMOID']}'][last()]
+                                                        odm:ItemDataString[@ItemOID='{$this->m_tblConfig['SUBJECT_LIST']['COLS']['SITEID']['Value']['ITEMOID']}'][1]
               $customQueryLet
               return
                 <StudyEvent OID='$StudyEventOID'
@@ -2286,7 +2250,7 @@ class bocdiscoo extends CommonFunctions
                             {
                               for \$ItemOID in distinct-values(\$ItemGroupData/odm:*/@ItemOID)
                               let \$ItemDatas := \$ItemGroupData/odm:*[@ItemOID=\$ItemOID]
-                              let \$ItemData := \$ItemDatas[last()]
+                              let \$ItemData := \$ItemDatas[1]
                               let \$ItemDataDecode := local:getDecode(\$ItemData,\$SubjectData,\$MetaDataVersion)
                               let \$Annotation := \$SubjectData/../odm:Annotations/odm:Annotation[@ID=\$ItemData/@AnnotationID]
                               let \$ItemDef := \$MetaDataVersion/odm:ItemDef[@OID=\$ItemOID]
@@ -2354,7 +2318,7 @@ class bocdiscoo extends CommonFunctions
       declare function local:getLastValue(\$ItemData as node()*) as xs:string?
       {
         let \$v := ''
-        return \$ItemData[last()]/string()
+        return \$ItemData[1]/string()
       };
 
           <subjs>
@@ -2451,10 +2415,7 @@ class bocdiscoo extends CommonFunctions
   {
     $this->addLog("bocdiscoo->getSubjectTblForm($SubjectKey)",INFO);
     $query = "     
-        (: let \$SubjectData := collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData :)
-        
         let \$SubjectData := index-scan('SubjectODM', '$SubjectKey', 'EQ')/odm:ClinicalData/odm:SubjectData
-
         let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
         return
           <SubjectData>
@@ -2501,21 +2462,14 @@ class bocdiscoo extends CommonFunctions
           </SubjectData>";
 
     try{
-      //$start = microtime();
       $doc = $this->m_ctrl->socdiscoo()->query($query,false);
-      //$stop = microtime();
-      //echo "-duration-".($stop-$start);
-      //$this->dumpPre($doc->saveXML());
     }catch(xmlexception $e){
       $str = "Error in xQuery : " . $e->getMessage() . "<br/><br/>" . $query . "</html> (". __METHOD__ .")";
       $this->addLog($str,FATAL);
       die($str);
     }
     
-    //$this->dumpPre($doc->saveXML());
-    
-    //Set StudyEvent and Form status according to associated queries
-    
+    //Set StudyEvent and Form status according to associated queries    
     //Loop through visits
     $visits = $doc->getElementsByTagName('StudyEventData');
     foreach($visits as $visit){
@@ -2608,7 +2562,7 @@ class bocdiscoo extends CommonFunctions
       declare function local:getLastValue(\$ItemData as node()*) as xs:string?
       {
         let \$v := ''
-        return \$ItemData[last()]/string()
+        return \$ItemData[1]/string()
       };
       
       let \$SubjectData := collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData
@@ -2800,336 +2754,212 @@ class bocdiscoo extends CommonFunctions
   **/
   function saveItemGroupData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$formVars,$who,$where,$why,$fillst="",$bFormVarsIsAlreadyDecoded=false)
   {
-    try
-    {
-      $this->addLog("bocdiscoo->saveItemGroupData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$formVars,$who,$where,$why,$fillst)",INFO);
-      $this->addLog("$formVars = " . $this->dumpRet($formVars),TRACE);
-      
-      //DomDocument of Subject
-      try{
-        $subj = $this->m_ctrl->socdiscoo()->getDocument("ClinicalData",$SubjectKey,false);
-      }catch(xmlexception $e){
-        $str= "(". __METHOD__ .") Patient $SubjectKey not found : " . $e->getMessage();
-        $this->addLog($str,FATAL);
-        die($str);
-      }
-
-      $xPath = new DOMXPath($subj);
-      $xPath->registerNamespace("odm", ODM_NAMESPACE);
-
-      //Add StudyEventData if needed
-      $result = $xPath->query("/odm:ODM/odm:ClinicalData/odm:SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']");
-      if($result->length==0){
-        $this->addLog("bocdiscoo->saveItemGroupData() Ajout de StudyEventData[@StudyEventOID='$StudyEventOID']",INFO);
-        $result = $xPath->query("/odm:ODM/odm:ClinicalData/odm:SubjectData");
-        if($result->length==1){
-          $StudyEventData = $subj->createElementNS(ODM_NAMESPACE,"StudyEventData");
-          $StudyEventData->setAttribute("StudyEventOID","$StudyEventOID");
-          $StudyEventData->setAttribute("StudyEventRepeatKey",$StudyEventRepeatKey);
-          $result->item(0)->appendChild($StudyEventData); //We add it
-        }else{
-          $str = "Erreur : Insertion StudyEventData[@StudyEventOID='$StudyEventOID'] (". __METHOD__ .")";
-          $this->addLog($str,FATAL);
-          die($str);
-        }
-      }else{
-        if($result->length==1){
-          //Already here
-        }else{
-          $str = "Erreur : doublons de StudyEventData[@StudyEventOID='$StudyEventOID'] (". __METHOD__ .")";
-          $this->addLog($str,FATAL);
-          die($str);
-        }
-      }
-  
-      //Add FormData if needed
-      $result = $xPath->query("/odm:ODM/odm:ClinicalData/odm:SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']/odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']");
-      if($result->length==0){
-        $this->addLog("bocdiscoo()->saveItemGroupData() Ajout de FormData=$FormOID FormRepeatKey=$FormRepeatKey",TRACE);
-        $result = $xPath->query("/odm:ODM/odm:ClinicalData/odm:SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']");
-        if($result->length==1){
-          $FormData = $subj->createElementNS(ODM_NAMESPACE,"FormData");
-          $FormData->setAttribute("FormOID","$FormOID");
-          $FormData->setAttribute("FormRepeatKey","$FormRepeatKey");
-          $FormData->setAttribute("TransactionType","Insert");
-  
-          $result->item(0)->appendChild($FormData); //We add it
-        }else{
-          $str = "Erreur : Insertion FormData[@FormOID='$FormOID' @FormRepeatKey='$FormRepeatKey'] : result->length={$result->length} (".__METHOD__.")";
-          $this->addLog($str,FATAL);
-          die($str);
-        }
-      }else{
-        if($result->length==1){
-          //Already here
-          $FormData = $result->item(0);
-        }else{
-          $str = "Erreur : doublons de FormData[@FormOID='$FormOID' @FormRepeatKey='$FormRepeatKey] (". __METHOD__ .")";
-          $this->addLog($str,FATAL);
-          die($str);
-        }
-      }
-  
-      //Add AuditRecords if needed
-      $result = $xPath->query("/odm:ODM/odm:ClinicalData/odm:AuditRecords");
-      if($result->length==0){
-        $this->addLog("Ajout de AuditRecords",INFO);
-        $ClinicalData = $xPath->query("/odm:ODM/odm:ClinicalData");
-        if($ClinicalData->length==1){
-          $AuditRecords = $subj->createElementNS(ODM_NAMESPACE,"AuditRecords");
-          $ClinicalData->item(0)->appendChild($AuditRecords); //We add it
-        }else{
-          $str = "Erreur : Bug à l'insertion AuditRecords ClinicalData->length = {$ClinicalData->length} (".__METHOD__.")";
-          $this->addLog($str,FATAL);
-          die($str);
-        }
-      }else{
-        if($result->length==1){
-          //Already here
-          $AuditRecords = $result->item(0);
-        }else{
-          $str = "Erreur : doublons de AuditRecords pour le patient $SubjectKey result->length={$result->length} (".__METHOD__.")";
-          $this->addLog($str,FATAL);
-          die($str);
-        }
-      }
-  
-      //Add AuditRecord
-      $AuditRecord = $subj->createElementNS(ODM_NAMESPACE,"AuditRecord");
-      //Generation of new ID as Audit-XXXXXX
-      $result = $xPath->query("/odm:ODM/odm:ClinicalData/odm:AuditRecords/odm:AuditRecord");
-      $AuditRecordID = sprintf("Audit-%06s",$result->length+1);
-      $AuditRecord->setAttribute("ID",$AuditRecordID);
-      //Who
-      $UserRef = $subj->createElementNS(ODM_NAMESPACE,"UserRef");
-      $UserRef->setAttribute("UserOID",$who);
-      $AuditRecord->appendChild($UserRef);
-      //Where
-      $LocationRef = $subj->createElementNS(ODM_NAMESPACE,"LocationRef");
-      $LocationRef->setAttribute("LocationOID",$where);
-      $AuditRecord->appendChild($LocationRef);
-      //When
-      $DateTimeStamp = $subj->createElementNS(ODM_NAMESPACE,"DateTimeStamp",date('c'));
-      $AuditRecord->appendChild($DateTimeStamp);
-      //Why
-      $ReasonForChange = $subj->createElementNS(ODM_NAMESPACE,"ReasonForChange",$why);
-      $AuditRecord->appendChild($ReasonForChange);
-  
-      $AuditRecords->appendChild($AuditRecord); 
-  
-      //Add Annotations if needed
-      $result = $xPath->query("/odm:ODM/odm:ClinicalData/odm:Annotations");
-      if($result->length==0){
-        $this->addLog("Add Annotations",INFO);
-        $ClinicalData = $xPath->query("/odm:ODM/odm:ClinicalData");
-        if($ClinicalData->length==1){
-          $Annotations = $subj->createElementNS(ODM_NAMESPACE,"Annotations");
-          $ClinicalData->item(0)->appendChild($Annotations); //On l'ajoute
-        }else{
-          $str = "Error : While adding Annotations ClinicalData->length = {$ClinicalData->length} (".__METHOD__.")";
-          $this->addLog($str,FATAL);
-          die($str);
-        }
-      }else{
-        if($result->length==1){
-          //Il était déjà présent
-          $Annotations = $result->item(0);
-        }else{
-          $str = "Error : multiple Annotations for patient $SubjectKey result->length={$result->length} (".__METHOD__.")";
-          $this->addLog($str,FATAL);
-          die($str);
-        }
-      }
-  
-      //New FormData to replace the old one
-      $newFormData = $subj->createElementNS(ODM_NAMESPACE,"FormData");
-      $newFormData->setAttribute("FormOID","$FormOID");
-      $newFormData->setAttribute("FormRepeatKey","$FormRepeatKey");
-  
-      //Extraction from POSTed data
-      if($bFormVarsIsAlreadyDecoded){
-        $tblFilledVar = $formVars;  
-      }else{
-        $tblFilledVar = array();
-        //loop through incoming POST variables
-        foreach($formVars as $key=>$value)
-        {
-          //oid extraction
-          $varParts = explode("_",$key);
-          if($varParts[0]!="annotation" && end($varParts)==$ItemGroupRepeatKey)
-          {          
-            //WLT 01/02/2011 : modification du code d'extraction de l'itemOID, afin de gérer les itemoid contenant un "_"
-            //Deux cas de figure : la val commence par text_dd_itemoid (exemple) ou par radio_itemoid (exemple)
-            $rawItemOID = str_replace("_".end($varParts),"",$key);  //suppression de l'ItemGroupRepeatKey              
-            if($varParts[0]=="radio" || $varParts[0]=="select"){
-              $rawItemOID = str_replace($varParts[0]."_","",$rawItemOID);  //suppression de l'ItemGroupRepeatKey              
-            }else{
-              $rawItemOID = str_replace($varParts[0]."_".$varParts[1]."_","",$rawItemOID);  //suppression de l'ItemGroupRepeatKey
-            }
-            
-            $ItemOID = str_replace("@",".",$rawItemOID);
-            
-            $this->addLog("rawItemOID=$rawItemOID ItemOID=$ItemOID",TRACE);
-            
-            $tblFilledVar["$ItemOID"] = $value;
-          }
-        }
-        
-      }
-        
-      //On va chercher toutes les variables à enregistrer dans les metadatas,
-      //a partir du FormOID et de l'ItemGroupOID
-      //On regarde également pour chaque item si nous avions une valeur précédente (utile pour le TransactionType)
-      $query = "
-      let \$SubjectData := collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData
-      let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
-      let \$ItemGroupRef := \$MetaDataVersion/odm:FormDef[@OID='$FormOID']/odm:ItemGroupRef[@ItemGroupOID='$ItemGroupOID']
-      let \$ItemGroupDef := \$MetaDataVersion/odm:ItemGroupDef[@OID=\$ItemGroupRef/@ItemGroupOID]
-      return
-      <ItemGroupRef ItemGroupOID='{\$ItemGroupRef/@ItemGroupOID}'
-                    Repeating='{\$ItemGroupDef/@Repeating}'>
-      {
-        for \$ItemRef in \$MetaDataVersion/odm:ItemGroupDef[@OID=\$ItemGroupRef/@ItemGroupOID]/odm:ItemRef
-        let \$ItemOID := \$ItemRef/@ItemOID
-        let \$ItemDef := \$MetaDataVersion/odm:ItemDef[@OID=\$ItemOID]
-        let \$ItemData := \$SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']/
-                                        odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']/
-                                        odm:ItemGroupData[@ItemGroupOID=\$ItemGroupRef/@ItemGroupOID and @ItemGroupRepeatKey='$ItemGroupRepeatKey']/
-                                        odm:*[@ItemOID=\$ItemOID]
-        let \$LastItemData := \$ItemData[last()]
-        return
-          <Item ItemOID='{\$ItemOID}'
-                DataType='{\$ItemDef/@DataType}'
-                AnnotationID='{\$LastItemData/@AnnotationID}'>
-                {
-                    if(exists(\$ItemData))
-                    then <PreviousItemValue>{\$LastItemData/string()}</PreviousItemValue>
-                    else <NoPreviousItemValue/>
-                }
-          </Item>
-      }
-      </ItemGroupRef>
-      ";
-  
-      try{
-        $results = $this->m_ctrl->socdiscoo()->query($query);
-        $this->addLog("bocdiscoo()->saveItemGroupData() : results = ".$this->dumpRet($results),TRACE);
-      }catch(xmlexception $e){
-        $str = "Erreur de la requete : " . $e->getMessage() . " " . $query ." (".__METHOD__.")";
-        $this->addLog($str,FATAL);
-        die($str);
-      }
-  
-      //Add ItemGroupData to FormData if needed
-      $result = $xPath->query("/odm:ODM/odm:ClinicalData/odm:SubjectData
-                                       /odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']
-                                       /odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']
-                                       /odm:ItemGroupData[@ItemGroupOID='$ItemGroupOID' and @ItemGroupRepeatKey='$ItemGroupRepeatKey']");
-      if($result->length==0){
-      
-        $this->addLog("bocdiscoo->saveItemGroupData() Ajout de ItemGroupData=$ItemGroupOID RepeatKey=$ItemGroupRepeatKey",INFO);
-        $IG = $subj->createElementNS(ODM_NAMESPACE,"ItemGroupData");
-        $IG->setAttribute("ItemGroupOID",$ItemGroupOID);
-        $IG->setAttribute("ItemGroupRepeatKey",$ItemGroupRepeatKey);
-  
-        $IG->setAttribute("TransactionType","Insert");
-  
-        //We are here because of incoming data - we set ItemGroupData Flag to FILLED
-        $Annotation = $subj->createElementNS(ODM_NAMESPACE,"Annotation");
-        $Flag = $subj->createElementNS(ODM_NAMESPACE,"Flag");
-        $FlagValue = $subj->createElementNS(ODM_NAMESPACE,"FlagValue","FILLED");
-        $FlagType = $subj->createElementNS(ODM_NAMESPACE,"FlagType","STATUS");
-  
-        $Annotation->setAttribute("SeqNum","1");
-        $FlagValue->setAttribute("CodeListOID","CL.IGSTATUS");
-        $FlagType->setAttribute("CodeListOID","CL.FLAGTYPE");
-  
-        $Flag->appendChild($FlagValue);
-        $Flag->appendChild($FlagType);
-        $Annotation->appendChild($Flag);
-        $IG->appendChild($Annotation);
-  
-        $FormData->appendChild($IG);
-      }else{
-        if($result->length==1){
-          $this->addLog("bocdiscoo->saveItemGroupData()Update of ItemGroupData=$ItemGroupOID",INFO);
-          $IG = $result->item(0);
-        }else{
-          $str = "Erreur : multiple ItemGroupData=$ItemGroupOID RepeatKey=$ItemGroupRepeatKey (".__METHOD__.")";
-          $this->addLog($str,FATAL);
-          die($str);
-        }
-      }
-  
-      //ItemGroupData already here - status may need update, as it could came from the BLANK Subject
-      $result = $xPath->query("/odm:ODM/odm:ClinicalData/odm:SubjectData
-                                       /odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']
-                                       /odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']
-                                       /odm:ItemGroupData[@ItemGroupOID='$ItemGroupOID' and @ItemGroupRepeatKey='$ItemGroupRepeatKey']
-                                       /odm:Annotation/odm:Flag[odm:FlagType/@CodeListOID='CL.FLAGTYPE']/odm:FlagValue");
-      if($result->length!=1){
-        $str = "bocdiscoo->saveItemGroupData() FlagValue not found (".__METHOD__.")";
-        $this->addLog($str,INFO);
-        $resultIGDT = $xPath->query("/odm:ODM/odm:ClinicalData/odm:SubjectData
-                                             /odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']
-                                             /odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']
-                                             /odm:ItemGroupData[@ItemGroupOID='$ItemGroupOID' and @ItemGroupRepeatKey='$ItemGroupRepeatKey']");
-        if($resultIGDT->length!=1){
-          $str = "Erreur pendant une tentative de création d'un FlagValue absent : ItemGroupData non trouvé  (".__METHOD__.")";
-          $this->addLog($str,FATAL);
-          die($str);
-        }
-        else
-        {
-          $IGDT = $resultIGDT->item(0);
-          $Annotation = $subj->createElementNS(ODM_NAMESPACE,"Annotation");
-          $Flag = $subj->createElementNS(ODM_NAMESPACE,"Flag");
-          $FlagValue = $subj->createElementNS(ODM_NAMESPACE,"FlagValue","FILLED");
-          $FlagType = $subj->createElementNS(ODM_NAMESPACE,"FlagType","STATUS");
+    $this->addLog("bocdiscoo->saveItemGroupData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$formVars,$who,$where,$why,$fillst)",INFO);
+    $this->addLog("$formVars = " . $this->dumpRet($formVars),TRACE);
     
-          $Annotation->setAttribute("SeqNum","1");
-          $FlagValue->setAttribute("CodeListOID","CL.IGSTATUS");
-          $FlagType->setAttribute("CodeListOID","CL.FLAGTYPE");
-    
-          $Flag->appendChild($FlagValue);
-          $Flag->appendChild($FlagType);
-          $Annotation->appendChild($Flag);
-          
-          //Annotation must be the first child
-          $firstChild = $IGDT->firstChild;
-          if($firstChild)
-          {
-            $IGDT->insertBefore($Annotation, $firstChild);
-          }
-          else
-          {
-            $IGDT->appendChild($Annotation);
-          }
-        }
-      }else{
-        $result->item(0)->nodeValue = "FILLED";
-      }
-    
-      //On a à notre disposition $FormData pour ajouter les ItemGroup
-      $hasModif = false;
-      foreach($results as $ItemGroupRef){
-        //$bFormVarsIsAlreadyDecoded = true en cas d'import du coding, pour ne pas effacer les champs non présent dans l'import
-        if($this->addItemData($IG,$ItemGroupRef,$formVars,$tblFilledVar,$subj,$AuditRecordID,!$bFormVarsIsAlreadyDecoded)){
-          $hasModif = true;
-        }
-      }
-            
-      //Update XML DB only if needed
-      if($hasModif)
-      { 
-        $this->m_ctrl->socdiscoo()->replaceDocument($subj,false,"ClinicalData");      
-      }
-    }
-    catch(Exception $e)
-    {
-      $str = "Uncaught exception : " . $e->getMessage() . ", Line " . $e->getLine() . " (".__METHOD__.", ".__FILE__.", ".__LINE__.")";
+    //DomDocument of Subject
+    try{
+      $subj = $this->m_ctrl->socdiscoo()->getDocument("ClinicalData",$SubjectKey,false);
+    }catch(xmlexception $e){
+      $str= "(". __METHOD__ .") Patient $SubjectKey not found : " . $e->getMessage();
       $this->addLog($str,FATAL);
     }
+
+    $xPath = new DOMXPath($subj);
+    $xPath->registerNamespace("odm", ODM_NAMESPACE);
+
+    //Add StudyEventData if needed
+    $result = $xPath->query("/odm:ODM/odm:ClinicalData/odm:SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']");
+    if($result->length==0){
+      $this->addLog("bocdiscoo->saveItemGroupData() Add StudyEventData[@StudyEventOID='$StudyEventOID' @StudyEventRepeatKey=$StudyEventRepeatKey]",INFO);
+      $query = "declare default element namespace '".$this->m_tblConfig['SEDNA_NAMESPACE_ODM']."';
+                UPDATE
+                insert <StudyEventData StudyEventOID='$StudyEventOID' StudyEventRepeatKey='$StudyEventRepeatKey' />
+                following collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData/odm:StudyEventData[1]";
+      $this->m_ctrl->socdiscoo()->query($query);
+    }else{
+      if($result->length!=1){
+        $str = "Error : Duplicate entry of StudyEventData[@StudyEventOID='$StudyEventOID' StudyEventRepeatKey=$StudyEventRepeatKey] (". __METHOD__ .")";
+        $this->addLog($str,FATAL);
+      }
+    }
+
+    //Add FormData if needed
+    $result = $xPath->query("/odm:ODM/odm:ClinicalData/odm:SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']/odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']");
+    if($result->length==0){
+      $this->addLog("bocdiscoo()->saveItemGroupData() Adding FormData=$FormOID FormRepeatKey=$FormRepeatKey",TRACE);
+      $query = "declare default element namespace '".$this->m_tblConfig['SEDNA_NAMESPACE_ODM']."';
+                UPDATE
+                insert <FormData FormOID='$FormOID' FormRepeatKey='$FormRepeatKey' />
+                into collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']";
+      $this->m_ctrl->socdiscoo()->query($query);
+    }else{
+      if($result->length!=1){
+        $str = "Error duplicate entry FormData[@FormOID='$FormOID' @FormRepeatKey='$FormRepeatKey] (". __METHOD__ .")";
+        $this->addLog($str,FATAL);
+      }
+    }
+
+    //Add AuditRecords if needed
+    $result = $xPath->query("/odm:ODM/odm:ClinicalData/odm:AuditRecords");
+    if($result->length==0){
+      $this->addLog("Adding AuditRecords",INFO);
+      $query = "declare default element namespace '".$this->m_tblConfig['SEDNA_NAMESPACE_ODM']."';
+                UPDATE
+                insert <AuditRecords />
+                following collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData";
+      $this->m_ctrl->socdiscoo()->query($query);
+    }else{
+      if($result->length!=1){
+        $str = "Error : duplicate entry AuditRecords for Subject $SubjectKey result->length={$result->length} (".__METHOD__.")";
+        $this->addLog($str,FATAL);
+      }
+    }
+
+    //Generation of new ID as Audit-XXXXXX
+    $result = $xPath->query("/odm:ODM/odm:ClinicalData/odm:AuditRecords/odm:AuditRecord");
+    $AuditRecordID = sprintf("Audit-%06s",$result->length+1);
+
+    $query = "declare default element namespace '".$this->m_tblConfig['SEDNA_NAMESPACE_ODM']."';
+              UPDATE
+              insert <AuditRecord ID='$AuditRecordID'>
+                      <UserRef UserOID='$who'/>
+                      <LocationRef LocationOID='$where'/>
+                      <DateTimeStamp>".date('c')."</DateTimeStamp>
+                      <ReasonForChange>$why</ReasonForChange>
+                     </AuditRecord>
+              following collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:AuditRecords/odm:AuditRecord[1]";
+    $this->m_ctrl->socdiscoo()->query($query);
+
+    //Add Annotations if needed
+    $annotations = $xPath->query("/odm:ODM/odm:ClinicalData/odm:Annotations");
+    if($result->length==0){
+      $this->addLog("Adding Annotations",INFO);
+      $query = "declare default element namespace '".$this->m_tblConfig['SEDNA_NAMESPACE_ODM']."';
+                UPDATE
+                insert <Annotations />
+                following collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:AuditRecords";
+      $this->m_ctrl->socdiscoo()->query($query);
+    }else{
+      if($annotations->length!=1){
+        $str = "Error : multiple Annotations for patient $SubjectKey result->length={$result->length} (".__METHOD__.")";
+        $this->addLog($str,FATAL);
+        die($str);
+      }
+    }
+
+    //Add ItemGroupData to FormData if needed
+    $igdata = $xPath->query("/odm:ODM/odm:ClinicalData/odm:SubjectData
+                                     /odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']
+                                     /odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']
+                                     /odm:ItemGroupData[@ItemGroupOID='$ItemGroupOID' and @ItemGroupRepeatKey='$ItemGroupRepeatKey']");
+    if($igdata->length==0){      
+      $this->addLog("bocdiscoo->saveItemGroupData() Adding ItemGroupData=$ItemGroupOID RepeatKey=$ItemGroupRepeatKey",INFO);
+      $query = "declare default element namespace '".$this->m_tblConfig['SEDNA_NAMESPACE_ODM']."';
+                UPDATE
+                insert <ItemGroupData ItemGroupOID='$ItemGroupOID' ItemGroupRepeatKey='$ItemGroupRepeatKey' TransactionType='Insert'>
+                        <Annotation SeqNum='1'>
+                          <Flag>
+                            <FlagValue>FILLED</FlagValue>
+                            <FlagType>STATUS</FlagType>
+                          </Flag>
+                        </Annotation>
+                       </ItemGroupData>
+                into collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData
+                                               /odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']
+                                               /odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']";
+      $this->m_ctrl->socdiscoo()->query($query);
+    }else{
+      if($igdata->length!=1){
+        $str = "Error : duplicate entries for ItemGroupData=$ItemGroupOID RepeatKey=$ItemGroupRepeatKey (".__METHOD__.")";
+        $this->addLog($str,FATAL);
+      }
+    }
+    
+    //Extraction from POSTed data
+    if($bFormVarsIsAlreadyDecoded){
+      $tblFilledVar = $formVars;  
+    }else{
+      $tblFilledVar = array();
+      //loop through incoming POST variables
+      foreach($formVars as $key=>$value)
+      {
+        //oid extraction
+        $varParts = explode("_",$key);
+        if($varParts[0]!="annotation" && end($varParts)==$ItemGroupRepeatKey)
+        {          
+          // Here we handle itemoid containing '_' character in itemoid string
+          $rawItemOID = str_replace("_".end($varParts),"",$key);  //remove ItemGroupRepeatKey              
+          if($varParts[0]=="radio" || $varParts[0]=="select"){
+            $rawItemOID = str_replace($varParts[0]."_","",$rawItemOID);  //remove ItemGroupRepeatKey              
+          }else{
+            $rawItemOID = str_replace($varParts[0]."_".$varParts[1]."_","",$rawItemOID);  //remove ItemGroupRepeatKey
+          }
+          
+          $ItemOID = str_replace("@",".",$rawItemOID);
+          
+          $this->addLog("rawItemOID=$rawItemOID ItemOID=$ItemOID",TRACE);
+          
+          $tblFilledVar["$ItemOID"] = $value;
+        }
+      }
+      
+    }
+      
+    //Get all Items to save from metadata (Format,...)
+    //and look for existing value (usefull for TransactionType)
+    $query = "
+    let \$SubjectData := collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData
+    let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
+    let \$ItemGroupRef := \$MetaDataVersion/odm:FormDef[@OID='$FormOID']/odm:ItemGroupRef[@ItemGroupOID='$ItemGroupOID']
+    let \$ItemGroupDef := \$MetaDataVersion/odm:ItemGroupDef[@OID=\$ItemGroupRef/@ItemGroupOID]
+    return
+    <ItemGroupRef ItemGroupOID='{\$ItemGroupRef/@ItemGroupOID}'
+                  Repeating='{\$ItemGroupDef/@Repeating}'>
+    {
+      for \$ItemRef in \$MetaDataVersion/odm:ItemGroupDef[@OID=\$ItemGroupRef/@ItemGroupOID]/odm:ItemRef
+      let \$ItemOID := \$ItemRef/@ItemOID
+      let \$ItemDef := \$MetaDataVersion/odm:ItemDef[@OID=\$ItemOID]
+      let \$ItemData := \$SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']/
+                                      odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']/
+                                      odm:ItemGroupData[@ItemGroupOID=\$ItemGroupRef/@ItemGroupOID and @ItemGroupRepeatKey='$ItemGroupRepeatKey']/
+                                      odm:*[@ItemOID=\$ItemOID]
+      let \$LastItemData := \$ItemData[1]
+      return
+        <Item ItemOID='{\$ItemOID}'
+              DataType='{\$ItemDef/@DataType}'
+              AnnotationID='{\$LastItemData/@AnnotationID}'>
+              {
+                  if(exists(\$ItemData))
+                  then <PreviousItemValue>{\$LastItemData/string()}</PreviousItemValue>
+                  else <NoPreviousItemValue/>
+              }
+        </Item>
+    }
+    </ItemGroupRef>
+    ";
+
+    try{
+      $ItemGroupRef = $this->m_ctrl->socdiscoo()->query($query);
+    }catch(xmlexception $e){
+      $str = "Error in query " . $e->getMessage() . " " . $query ." (".__METHOD__.")";
+      $this->addLog($str,FATAL);
+    }
+
+    $tblItemDatas = $this->addItemData($ItemGroupRepeatKey,$ItemGroupRef[0],$formVars,$tblFilledVar,$subj,$AuditRecordID,!$bFormVarsIsAlreadyDecoded,$annotations->length);
+    $strItemDatas = implode(',',$tblItemDatas);      
+    //Update XML DB only if needed
+    if($strItemDatas!="")
+    { 
+      $query = "declare default element namespace '".$this->m_tblConfig['SEDNA_NAMESPACE_ODM']."';
+                UPDATE
+                insert ($strItemDatas)
+                following collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData
+                                               /odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']
+                                               /odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']/odm:ItemGroupData[@ItemGroupOID='$ItemGroupOID' and @ItemGroupRepeatKey='$ItemGroupRepeatKey']/odm:Annotation";
+      $this->m_ctrl->socdiscoo()->query($query);
+    }
+
     return $hasModif;
   }
 
@@ -3141,16 +2971,6 @@ met à jour le statut FROZEN / FILLED / INCONSISTENT / PARTIAL / EMPTY d'un Item
   {
     $this->addLog("bocdiscoo->setItemGroupStatus($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$status)",INFO);
     
-    /*
-    $query = "replace value of node collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']
-                                          /odm:ClinicalData/odm:SubjectData
-                                          /odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']
-                                          /odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']
-                                          /odm:ItemGroupData[@ItemGroupOID='$ItemGroupOID' and @ItemGroupRepeatKey='$ItemGroupRepeatKey']
-                                          /odm:Annotation/odm:Flag[odm:FlagType/@CodeListOID='CL.FLAGTYPE']/odm:FlagValue
-              with '$status'";
-    */
-    //SEDNA 3.5 syntax (still not conform with the XQuery Update Facility 1.0)
     $query = "UPDATE REPLACE \$x in collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']
                                           /odm:ClinicalData/odm:SubjectData
                                           /odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']
@@ -3200,12 +3020,6 @@ public function setLock($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID
   {
     $this->addLog("bocdiscoo->setSubjectStatus($SubjectKey,$status)",INFO);
     
-    /*
-    $query = "replace value of node collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']
-                                            /odm:ClinicalData/odm:SubjectData/odm:Annotation/odm:Flag[odm:FlagType/@CodeListOID='CL.FLAGTYPE']/odm:FlagValue 
-              with '$status'";
-    */
-    //SEDNA 3.5 syntax (still not conform with the XQuery Update Facility 1.0)
     $query = "UPDATE REPLACE \$x in collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']
                                             /odm:ClinicalData/odm:SubjectData/odm:Annotation/odm:Flag[odm:FlagType/@CodeListOID='CL.FLAGTYPE']/odm:FlagValue
              WITH <odm:FlagValue CodeListOID=\"CL.SSTATUS\">$status</odm:FlagValue>";

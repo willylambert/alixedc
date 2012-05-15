@@ -401,7 +401,7 @@ function removeFormData(CurrentApp,dataString){
 
 
 /*
-*@desc boucle sur les formulaires, et les soumets individuellement
+*@desc Loop through ItemGroupData, and submit them individually
 *@author wlt, tpi
 */
 function saveAllItemGroup(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey,bCheckFormData){
@@ -409,7 +409,7 @@ function saveAllItemGroup(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventR
   bSanityErrors = false;
   newSubjectKey = "";
 
-  //Boucle sur les formulaires
+  // 1 Form = 1 ItemGroupData
   $("form").each( 
     function(index){
       dataString = $(this).serialize();
@@ -429,21 +429,19 @@ function saveAllItemGroup(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventR
           success: function(data){
               if(data.errors.length > 0){
                 bSanityErrors = true;
-                //On efface toutes les erreurs, pour ne faire apparaitre que les erreurs de sanity check
+                // If sanity errors occur, only these errors are displayed
                 $("#formQueries").empty();
                 for(i=0;i<data.errors.length;i++){
                   ItemOID = data.errors[i].ItemOID;
                   ItemGroupRepeatKey  = data.errors[i].ItemGroupRepeatKey;
                   Description = data.errors[i].desc;
-                  
-                  //On remplit le div dedié aux erreurs
                   $("#formQueries").append("<div id='query_"+ItemOID.replace(".","_")+"_"+ItemGroupRepeatKey+"' class='QueryType QueryTypeCM'>"+ Description +"</div>");
                 }
               };   
               
-              //Verfication des controles uniquement si pas d'erreur bad_format
+              //Only run Edit Check if no sanity errors
               if(bSanityErrors==false){
-                //20120504 tpi: je sors le checkFormData et le rechargement de page de cette fin boucle (création variables newSubjectId) (raison: on évite un saveItemGroupData aupravant forcé à chaque fois sur le dernier Form de la page)
+                //Handle of new Subject - i.e. enrolment
                 if(typeof(data.newSubjectId)!='undefined'){
                   newSubjectKey = data.newSubjectId[0];
                   SubjectKey = newSubjectKey;
@@ -459,7 +457,6 @@ function saveAllItemGroup(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventR
                   Description = Description.replace(regexp,"");
                   alert(Description);        
                 }
-                //Code couleur sur le clique => confirmation rapide que les données ont été enregistrées/checkées
                 $("#btnSave").css({color: '#393939'});
                 $("#btnSave").animate({opacity: 1});
               }

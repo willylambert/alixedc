@@ -22,8 +22,6 @@
     
 require_once("class.CommonFunctions.php");
 
-define("ODM_NAMESPACE","http://www.cdisc.org/ns/odm/v1.3");
-
 /*
 @desc edition management class
 @author TPI

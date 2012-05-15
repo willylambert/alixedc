@@ -140,17 +140,17 @@ public function checkFormData(){
 
 
  /*
- *@desc méthode ajax, reçoit en paramètre les données d'un formulaire ItemGroup, et retourne les erreurs missing et consistency
+ *Ajax method, received in POST an ItemGroupData 
+ *Return missing and edit checks raised 
  *@return array("errors"=>array(),"newSubjectId"=>string) $tblRet 
  *@author wlt
  */
   public function saveItemGroupData(){
     $this->addlog(__METHOD__ ." : _POST=".$this->dumpRet($_POST),INFO);  
   
-    //Tableau de retour
     $tblRet = array();
   
-    //Extraction des paramètres
+    //Post parameters Extraction
     $MetaDataVersion = $_POST['MetaDataVersionOID'];
     $SubjectKey = $_POST['SubjectKey'];
     $StudyEventOID = $_POST['StudyEventOID'];
@@ -160,22 +160,22 @@ public function checkFormData(){
     $ItemGroupOID = $_POST['ItemGroupOID'];
     $ItemGroupRepeatKey = $_POST['ItemGroupRepeatKey'];
          
-    //Pour l'Audit Trail
+    //For Audit Trail
     $who = $GLOBALS['egw_info']['user']['userid'];
     $where = $GLOBALS['egw']->accounts->id2name($GLOBALS['egw_info']['user']['account_primary_group']);
     $why = "";
   
-    //We need to have all items filled
+    //We need to have all keys filled
     if($MetaDataVersion=="" || $SubjectKey=="" || $StudyEventOID=="" || $StudyEventRepeatKey=="" ||
        $FormOID=="" || $FormRepeatKey=="" || $ItemGroupOID=="" || $ItemGroupRepeatKey==""){
       $this->addlog(__METHOD__ ." : missing variables : $MetaDataVersion || $SubjectKey || $StudyEventOID || $StudyEventRepeatKey ||
        $FormOID || $FormRepeatKey || $ItemGroupOID || $ItemGroupRepeatKey",FATAL);       
     }
     
-    //Première vérification : est-ce que les données de notre formulaire sont saines
+    //First Check : Does all values match their format ?
     $tblRet["errors"] = $this->m_ctrl->bocdiscoo()->checkItemGroupDataSanity($SubjectKey,$MetaDataVersion,$ItemGroupOID,$ItemGroupRepeatKey,$_POST);
     
-    //Si il y a des erreurs, l'enregistrement est impossible, on ne va pas plus loin, et l'on retourne les erreurs au browser
+    //If there is sanitized errors, stop saving and return errors to browser
     if(count($tblRet["errors"])==0){
       $isNewSubject = false;
       //Do we have to create a new subject?
