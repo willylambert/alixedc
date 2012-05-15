@@ -1,0 +1,226 @@
+module namespace alix = "http://www.alix-edc.com/alix";
+declare namespace odm = 'http://www.cdisc.org/ns/odm/v1.3';
+
+(:
+    On a plusieurs macros pour faciliter l'écriture des FormalExpression
+    1°) getValue() => Retourne la valeur de l'ItemData courant
+    2°) getValue('ItemOID') => Retourne la valeur d'un ItemData adjacent (dans le même ItemGroupData)
+    3°) getValue('ItemGroupOID','ItemOID') => Retourne la valeur d'un ItemData du même formulaire, mais dans un ItemGroupData différent
+    4°) getValue('FormOID','ItemGroupOID','ItemOID') => Même chose que le 3°) mais on peut jumper sur un autre Form
+    5°) getValue('StudyEventOID','FormOID','ItemGroupOID','ItemOID') => Même chose que le 3°) mais on peut jumper sur une autre visite
+
+    !!!!!Attention!!!!! Note : pour le 3°,4° et 5°, on ne précise pas le RepeatKey, donc Attention à son utilisation
+:)
+
+(:Pour comparer les dates partielles, on complète par convention avec des 01:)
+declare function alix:fillPartialDate($partialDateValue as xs:string?) as xs:string
+{
+  let $length := string-length($partialDateValue)
+  return
+    if($length=7)
+    then concat($partialDateValue,'-01')
+    else
+      if($length=4)
+      then concat($partialDateValue,'-01-01')
+      else
+        if($length=0)
+        then ''
+        else $partialDateValue
+};
+
+declare function alix:fillAny($anyValue as xs:string?) as xs:string
+{
+  let $length := string-length($anyValue)
+  return
+    if($length=0)
+    then ''
+    else $anyValue
+};
+
+declare function alix:getValue($ItemData as node()*) as xs:string?
+{
+  let $lastItemData := $ItemData[1]
+  return
+    if($lastItemData/name()='ItemDataPartialDate')
+    then alix:fillPartialDate($lastItemData/string())
+    else
+      if($lastItemData/name()='ItemDataAny')
+      then alix:fillAny($lastItemData/string())
+      else $lastItemData/string()
+};
+
+declare function alix:getValue($ItemData as node(),$ItemOID as xs:string) as xs:string?
+{
+  let $destItemData := $ItemData/../odm:*[@ItemOID=$ItemOID]
+  return alix:getValue($destItemData)
+};
+
+declare function alix:getValue($ItemData as node(),$ItemGroupOID as xs:string,$ItemOID as xs:string) as xs:string?
+{
+  let $destItemData := $ItemData/../../odm:ItemGroupData[@ItemGroupOID=$ItemGroupOID]/odm:*[@ItemOID=$ItemOID]
+  return alix:getValue($destItemData)
+};
+
+declare function alix:getValue($ItemData as node(),$FormOID as xs:string,$ItemGroupOID as xs:string,$ItemOID as xs:string) as xs:string?
+{
+  let $destItemData := $ItemData/../../../odm:FormData[@FormOID=$FormOID]/odm:ItemGroupData[@ItemGroupOID=$ItemGroupOID]/odm:*[@ItemOID=$ItemOID]
+  return alix:getValue($destItemData)
+};
+
+declare function alix:getValue($ItemData as node(),$StudyEventOID as xs:string,$FormOID as xs:string,$ItemGroupOID as xs:string,$ItemOID as xs:string) as xs:string?
+{
+  let $destItemData := $ItemData/../../../../odm:StudyEventData[@StudyEventOID=$StudyEventOID]/odm:FormData[@FormOID=$FormOID]/odm:ItemGroupData[@ItemGroupOID=$ItemGroupOID]/odm:*[@ItemOID=$ItemOID]
+  return alix:getValue($destItemData)
+};
+
+declare function alix:getValue($ItemData as node(),$StudyEventOID as xs:string,$FormOID as xs:string, $FormRepeatKey as xs:string, $ItemGroupOID as xs:string,$ItemOID as xs:string) as xs:string?
+{
+  let $destItemData := $ItemData/../../../../odm:StudyEventData[@StudyEventOID=$StudyEventOID]/odm:FormData[@FormOID=$FormOID and @FormRepeatKey=$FormRepeatKey]/odm:ItemGroupData[@ItemGroupOID=$ItemGroupOID]/odm:*[@ItemOID=$ItemOID]
+  return alix:getValue($destItemData)
+};
+
+declare function alix:getRawValue($ItemData as node()*) as xs:string?
+{
+  let $v := '' (:car il nous faut un let :)
+  return $ItemData[1]/string()
+};
+
+declare function alix:getRawValue($ItemData as node(),$ItemOID as xs:string) as xs:string?
+{
+  let $destItemData := $ItemData/../odm:*[@ItemOID=$ItemOID]
+  return alix:getRawValue($destItemData)
+};
+
+declare function alix:getRawValue($ItemData as node(),$ItemGroupOID as xs:string,$ItemOID as xs:string) as xs:string?
+{
+  let $destItemData := $ItemData/../../odm:ItemGroupData[@ItemGroupOID=$ItemGroupOID]/odm:*[@ItemOID=$ItemOID]
+  return alix:getRawValue($destItemData)
+};
+
+declare function alix:getRawValue($ItemData as node(),$FormOID as xs:string,$ItemGroupOID as xs:string,$ItemOID as xs:string) as xs:string?
+{
+  let $destItemData := $ItemData/../../../odm:FormData[@FormOID=$FormOID]/odm:ItemGroupData[@ItemGroupOID=$ItemGroupOID]/odm:*[@ItemOID=$ItemOID]
+  return alix:getRawValue($destItemData)
+};
+
+declare function alix:getRawValue($ItemData as node(),$StudyEventOID as xs:string,$FormOID as xs:string,$ItemGroupOID as xs:string,$ItemOID as xs:string) as xs:string?
+{
+  let $destItemData := $ItemData/../../../../odm:StudyEventData[@StudyEventOID=$StudyEventOID]/odm:FormData[@FormOID=$FormOID]/odm:ItemGroupData[@ItemGroupOID=$ItemGroupOID]/odm:*[@ItemOID=$ItemOID]
+  return alix:getRawValue($destItemData)
+};
+
+declare function alix:getRawValue($ItemData as node(),$StudyEventOID as xs:string,$FormOID as xs:string, $FormRepeatKey as xs:string, $ItemGroupOID as xs:string,$ItemOID as xs:string) as xs:string?
+{
+  let $destItemData := $ItemData/../../../../odm:StudyEventData[@StudyEventOID=$StudyEventOID]/odm:FormData[@FormOID=$FormOID and @FormRepeatKey=$FormRepeatKey]/odm:ItemGroupData[@ItemGroupOID=$ItemGroupOID]/odm:*[@ItemOID=$ItemOID]
+  return alix:getRawValue($destItemData)
+};
+
+declare function alix:getDecode($ItemData as node(),$SubjectData as node(),$MetaDataVersion as node(),$ItemGroupOID as xs:string,$ItemOID as xs:string) as xs:string?
+{
+  let $destItemData := $ItemData/../../odm:ItemGroupData[@ItemGroupOID=$ItemGroupOID]/odm:*[@ItemOID=$ItemOID]
+  return alix:getDecode($destItemData,$SubjectData,$MetaDataVersion)
+};
+
+declare function alix:getDecode($ItemData as node(),$SubjectData as node(),$MetaDataVersion as node(),$FormOID as xs:string,$ItemGroupOID as xs:string,$ItemOID as xs:string) as xs:string?
+{
+  let $destItemData := $ItemData/../../../odm:FormData[@FormOID=$FormOID]/odm:ItemGroupData[@ItemGroupOID=$ItemGroupOID]/odm:*[@ItemOID=$ItemOID]
+  return alix:getDecode($destItemData,$SubjectData,$MetaDataVersion)
+};
+
+declare function alix:getDecode($ItemData as node(),$SubjectData as node(),$MetaDataVersion as node(),$StudyEventOID as xs:string,$FormOID as xs:string,$ItemGroupOID as xs:string,$ItemOID as xs:string) as xs:string?
+{
+  let $destItemData := $ItemData/../../../../odm:StudyEventData[@StudyEventOID=$StudyEventOID]/odm:FormData[@FormOID=$FormOID]/odm:ItemGroupData[@ItemGroupOID=$ItemGroupOID]/odm:*[@ItemOID=$ItemOID]
+  return alix:getDecode($destItemData,$SubjectData,$MetaDataVersion)
+};
+
+declare function alix:getDecode($ItemData as node(),$SubjectData as node(),$MetaDataVersion as node(),$StudyEventOID as xs:string,$FormOID as xs:string, $FormRepeatKey as xs:string, $ItemGroupOID as xs:string,$ItemOID as xs:string) as xs:string?
+{
+  let $destItemData := $ItemData/../../../../odm:StudyEventData[@StudyEventOID=$StudyEventOID]/odm:FormData[@FormOID=$FormOID and @FormRepeatKey=$FormRepeatKey]/odm:ItemGroupData[@ItemGroupOID=$ItemGroupOID]/odm:*[@ItemOID=$ItemOID]
+  return alix:getDecode($destItemData,$SubjectData,$MetaDataVersion)
+};
+
+declare function alix:getDecode($ItemData as node(),$SubjectData as node(),$MetaDataVersion as node(),$ItemOID as xs:string) as xs:string?
+{
+  let $destItemData := $ItemData/../odm:*[@ItemOID=$ItemOID]
+  return alix:getDecode($destItemData,$SubjectData,$MetaDataVersion)
+};
+
+declare function alix:getDecode($ItemData as node()*,$SubjectData as node(),$MetaDataVersion as node()) as xs:string?
+{
+  let $value := alix:getValue($ItemData)
+  let $CodeListOID := $MetaDataVersion/odm:ItemDef[@OID=$ItemData/@ItemOID]/odm:CodeListRef/@CodeListOID
+  return
+    if($CodeListOID)
+    then $MetaDataVersion/odm:CodeList[@OID=$CodeListOID]/odm:CodeListItem[@CodedValue=$value]/odm:Decode/odm:TranslatedText[@xml:lang='".$this->m_lang."']/string()
+    else $value
+};
+
+declare function alix:compareDate($dt1 as xs:string,$dt2 as xs:string) as xs:integer
+{
+  let $lenDt1 := string-length($dt1)
+  let $lenDt2 := string-length($dt2)
+  return
+    if($lenDt1=4 or $lenDt2=4) then compare(substring($dt1,1,4),substring($dt2,1,4)) else
+      if($lenDt1=7 or $lenDt2=7) then compare(substring($dt1,1,7),substring($dt2,1,7)) else compare($dt1,$dt2)              
+};
+
+declare function alix:getMonth($month as xs:string) as xs:string
+{
+  let $months := ('January','February','March','April','May','June','July','August','September','October','November','December')
+  return
+    if($month!='') 
+    then $months[xs:integer($month)]
+    else ''              
+};
+
+declare function alix:DateISOtoFR($dt as xs:string*) as xs:string
+{
+  let $month := alix:getMonth(substring($dt,6,2))
+  return
+    if (not($dt)) then
+        ''
+    else        
+        if(string-length($dt)=10) then concat(substring($dt,9,2),'-',$month,'-', substring($dt,1,4)) else
+            if(string-length($dt)=7) then concat($month,'-', substring($dt,1,4)) else
+              if(string-length($dt)=4) then substring($dt,1,4) else ''                
+};
+
+declare function alix:getAnnotation($ItemData as node(),$ItemGroupOID as xs:string,$ItemOID as xs:string) as xs:string?
+{
+  let $destItemData := $ItemData/../../odm:ItemGroupData[@ItemGroupOID=$ItemGroupOID]/odm:*[@ItemOID=$ItemOID]
+  return alix:getAnnotation($destItemData)
+};
+
+declare function alix:getAnnotation($ItemData as node(),$FormOID as xs:string,$ItemGroupOID as xs:string,$ItemOID as xs:string) as xs:string?
+{
+  let $destItemData := $ItemData/../../../odm:FormData[@FormOID=$FormOID]/odm:ItemGroupData[@ItemGroupOID=$ItemGroupOID]/odm:*[@ItemOID=$ItemOID]
+  return alix:getAnnotation($destItemData)
+};
+
+declare function alix:getAnnotation($ItemData as node(),$StudyEventOID as xs:string,$FormOID as xs:string,$ItemGroupOID as xs:string,$ItemOID as xs:string) as xs:string?
+{
+  let $destItemData := $ItemData/../../../../odm:StudyEventData[@StudyEventOID=$StudyEventOID]/odm:FormData[@FormOID=$FormOID]/odm:ItemGroupData[@ItemGroupOID=$ItemGroupOID]/odm:*[@ItemOID=$ItemOID]
+  return alix:getAnnotation($destItemData)
+};
+
+declare function alix:getAnnotation($ItemData as node(),$StudyEventOID as xs:string,$FormOID as xs:string, $FormRepeatKey as xs:string, $ItemGroupOID as xs:string,$ItemOID as xs:string) as xs:string?
+{
+  let $destItemData := $ItemData/../../../../odm:StudyEventData[@StudyEventOID=$StudyEventOID]/odm:FormData[@FormOID=$FormOID and @FormRepeatKey=$FormRepeatKey]/odm:ItemGroupData[@ItemGroupOID=$ItemGroupOID]/odm:*[@ItemOID=$ItemOID]
+  return alix:getAnnotation($destItemData)
+};
+
+declare function alix:getAnnotation($ItemData as node(),$ItemOID as xs:string) as xs:string?
+{
+  let $destItemData := $ItemData/../odm:*[@ItemOID=$ItemOID]
+  return alix:getAnnotation($destItemData)
+};
+
+declare function alix:getAnnotation($ItemData as node()*) as xs:string?
+{
+  let $ClinicalData := collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData
+  let $AnnotationId := $ItemData[1]/@AnnotationID
+  return
+    if($AnnotationId)
+      then $ClinicalData/odm:Annotations/odm:Annotation[@ID=$AnnotationId]/odm:Flag/odm:FlagValue/string()
+      else ''
+};
