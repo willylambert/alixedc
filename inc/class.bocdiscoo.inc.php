@@ -226,6 +226,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
     return $tblRet;
   }
 
+
 /*
 @desc Ajout d'une Annotation à un SubjectData
 @author tpi

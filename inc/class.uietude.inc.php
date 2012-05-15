@@ -55,10 +55,6 @@ class uietude extends CommonFunctions
     global $configEtude;
 
     CommonFunctions::__construct($configEtude,null);
-
-    $this->addLog("******************************NEW REQUEST******************************",INFO);
-    $this->addLog($_SERVER['HTTP_USER_AGENT'],INFO);
-    $this->addLog("uietude->uietude() : user=".$GLOBALS['egw_info']['user']['userid'],TRACE);
         
     $GLOBALS['egw_info']['flags']['app_header'] = $this->m_tblConfig['APP_NAME'];
     
@@ -148,7 +144,6 @@ class uietude extends CommonFunctions
     //We add the html DOC Type for HTML 5 support - safely ignored by older browser
     echo "<!DOCTYPE html>";
     echo $htmlRet;		
-		$this->addLog("***********************************************************************",INFO);
 	}
 
    public function exportInterface()

@@ -21,11 +21,10 @@
     * along with ALIX.  If not, see <http://www.gnu.org/licenses/>.            *
     \**************************************************************************/
 /**
-* @desc Classe de base abstraite contenant les m?thodes communes ? toutes les classes
+*  Abstract Class for all classes
 * Features :
-*   => Affichage de variable sous la forme print_r version html ou version texte pour insertion dans log par ex
-*   => addLog : Fonction de log...
-*   => gestion des hooks 
+*   => Helpers function for logging
+*   => Hook handle 
 * @author WLT
 **/ 
 
@@ -37,25 +36,18 @@ define("FATAL",5);
 
 class CommonFunctions{
 
-/****************************************************/
-//Variables membres (priv?es)
-/****************************************************/
-
-  //Array des param?tres de config
+  //Array of config values - see config.inc.php
   public $m_tblConfig;
 
-  //R?f?rence vers le controleur (class uietude)
-  //Unique point d'acc?s aux instances des classes boXXXXX et uiXXXXX
+  //Reference to the instanciation class
+  //Used everywhere to access methods of class boXXXXX
   public $m_ctrl;
   
   public $m_user;
   public $m_lang;
   
-/****************************************************/
-//M?thodes Publiques
-/****************************************************/
+  protected static $nb_instance = 0;
 
-  //Constructeur
   function __construct(&$tblConfig=array(),$ctrlRef)
   {
     $this->m_tblConfig =& $tblConfig;
@@ -74,20 +66,22 @@ class CommonFunctions{
     if (defined('EGW_INCLUDE_ROOT')) {
       require_once(EGW_INCLUDE_ROOT . "/".$this->m_tblConfig['MODULE_NAME']."/custom/".$this->m_tblConfig['METADATAVERSION']."/inc/hookFunctions.php"); 
     }
-
-  
+    
+    if(self::$nb_instance==0){  
+      $this->addLog("******************************NEW REQUEST******************************",INFO);
+      $this->addLog($_SERVER['HTTP_USER_AGENT'] . " user=" . $GLOBALS['egw_info']['user']['userid'],INFO);
+    }
+    self::$nb_instance++;
   }
 
-  //Destructeur
   function __destruct()
   {
-    //RAF   
+    self::$nb_instance--;   
+    if(self::$nb_instance==0){  
+      $this->addLog("******************************END OF REQUEST***************************",INFO);
+    }
   }
- 
-/****************************************************/
-//M?thodes Priv?s
-/****************************************************/
-  
+
   protected function egwId2studyId($id)
   {
     $egwSiteNumber = abs($id);
