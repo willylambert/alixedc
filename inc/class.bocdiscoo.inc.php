@@ -329,18 +329,19 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
                              FormalExpressionDecode='{\$RangeCheck/odm:FormalExpression[@Context='XQueryDecode']/string()}'
                              Title='{\$ItemDef/odm:Question/odm:TranslatedText[@xml:lang='{$this->m_lang}']/text()}' />";
     try{
+      $this->addLog($query,INFO);
       $ctrls = $this->m_ctrl->socdiscoo()->query($query);
     }catch(xmlexception $e){
       $str = "XQuery error" . $e->getMessage() . " " . $query ." (". __METHOD__ .")";
       $this->addLog($str,FATAL);
-      die($str);
     }
     $errors = array();
 
-    if($ctrls[0]->getName()!="NoItemGroupData" || $ctrls[0]->getName()!="NoControl")
+    if($ctrls[0]->getName()!="NoItemGroupData" && $ctrls[0]->getName()!="NoControl")
     {
       foreach($ctrls as $ctrl)
       {
+        $this->addLog($ctrl->getName(),INFO);
         $testXQuery = $this->getXQueryConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ctrl);
         try{
           $ctrlResult = $this->m_ctrl->socdiscoo()->query($testXQuery);
@@ -2203,35 +2204,14 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
     }
     /*******************************************************************************/
     
-    $testExpr = str_replace("getValue()","alix:getValue(\$ItemData)",$testExpr);
-    $testExpr = str_replace("getValue('","alix:getValue(\$ItemData,'",$testExpr);
-
-    //getAnnotation - XQuery
-    $testExpr = str_replace("getAnnotation()","alix:getAnnotation(\$ItemData)",$testExpr);
-    $testExpr = str_replace("getAnnotation('","alix:getAnnotation(\$ItemData,'",$testExpr);
-
-    //getRawValue
-    $testExpr = str_replace("getRawValue()","alix:getRawValue(\$ItemData)",$testExpr);
-    $testExpr = str_replace("getRawValue('","alix:getRawValue(\$ItemData,'",$testExpr);
-
-    $testExpr = str_replace("compareDate(","alix:compareDate(",$testExpr);
-    
     list($lets, $testExpr) = explode("[!]", $testExpr); //on, découpe en deux, les 2 portions seront à 2 endroits différents de la requête finale
  
     $testExprDecode = "";
     if($ctrl['FormalExpressionDecode']!=""){
       $testExprDecode = $ctrl['FormalExpressionDecode']; 
-      //$testExprDecode = str_replace("local:getDecode(\$ItemData,\$SubjectData,\$MetaDataVersion","replace(local:getDecode(\$ItemData,\$SubjectData,\$MetaDataVersion",$testExprDecode);//deleted TPI 20110830
       $testExprDecode = str_replace("getDecode($","replace(alix:getDecode($",$testExprDecode); //added TPI 20110830
       $testExprDecode = str_replace("getDecode()","replace(alix:getDecode(\$ItemData,\$SubjectData,\$MetaDataVersion),' ','¤')",$testExprDecode);
       $testExprDecode = str_replace("getDecode('","replace(alix:getDecode(\$ItemData,\$SubjectData,\$MetaDataVersion,'",$testExprDecode);
-
-      //getRawValue dans les decodes
-      $testExprDecode = str_replace("getRawValue()","replace(alix:getRawValue(\$ItemData),' ','¤')",$testExprDecode);
-      $testExprDecode = str_replace("getRawValue('","replace(alix:getRawValue(\$ItemData,'",$testExprDecode);
-
-      $testExprDecode = str_replace("getValue()","alix:getValue(\$ItemData)",$testExprDecode);
-      $testExprDecode = str_replace("getValue('","alix:getValue(\$ItemData,'",$testExprDecode);
 
       $testExprDecode = str_replace("')","'),' ','¤')",$testExprDecode,$nbDecodeCall2);
 
@@ -2354,7 +2334,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
       $this->addLog("bocdiscoo->saveItemGroupData() Add StudyEventData[@StudyEventOID='$StudyEventOID' @StudyEventRepeatKey=$StudyEventRepeatKey]",INFO);
       $query = "declare default element namespace '".$this->m_tblConfig['SEDNA_NAMESPACE_ODM']."';
                 UPDATE
-                insert <StudyEventData StudyEventOID='$StudyEventOID' StudyEventRepeatKey='$StudyEventRepeatKey' />
+                insert <StudyEventData StudyEventOID='$StudyEventOID' StudyEventRepeatKey='$StudyEventRepeatKey'  TransactionType='Insert'/>
                 following collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData/odm:StudyEventData[1]";
       $this->m_ctrl->socdiscoo()->query($query);
     }else{
@@ -2370,7 +2350,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
       $this->addLog("bocdiscoo()->saveItemGroupData() Adding FormData=$FormOID FormRepeatKey=$FormRepeatKey",TRACE);
       $query = "declare default element namespace '".$this->m_tblConfig['SEDNA_NAMESPACE_ODM']."';
                 UPDATE
-                insert <FormData FormOID='$FormOID' FormRepeatKey='$FormRepeatKey' />
+                insert <FormData FormOID='$FormOID' FormRepeatKey='$FormRepeatKey' TransactionType='Insert'/>
                 into collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']";
       $this->m_ctrl->socdiscoo()->query($query);
     }else{
@@ -2440,8 +2420,8 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
                 insert <ItemGroupData ItemGroupOID='$ItemGroupOID' ItemGroupRepeatKey='$ItemGroupRepeatKey' TransactionType='Insert'>
                         <Annotation SeqNum='1'>
                           <Flag>
-                            <FlagValue>FILLED</FlagValue>
-                            <FlagType>STATUS</FlagType>
+                            <FlagValue CodeListOID='CL.SSTATUS'>FILLED</FlagValue>
+                            <FlagType CodeListOID='CL.FLAGTYPE'>STATUS</FlagType>
                           </Flag>
                         </Annotation>
                        </ItemGroupData>
