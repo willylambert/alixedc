@@ -227,66 +227,6 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
   }
 
 /*
-@desc Ajout d'une Annotation à un ItemGroupData
-@author tpi
-*/
-  private function addItemGroupStatus($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$status="EMPTY",$SeqNum="1")
-  {
-    $this->addLog("bocdiscoo->addItemGroupStatus($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$status,$SeqNum)",INFO);
-    
-    //Le document de note patient (c'est un DOMDocument)
-    try{
-      $subj = $this->m_ctrl->socdiscoo()->getDocument("ClinicalData",$SubjectKey,false);
-    }catch(xmlexception $e){
-      $str= "Patient $SubjectKey non trouvé dans la base : " . $e->getMessage() ." (". __METHOD__ .")";
-      $this->addLog($str,FATAL);
-      die($str);
-    }
-
-    $xPath = new DOMXPath($subj);
-    $xPath->registerNamespace("odm", ODM_NAMESPACE);
-    
-    $query = "/odm:ODM/odm:ClinicalData/odm:SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']/odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']/odm:ItemGroupData[@ItemGroupOID='$ItemGroupOID' and @ItemGroupRepeatKey='$ItemGroupRepeatKey' and not(./Annotation[@SeqNum='$SeqNum'])]";
-    $resultIGDT = $xPath->query($query);
-    if($resultIGDT->length==0){
-      $str = "bocdiscoo->addItemGroupStatus() : ItemGroup non trouvé ou ItemGroup avec Annotation(SeqNum='$SeqNum') déjà présente ! Requête : $query (". __METHOD__ .")";
-      $this->addLog($str,INFO);
-      //die($str);
-    }else{
-      $IGDT = $resultIGDT->item(0);
-      $Annotation = $subj->createElementNS(ODM_NAMESPACE,"Annotation");
-      $Flag = $subj->createElementNS(ODM_NAMESPACE,"Flag");
-      $FlagValue = $subj->createElementNS(ODM_NAMESPACE,"FlagValue",$status);
-      $FlagType = $subj->createElementNS(ODM_NAMESPACE,"FlagType","STATUS");
-
-      $Annotation->setAttribute("SeqNum","1");
-      $FlagValue->setAttribute("CodeListOID","CL.IGSTATUS");
-      $FlagType->setAttribute("CodeListOID","CL.FLAGTYPE");
-
-      $Flag->appendChild($FlagValue);
-      $Flag->appendChild($FlagType);
-      $Annotation->appendChild($Flag);
-      
-      //Les annotations doivent êtes le premier noeud de l'IGDT
-      $firstChild = $IGDT->firstChild;
-      if($firstChild)
-      {
-        $IGDT->insertBefore($Annotation, $firstChild);
-      }
-      else
-      {
-        $IGDT->appendChild($Annotation);
-      }
-      
-      //Mise à jour de notre document dans la base
-      $this->m_ctrl->socdiscoo()->replaceDocument($subj,false,"ClinicalData");
-      
-      $str = "bocdiscoo->addItemGroupStatus() Un FlagValue non trouvé a été créé/restauré sur un ItemGroupData (".__METHOD__.")";
-      $this->addLog($str,INFO);
-    }
-  }
-
-/*
 @desc Ajout d'une Annotation à un SubjectData
 @author tpi
 */
