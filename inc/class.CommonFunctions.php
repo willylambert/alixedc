@@ -81,18 +81,6 @@ class CommonFunctions{
       $this->addLog("******************************END OF REQUEST***************************",INFO);
     }
   }
-
-  protected function egwId2studyId($id)
-  {
-    $egwSiteNumber = abs($id);
-    return sprintf("%04s",$egwSiteNumber);  
-  }
-
-  protected function studyId2egwId($id)
-  {
-    $egwId = "-".($id);
-    return $egwId;   
-  }
   
   /**
    * Does the user browser is an iPad ?
