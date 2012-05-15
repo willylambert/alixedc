@@ -53,6 +53,7 @@
 
   $configEtude["ODM_1_3_SCHEMA"] = "/var/www/alix/docs/demo/$moduleName/xsd/ODM1-3-0-foundation.xsd";
   $configEtude["ODM_1_2_SCHEMA"] = "/var/www/alix/docs/demo/$moduleName/xsd/ODM1-2-1-foundation.xsd";
+  $configEtude["XQUERY_LIB"][] = "/var/www/alix/docs/demo/$moduleName/xquery/alix.xqlib";
   
   $configEtude["EMAIL_PV"] = "svp.clinical@businessdecision.com";
   $configEtude["EMAIL_ERROR"] = "svp.clinical@businessdecision.com,hotline@cyber-nova.com";

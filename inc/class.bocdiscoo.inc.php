@@ -289,10 +289,12 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
 
   private function checkFormConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey)
   {
-    $this->addLog("bocdiscoo->checkFormConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID)", TRACE);
+    $this->addLog("bocdiscoo->checkFormConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID)", INFO);
 
     //Loop through ItemData having Edit Checks (RangeCheck in ODM)
     $query = "
+        import module namespace alix = 'http://www.alix-edc.com/alix';
+         
         let \$SubjectData := collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData
         let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
         let \$ItemGroupDatas := \$SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']
@@ -329,25 +331,21 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
     try{
       $ctrls = $this->m_ctrl->socdiscoo()->query($query);
     }catch(xmlexception $e){
-      $str = "Erreur de la requete : " . $e->getMessage() . " " . $query ." (". __METHOD__ .")";
+      $str = "XQuery error" . $e->getMessage() . " " . $query ." (". __METHOD__ .")";
       $this->addLog($str,FATAL);
       die($str);
     }
     $errors = array();
-    
-    $macros = $this->getMacros($SubjectKey);
 
-    if($ctrls[0]->getName()!="NoItemGroupData" && $ctrls[0]->getName()!="NoControl")
+    if($ctrls[0]->getName()!="NoItemGroupData" || $ctrls[0]->getName()!="NoControl")
     {
       foreach($ctrls as $ctrl)
       {
-        $testXQuery = $macros . $this->getXQueryConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ctrl);
+        $testXQuery = $this->getXQueryConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ctrl);
         try{
           $ctrlResult = $this->m_ctrl->socdiscoo()->query($testXQuery);
         }catch(xmlexception $e){
-          //L'erreur est probablement liée à l"ecriture du contrôle contenu dans les metadatas,
-          //ainsi on présente cela d'une façon élégante à l'utilsateur. On conserve la notification par e-mail,
-          //pour rectifier le tir.
+          //Error is probably due to the edit check code. Error is not display to the user, and administrator notified by email 
           $str = "Consistency : Erreur du controle : " . $e->getMessage() . " " . $testXQuery;
           $this->addLog($str,ERROR);
         }
@@ -445,9 +443,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
       die($str);
     }
     $errors = array();
-    
-    $macros = $this->getMacros($SubjectKey);
-    
+
     foreach($ctrls as $ctrl)
     {
       $testXQuery = $macros . $this->getXQueryConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ctrl,$Value);
@@ -783,8 +779,6 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
       die($str);
     }
     
-    $macros = $this->getMacros($SubjectKey);
-
     //On boucle sur les erreurs pour executer les CollectionConditionException, 
     //Qui peuvent conduire à la suppression de l'erreur
     $tblRet = array();
@@ -812,7 +806,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
       
       $testExpr = "";
       if($error['FormalExpression']!=""){
-        $testXQuery = $macros . $this->getXQueryConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$error);//-
+        $testXQuery = $this->getXQueryConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$error);//-
         try{
           $ctrlResult = $this->m_ctrl->socdiscoo()->query($testXQuery);
         }catch(xmlexception $e){
@@ -1049,14 +1043,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
       }";
     }
     
-    $query = "
-              declare function local:getLastValue(\$ItemData as node()*) as xs:string?
-              {
-                let \$v := ''
-                return \$ItemData[1]/string()
-              };
-
-              let \$SubjectData := collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData
+    $query = "let \$SubjectData := collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData
               let \$SubjectBLANK := collection('ClinicalData')/odm:ODM[@FileOID='". $this->config("BLANK_OID") ."']/odm:ClinicalData/odm:SubjectData
               let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
               let \$BasicDefinitions := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:BasicDefinitions[../odm:MetaDataVersion/@OID=\$SubjectData/../@MetaDataVersionOID]
@@ -1658,232 +1645,6 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
     return (int)$ItemGroupDataCount[0]['CountIG'];
   }
    
-  private function getMacros($SubjectKey){
-    //On a plusieurs macros pour faciliter l'écriture des FormalExpression
-    // 1°) getValue() => Retourne la valeur de l'ItemData courant
-    // 2°) getValue('ItemOID') => Retourne la valeur d'un ItemData adjacent (dans le même ItemGroupData)
-    // 3°) getValue('ItemGroupOID','ItemOID') => Retourne la valeur d'un ItemData du même formulaire, mais dans un ItemGroupData différent
-    // 4°) getValue('FormOID','ItemGroupOID','ItemOID') => Même chose que le 3°) mais on peut jumper sur un autre Form
-    // 5°) getValue('StudyEventOID','FormOID','ItemGroupOID','ItemOID') => Même chose que le 3°) mais on peut jumper sur une autre visite
-
-    //!!!!!Attention!!!!! Note : pour le 3°,4° et 5°, on ne précise pas le RepeatKey, donc Attention à son utilisation
-    $macros = "
-        (:Pour comparer les dates partielles, on complète par convention avec des 01:)
-        declare function local:fillPartialDate(\$partialDateValue as xs:string?) as xs:string
-        {
-          let \$length := string-length(\$partialDateValue)
-          return
-            if(\$length=7)
-            then concat(\$partialDateValue,'-01')
-            else
-              if(\$length=4)
-              then concat(\$partialDateValue,'-01-01')
-              else
-                if(\$length=0)
-                then ''
-                else \$partialDateValue
-        };
-
-        declare function local:fillAny(\$anyValue as xs:string?) as xs:string
-        {
-          let \$length := string-length(\$anyValue)
-          return
-            if(\$length=0)
-            then ''
-            else \$anyValue
-        };
-
-        declare function local:getValue(\$ItemData as node()*) as xs:string?
-        {
-          let \$lastItemData := \$ItemData[1]
-          return
-            if(\$lastItemData/name()='ItemDataPartialDate')
-            then local:fillPartialDate(\$lastItemData/string())
-            else
-              if(\$lastItemData/name()='ItemDataAny')
-              then local:fillAny(\$lastItemData/string())
-              else \$lastItemData/string()
-        };
-
-        declare function local:getValue(\$ItemData as node(),\$ItemOID as xs:string) as xs:string?
-        {
-          let \$destItemData := \$ItemData/../odm:*[@ItemOID=\$ItemOID]
-          return local:getValue(\$destItemData)
-        };
-
-        declare function local:getValue(\$ItemData as node(),\$ItemGroupOID as xs:string,\$ItemOID as xs:string) as xs:string?
-        {
-          let \$destItemData := \$ItemData/../../odm:ItemGroupData[@ItemGroupOID=\$ItemGroupOID]/odm:*[@ItemOID=\$ItemOID]
-          return local:getValue(\$destItemData)
-        };
-
-        declare function local:getValue(\$ItemData as node(),\$FormOID as xs:string,\$ItemGroupOID as xs:string,\$ItemOID as xs:string) as xs:string?
-        {
-          let \$destItemData := \$ItemData/../../../odm:FormData[@FormOID=\$FormOID]/odm:ItemGroupData[@ItemGroupOID=\$ItemGroupOID]/odm:*[@ItemOID=\$ItemOID]
-          return local:getValue(\$destItemData)
-        };
-
-        declare function local:getValue(\$ItemData as node(),\$StudyEventOID as xs:string,\$FormOID as xs:string,\$ItemGroupOID as xs:string,\$ItemOID as xs:string) as xs:string?
-        {
-          let \$destItemData := \$ItemData/../../../../odm:StudyEventData[@StudyEventOID=\$StudyEventOID]/odm:FormData[@FormOID=\$FormOID]/odm:ItemGroupData[@ItemGroupOID=\$ItemGroupOID]/odm:*[@ItemOID=\$ItemOID]
-          return local:getValue(\$destItemData)
-        };
-
-        declare function local:getValue(\$ItemData as node(),\$StudyEventOID as xs:string,\$FormOID as xs:string, \$FormRepeatKey as xs:string, \$ItemGroupOID as xs:string,\$ItemOID as xs:string) as xs:string?
-        {
-          let \$destItemData := \$ItemData/../../../../odm:StudyEventData[@StudyEventOID=\$StudyEventOID]/odm:FormData[@FormOID=\$FormOID and @FormRepeatKey=\$FormRepeatKey]/odm:ItemGroupData[@ItemGroupOID=\$ItemGroupOID]/odm:*[@ItemOID=\$ItemOID]
-          return local:getValue(\$destItemData)
-        };
-
-        declare function local:getRawValue(\$ItemData as node()*) as xs:string?
-        {
-          let \$v := '' (:car il nous faut un let :)
-          return \$ItemData[1]/string()
-        };
-
-        declare function local:getRawValue(\$ItemData as node(),\$ItemOID as xs:string) as xs:string?
-        {
-          let \$destItemData := \$ItemData/../odm:*[@ItemOID=\$ItemOID]
-          return local:getRawValue(\$destItemData)
-        };
-
-        declare function local:getRawValue(\$ItemData as node(),\$ItemGroupOID as xs:string,\$ItemOID as xs:string) as xs:string?
-        {
-          let \$destItemData := \$ItemData/../../odm:ItemGroupData[@ItemGroupOID=\$ItemGroupOID]/odm:*[@ItemOID=\$ItemOID]
-          return local:getRawValue(\$destItemData)
-        };
-
-        declare function local:getRawValue(\$ItemData as node(),\$FormOID as xs:string,\$ItemGroupOID as xs:string,\$ItemOID as xs:string) as xs:string?
-        {
-          let \$destItemData := \$ItemData/../../../odm:FormData[@FormOID=\$FormOID]/odm:ItemGroupData[@ItemGroupOID=\$ItemGroupOID]/odm:*[@ItemOID=\$ItemOID]
-          return local:getRawValue(\$destItemData)
-        };
-
-        declare function local:getRawValue(\$ItemData as node(),\$StudyEventOID as xs:string,\$FormOID as xs:string,\$ItemGroupOID as xs:string,\$ItemOID as xs:string) as xs:string?
-        {
-          let \$destItemData := \$ItemData/../../../../odm:StudyEventData[@StudyEventOID=\$StudyEventOID]/odm:FormData[@FormOID=\$FormOID]/odm:ItemGroupData[@ItemGroupOID=\$ItemGroupOID]/odm:*[@ItemOID=\$ItemOID]
-          return local:getRawValue(\$destItemData)
-        };
-
-        declare function local:getRawValue(\$ItemData as node(),\$StudyEventOID as xs:string,\$FormOID as xs:string, \$FormRepeatKey as xs:string, \$ItemGroupOID as xs:string,\$ItemOID as xs:string) as xs:string?
-        {
-          let \$destItemData := \$ItemData/../../../../odm:StudyEventData[@StudyEventOID=\$StudyEventOID]/odm:FormData[@FormOID=\$FormOID and @FormRepeatKey=\$FormRepeatKey]/odm:ItemGroupData[@ItemGroupOID=\$ItemGroupOID]/odm:*[@ItemOID=\$ItemOID]
-          return local:getRawValue(\$destItemData)
-        };
-
-        declare function local:getDecode(\$ItemData as node(),\$SubjectData as node(),\$MetaDataVersion as node(),\$ItemGroupOID as xs:string,\$ItemOID as xs:string) as xs:string?
-        {
-          let \$destItemData := \$ItemData/../../odm:ItemGroupData[@ItemGroupOID=\$ItemGroupOID]/odm:*[@ItemOID=\$ItemOID]
-          return local:getDecode(\$destItemData,\$SubjectData,\$MetaDataVersion)
-        };
-
-        declare function local:getDecode(\$ItemData as node(),\$SubjectData as node(),\$MetaDataVersion as node(),\$FormOID as xs:string,\$ItemGroupOID as xs:string,\$ItemOID as xs:string) as xs:string?
-        {
-          let \$destItemData := \$ItemData/../../../odm:FormData[@FormOID=\$FormOID]/odm:ItemGroupData[@ItemGroupOID=\$ItemGroupOID]/odm:*[@ItemOID=\$ItemOID]
-          return local:getDecode(\$destItemData,\$SubjectData,\$MetaDataVersion)
-        };
-
-        declare function local:getDecode(\$ItemData as node(),\$SubjectData as node(),\$MetaDataVersion as node(),\$StudyEventOID as xs:string,\$FormOID as xs:string,\$ItemGroupOID as xs:string,\$ItemOID as xs:string) as xs:string?
-        {
-          let \$destItemData := \$ItemData/../../../../odm:StudyEventData[@StudyEventOID=\$StudyEventOID]/odm:FormData[@FormOID=\$FormOID]/odm:ItemGroupData[@ItemGroupOID=\$ItemGroupOID]/odm:*[@ItemOID=\$ItemOID]
-          return local:getDecode(\$destItemData,\$SubjectData,\$MetaDataVersion)
-        };
-
-        declare function local:getDecode(\$ItemData as node(),\$SubjectData as node(),\$MetaDataVersion as node(),\$StudyEventOID as xs:string,\$FormOID as xs:string, \$FormRepeatKey as xs:string, \$ItemGroupOID as xs:string,\$ItemOID as xs:string) as xs:string?
-        {
-          let \$destItemData := \$ItemData/../../../../odm:StudyEventData[@StudyEventOID=\$StudyEventOID]/odm:FormData[@FormOID=\$FormOID and @FormRepeatKey=\$FormRepeatKey]/odm:ItemGroupData[@ItemGroupOID=\$ItemGroupOID]/odm:*[@ItemOID=\$ItemOID]
-          return local:getDecode(\$destItemData,\$SubjectData,\$MetaDataVersion)
-        };
-
-        declare function local:getDecode(\$ItemData as node(),\$SubjectData as node(),\$MetaDataVersion as node(),\$ItemOID as xs:string) as xs:string?
-        {
-          let \$destItemData := \$ItemData/../odm:*[@ItemOID=\$ItemOID]
-          return local:getDecode(\$destItemData,\$SubjectData,\$MetaDataVersion)
-        };
-
-        declare function local:getDecode(\$ItemData as node()*,\$SubjectData as node(),\$MetaDataVersion as node()) as xs:string?
-        {
-          let \$value := local:getValue(\$ItemData)
-          let \$CodeListOID := \$MetaDataVersion/odm:ItemDef[@OID=\$ItemData/@ItemOID]/odm:CodeListRef/@CodeListOID
-          return
-            if(\$CodeListOID)
-            then \$MetaDataVersion/odm:CodeList[@OID=\$CodeListOID]/odm:CodeListItem[@CodedValue=\$value]/odm:Decode/odm:TranslatedText[@xml:lang='".$this->m_lang."']/string()
-            else \$value
-        };
-
-        declare function local:compareDate(\$dt1 as xs:string,\$dt2 as xs:string) as xs:integer
-        {
-          let \$lenDt1 := string-length(\$dt1)
-          let \$lenDt2 := string-length(\$dt2)
-          return
-            if(\$lenDt1=4 or \$lenDt2=4) then compare(substring(\$dt1,1,4),substring(\$dt2,1,4)) else
-              if(\$lenDt1=7 or \$lenDt2=7) then compare(substring(\$dt1,1,7),substring(\$dt2,1,7)) else compare(\$dt1,\$dt2)              
-        };
-
-        declare function local:getMonth(\$month as xs:string) as xs:string
-        {
-          let \$months := ('January','February','March','April','May','June','July','August','September','October','November','December')
-          return
-            if(\$month!='') 
-            then \$months[xs:integer(\$month)]
-            else ''              
-        };
-
-        declare function local:DateISOtoFR(\$dt as xs:string*) as xs:string
-        {
-          let \$month := local:getMonth(substring(\$dt,6,2))
-          return
-            if (not(\$dt)) then
-                ''
-            else        
-                if(string-length(\$dt)=10) then concat(substring(\$dt,9,2),'-',\$month,'-', substring(\$dt,1,4)) else
-                    if(string-length(\$dt)=7) then concat(\$month,'-', substring(\$dt,1,4)) else
-                      if(string-length(\$dt)=4) then substring(\$dt,1,4) else ''                
-        };
-
-        declare function local:getAnnotation(\$ItemData as node(),\$ItemGroupOID as xs:string,\$ItemOID as xs:string) as xs:string?
-        {
-          let \$destItemData := \$ItemData/../../odm:ItemGroupData[@ItemGroupOID=\$ItemGroupOID]/odm:*[@ItemOID=\$ItemOID]
-          return local:getAnnotation(\$destItemData)
-        };
-
-        declare function local:getAnnotation(\$ItemData as node(),\$FormOID as xs:string,\$ItemGroupOID as xs:string,\$ItemOID as xs:string) as xs:string?
-        {
-          let \$destItemData := \$ItemData/../../../odm:FormData[@FormOID=\$FormOID]/odm:ItemGroupData[@ItemGroupOID=\$ItemGroupOID]/odm:*[@ItemOID=\$ItemOID]
-          return local:getAnnotation(\$destItemData)
-        };
-
-        declare function local:getAnnotation(\$ItemData as node(),\$StudyEventOID as xs:string,\$FormOID as xs:string,\$ItemGroupOID as xs:string,\$ItemOID as xs:string) as xs:string?
-        {
-          let \$destItemData := \$ItemData/../../../../odm:StudyEventData[@StudyEventOID=\$StudyEventOID]/odm:FormData[@FormOID=\$FormOID]/odm:ItemGroupData[@ItemGroupOID=\$ItemGroupOID]/odm:*[@ItemOID=\$ItemOID]
-          return local:getAnnotation(\$destItemData)
-        };
-
-        declare function local:getAnnotation(\$ItemData as node(),\$StudyEventOID as xs:string,\$FormOID as xs:string, \$FormRepeatKey as xs:string, \$ItemGroupOID as xs:string,\$ItemOID as xs:string) as xs:string?
-        {
-          let \$destItemData := \$ItemData/../../../../odm:StudyEventData[@StudyEventOID=\$StudyEventOID]/odm:FormData[@FormOID=\$FormOID and @FormRepeatKey=\$FormRepeatKey]/odm:ItemGroupData[@ItemGroupOID=\$ItemGroupOID]/odm:*[@ItemOID=\$ItemOID]
-          return local:getAnnotation(\$destItemData)
-        };
-
-        declare function local:getAnnotation(\$ItemData as node(),\$ItemOID as xs:string) as xs:string?
-        {
-          let \$destItemData := \$ItemData/../odm:*[@ItemOID=\$ItemOID]
-          return local:getAnnotation(\$destItemData)
-        };
-        
-        declare function local:getAnnotation(\$ItemData as node()*) as xs:string?
-        {
-          let \$ClinicalData := collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData
-          let \$AnnotationId := \$ItemData[1]/@AnnotationID
-          return
-            if(\$AnnotationId)
-              then \$ClinicalData/odm:Annotations/odm:Annotation[@ID=\$AnnotationId]/odm:Flag/odm:FlagValue/string()
-              else ''
-        };
-        ";
-    return $macros;
-  }
-
   /*
   @desc retourne le prochain numero patient a utilisé - fonction utilisée dans saveItemGroupData
   @return string nouveau numero patient
@@ -2007,7 +1768,6 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
                             $customQueryReturn
                             Title='{\$MetaDataVersion/odm:StudyEventDef[@OID='$StudyEventOID']/odm:Description/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()}'>
                 {
-                (: ici on ne recupère qu'un seul Form :)
                 for \$FormRef in \$MetaDataVersion/odm:StudyEventDef[@OID='$StudyEventOID']/odm:FormRef[@FormOID='$FormOID']
                 let \$FormDef := \$MetaDataVersion/odm:FormDef[@OID='$FormOID']
                 return
@@ -2056,7 +1816,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
                                 </MeasurementUnitItem>
                             }
                             </MeasurementUnit>
-                            (: audit trail de l'item \$ItemOID :)
+                            (: audit trail - if asked :)
                             $queryAT
                           </Item>
                       }
@@ -2109,7 +1869,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
       $this->addLog($str,FATAL);
       die($str);
     }
-    $this->addLog("bocdiscoo->getStudyEventForms() return ".$doc->saveXML(),TRACE);
+    $this->addLog("bocdiscoo->getStudyEventForms() ended",INFO);
     //error_log(print_r($doc->saveXML(),true),3,"dumpDoc.xml");
     return $doc;
   }
@@ -2443,18 +2203,18 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
     }
     /*******************************************************************************/
     
-    $testExpr = str_replace("getValue()","local:getValue(\$ItemData)",$testExpr);
-    $testExpr = str_replace("getValue('","local:getValue(\$ItemData,'",$testExpr);
+    $testExpr = str_replace("getValue()","alix:getValue(\$ItemData)",$testExpr);
+    $testExpr = str_replace("getValue('","alix:getValue(\$ItemData,'",$testExpr);
 
     //getAnnotation - XQuery
-    $testExpr = str_replace("getAnnotation()","local:getAnnotation(\$ItemData)",$testExpr);
-    $testExpr = str_replace("getAnnotation('","local:getAnnotation(\$ItemData,'",$testExpr);
+    $testExpr = str_replace("getAnnotation()","alix:getAnnotation(\$ItemData)",$testExpr);
+    $testExpr = str_replace("getAnnotation('","alix:getAnnotation(\$ItemData,'",$testExpr);
 
     //getRawValue
-    $testExpr = str_replace("getRawValue()","local:getRawValue(\$ItemData)",$testExpr);
-    $testExpr = str_replace("getRawValue('","local:getRawValue(\$ItemData,'",$testExpr);
+    $testExpr = str_replace("getRawValue()","alix:getRawValue(\$ItemData)",$testExpr);
+    $testExpr = str_replace("getRawValue('","alix:getRawValue(\$ItemData,'",$testExpr);
 
-    $testExpr = str_replace("compareDate(","local:compareDate(",$testExpr);
+    $testExpr = str_replace("compareDate(","alix:compareDate(",$testExpr);
     
     list($lets, $testExpr) = explode("[!]", $testExpr); //on, découpe en deux, les 2 portions seront à 2 endroits différents de la requête finale
  
@@ -2462,16 +2222,16 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
     if($ctrl['FormalExpressionDecode']!=""){
       $testExprDecode = $ctrl['FormalExpressionDecode']; 
       //$testExprDecode = str_replace("local:getDecode(\$ItemData,\$SubjectData,\$MetaDataVersion","replace(local:getDecode(\$ItemData,\$SubjectData,\$MetaDataVersion",$testExprDecode);//deleted TPI 20110830
-      $testExprDecode = str_replace("getDecode($","replace(local:getDecode($",$testExprDecode); //added TPI 20110830
-      $testExprDecode = str_replace("getDecode()","replace(local:getDecode(\$ItemData,\$SubjectData,\$MetaDataVersion),' ','¤')",$testExprDecode);
-      $testExprDecode = str_replace("getDecode('","replace(local:getDecode(\$ItemData,\$SubjectData,\$MetaDataVersion,'",$testExprDecode);
+      $testExprDecode = str_replace("getDecode($","replace(alix:getDecode($",$testExprDecode); //added TPI 20110830
+      $testExprDecode = str_replace("getDecode()","replace(alix:getDecode(\$ItemData,\$SubjectData,\$MetaDataVersion),' ','¤')",$testExprDecode);
+      $testExprDecode = str_replace("getDecode('","replace(alix:getDecode(\$ItemData,\$SubjectData,\$MetaDataVersion,'",$testExprDecode);
 
       //getRawValue dans les decodes
-      $testExprDecode = str_replace("getRawValue()","replace(local:getRawValue(\$ItemData),' ','¤')",$testExprDecode);
-      $testExprDecode = str_replace("getRawValue('","replace(local:getRawValue(\$ItemData,'",$testExprDecode);
+      $testExprDecode = str_replace("getRawValue()","replace(alix:getRawValue(\$ItemData),' ','¤')",$testExprDecode);
+      $testExprDecode = str_replace("getRawValue('","replace(alix:getRawValue(\$ItemData,'",$testExprDecode);
 
-      $testExprDecode = str_replace("getValue()","local:getValue(\$ItemData)",$testExprDecode);
-      $testExprDecode = str_replace("getValue('","local:getValue(\$ItemData,'",$testExprDecode);
+      $testExprDecode = str_replace("getValue()","alix:getValue(\$ItemData)",$testExprDecode);
+      $testExprDecode = str_replace("getValue('","alix:getValue(\$ItemData,'",$testExprDecode);
 
       $testExprDecode = str_replace("')","'),' ','¤')",$testExprDecode,$nbDecodeCall2);
 
@@ -2494,6 +2254,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
     
     //Création de la requête de test pour l'ItemData en cours
     $testXQuery = "
+      import module namespace alix = 'http://www.alix-edc.com/alix';
       let \$StudyEventOID := '$StudyEventOID'
       let \$StudyEventRepeatKey := '$StudyEventRepeatKey'
       let \$FormOID := '$FormOID'
@@ -2506,8 +2267,8 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
       let \$FormData := \$StudyEventData/odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']
       let \$ItemGroupData := \$FormData/odm:ItemGroupData[@ItemGroupOID='{$ctrl['ItemGroupOID']}' and @ItemGroupRepeatKey='{$ctrl['ItemGroupRepeatKey']}']
       let \$ItemData := $ItemData
-      let \$value := local:getRawValue(\$ItemData)
-      let \$decode := local:getDecode(\$ItemData,\$SubjectData,\$MetaDataVersion)
+      let \$value := alix:getRawValue(\$ItemData)
+      let \$decode := alix:getDecode(\$ItemData,\$SubjectData,\$MetaDataVersion)
       $lets
       return
         <Ctrl>
@@ -2536,31 +2297,22 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
   public function removeFormData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey)
   {
     $this->addLog("bocdiscoo->removeFormData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey)",INFO);
-    
-    /*
-    $query = "replace value of node collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']/odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']/@TransactionType 
-              with 'Remove'";
-    */
+
     //SEDNA 3.5 syntax (still not conform with the XQuery Update Facility 1.0)
     $query = "UPDATE REPLACE \$x in collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']/odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']/@TransactionType
               WITH attribute {'TransactionType'} {'Remove'}";
-
     try{
       $res = $this->m_ctrl->socdiscoo()->query($query);
     }catch(xmlexception $e){
-      $str = "Erreur de la requete : " . $e->getMessage() . " : " . $query;
-      $this->addLog("bocdiscoo->removeItemGroupData() Erreur : $str",FATAL);
-      die($str);
+      $str = "XQuery error " . $e->getMessage() . " : " . $query;
+      $this->addLog("bocdiscoo->removeItemGroupData() Error : $str",FATAL);
     }
   }
 
   public function removeItemGroupData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey)
   {
     $this->addLog("bocdiscoo->removeItemGroupData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey)",INFO);
-    /*
-    $query = "replace value of node collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']/odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']/odm:ItemGroupData[@ItemGroupOID='$ItemGroupOID' and @ItemGroupRepeatKey='$ItemGroupRepeatKey']/@TransactionType 
-              with 'Remove'";
-    */
+
     //SEDNA 3.5 syntax (still not conform with the XQuery Update Facility 1.0)
     $query = "UPDATE REPLACE \$x in collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']/odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']/odm:ItemGroupData[@ItemGroupOID='$ItemGroupOID' and @ItemGroupRepeatKey='$ItemGroupRepeatKey']/@TransactionType
               WITH attribute {'TransactionType'} {'Remove'}";

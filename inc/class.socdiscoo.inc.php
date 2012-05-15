@@ -35,19 +35,18 @@ class socdiscoo extends CommonFunctions
   var $odm_declaration;
   var $collections = array("ClinicalData", "MetaDataVersion");
   
-  //Constructeur
   function socdiscoo(&$tblConfig)
   {                
       CommonFunctions::__construct($tblConfig,null);
       $this->addLog("socdiscoo->socdiscoo()",INFO);
                   
       $this->initContext();
-      $this->initDB();
+      //$this->initDB();
   }
   
   function __destruct()
   {
-     $this->addLog("socdiscoo::destruct()",INFO);      
+     $this->addLog("socdiscoo::destruct()",TRACE);      
      $this->closeContext();
   }
 
@@ -65,7 +64,6 @@ class socdiscoo extends CommonFunctions
     $this->password  = $this->m_tblConfig['SEDNA_PASSWORD'];
     $this->odm_declaration = "declare namespace odm = '".$this->m_tblConfig['SEDNA_NAMESPACE_ODM']."';";
     
-    /* Try to connect to the testdb on the localhost with default credentials */
     $this->conn = sedna_connect($this->host,$this->database,$this->user,$this->password);
     
     if(!$this->conn){
@@ -372,29 +370,47 @@ class socdiscoo extends CommonFunctions
     return $res;
   }
   
-  private function initDB(){
-    $bInit = false; //first initialization ?
+  public function initDB(){
     //Create collections
     foreach($this->collections as $col){
       if(!sedna_execute("CREATE COLLECTION '$col'")){
-        if(sedna_ercls() == "SE2002"){ //Collection with the same name already exists.
-          break; //I consider all collections and indices already exists (otherwise continue;)
+        if(sedna_ercls() != "SE2002"){ //Collection with the same name already exists.
+          $str = "Could create collection '$col': " . sedna_error() ." (". __METHOD__ .")";
+          $this->addLog($str,FATAL);
         }
-        $str = "Could create collection '$col': " . sedna_error() ." (". __METHOD__ .")";
-        $this->addLog($str,FATAL);
       }
-      $bInit = true; //yes, first initialization
     }
-    if($bInit){ //indices have to be created the first time that the database is opened
-      $this->setIndexes();
-    }
+    
+    $this->setIndexes();
+    $this->SetXQLib();
   }
   
   private function setIndexes(){
-    $query = " 
+    $query = $this->odm_declaration . " 
         CREATE INDEX \"SubjectODM\"
         ON collection('ClinicalData')/odm:ODM BY @FileOID
         AS xs:string";
-    $this->query($query);
+    if(!sedna_execute($query)){
+      if(sedna_ercls() != "SE2033"){ //Index with the same name already exists.
+        $str = "Could create index '$query': " . sedna_error() ." (". __METHOD__ .")";
+        $this->addLog($str,FATAL);
+      }else{
+        echo "index SubjectODM already created<br/>";
+      }
+    }
+  }
+  
+  private function SetXQLib(){
+    $strLib = implode("','",$this->m_tblConfig['XQUERY_LIB']);
+    $query = "
+        LOAD MODULE '$strLib'";
+    if(!sedna_execute($query)){
+      if(sedna_ercls() != "SE1073"){ //Module with the same name already exists.
+        $str = "Could create module '$query': " . sedna_error() ." (". __METHOD__ .")";
+        $this->addLog($str,FATAL);
+      }else{
+        echo "xquery module $strLib already loaded<br/>";
+      }
+    }    
   }
 }

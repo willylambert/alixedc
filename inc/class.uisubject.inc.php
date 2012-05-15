@@ -48,7 +48,7 @@ class uisubject extends CommonFunctions
       $this->addLog("uisubject->getInterface()",TRACE);
       $htmlRet = "";
       
-      //On recoit en paramètre le formulaire à afficher
+      //Incoming parameters tell which form to display
       $SubjectKey = $_GET['SubjectKey'];
       $StudyEventOID = $_GET['StudyEventOID'];
       $StudyEventRepeatKey = $_GET['StudyEventRepeatKey'];

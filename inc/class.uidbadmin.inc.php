@@ -144,7 +144,15 @@ class uidbadmin extends CommonFunctions{
                   $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
                 }
                 break;  
-                
+          
+          case 'initDB' :
+                if($this->m_ctrl->boacl()->checkModuleAccess("viewDocs")){
+                  $htmlRet = $this->initDB();
+                }else{
+                  $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
+                }
+                break;  
+                                
           case 'updateSubjectStatus' : 
                 $this->m_ctrl->bosubjects()->updateSubjectInList($_GET['doc']);
                 $htmlRet = $this->getMainInterface("ClinicalData");
@@ -186,10 +194,9 @@ class uidbadmin extends CommonFunctions{
   				                                                                        'container' => 'MetaDataVersion',
                                                                                   'action' => 'viewDocs'),      
                                             "MetaData");
-        $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
-  				                                                                        'container' => '',
-                                                                                  'action' => 'viewDocs'),      
-                                            "Root");
+        $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',  				                                                                      
+                                                                                  'action' => 'initDB'),      
+                                            "Init XML Database");
       }
       
       if($this->m_ctrl->boacl()->checkModuleAccess("importDoc"))
@@ -479,6 +486,17 @@ class uidbadmin extends CommonFunctions{
   private function export($type)
   {
     $this->m_ctrl->boexport()->export($type);   
+  }
+
+/**
+ * Initialize XML Database environment :
+ *  Create collections
+ *  Create indexes
+ *  Load XQuery functions library
+ *@author wlt   
+ **/   
+  function initDB(){
+    $this->m_ctrl->socdiscoo()->initDB();  
   }
   
   function importDoc($container){
