@@ -2,6 +2,24 @@
 @import url('helpers.css');
 @import url('jquery.contextMenu.css');
 
+
+/***********************************  eGroupware features to modify ***********************************/
+
+#divUpperTabs, #divAppIconBar, #divStatusBar{
+  display: none;
+}
+
+body{
+  background-color; #fff;
+  background-image: none;
+}
+
+#divPoweredBy{
+  clear: both;
+}
+
+/***********************************  ALIX ***********************************/
+
 #topmenu{
   display:none;
 }
@@ -163,7 +181,7 @@ a:hover,a:active
 
 #mainFormOnly{
   position:relative;
-  width:98%;
+  width: auto;
   text-align:center;
   clear: both;
 }
@@ -172,10 +190,8 @@ a:hover,a:active
   position:relative;
   clear:both;
   float:left;
-  width:24%;
-  margin-left: 5px;
-
-  /*width:300px;*/
+  width:25%;
+  margin-left: 2px;
 }
 
 #formErrors{
@@ -820,8 +836,8 @@ div.itemGroupLine:hover{
   position:relative;
   clear:both;
   float:left;
-  width:24%;
-  margin-left: 5px;
+  width:25%;
+  margin-left: 2px;
   min-height: 500px;
 }
 

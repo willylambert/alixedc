@@ -87,11 +87,18 @@
             <!--Audi Trail-->
             <td class="ItemDataAudit" name="{$Item/@OID}">
   	          <!--On n'affiche l'icône que s'il y a du contenu d'audit trail-->
-              <xsl:if test="$ItemGroupData/ItemData[@OID=$Item/@OID]/@TransactionType!='Insert'">
+              <xsl:if test="$ItemGroupData/ItemData[@OID=$Item/@OID]/@TransactionType">
               	<a href="javascript:void(0)">
                   <xsl:element name='span'>
                     <xsl:attribute name='class'>imageOnly image16</xsl:attribute>
-                    <xsl:attribute name="style">background-image: url('<xsl:value-of select="$CurrentApp"/>/templates/default/images/clock-history.png');</xsl:attribute>
+                    <xsl:choose>
+                      <xsl:when test="$ItemGroupData/ItemData[@OID=$Item/@OID]/@TransactionType!='Insert'">
+                        <xsl:attribute name="style">background-image: url('<xsl:value-of select="$CurrentApp"/>/templates/default/images/clock-history.png');</xsl:attribute>
+                      </xsl:when>
+                      <xsl:otherwise>
+                        <xsl:attribute name="style">background-image: url('<xsl:value-of select="$CurrentApp"/>/templates/default/images/clock-history-discret.png');</xsl:attribute>
+                      </xsl:otherwise>
+                    </xsl:choose>
                     <xsl:attribute name="onclick">toggleAuditTrail('<xsl:value-of select="$Item/@OID" />','<xsl:value-of select="$ItemGroupData/@ItemGroupRepeatKey" />');</xsl:attribute>
                     <xsl:attribute name="altbox">Edit the history of this item</xsl:attribute>
                     &#0160;
