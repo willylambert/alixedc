@@ -28,7 +28,7 @@
 <xsl:param name="SiteName"/>
 <xsl:param name="SubjectKey"/>
 
-<!--Catch all non treated tags, print them without treatment-->
+<!--Catch all non treated tags, print them without processing-->
 <xsl:template match="*">
    <xsl:copy>
        <xsl:copy-of select="@*"/>
@@ -63,7 +63,7 @@
     <xsl:attribute name="value">
       <xsl:value-of select="$SiteId"/>
     </xsl:attribute>
-    <xsl:attribute name="readonly">true</xsl:attribute>
+    <xsl:attribute name="readonly">readonly</xsl:attribute>
     <xsl:for-each select="@*">
       <xsl:if test="name()!='value'">
         <xsl:attribute name="{name()}">
@@ -88,7 +88,7 @@
 <xsl:template match="input[@itemoid='ENROL.STUDYID']">
    <xsl:copy>
        <xsl:copy-of select="@*"/>
-       <xsl:attribute name="readonly">true</xsl:attribute>
+       <xsl:attribute name="readonly">readonly</xsl:attribute>
        <xsl:apply-templates/>
    </xsl:copy>
 </xsl:template>
@@ -97,7 +97,7 @@
 <xsl:template match="input[@itemoid='ENROL.PATID']">
    <xsl:copy>
        <xsl:copy-of select="@*"/>
-       <xsl:attribute name="readonly">true</xsl:attribute>
+       <xsl:attribute name="readonly">readonly</xsl:attribute>
        <xsl:if test="$SubjectKey!='' and $SubjectKey!='BLANK'">
         <xsl:attribute name="value"><xsl:value-of select="substring($SubjectKey,3)"/></xsl:attribute>
        </xsl:if>
@@ -109,7 +109,7 @@
 <xsl:template match="input[@itemoid='ENROL.SUBJID']">
    <xsl:copy>
        <xsl:copy-of select="@*"/>
-       <xsl:attribute name="readonly">true</xsl:attribute>
+       <xsl:attribute name="readonly">readonly</xsl:attribute>
        <xsl:if test="$SubjectKey!='' and $SubjectKey!='BLANK'">
         <xsl:attribute name="value"><xsl:value-of select="$SubjectKey"/></xsl:attribute>
        </xsl:if>
@@ -117,7 +117,7 @@
    </xsl:copy>
 </xsl:template>
 
-<!-- Set subject number -->
+<!-- Set site name -->
 <xsl:template match="input[@itemoid='ENROL.SITENAME']">
    <xsl:copy>
        <xsl:copy-of select="@*"/>
@@ -129,7 +129,7 @@
    </xsl:copy>
 </xsl:template>
 
-<!-- Javascript treatment -->
+<!--Customize the save button-->
 <xsl:template match="button[@id='btnSave']">
    <xsl:copy>
      <xsl:copy-of select="@*"/> 
