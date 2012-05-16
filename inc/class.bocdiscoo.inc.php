@@ -329,7 +329,6 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
                              FormalExpressionDecode='{\$RangeCheck/odm:FormalExpression[@Context='XQueryDecode']/string()}'
                              Title='{\$ItemDef/odm:Question/odm:TranslatedText[@xml:lang='{$this->m_lang}']/text()}' />";
     try{
-      $this->addLog($query,INFO);
       $ctrls = $this->m_ctrl->socdiscoo()->query($query);
     }catch(xmlexception $e){
       $str = "XQuery error" . $e->getMessage() . " " . $query ." (". __METHOD__ .")";
@@ -337,52 +336,53 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
     }
     $errors = array();
 
-    if($ctrls[0]->getName()!="NoItemGroupData" && $ctrls[0]->getName()!="NoControl")
+    if($ctrls[0]->getName()!="NoItemGroupData")
     {
       foreach($ctrls as $ctrl)
       {
-        $this->addLog($ctrl->getName(),INFO);
-        $testXQuery = $this->getXQueryConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ctrl);
-        try{
-          $ctrlResult = $this->m_ctrl->socdiscoo()->query($testXQuery);
-        }catch(xmlexception $e){
-          //Error is probably due to the edit check code. Error is not display to the user, and administrator notified by email 
-          $str = "Consistency : Xquery error : " . $e->getMessage() . " " . $testXQuery;
-          $this->addLog($str,ERROR);
-        }
-  
-        $this->addLog("bocdiscoo->checkFormConsistency() Control[{$StudyEventOID}][{$FormOID}][{$ctrl['ItemGroupOID']}][{$ctrl['ItemGroupRepeatKey']}]['{$ctrl['ItemOID'] }'] => Result=" . $ctrlResult[0]->Result, INFO);
-        if($ctrlResult[0]->Result=='false'){
-          if($ctrl['SoftHard']=="Hard"){
-            $type = 'HC';
-          }else{
-            $type = 'SC';
+        if($ctrl->getName()!="NoControl"){        
+          $testXQuery = $this->getXQueryConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ctrl);
+          try{
+            $ctrlResult = $this->m_ctrl->socdiscoo()->query($testXQuery);
+          }catch(xmlexception $e){
+            //Error is probably due to the edit check code. Error is not display to the user, and administrator notified by email 
+            $str = "Consistency : Xquery error : " . $e->getMessage() . " " . $testXQuery;
+            $this->addLog($str,ERROR);
           }
-          //On doit passer par un eval pour gérer les décodes multiples, que l'on passe en param de la func sprintf()
-          $nbS = substr_count($ctrl['ErrorMessage'],"%s");
-          if($nbS>0){
-            $tblParams = explode(' ',$ctrlResult[0]->Decode . str_pad("",$nbS));
-            $tblParams = str_replace("¤", " ", $tblParams); //restauration des espaces ' ' substitués (par des '¤', cf getXQueryConsistency())
-            $ctrl['ErrorMessage'] = str_replace("\"","'",$ctrl['ErrorMessage']);
-            $cmdEval = "\$desc = sprintf(\"".$ctrl['ErrorMessage']."\",\"".implode('","',$tblParams)."\");";
-            eval($cmdEval);
-          }else{
-            //Ici, pas de decode, on affiche simplement le message d'erreur
-            $desc = $ctrl['ErrorMessage'];
+    
+          $this->addLog("bocdiscoo->checkFormConsistency() Control[{$StudyEventOID}][{$FormOID}][{$ctrl['ItemGroupOID']}][{$ctrl['ItemGroupRepeatKey']}]['{$ctrl['ItemOID'] }'] => Result=" . $ctrlResult[0]->Result, INFO);
+          if($ctrlResult[0]->Result=='false'){
+            if($ctrl['SoftHard']=="Hard"){
+              $type = 'HC';
+            }else{
+              $type = 'SC';
+            }
+            //On doit passer par un eval pour gérer les décodes multiples, que l'on passe en param de la func sprintf()
+            $nbS = substr_count($ctrl['ErrorMessage'],"%s");
+            if($nbS>0){
+              $tblParams = explode(' ',$ctrlResult[0]->Decode . str_pad("",$nbS));
+              $tblParams = str_replace("¤", " ", $tblParams); //restauration des espaces ' ' substitués (par des '¤', cf getXQueryConsistency())
+              $ctrl['ErrorMessage'] = str_replace("\"","'",$ctrl['ErrorMessage']);
+              $cmdEval = "\$desc = sprintf(\"".$ctrl['ErrorMessage']."\",\"".implode('","',$tblParams)."\");";
+              eval($cmdEval);
+            }else{
+              //Here no decode available, simply display the error message
+              $desc = $ctrl['ErrorMessage'];
+            }
+            $this->addLog("message = $desc",INFO);  
+            $errors[] = array( 
+                               'Description' => $desc,
+                               'Title' => $ctrl['Title'],
+                               'Type' => $type,
+    								           'ItemOID' => $ctrl['ItemOID'],
+    								           'ItemGroupOID' => $ctrl['ItemGroupOID'],
+    								           'ItemGroupRepeatKey' => $ctrl['ItemGroupRepeatKey'],
+    								           'Position' => $ctrl['Position'],
+    								           'ContextKey' => $ctrlResult[0]->ContextKey,
+    								           'Value' => $ctrlResult[0]->Value,
+    								           'Decode' => $ctrlResult[0]->DecodedValue
+                             );
           }
-          $this->addLog("message = $desc",INFO);  
-          $errors[] = array( 
-                             'Description' => $desc,
-                             'Title' => $ctrl['Title'],
-                             'Type' => $type,
-  								           'ItemOID' => $ctrl['ItemOID'],
-  								           'ItemGroupOID' => $ctrl['ItemGroupOID'],
-  								           'ItemGroupRepeatKey' => $ctrl['ItemGroupRepeatKey'],
-  								           'Position' => $ctrl['Position'],
-  								           'ContextKey' => $ctrlResult[0]->ContextKey,
-  								           'Value' => $ctrlResult[0]->Value,
-  								           'Decode' => $ctrlResult[0]->DecodedValue
-                           );
         }
       }
     }
@@ -2170,28 +2170,32 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
     return (string)$doc[0]['value'];
   }
   
-  //Fonction de création de la xQuery à éxécuter dans le checkFormConsistency
-  //Retourne la xQuery à partir d'un ctrl[FormalExpression,FormalExpressionDecode]
-  //@optional param Value for RunXQuery
-  function getXQueryConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ctrl,$Value=false){
+  /**
+   * Optimize the query written in metadata
+   * @return string optimized query code
+   * @author tpi       
+   **/  
+  private function getXQueryConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ctrl,$Value=false){
     $testExpr = $ctrl['FormalExpression'];   
-    /*******************************************************************************/
-    //gestions des différentes valeurs utilisées dans l'expression : getValue, getRawValue, count, getAnnotation, etc
-    //on va ajouter des let $a := getValue(...), $b:=getRawValue()... en début d'expression
-    //et remplacer les fonctions par la variable correspondante dans l'expression
-    $iVarForExpressionUpdate = 0; //identifiant de variable créée
-    $expressionForExpressionUpdate = ""; //code xQuery a ajouter au début de l'expression
-    $handeldExpressionsForExpressionUpdate = array(); //liste des sous-expressions gérées (getValue, etc) pour ne pas leur affecter 2 fois une variable (et ne pas les éxécuter 2 fois, et ne pas enregistréer 2 fois le résultat en base, etc)
+    
+    //To optimize query, each call to functions getValue,getRawValue,count and max with same parameters is made unique.
+    //We put a section containing let $a := getValue(...), $b:=getRawValue()... code before edit check 
+    //Then $a, $b, $c, ... vars are used multiple times in the edit check
+    //used of members variable due to the preg_replace callback function updateFormalExpression
+    $this->iVarForExpressionUpdate = 0;
+    $this->expressionForExpressionUpdate = "";
+    $this->handeldExpressionsForExpressionUpdate = array(); 
+    //functions list to be factorized
     $xQueryFunctions = array("alix:getValue","alix:getRawValue","alix:getAnnotation","count","max","count"); //,"compareDate","DateISOtoFR","days-from-duration","getMonth"
     $expressions = array();
     foreach($xQueryFunctions as $xQueryFunction){
-      $expressions[] = "((". $xQueryFunction .")(\([^\(\)]*\)))";
+      $expressions[] = "((". $xQueryFunction .")(\([^\(\)]*\)))"; //Function signature
     }
     $testExpr = preg_replace_callback($expressions, array($this, "updateFormalExpression"), $testExpr);
-    $testExpr = $expressionForExpressionUpdate ."[!]". $testExpr;
-    //finalement on peut créé une clé, signature du contexte (fonction des valeurs testées dans l'expression)
+    $testExpr = $this->expressionForExpressionUpdate ."[!]". $testExpr;
+    //Context is stored into queries bd - used to 'sign' the query
     $contextKey = "";
-    for($i=0; $i<$iVarForExpressionUpdate; $i++){
+    for($i=0; $i<$this->iVarForExpressionUpdate; $i++){
       if($contextKey!=""){
         $contextKey .= ",'|',";
       }
@@ -2202,18 +2206,17 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
     }else{
       $contextKey = "''";
     }
-    /*******************************************************************************/
-    
-    list($lets, $testExpr) = explode("[!]", $testExpr); //on, découpe en deux, les 2 portions seront à 2 endroits différents de la requête finale
+    //Finnaly, split let section and optimized query
+    list($lets, $testExprOptimized) = explode("[!]", $testExpr);
  
     $testExprDecode = "";
     if($ctrl['FormalExpressionDecode']!=""){
       $testExprDecode = $ctrl['FormalExpressionDecode']; 
-      //$testExprDecode = str_replace("alix:getDecode($","replace(alix:getDecode($",$testExprDecode); //added TPI 20110830
-      //$testExprDecode = str_replace("getDecode()","replace(alix:getDecode(\$ItemData,\$SubjectData,\$MetaDataVersion),' ','¤')",$testExprDecode);
-      //$testExprDecode = str_replace("getDecode('","replace(alix:getDecode(\$ItemData,\$SubjectData,\$MetaDataVersion,'",$testExprDecode);
+      $testExprDecode = str_replace("alix:getDecode($","replace(alix:getDecode($",$testExprDecode); //added TPI 20110830
+      $testExprDecode = str_replace("getDecode()","replace(alix:getDecode(\$ItemData,\$SubjectData,\$MetaDataVersion),' ','¤')",$testExprDecode);
+      $testExprDecode = str_replace("getDecode('","replace(alix:getDecode(\$ItemData,\$SubjectData,\$MetaDataVersion,'",$testExprDecode);
 
-      //$testExprDecode = str_replace("')","'),' ','¤')",$testExprDecode);
+      $testExprDecode = str_replace("')","'),' ','¤')",$testExprDecode);
 
       $testExprDecode = "
             <Decode>
@@ -2263,7 +2266,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
           </DecodedValue>
           <Result>
           {
-            $testExpr
+            $testExprOptimized
           }
           </Result>
           $testExprDecode
@@ -2313,6 +2316,8 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
   {
     $this->addLog("bocdiscoo->saveItemGroupData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$formVars,$who,$where,$why,$fillst)",INFO);
     $this->addLog("$formVars = " . $this->dumpRet($formVars),TRACE);
+    
+    $hasModif = false;
     
     //DomDocument of Subject
     try{
@@ -2508,12 +2513,13 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
     //Update XML DB only if needed
     if($strItemDatas!="")
     { 
+      $hasModif = true;
       $query = "declare default element namespace '".$this->m_tblConfig['SEDNA_NAMESPACE_ODM']."';
                 UPDATE
                 insert ($strItemDatas)
                 following collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData
-                                               /odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']
-                                               /odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']/odm:ItemGroupData[@ItemGroupOID='$ItemGroupOID' and @ItemGroupRepeatKey='$ItemGroupRepeatKey']/odm:Annotation";
+                                                    /odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']
+                                                    /odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']/odm:ItemGroupData[@ItemGroupOID='$ItemGroupOID' and @ItemGroupRepeatKey='$ItemGroupRepeatKey']/odm:Annotation";
       $this->m_ctrl->socdiscoo()->query($query);
     }
 
@@ -2592,15 +2598,18 @@ public function setLock($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID
     }
   }
   
-  //fonction de mise à jour des FormalExpression utilisées dans le checkFormConsistency
-  function updateFormalExpression($matches){
-    if(!isset($this->handeldExpressionsForExpressionUpdate[$matches[0]])){ //déjà matché ?
-      $var = "$". chr(97 + $this->iVarForExpressionUpdate); //code ascii pour a,b,c etc => $a, $b, $c)
+/**
+ *Callback function used int getXQueryConsistency, to build let section
+ *@author tpi 
+ **/
+  private function updateFormalExpression($matches){
+    if(!isset($this->handeldExpressionsForExpressionUpdate[$matches[0]])){ //already matched
+      $var = "$". chr(97 + $this->iVarForExpressionUpdate); //ascii code for a,b,c etc => $a, $b, $c)
       $this->expressionForExpressionUpdate .= "let ". $var ." := ". $matches[0] ."\n";
-      $this->handeldExpressionsForExpressionUpdate[$matches[0]] = $this->iVarForExpressionUpdate; //listes des expressions matchées
+      $this->handeldExpressionsForExpressionUpdate[$matches[0]] = $this->iVarForExpressionUpdate; //liste of matched expressions
       $this->iVarForExpressionUpdate++;
     }else{
-      $var = "$". chr(97 + $this->handeldExpressionsForExpressionUpdate[$matches[0]]); //code ascii pour a,b,c etc => $a, $b, $c)
+      $var = "$". chr(97 + $this->handeldExpressionsForExpressionUpdate[$matches[0]]); //ascii code for a,b,c etc => $a, $b, $c)
     }
     return $var;
   }

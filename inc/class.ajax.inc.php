@@ -641,15 +641,14 @@ public function checkFormData(){
   }
   
 
- /*
- *@desc méthode ajax, retourne la listes des queries filtrées sur les paramètres passé
+ /**
+ * Ajax method, get the existing queries list from db depending on incoming parameters
  *@return array
  *@author tpi
- */
+ **/
   public function getQueriesList(){
     $this->addlog(__METHOD__,INFO);  
   
-    //Extraction des paramètres
     $SubjectKey = "";
     $StudyEventOID = "";
     $StudyEventRepeatKey = "";

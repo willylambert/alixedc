@@ -148,8 +148,7 @@ function closeQuery($queryId,$userId,$profileId){
 }
 
 /*
-@desc retourne la liste des queries
-@param identifiants de la query et paramètes SQL
+get the existing queries list from db depending on incoming parameters
 @return false or array(
                         'QUERYID'=>$GLOBALS['egw']->db->f('QUERYID'),
                         'SITEID'=>$GLOBALS['egw']->db->f('SITEID'),
@@ -179,14 +178,13 @@ function closeQuery($queryId,$userId,$profileId){
 */
   function getQueriesList($SubjectKey="", $StudyEventOID="", $StudyEventRepeatKey="", $FormOID="", $FormRepeatKey="", $ItemGroupOID="", $ItemGroupKey="", $ItemOID="", $position="", $queryStatus="", $isLast="", $where="", $orderBy="", $limit=""){
      $tblQueries = array();
-    //Recuperation de la liste des queries
     $sql = "SELECT QUERYID, SITEID,SUBJKEY,SEOID,SERK,FRMOID,FRMRK,IGOID,IGRK,POSITION,ITEMOID,
                    LABEL,ITEMTITLE,ISMANUAL,BYWHO,BYWHOGROUP,UPDATEDT,
                    QUERYTYPE,QUERYSTATUS,ANSWER,VALUE,DECODE
             FROM egw_alix_queries
             WHERE CURRENTAPP='".$this->getCurrentApp(true)."'";
     
-    //Liste des centres autorisés pour l'utilisateur courant
+    //Get sites list for current user
     $userProfiles = $this->m_ctrl->boacl()->getUserProfiles();
     $sql .= " AND SITEID IN (";
     $iProfile = 0;
@@ -259,8 +257,7 @@ function closeQuery($queryId,$userId,$profileId){
       $sql .= " LIMIT $limit";
     }
     
-    //echo $sql;
-    $this->addLog(__METHOD__." : $sql",TRACE);
+    $this->addLog(__METHOD__." : $sql",INFO);
     $GLOBALS['egw']->db->query($sql); 
     while($GLOBALS['egw']->db->next_record()){
       $tblQueries[] = array(
@@ -620,7 +617,7 @@ function closeQuery($queryId,$userId,$profileId){
       $cIsManual = "N";
     }
 
-    //Y a t il eu des changements ?
+    //Is there any change ?
     $sql = "SELECT LABEL,ITEMTITLE,ISMANUAL,ANSWER,QUERYSTATUS,QUERYTYPE,POSITION,VALUE,CONTEXTKEY
               FROM egw_alix_queries
               WHERE CURRENTAPP='".$this->getCurrentApp(true)."' AND
@@ -633,7 +630,6 @@ function closeQuery($queryId,$userId,$profileId){
                             IGRK='{$query['ItemGroupRepeatKey']}' AND
                             POSITION='{$query['Position']}' AND
                             ITEMOID='{$query['ItemOID']}' AND
-                            /*QUERYSTATUS<>'C' AND*/
                             ISLAST='Y'";
     $this->addLog(__METHOD__." : sql = ".$sql,TRACE);
     $GLOBALS['egw']->db->query($sql);
@@ -646,28 +642,6 @@ function closeQuery($queryId,$userId,$profileId){
         $GLOBALS['egw']->db->f('QUERYSTATUS') != $queryStatus ||
         $GLOBALS['egw']->db->f('VALUE') != $query['Value'] ||
         $GLOBALS['egw']->db->f('CONTEXTKEY') != $query['ContextKey']){
-        
-          //On ne peut modifier la querie que sous certaines conditions de profil et de changement de statut
-          /*
-          if($isManual){
-            //TODO ? vérifier les droits ici ?
-            $hasModif = true;
-          }else{
-            if($GLOBALS['egw']->db->f('VALUE') != $query['Value']){ //le CRF peut (ré)ouvrir, fermer ou mettre à jour (la description par exemple) une querie quelque soit sont statut actuel dès que la valeur est modifiée
-              $hasModif = true;
-            }elseif($queryStatus=='C'){ //le CRF peut fermer automatiquement les queries quelque soit leur statut
-              $hasModif = true;
-            }elseif($queryStatus=='O' && $GLOBALS['egw']->db->f('QUERYSTATUS')=='C'){ //le CRF peut (ré)ouvrir automatiquement les queries en statut Closed
-              if($GLOBALS['egw']->db->f('ISMANUAL')!='Y' //si non fermées manuellement (ARC)
-                || ($GLOBALS['egw']->db->f('ISMANUAL')=='Y' && $GLOBALS['egw']->db->f('VALUE')!=$query['Value']) //ou si elles ont été fermées manuellement mais que la valeur a été modifiée (par l'INV) 
-                ){
-                $hasModif = true;
-              }
-            }elseif($queryStatus=='O' && $GLOBALS['egw']->db->f('QUERYSTATUS')=='A' && $GLOBALS['egw']->db->f('VALUE')!=$query['Value']){ //le CRF peut (ré)ouvrir les queries Acknowledge si l'investigateur en a modifié la valeur
-              $hasModif = true;
-            }
-          }
-          */
           
           $QUERYORIGIN = ($GLOBALS['egw']->db->f('POSITION')<0 ? 'M' : 'A'); //champ absent de la base. M : query OPEN de façon manuelle (ARC), A : query OPEN de façon automatique (CRF)
           
