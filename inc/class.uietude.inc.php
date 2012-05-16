@@ -78,7 +78,7 @@ class uietude extends CommonFunctions
       ob_start();
 		}
     $GLOBALS['egw']->common->egw_header();
-		parse_navbar();
+		//parse_navbar();
  
 		if($_SESSION[$this->getCurrentApp(false)]['testmode']){
       echo "<div style='width:100%;text-align:center;color:white;background-color:red;'><strong><blink>WARNING</blink> : Test mode is activated !</strong>
@@ -94,8 +94,9 @@ class uietude extends CommonFunctions
 	 **/	
 	public function create_footer($bBuffering=true)
 	{	
-		$GLOBALS['egw']->common->egw_footer();
-    if($bBuffering)
+		//$GLOBALS['egw']->common->egw_footer();
+		echo '<div id="divPoweredBy"><a href="http://www.alix-edc.com/" target="_blank">ALIX EDC '.$GLOBALS['egw']->applications->data[$this->m_tblConfig["MODULE_NAME"]]["version"].'</a> by <a href="http://www.businessdecision-lifesciences.com/" target="_blank">Business &amp; Decision</a></div>';
+		if($bBuffering)
 		{
   		$htmlRet = ob_get_clean();
   		$htmlRet = str_replace("&","&amp;",$htmlRet);
