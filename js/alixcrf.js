@@ -475,7 +475,7 @@ function saveAllItemGroup(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventR
     //Mise à jour des queries
     if(bCheckFormData!==false && $("div[class='pagination']").length==0){ //uniquement si le check à l'enregistrement n'est pas désactivé dans la configuration du centre
       checkFormData(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey);                        
-      location.replace(location.href + "&donotcheck");
+      //location.replace(location.href + "&donotcheck");
     }else{
       location.reload();
     }   
