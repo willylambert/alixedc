@@ -726,10 +726,12 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
     return $errors;
   }
 
-/*
-@desc verifie la présence des données marquées mandatory dans les metadatas
-@author wlt
-*/
+/**
+ * Check for missing data into the asked form
+ * a missing mandatory data could not generate an error if the CollectionConditionException return true
+ * This function also fill the queries db, and close opened queries if needed 
+ * @return array of missing errors   
+ **/
   function checkMandatoryData($SubjectKey, $StudyEventOID, $StudyEventRepeatKey, $FormOID, $FormRepeatKey)
   {
     $this->addLog("bocdiscoo->checkMandatoryData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey)", INFO);
@@ -775,19 +777,17 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
     try{
       $errors = $this->m_ctrl->socdiscoo()->query($query);
     }catch(xmlexception $e){
-      $str = "Erreur de la requete : " . $e->getMessage() . " " . $query ." (". __METHOD__ .")";
+      $str = "XQuery error " . $e->getMessage() . " " . $query ." (". __METHOD__ .")";
       $this->addLog($str,FATAL);
-      die($str);
     }
     
-    //On boucle sur les erreurs pour executer les CollectionConditionException, 
-    //Qui peuvent conduire à la suppression de l'erreur
+    //Loop through errors to run CollectionConditionException
     $tblRet = array();
     foreach($errors[0] as $error){
       $this->addLog("bocdiscoo->checkMandatoryData() : error=".$this->dumpRet($error),TRACE);
       
-      //Position = 1 Car une seule query de type Mandatory est possible par Item
-      //Type = M Pour Mandatory
+      //Position = 1 Because only one mandatory query can exist per Item
+      //Type = M stand for Mandatory
       $errorToAdd = array(
                            "ItemOID" => (string)($error['ItemOID']),
                            "ItemGroupOID" => (string)($error["ItemGroupOID"]),
@@ -810,10 +810,9 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
         $testXQuery = $this->getXQueryConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$error);//-
         try{
           $ctrlResult = $this->m_ctrl->socdiscoo()->query($testXQuery);
+          $this->addLog("query=".$testXQuery,INFO);
         }catch(xmlexception $e){
-          //L'erreur est probablement liée à l"ecriture du contrôle contenu dans les metadatas,
-          //ainsi on présente cela d'une façon élégante à l'utilsateur. On conserve la notification par e-mail,
-          //pour rectifier le tir.
+          //Error is probably due to the ConditionDef code. Error is not display to the user, and administrator notified by email             
           $str = "Mandatory : Erreur du controle : " . $e->getMessage() . " " . $testXQuery;
           $this->addLog($str,ERROR);
           $desc = "Misformated control on the {$error['ItemOID']} value. Notification was sent to administrator.";
@@ -825,16 +824,23 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
         $this->addLog("bocdiscoo->checkFormMandatory() Control[{$StudyEventOID}][{$FormOID}][{$error['ItemGroupOID']}][{$error['ItemGroupRepeatKey']}]['{$error['ItemOID'] }'] => Result=" . $ctrlResult[0]->Result, INFO);
         
         if($ctrlResult[0]->Result=='true'){
-          //La CollectionException a joué on supprime l'erreur
+          // CollectionConditionException return true - the Item is no more longer mandatory
           $this->addLog("bocdiscoo->checkFormMandatory() : " . $error['ItemOID'] . " n'est plus obligatoire",INFO);
         }else{
-          //Extraction de(s) decode(s)
-          //On doit passer par un eval pour gérer les décodes multiples, que l'on passe en param de la func sprintf()
+          //Decode(s) extraction
+          //We use an eval here to handle multiple decode, passed as parameters to function sprintf()
           if(substr_count($error["Description"],"%s")>0){
-            $tblParams = explode(' ',$ctrlResult[0]->Decode);
-            $tblParams = str_replace("¤", " ", $tblParams); //restauration des espaces ' ' substitués (par des '¤', cf getXQueryConsistency())
-            $error["Description"] = str_replace("\"","'",$error["Description"]);
+            //$tblParams = explode(' ',$ctrlResult[0]->Decode);
+            
+            $tblParams=array();
+            foreach($ctrlResult[0]->Decode as $decode){
+              $tblParams[] = $decode;
+              $this->addLog("Decode=".$decode,INFO);
+            }
+            //$tblParams = str_replace("¤", " ", $tblParams); //restauration des espaces ' ' substitués (par des '¤', cf getXQueryConsistency())
+            //$error["Description"] = str_replace("\"","'",$error["Description"]);
             $cmdEval = "\$desc = sprintf(\"".$error["Description"]."\",\"".implode('","',$tblParams)."\");";
+            $this->addLog("Eval=".$cmdEval,INFO);
             eval($cmdEval);
             $errorToAdd["Description"] = $desc;
           }
@@ -2211,12 +2217,21 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
  
     $testExprDecode = "";
     if($ctrl['FormalExpressionDecode']!=""){
-      $testExprDecode = $ctrl['FormalExpressionDecode']; 
+      $testExprDecode = $ctrl['FormalExpressionDecode'];
+      $tblTestExprDecode = explode("|",$testExprDecode);
+      $queryDecode = "";
+      foreach($tblTestExprDecode as $expr){
+        $queryDecode .= "<Decode>
+                         {
+                          $expr
+                         }
+                         </Decode>";  
+      } 
       /*
       $testExprDecode = str_replace("alix:getDecode($","replace(alix:getDecode($",$testExprDecode); //added TPI 20110830
       $testExprDecode = str_replace("getDecode()","replace(alix:getDecode(\$ItemData,\$SubjectData,\$MetaDataVersion),' ','¤')",$testExprDecode);
       $testExprDecode = str_replace("getDecode('","replace(alix:getDecode(\$ItemData,\$SubjectData,\$MetaDataVersion,'",$testExprDecode);
-
+      
       $testExprDecode = str_replace("')","'),' ','¤')",$testExprDecode);
       */
       $testExprDecode = "
@@ -2270,7 +2285,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
             $testExprOptimized
           }
           </Result>
-          $testExprDecode
+          $queryDecode
         </Ctrl>";
     return $testXQuery;
   }
