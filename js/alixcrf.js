@@ -413,8 +413,8 @@ function saveAllItemGroup(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventR
   $("form").each( 
     function(index){
       dataString = $(this).serialize();
-      if(dataString!=$(this).data('initials_values')/* ||
-         index==$("form").length-1 */)
+      if(dataString!=$(this).data('initials_values') ||
+         index==$("form").length-1 )
       {
         //Form is modified - we submit it
         $.ajax({

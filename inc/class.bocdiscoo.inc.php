@@ -209,16 +209,20 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
         $encodedValue = htmlspecialchars($tblFilledVar["{$Item['ItemOID']}"],ENT_NOQUOTES); 
         
         if(isset($Item->PreviousItemValue)){
-          $$transacType='Update';
+          $transacType='Update';
         }else{
           $transacType='Insert';
         }
-
+        if($AnnotationID!=""){
+          $annotationAttr = "AnnotationID='$AnnotationID'";
+        }else{
+          $annotationAttr = "";
+        }
         $tblRet[] = "
                     <ItemData".ucfirst($Item['DataType'])."
                         ItemOID='".$Item['ItemOID']."' 
                         AuditRecordID='$AuditRecordID'
-                        AnnotationID='$AnnotationID'
+                        $annotationAttr
                         TransactionType='$transacType'>$encodedValue</ItemData".ucfirst($Item['DataType']).">";
                         
       }
@@ -235,7 +239,6 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
   {
     $this->addLog("bocdiscoo->addSubjectStatus($SubjectKey,$status,$SeqNum)",INFO);
     
-    //Le document de note patient (c'est un DOMDocument)
     try{
       $subj = $this->m_ctrl->socdiscoo()->getDocument("ClinicalData",$SubjectKey,false);
     }catch(xmlexception $e){
@@ -252,7 +255,6 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
     if($resultIGDT->length==0){
       $str = "bocdiscoo->addItemGroupStatus() : SubjectData non trouvé ou SubjectData avec Annotation(SeqNum='$SeqNum') déjà présente ! Requête : $query (". __METHOD__ .")";
       $this->addLog($str,INFO);
-      //die($str);
     }else{
       $IGDT = $resultIGDT->item(0);
       $Annotation = $subj->createElementNS(ODM_NAMESPACE,"Annotation");
@@ -2411,7 +2413,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
 
     //Add Annotations if needed
     $annotations = $xPath->query("/odm:ODM/odm:ClinicalData/odm:Annotations");
-    if($result->length==0){
+    if($annotations->length==0){
       $this->addLog("Adding Annotations",INFO);
       $query = "declare default element namespace '".$this->m_tblConfig['SEDNA_NAMESPACE_ODM']."';
                 UPDATE
@@ -2420,11 +2422,13 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
       $this->m_ctrl->socdiscoo()->query($query);
     }else{
       if($annotations->length!=1){
-        $str = "Error : multiple Annotations for patient $SubjectKey result->length={$result->length} (".__METHOD__.")";
+        $str = "Error : multiple Annotations for patient $SubjectKey result->length={$annotations->length} (".__METHOD__.")";
         $this->addLog($str,FATAL);
-        die($str);
       }
     }
+
+    $annotationsChildren = $xPath->query("/odm:ODM/odm:ClinicalData/odm:Annotations/odm:Annotation");
+    $nbAnnotations = $annotationsChildren->length;
 
     //Add ItemGroupData to FormData if needed
     $igdata = $xPath->query("/odm:ODM/odm:ClinicalData/odm:SubjectData
@@ -2524,7 +2528,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
       $this->addLog($str,FATAL);
     }
 
-    $tblItemDatas = $this->addItemData($ItemGroupRepeatKey,$ItemGroupRef[0],$formVars,$tblFilledVar,$subj,$AuditRecordID,!$bFormVarsIsAlreadyDecoded,$annotations->length);
+    $tblItemDatas = $this->addItemData($ItemGroupRepeatKey,$ItemGroupRef[0],$formVars,$tblFilledVar,$subj,$AuditRecordID,!$bFormVarsIsAlreadyDecoded,$nbAnnotations);
     $strItemDatas = implode(',',$tblItemDatas);      
     //Update XML DB only if needed
     if($strItemDatas!="")
