@@ -70,9 +70,9 @@
   </div>
 </xsl:template>
 
-<xsl:template match="SubjectData">
+<xsl:template match="Subjects">
   <div id="subjectMenu" class="ui-accordion ui-widget ui-helper-reset ui-accordion-icons">
-    <xsl:apply-templates/>  
+    <xsl:apply-templates/>
     <script>
       function changeLockStatus(formURL,formLabel,currentFormStatus){
         if(currentFormStatus=="FILLED"){
@@ -87,4 +87,5 @@
     </script>
   </div>
 </xsl:template>
+
 </xsl:stylesheet>

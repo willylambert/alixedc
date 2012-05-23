@@ -40,13 +40,6 @@ class etudemenu extends CommonFunctions
     $jqabStyle = "padding: 10px; border-radius: 15px;"; //the css personal style for info-bubbles
     $jqabStyle = "";
     
-    //Any link which involves exiting current subject may conduct to an update of the subject entry in the subjectlist file
-    if(isset($_GET['SubjectKey'])){
-      $updateSubjectEntryLink = "&updateSubjectEntry=" . $_GET['SubjectKey']; 
-    }else{
-      $updateSubjectEntryLink = "";
-    }
-    
     //Inclusion (investigators only)
     $enroll = "";
     if($this->m_ctrl->boacl()->existUserProfileId("INV")){
@@ -56,30 +49,30 @@ class etudemenu extends CommonFunctions
                                                                          'StudyEventOID' => $this->m_tblConfig['ENROL_SEOID'],
                                                                          'StudyEventRepeatKey' => $this->m_tblConfig['ENROL_SERK'],
                                                                          'FormOID' => $this->m_tblConfig['ENROL_FORMOID'],
-                                                                         'FormRepeatKey' => $this->m_tblConfig['ENROL_FORMRK'])).$updateSubjectEntryLink.'"><img src="'.$this->getCurrentApp(false).'/templates/default/images/user_add.png" alt="" />Enrol Subject</a></li>';
+                                                                         'FormRepeatKey' => $this->m_tblConfig['ENROL_FORMRK'])).'"><img src="'.$this->getCurrentApp(false).'/templates/default/images/user_add.png" alt="" />Enrol Subject</a></li>';
     }
        
-    $toolsButtons = '<li id="adminMenu" style="'.$jqabStyle.'" ><a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface')).$updateSubjectEntryLink.'"><img src="'.$GLOBALS['egw_info']['flags']['currentapp'].'/templates/default/images/notification_warning.png" alt="" />Tools</a></li>';
+    $toolsButtons = '<li id="adminMenu" style="'.$jqabStyle.'" ><a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface')).'"><img src="'.$GLOBALS['egw_info']['flags']['currentapp'].'/templates/default/images/notification_warning.png" alt="" />Tools</a></li>';
     
-    $dashboard = '<li style="'.$jqabStyle.'" ><a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.dashboardInterface')).$updateSubjectEntryLink.'"><img src="'. $GLOBALS['egw_info']['flags']['currentapp'].'/templates/default/images/piechart2.png" alt="" />Dashboard</a></li>';
+    $dashboard = '<li style="'.$jqabStyle.'" ><a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.dashboardInterface')).'"><img src="'. $GLOBALS['egw_info']['flags']['currentapp'].'/templates/default/images/piechart2.png" alt="" />Dashboard</a></li>';
     
     //Queries
     if($this->m_ctrl->boacl()->existUserProfileId(array("CRA","DM"))){
-      $queries = '<li style="'.$jqabStyle.'" ><a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.queriesInterface')).$updateSubjectEntryLink.'"><img src="'. $GLOBALS['egw_info']['flags']['currentapp'].'/templates/default/images/file_notification_warning.png" alt="" />Queries</a></li>';
+      $queries = '<li style="'.$jqabStyle.'" ><a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.queriesInterface')).'"><img src="'. $GLOBALS['egw_info']['flags']['currentapp'].'/templates/default/images/file_notification_warning.png" alt="" />Queries</a></li>';
     }elseif($this->m_ctrl->boacl()->existUserProfileId("SPO")){
       $queries = '<li class="inactiveButton"><a href="#"><img src="'. $this->getCurrentApp(false).'/templates/default/images/file_notification_warning.png" alt=""/>Queries</a></li>';
     }
     
     //Deviations
     if($this->m_ctrl->boacl()->existUserProfileId(array("CRA","DM","SPO"))){
-      $deviations = '<li style="'.$jqabStyle.'" ><a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.deviationsInterface')).$updateSubjectEntryLink.'"><img src="'. $this->getCurrentApp(false).'/templates/default/images/file_warning.png" alt="" />Deviations</a></li>';
+      $deviations = '<li style="'.$jqabStyle.'" ><a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.deviationsInterface')).'"><img src="'. $this->getCurrentApp(false).'/templates/default/images/file_warning.png" alt="" />Deviations</a></li>';
     }elseif($this->m_ctrl->boacl()->existUserProfileId("SPO")){
       $deviations = '<li class="inactiveButton"><a href="#"><img src="'. $this->getCurrentApp(false).'/templates/default/images/file_warning.png" alt=""/>Deviations</a></li>';
     }
 
     //Audit Trail
     if($this->m_ctrl->boacl()->existUserProfileId(array("CRA","DM","SPO"))){
-      $auditTrail = '<li style="'.$jqabStyle.'" ><a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.auditTrailInterface')).$updateSubjectEntryLink.'"><img src="'. $this->getCurrentApp(false).'/templates/default/images/file_notification_warning.png" alt="" />Audit Trail</a></li>';
+      $auditTrail = '<li style="'.$jqabStyle.'" ><a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.auditTrailInterface')).'"><img src="'. $this->getCurrentApp(false).'/templates/default/images/file_notification_warning.png" alt="" />Audit Trail</a></li>';
     }
     
     $testmode = $_SESSION[$this->getCurrentApp(false)]['testmode'];
@@ -88,17 +81,17 @@ class etudemenu extends CommonFunctions
              <div id="toolbar_ico">         
               <ul>
                 '.$enroll.'
-                <li><a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.subjectListInterface')).$updateSubjectEntryLink.'"><img src="'. $GLOBALS['egw_info']['flags']['currentapp'].'/templates/default/images/user_manage.png" alt="" />Subjects list</a></li>
+                <li><a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.subjectListInterface')).'"><img src="'. $GLOBALS['egw_info']['flags']['currentapp'].'/templates/default/images/user_manage.png" alt="" />Subjects list</a></li>
                 '.$dashboard.'
-                <li><a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.documentsInterface')).$updateSubjectEntryLink.'"><img src="'. $GLOBALS['egw_info']['flags']['currentapp'].'/templates/default/images/folder.png" alt="" />Documents</a></li>
-                <li id="testModeMenu" ><a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.startupInterface','testmode'=>($testmode?'false':'true'))).$updateSubjectEntryLink.'"><img src="'. $this->getCurrentApp(false).'/templates/default/images/application_warning.png" alt="" />
+                <li><a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.documentsInterface')).'"><img src="'. $GLOBALS['egw_info']['flags']['currentapp'].'/templates/default/images/folder.png" alt="" />Documents</a></li>
+                <li id="testModeMenu" ><a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.startupInterface','testmode'=>($testmode?'false':'true'))).'"><img src="'. $this->getCurrentApp(false).'/templates/default/images/application_warning.png" alt="" />
                   '. ($testmode?'Exit test mode':'Test Mode') .'
                   </a></li>
                 '.$queries.'
                 '.$deviations.'
                 '.$auditTrail.'
                 '.$toolsButtons.'
-                <li><a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.logout')).$updateSubjectEntryLink.'"><img src="'.$this->getCurrentApp(false).'/templates/default/images/logout2.png" alt="" />Logout</a></li>
+                <li><a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.logout')).'"><img src="'.$this->getCurrentApp(false).'/templates/default/images/logout2.png" alt="" />Logout</a></li>
               </ul>
             </div>';
 

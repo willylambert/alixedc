@@ -177,10 +177,8 @@ public function checkFormData(){
     
     //If there is sanitized errors, stop saving and return errors to browser
     if(count($tblRet["errors"])==0){
-      $isNewSubject = false;
       //Do we have to create a new subject?
-      if($SubjectKey==$this->config("BLANK_OID")){
-          $isNewSubject = true;
+      if($SubjectKey==$this->m_tblConfig["BLANK_OID"]){
           $SubjectKey = $this->m_ctrl->bocdiscoo()->enrolNewSubject();
           $tblRet["newSubjectId"] = $SubjectKey; 
       }
@@ -192,11 +190,6 @@ public function checkFormData(){
 
       //HOOK => ajax_saveItemGroupData_afterSave
       $this->callHook(__FUNCTION__,"afterSave",array($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$this));      
-      
-      //update SubjectsList if it is a new subject
-      if($isNewSubject){
-        $this->m_ctrl->bosubjects()->updateSubjectsList($SubjectKey);
-      }
     }
     
     echo json_encode($tblRet);   
@@ -1290,198 +1283,7 @@ public function checkFormData(){
   private function sortAuditTrailByDate($a, $b){
     return ($a['date'] < $b['date']) ? 1 : (($a['date'] > $b['date']) ? -1 : ($a['type']=='Query'?-1:+1));
   }
-
- /*
- *@desc méthode ajax, retourne la liste des patients
- *@return json liste des patients
- *@author wlt
- */
- public function getSubjectsList(){
-  $page = $_POST['page'];   
-  // get how many rows we want to have into the grid - rowNum parameter in the grid 
-  $limit = $_POST['rows'];   
-  // get index row - i.e. user click to sort. At first time sortname parameter -
-  // after that the index from colModel 
-  $sidx = $_POST['sidx'];   
-  // sorting order - at first time sortorder 
-  $sord = $_POST['sord'];   
-  // if we not pass at first time index use the first column for the index or what you want
-  if(!$sidx) $sidx =1; 
-
-  $totalrows = isset($_POST['totalrows']) ? $_POST['totalrows']: false; 
-  if($totalrows){ 
-    $limit = $totalrows; 
-  }
-  
-  $tblSubj = $this->m_ctrl->bocdiscoo()->getSubjectList("");     
-  
-  $tblRet->total = 1; 
-  $tblRet->page = 1; 
-  $tblRet->records = count($tblSubj[0]);
-  
-  $tblRet->rows = array(); 
-  $i = 0;
-  //$user = $this->m_ctrl->boacl()->getCurrentUserInfo();
-  foreach($tblSubj[0] as $subj)
-  {        
-    //Est-ce l'utilisateur connecté a le droit d'accéder à ce patient ?
-    //$userProfile = $this->m_ctrl->boacl()->getUserSiteProfile($user['login'],$subj['colSITEID']);
-    $userProfileId = $this->m_ctrl->boacl()->getUserProfileId("",$subj['colSITEID']);
-    
-    if($userProfileId!="" && $subj['fileOID']!="BLANK"){    
-      $tblRet->rows[$i]['id']=(string)($subj['fileOID']);
-      foreach($this->m_tblConfig['SUBJECT_LIST']['COLS'] as $key=>$col){
-        $tblRet->rows[$i]['cell'][] = (string)($subj["col$key"]); 
-      }
-    }
-    $i++;
-  }
-  
-  echo json_encode($tblRet);  
  
- }
-
- /*
- *@desc méthode ajax, retourne la listes des patients filtrées sur les paramètres passés
- *@return array
- *@author tpi
- */
- /*
-  public function getSubjectsDataList(){
-    $this->addlog(__METHOD__ ." : _REQUEST=".$this->dumpRet($_REQUEST),TRACE);  
-
-    //Extraction des paramètres       
-    $MetaDataVersion = "1.0.0";
-    $SubjectKey = "";
-    $search = "";
-    if(isset($_POST['MetaDataVersionOID'])) $MetaDataVersion = $_POST['MetaDataVersionOID'];
-    if(isset($_POST['SubjectKey'])) $SubjectKey = $_POST['SubjectKey'];
-    if(isset($_REQUEST['search'])) $search = $_REQUEST['search']; //global search : texte libre
-    if(isset($_REQUEST['mode'])) $mode = $_REQUEST['mode']; //jqGrid ou export CSV
-    
-    $page = $_POST['page']; // get the requested page
-    $limit = $_POST['rows']; // get how many rows we want to have into the grid
-    $sidx = $_POST['sidx']; // get index row - i.e. user click to sort
-    $sord = $_POST['sord']; // get the direction
-    if(!$sidx) $sidx =1;
-    
-    //application du filtre de recherche
-    $where = "";
-
-    //We need to open all dbxml
-    $this->m_ctrl->socdiscoo("");
-    
-    //Récupération de la liste complète des patients
-    //Do we have a cached copy ?
-    $cacheFile = $this->m_tblConfig["CDISCOO_PATH"] . "/cache/subjectList";   
-    if($this->m_tblConfig["CACHE_ENABLED"] && file_exists($cacheFile)){
-      $tblSubj = array();
-      $tblSubj[0] = simplexml_load_file($cacheFile);
-    }else{       
-      $tblSubj = $this->m_ctrl->bocdiscoo()->getSubjectList("");
-      $tblSubj[0]->asXML($cacheFile);     
-    }
-    
-    //Profil par défaut de l'utilisateur
-    $defaultProfilId = $this->m_ctrl->boacl()->getUserProfileId();
-    
-    //filtrage et comptage
-    $subjs = $tblSubj[0]->children();
-    $count = count($subjs);
-
-    for($i=0; $i<$count; $i++){
-      //Est-ce l'utilisateur connecté a le droit d'accéder à ce patient ?
-      $profileId = $this->m_ctrl->boacl()->getUserProfileId("",$subjs[$i]['colSITEID']);
-      
-      if(isset($profileId) && $profileId!="" && $subjs[$i]['fileOID']!="BLANK" || $defaultProfilId=="SPO"){       
-        //Ajout de l'information de staut du patient
-        $subjs[$i]['SUBJECTSTATUS'] = $this->m_ctrl->bosubjects()->getSubjectStatus($subjs[$i]);
-        
-        //filtres avancés
-        if(isset($_REQUEST['_search']) && $_REQUEST['_search']=="true"){
-        
-          foreach($this->m_tblConfig['SUBJECT_LIST']['COLS'] as $key=>$col){
-            if(isset($_REQUEST['col'.$key])){
-              if(stripos($subjs[$i]['col'.$key], $_REQUEST['col'.$key]) === false){
-                //delete subject
-                unset($subjs[$i]);
-                $i--;
-                $count--;
-                break 1;
-              }
-            }
-          }
-          
-          //autres filtres avancées
-          if(isset($subjs[$i])){
-            if(isset($_REQUEST['SUBJECTSTATUS'])){
-              if(stripos($subjs[$i]['SUBJECTSTATUS'], $_REQUEST['SUBJECTSTATUS']) === false){
-                unset($subjs[$i]);
-                $i--;
-                $count--;
-              }
-            }
-          }
-        }
-      }else{
-        //delete subject
-        unset($subjs[$i]);
-        $i--;
-        $count--;
-      }
-    }
-    
-    //pagination
-    if($count>0 && $limit>0) {
-    	$total_pages = ceil($count/$limit);
-    } else {
-    	$total_pages = 0;
-    }
-    if ($page > $total_pages) $page=$total_pages;
-    $start = $limit*$page - $limit; // do not put $limit*($page - 1)
-    if ($start<0) $start = 0;
-    
-    $response->page = $page;
-    $response->total = $total_pages;
-    $response->records = $count;
-    $i=0; //current item in all set
-    $j=0; //current (number) item being added
-    
-    foreach($subjs as $subj) {
-      if($i>=$start){
-        $see = "<div class='imageFindIn imageOnly image16 pointer' onClick=\"location.href='index.php?menuaction=". $this->getCurrentApp(false) .".uietude.subjectInterface&action=view&SubjectKey=". $subj['fileOID'] ."&StudyEventOID=". $this->m_tblConfig['ENROL_SEOID'] ."&StudyEventRepeatKey=". $this->m_tblConfig['ENROL_SERK'] ."&FormOID=". $this->m_tblConfig['ENROL_FORMOID'] ."&FormRepeatKey=". $this->m_tblConfig['ENROL_FORMRK'] ."'\" altbox='Go to CRF'></div>";
-        $status = $this->m_ctrl->bocdiscoo()->getSubjectStatus($subj['fileOID']);
-        $statusCRF = "<div class='imageStatus$status imageOnly image16' altbox='$status' ></div>";
-        if($this->m_ctrl->boacl()->existUserProfileId("DM","",$subj['colSITEID'])){
-          $check = "<button class='ui-state-default ui-corner-all' onClick=\"if(window.event){ var e = window.event; e.cancelBubble = true; if(e && e.stopPropagation){ e.stopPropagation();};}else{event.stopPropagation();}; runConsistencyChecks('". $GLOBALS['egw_info']['flags']['currentapp'] ."', '". $subj['colSITEID'] ."', '". $subj['fileOID'] ."');\">Run consistency checks</button>";
-        }else{
-          $check = "";
-        }
-        
-        $response->rows[$j]['id'] = "subject_". $subj['fileOID'];
-        $response->rows[$j]['cell']=array();
-        $response->rows[$j]['cell'][] = $see;
-        foreach($this->m_tblConfig['SUBJECT_LIST']['COLS'] as $key=>$col){
-          if($col['Visible']){
-            $response->rows[$j]['cell'][] = (string)$subj['col'.$key];
-          }
-        }
-        $response->rows[$j]['cell'][] = (string)$subj['SUBJECTSTATUS'];
-        $response->rows[$j]['cell'][] = $statusCRF;
-        $response->rows[$j]['cell'][] = $check;
-        $j++;
-      }
-      $i++;
-      if($j>=$limit){
-        break;
-      }
-    }
-  
-    //We save the generated response into the cache
-    echo json_encode($response);
-  }
- */
-
  /*
  *@desc méthode ajax, retourne la listes des patients filtrées sur les paramètres passés
  *@return array
@@ -1492,8 +1294,8 @@ public function checkFormData(){
 
     $response = new StdClass;
   
-    //Extraction des paramètres       
-    $MetaDataVersion = $this->config("METADATAVERSION");
+    //Extraction des paramètres
+    $MetaDataVersion = $this->m_tblConfig["METADATAVERSION"];
     $SubjectKey = "";
     $search = "";
     if(isset($_POST['MetaDataVersionOID'])) $MetaDataVersion = $_POST['MetaDataVersionOID'];
@@ -1512,64 +1314,49 @@ public function checkFormData(){
     $sord = $_POST['sord']; // get the direction
     if(!$sidx) $sidx = 'colSUBJID';
     if($sord=="asc"){
-      $sort_sign = "-1";
+      $sort_sign = "ascending";
     }else{
-      $sort_sign = "1";
+      $sort_sign = "descending";
     }
     //application du filtre de recherche
     $where = "";
     
     //retrieving subjects list
-    try{
-      $tblSubj = $this->m_ctrl->bosubjects()->getSubjectsList("");
-    }catch(Exception $e){
+    //try{
+      //getting an array of SubjectKey SubjectParams SubjectStatus, already filtered on user rights
+      $subjs = $this->m_ctrl->bosubjects()->getSubjectsList(true, "$sidx $sort_sign");
+      //$this->dumpPre($subjs);
+    //}catch(Exception $e){
       //Warn if BLANK is missing
-      try{
-        $blank = $this->m_ctrl->socdiscoo()->getDocument("ClinicalData", $this->config("BLANK_OID"));
-      }catch(Exception $e){
-        $this->addLog("NO BLANK Subject Found - Please add it to continue.",FATAL);
-      }
-    }
-
-    //Profil par défaut de l'utilisateur
-    $defaultProfilId = $this->m_ctrl->boacl()->getUserProfileId();
-    
-    //filtrage et comptage
-    $tblSubjs = $tblSubj[0]->children();
-    foreach($tblSubjs as $subj){ //ordering => using an array !
-      $subjs[] = $subj;
-    }
-    usort($subjs, create_function('$a,$b', "return ($sort_sign * strcmp(\$a->$sidx,\$b->$sidx));"));
+    //  try{
+    //    $blank = $this->m_ctrl->socdiscoo()->getDocument("ClinicalData", $this->m_tblConfig["BLANK_OID"]);
+    //  }catch(Exception $e){
+    //    $this->addLog("NO BLANK Subject Found - Please add it to continue.",FATAL);
+    //  }
+    //}
   
     $count = count($subjs);
     for($i=0; $i<$count; $i++){
-      //Does current user have access to the patient ?
-      $profileId = $this->m_ctrl->boacl()->getUserProfileId("",(string)$subjs[$i]->colSITEID);
-      
-      if( (isset($profileId) && $profileId!="" || $defaultProfilId=="SPO") && $subjs[$i]->fileOID!="BLANK" ){        
-        //filters
-        if(isset($_REQUEST['_search']) && $_REQUEST['_search']=="true"){
-          foreach($this->m_tblConfig['SUBJECT_LIST']['COLS'] as $key=>$col){
-            if(isset($_REQUEST['col'.$key])){
-              eval("\$colValue = \$subjs[\$i]->col$key;");
-              if(stripos($colValue, $_REQUEST['col'.$key]) === false){
-                $subjs[$i] = false;
-                break 1;
-              }
-            }
-          }
-          
-          //more filters
-          if(isset($subjs[$i])){
-            if(isset($_REQUEST['SUBJECTSTATUS'])){
-              if(stripos($subjs[$i]->SUBJECTSTATUS, $_REQUEST['SUBJECTSTATUS']) === false){
-                $subjs[$i] = false;
-              }
+      //filters
+      if(isset($_REQUEST['_search']) && $_REQUEST['_search']=="true"){
+        foreach($this->m_tblConfig['SUBJECT_LIST']['COLS'] as $key=>$col){
+          if(isset($_REQUEST['col'.$key])){
+            eval("\$colValue = \$subjs[\$i]['col$key'];");
+            if(stripos($colValue, $_REQUEST['col'.$key]) === false){
+              $subjs[$i] = false;
+              break 1;
             }
           }
         }
-      }else{
-        $subjs[$i] = false;
+        
+        //more filters
+        if(isset($subjs[$i])){
+          if(isset($_REQUEST['SUBJECTSTATUS'])){
+            if(stripos($subjs[$i]["SubjectStatus"], $_REQUEST['SUBJECTSTATUS']) === false){
+              $subjs[$i] = false;
+            }
+          }
+        }
       }
     }
     
@@ -1594,29 +1381,40 @@ public function checkFormData(){
     $i=0; //current item in all set
     $j=0; //current (number) item being added
     
+    //We will need the status of each visit for each subject to display
+    $SubjectKeys = array();
+    foreach($subjs as $subj) {
+      $SubjectKeys[] = $subj["SubjectKey"];
+    }
+    //Get visits (and form) status in a DOMDocument
+    $SubjectsTblForm = $this->m_ctrl->bocdiscoo()->getSubjectsTblForm($SubjectKeys);
+    $xPath = new DOMXPath($SubjectsTblForm);
+    
     foreach($subjs as $subj) {
       if($i>=$start){
-        $see = "<div class='imageFindIn imageOnly image16 pointer' onClick=\"location.href='index.php?menuaction=". $this->getCurrentApp(false) .".uietude.subjectInterface&action=view&SubjectKey=". $subj->fileOID ."&StudyEventOID=". $this->m_tblConfig['ENROL_SEOID'] ."&StudyEventRepeatKey=". $this->m_tblConfig['ENROL_SERK'] ."&FormOID=". $this->m_tblConfig['ENROL_FORMOID'] ."&FormRepeatKey=". $this->m_tblConfig['ENROL_FORMRK'] ."'\" altbox='Go to CRF'></div>";
-        $status = $subj->CRFSTATUS;
+        $see = "<div class='imageFindIn imageOnly image16 pointer' onClick=\"location.href='index.php?menuaction=". $this->getCurrentApp(false) .".uietude.subjectInterface&action=view&SubjectKey=". $subj["SubjectKey"] ."&StudyEventOID=". $this->m_tblConfig['ENROL_SEOID'] ."&StudyEventRepeatKey=". $this->m_tblConfig['ENROL_SERK'] ."&FormOID=". $this->m_tblConfig['ENROL_FORMOID'] ."&FormRepeatKey=". $this->m_tblConfig['ENROL_FORMRK'] ."'\" altbox='Go to CRF'></div>";
+        /*
+        $status = $subj["CRFStatus"];
         if($mode=="json"){
           $statusCRF = "<div class='imageStatus$status imageOnly image16' altbox='$status' ></div>";
         }else{
           $statusCRF = $statut;
         }
-        if($this->m_ctrl->boacl()->existUserProfileId(array("DM","CRA"),"",$subj->colSITEID)){
-          $pdf = "<button class='ui-state-default ui-corner-all' onClick=\"if(window.event){ var e = window.event; e.cancelBubble = true; if(e && e.stopPropagation){ e.stopPropagation();};}else{event.stopPropagation();}; window.location='index.php?menuaction=". $GLOBALS['egw_info']['flags']['currentapp'] .".uietude.subjectPDF&SubjectKey=". $subj->fileOID ."';\">PDF</button>";
+        */
+        if($this->m_ctrl->boacl()->existUserProfileId(array("DM","CRA","INV"),"",$subj['colSITEID'])){
+          $pdf = "<button class='ui-state-default ui-corner-all' onClick=\"if(window.event){ var e = window.event; e.cancelBubble = true; if(e && e.stopPropagation){ e.stopPropagation();};}else{event.stopPropagation();}; window.location='index.php?menuaction=". $GLOBALS['egw_info']['flags']['currentapp'] .".uietude.subjectPDF&SubjectKey=". $subj["SubjectKey"] ."';\">PDF</button>";
         }else{
           $pdf = "";
         }
         /*
-        if($this->m_ctrl->boacl()->existUserProfileId("DM","",$subj->colSITEID)){
-          $check = "<button class='ui-state-default ui-corner-all' onClick=\"if(window.event){ var e = window.event; e.cancelBubble = true; if(e && e.stopPropagation){ e.stopPropagation();};}else{event.stopPropagation();}; runConsistencyChecks('". $GLOBALS['egw_info']['flags']['currentapp'] ."', '". $subj->colSITEID ."', '". $subj->fileOID ."');\">Run consistency checks</button>";
+        if($this->m_ctrl->boacl()->existUserProfileId("DM","",$subj['colSITEID'])){
+          $check = "<button class='ui-state-default ui-corner-all' onClick=\"if(window.event){ var e = window.event; e.cancelBubble = true; if(e && e.stopPropagation){ e.stopPropagation();};}else{event.stopPropagation();}; runConsistencyChecks('". $GLOBALS['egw_info']['flags']['currentapp'] ."', '". $subj['colSITEID'] ."', '". $subj["SubjectKey"] ."');\">Run consistency checks</button>";
         }else{
           $check = "";
         }
         */
         
-        $response->rows[$j]['id'] = "subject_". $subj->fileOID;
+        $response->rows[$j]['id'] = "subject_". $subj["SubjectKey"];
         $response->rows[$j]['cell']=array();
         if($mode=="json"){
           $response->rows[$j]['cell'][] = $see;
@@ -1624,24 +1422,26 @@ public function checkFormData(){
         foreach($this->m_tblConfig['SUBJECT_LIST']['COLS'] as $key=>$col){
           if($col['Visible']){
             if($col['Type']=="VISITSTATUS"){
-              $query = "./formList/SubjectData/StudyEventData[@StudyEventOID='{$col['Value']['SEOID']}' and @StudyEventRepeatKey='{$col['Value']['SERK']}']";
-              $StudyEvent = $subj->xpath($query);
-              $status = (string)$StudyEvent[0]['Status'];
+              $status = "EMPTY";
+              $xResult = $xPath->query("SubjectData[@SubjectKey='{$subj["SubjectKey"]}']/StudyEventData[@StudyEventOID='{$col['Value']['SEOID']}' and @StudyEventRepeatKey='{$col['Value']['SERK']}']/@Status");
+              if($xResult->length!=0){
+                $status = $xResult->item(0)->value;
+              }
               if($mode=="json"){
                 $colValue = "<div class='imageStatus$status imageOnly image16' altbox='$status' ></div>";  
               }else{
                 $colValue = $status;
               }
             }else{
-              eval("\$colValue = (string)\$subj->col".$key.";");
+              eval("\$colValue = (string)\$subj['col".$key."'];");
             }            
             $response->rows[$j]['cell'][] = $colValue;
           }
         }
-        $response->rows[$j]['cell'][] = (string)$subj->SUBJECTSTATUS;
-        //$response->rows[$j]['cell'][] = $this->m_ctrl->bopostit()->getPostItCount($subj->fileOID);
-        $response->rows[$j]['cell'][] = $this->m_ctrl->boqueries()->getQueriesCount($subj->fileOID,"","","","","","","","","","Y","QUERYSTATUS<>'C'");
-        $response->rows[$j]['cell'][] = $statusCRF;
+        $response->rows[$j]['cell'][] = (string)$subj["SubjectStatus"];
+        //$response->rows[$j]['cell'][] = $this->m_ctrl->bopostit()->getPostItCount($subj["SubjectKey"]);
+        $response->rows[$j]['cell'][] = $this->m_ctrl->boqueries()->getQueriesCount($subj["SubjectKey"],"","","","","","","","","","Y","QUERYSTATUS<>'C'");
+        //$response->rows[$j]['cell'][] = $statusCRF;
         $response->rows[$j]['cell'][] = $pdf;
         //$response->rows[$j]['cell'][] = $check;
         $j++;

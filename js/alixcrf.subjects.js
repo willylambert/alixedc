@@ -88,7 +88,8 @@ function loadSubjectsGrid(CurrentApp, config, bShowPDF)
       width: 120,
       align:'center',
       search: true
-    });   
+    });
+    /*
     colNames.push("Post-it<br/>number");
     colModel.push({
       name: "POSTITNUM",
@@ -97,6 +98,7 @@ function loadSubjectsGrid(CurrentApp, config, bShowPDF)
       align:'center',
       search: false
     });
+    */
     colNames.push("Queries<br/>number");
     colModel.push({
       name: "QUERIESNUM",
@@ -105,7 +107,7 @@ function loadSubjectsGrid(CurrentApp, config, bShowPDF)
       align:'center',
       search: false
     });
-/*    
+/*
     colNames.push("CRF<br/>status");
     colModel.push({
       name: "CRFSTATUS",
@@ -150,10 +152,10 @@ function loadSubjectsGrid(CurrentApp, config, bShowPDF)
      	rowNum: 20,
      	rowList: [10,20,50,100,200],
      	pager: '#pagerSubjects',
-     	sortname: 'SUBJKEY',
+     	sortname: 'SubjectKey',
       viewrecords: true,
       gridview : true,
-      sortorder: "desc",
+      sortorder: "asc",
       caption: "",
       onSelectRow: function(id){
         ids = id.split('_');

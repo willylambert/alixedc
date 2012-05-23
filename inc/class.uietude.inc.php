@@ -60,12 +60,6 @@ class uietude extends CommonFunctions
     
     //Controleur d'instanciation
     $this->m_ctrl = new instanciation();
-    
-    //If the user quit a CRF page, we need to update subject info in the subject list
-    if(isset($_GET['updateSubjectEntry'])){
-      $SubjectKey = $_GET['updateSubjectEntry'];
-      $this->m_ctrl->bosubjects()->updateSubjectsList($SubjectKey);
-    }
   }
 
 	/**
@@ -180,11 +174,6 @@ class uietude extends CommonFunctions
    public function dbadminInterface()
    {
         require_once('class.uidbadmin.inc.php');
-       
-        //Only accessible to admin
-        if(!$GLOBALS['egw_info']['user']['apps']['admin']){
-          $this->addLog("Unauthorized Access to Admin Module - Administrator has been notified",FATAL);
-        }
         
         $ui = new uidbadmin();
         $ui->setCtrl($this->m_ctrl);        
@@ -352,8 +341,8 @@ class uietude extends CommonFunctions
         $SubjectKey = $_GET['SubjectKey'];
         
         $siteId = $ui->m_ctrl->bosubjects()->getSubjectColValue($SubjectKey,"SITEID");
-        $subjId = sprintf($this->config("SUBJID_FORMAT"),$SubjectKey);
-        $filename = $this->config("APP_NAME") ."_Site_". $siteId ."_Patient_". $subjId .".pdf";
+        $subjId = sprintf($this->m_tblConfig["SUBJID_FORMAT"],$SubjectKey);
+        $filename = $this->m_tblConfig["APP_NAME"] ."_Site_". $siteId ."_Patient_". $subjId .".pdf";
         
         $pdf = $ui->getPDF($SubjectKey);
         

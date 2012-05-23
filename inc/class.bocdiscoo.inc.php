@@ -991,7 +991,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
 */
   function enrolNewSubject()
   {
-    $newSubj = $this->m_ctrl->socdiscoo()->getDocument("ClinicalData",$this->config('BLANK_OID'));
+    $newSubj = $this->m_ctrl->socdiscoo()->getDocument("ClinicalData",$this->m_tblConfig['BLANK_OID']);
 
     //Calcul du nouveau numéro patient
     $subjKey = $this->getNewPatientID($site);
@@ -1045,7 +1045,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
     }
     
     $query = "let \$SubjectData := collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData
-              let \$SubjectBLANK := collection('ClinicalData')/odm:ODM[@FileOID='". $this->config("BLANK_OID") ."']/odm:ClinicalData/odm:SubjectData
+              let \$SubjectBLANK := collection('ClinicalData')/odm:ODM[@FileOID='". $this->m_tblConfig["BLANK_OID"] ."']/odm:ClinicalData/odm:SubjectData
               let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
               let \$BasicDefinitions := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:BasicDefinitions[../odm:MetaDataVersion/@OID=\$SubjectData/../@MetaDataVersionOID]
               return
@@ -1148,7 +1148,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
   function getAnnotedCRF($FormOID)
   {
     $this->addLog("bocdiscoo->getAnnotedCRF($FormOID)",INFO);
-    $query = "let \$SubjectData := collection('ClinicalData')/odm:ODM[@FileOID='BLANK']/odm:ClinicalData/odm:SubjectData
+    $query = "let \$SubjectData := collection('ClinicalData')/odm:ODM[@FileOID='". $this->m_tblConfig["BLANK_OID"] ."']/odm:ClinicalData/odm:SubjectData
               let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
               for \$ItemGroupRef in \$MetaDataVersion/odm:FormDef[@OID='$FormOID']/odm:ItemGroupRef
                 let \$ItemGroupDef := \$MetaDataVersion/odm:ItemGroupDef[@OID=\$ItemGroupRef/@ItemGroupOID]
@@ -1653,7 +1653,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
   protected function getNewPatientID()
   {   
     $query = "let \$SubjectsCol := collection('ClinicalData')
-              let \$maxSubjId := max(\$SubjectsCol/odm:ODM/odm:ClinicalData/odm:SubjectData[@SubjectKey!='". $this->config('BLANK_OID') ."']/@SubjectKey)
+              let \$maxSubjId := max(\$SubjectsCol/odm:ODM/odm:ClinicalData/odm:SubjectData[@SubjectKey!='". $this->m_tblConfig['BLANK_OID'] ."']/@SubjectKey)
               return <MaxSubjId>{\$maxSubjId}</MaxSubjId>";   
     
     try
@@ -1996,59 +1996,82 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
   }
 
   /**
-   *Get all subject forms and visits, with lock status for each form
-   @return array 
-   *@author wlt     
+   * @desc Get all subject(s) forms and visits, with status for each form (EMPTY, PARTIAL, INCONSISTENT, FROZEN)
+   * @param array/string $SubjectKeys
+   * @return DOMDocument
+   * @author wlt, tpi
    **/  
-  function getSubjectTblForm($SubjectKey)
+  public function getSubjectsTblForm($SubjectKeys)
   {
-    $this->addLog("bocdiscoo->getSubjectTblForm($SubjectKey)",INFO);
+    $this->addLog(__METHOD__ ."($SubjectKeys)",INFO);
+    
+    $xqSubjectCollection = "";
+    if(is_array($SubjectKeys) || strpos($SubjectKeys, ",")){ //an array of SubjectKey, or list of SubjectKey separated by commas
+      if(is_array($SubjectKeys)){
+        $subjList = "";
+        foreach($SubjectKeys as $SubjectKey){
+          if($subjList!="") $subjList .= ",";
+          $subjList .= "'$SubjectKey'";
+        }
+      }
+      $xqSubjectCollection = "collection('ClinicalData')/odm:ODM[exists(index-of(($subjList),@FileOID))]/odm:ClinicalData";
+    }else{ //only one subject
+      $xqSubjectCollection = "index-scan('SubjectODM', '$SubjectKeys', 'EQ')/odm:ClinicalData";
+    }
+    
+    //for performance issues, the same MetaDataVersionOID is used for every subject. (I assume that every subjectin the study in created or updated with the same version of Metadatas)
     $query = "     
-        let \$SubjectData := index-scan('SubjectODM', '$SubjectKey', 'EQ')/odm:ClinicalData/odm:SubjectData
-        let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
+        let \$SubjectDatas := $xqSubjectCollection
+        let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID='{$this->m_tblConfig['METADATAVERSION']}']
         return
-          <SubjectData>
+          <Subjects>
           {
-            for \$StudyEventData in \$SubjectData/odm:StudyEventData
-            let \$StudyEventDef := \$MetaDataVersion/odm:StudyEventDef[@OID=\$StudyEventData/@StudyEventOID]
+            for \$SubjectData in \$SubjectDatas/odm:SubjectData
             return
-              <StudyEventData StudyEventOID='{\$StudyEventData/@StudyEventOID}'
-                              StudyEventRepeatKey='{\$StudyEventData/@StudyEventRepeatKey}'
-                              Title='{\$StudyEventDef/odm:Description/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()}'
-                              >
-              {
-                for \$FormRef in \$StudyEventDef/odm:FormRef
-                let \$FormDef := \$MetaDataVersion/odm:FormDef[@OID=\$FormRef/@FormOID]
-                let \$AllFormData := \$StudyEventData/odm:FormData[@FormOID=\$FormRef/@FormOID]
-                return
-                    if (count(\$AllFormData) > 0)
-                    then
-                        for \$FormData in \$AllFormData
-                            let \$ItemGroupDataCount := count(\$FormData/odm:ItemGroupData[@TransactionType!='Remove'])
-                            let \$ItemGroupDataCountEmpty := count(\$FormData/odm:ItemGroupData[@TransactionType!='Remove']/odm:Annotation/odm:Flag[odm:FlagValue/string()='EMPTY'])
-                            let \$ItemGroupDataCountFrozen := count(\$FormData/odm:ItemGroupData[@TransactionType!='Remove']/odm:Annotation/odm:Flag[odm:FlagValue/string()='FROZEN'])
-                            
-                            return
-                                <FormData FormOID='{\$FormRef/@FormOID}'
-                                    FormRepeatKey='{\$FormData/@FormRepeatKey}'
+            <SubjectData SubjectKey='{\$SubjectData/../../@FileOID}'>
+            {
+              for \$StudyEventData in \$SubjectData/odm:StudyEventData
+              let \$StudyEventDef := \$MetaDataVersion/odm:StudyEventDef[@OID=\$StudyEventData/@StudyEventOID]
+              return
+                <StudyEventData StudyEventOID='{\$StudyEventData/@StudyEventOID}'
+                                StudyEventRepeatKey='{\$StudyEventData/@StudyEventRepeatKey}'
+                                Title='{\$StudyEventDef/odm:Description/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()}'
+                                >
+                {
+                  for \$FormRef in \$StudyEventDef/odm:FormRef
+                  let \$FormDef := \$MetaDataVersion/odm:FormDef[@OID=\$FormRef/@FormOID]
+                  let \$AllFormData := \$StudyEventData/odm:FormData[@FormOID=\$FormRef/@FormOID]
+                  return
+                      if (count(\$AllFormData) > 0)
+                      then
+                          for \$FormData in \$AllFormData
+                              let \$ItemGroupDataCount := count(\$FormData/odm:ItemGroupData[@TransactionType!='Remove'])
+                              let \$ItemGroupDataCountEmpty := count(\$FormData/odm:ItemGroupData[@TransactionType!='Remove']/odm:Annotation/odm:Flag[odm:FlagValue/string()='EMPTY'])
+                              let \$ItemGroupDataCountFrozen := count(\$FormData/odm:ItemGroupData[@TransactionType!='Remove']/odm:Annotation/odm:Flag[odm:FlagValue/string()='FROZEN'])
+                              
+                              return
+                                  <FormData FormOID='{\$FormRef/@FormOID}'
+                                      FormRepeatKey='{\$FormData/@FormRepeatKey}'
+                                      MetaDataVersionOID='{\$MetaDataVersion/@OID}'
+                                      ItemGroupDataCount='{\$ItemGroupDataCount}'
+                                      ItemGroupDataCountEmpty='{\$ItemGroupDataCountEmpty}'
+                                      ItemGroupDataCountFrozen='{\$ItemGroupDataCountFrozen}'
+                                      TransactionType='{\$FormData/@TransactionType}'
+                                      Title='{\$MetaDataVersion/odm:FormDef[@OID=\$FormRef/@FormOID]/odm:Description/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()}'>
+                                </FormData>
+                      else
+                          <FormData FormOID='{\$FormRef/@FormOID}'
+                                    FormRepeatKey='0'
                                     MetaDataVersionOID='{\$MetaDataVersion/@OID}'
-                                    ItemGroupDataCount='{\$ItemGroupDataCount}'
-                                    ItemGroupDataCountEmpty='{\$ItemGroupDataCountEmpty}'
-                                    ItemGroupDataCountFrozen='{\$ItemGroupDataCountFrozen}'
-                                    TransactionType='{\$FormData/@TransactionType}'
-                                    Title='{\$MetaDataVersion/odm:FormDef[@OID=\$FormRef/@FormOID]/odm:Description/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()}'>
-                              </FormData>
-                    else
-                        <FormData FormOID='{\$FormRef/@FormOID}'
-                                  FormRepeatKey='0'
-                                  MetaDataVersionOID='{\$MetaDataVersion/@OID}'
-                                  Title='{\$MetaDataVersion/odm:FormDef[@OID=\$FormRef/@FormOID]/odm:Description/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()}'>
-                                  Status='EMPTY'
-                        </FormData>
-              }
-              </StudyEventData>
+                                    Title='{\$MetaDataVersion/odm:FormDef[@OID=\$FormRef/@FormOID]/odm:Description/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()}'
+                                    Status='EMPTY'>
+                          </FormData>
+                }
+                </StudyEventData>
+            }
+            </SubjectData>
           }
-          </SubjectData>";
+          </Subjects>";
 
     try{
       $doc = $this->m_ctrl->socdiscoo()->query($query,false);
@@ -2058,61 +2081,71 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
       die($str);
     }
     
-    //Set StudyEvent and Form status according to associated queries    
-    //Loop through visits
-    $visits = $doc->getElementsByTagName('StudyEventData');
-    foreach($visits as $visit){
-      $nbForm = 0;
-      $nbFormEmpty = 0;
-      $nbFormFrozen = 0;
-      $StudyEventOID = $visit->getAttribute('StudyEventOID');
-      $StudyEventRepeatKey = $visit->getAttribute('StudyEventRepeatKey');
-      
-      //Loop through forms
-      foreach($visit->childNodes as $form){
-        if($form->nodeType!=1) continue; //tpi, why are there some DOMText ?
-        if(!$form->hasAttribute('Status')){
-          $nbForm++;
-          $FormOID = $form->getAttribute('FormOID');
-          $FormRepeatKey = $form->getAttribute('FormRepeatKey');                 
-          
-          $ItemGroupDataCount = $form->getAttribute('ItemGroupDataCount');
-          $ItemGroupDataCountEmpty = $form->getAttribute('ItemGroupDataCountEmpty');
-          $ItemGroupDataCountFrozen = $form->getAttribute('ItemGroupDataCountFrozen');
-          
-          if($ItemGroupDataCount==$ItemGroupDataCountEmpty){
-            $frmStatus = "EMPTY";
-            $nbFormEmpty++;  
-          }else{
-            if($ItemGroupDataCount==$ItemGroupDataCountFrozen){
-              $frmStatus = "FROZEN";
-              $nbFormFrozen++;  
+    //Set StudyEvent and Form status according to associated queries   
+    //Loop through SubjectDatas
+    ////$SubjectKeys = explode(",",$SubjectKeys);
+    ///$SubjectDatas = $doc->childNodes;
+    $SubjectDatas = $doc->getElementsByTagName("SubjectData");
+    ////foreach($SubjectKeys as $SubjectKey){
+    foreach($SubjectDatas as $SubjectData){
+      //Loop through visits
+      ////$visits = $doc->getElementsByTagName('StudyEventData');
+      $SubjectKey = $SubjectData->getAttribute("SubjectKey");
+      ///$visits = $SubjectData->childNodes;
+      $visits = $SubjectData->getElementsByTagName("StudyEventData");
+      foreach($visits as $visit){
+        $nbForm = 0;
+        $nbFormEmpty = 0;
+        $nbFormFrozen = 0;
+        $StudyEventOID = $visit->getAttribute('StudyEventOID');
+        $StudyEventRepeatKey = $visit->getAttribute('StudyEventRepeatKey');
+        
+        //Loop through forms
+        foreach($visit->childNodes as $form){
+          if($form->nodeType!=1) continue; //tpi, why are there some DOMText ?
+          if(!$form->hasAttribute('Status')){
+            $nbForm++;
+            $FormOID = $form->getAttribute('FormOID');
+            $FormRepeatKey = $form->getAttribute('FormRepeatKey');                 
+            
+            $ItemGroupDataCount = $form->getAttribute('ItemGroupDataCount');
+            $ItemGroupDataCountEmpty = $form->getAttribute('ItemGroupDataCountEmpty');
+            $ItemGroupDataCountFrozen = $form->getAttribute('ItemGroupDataCountFrozen');
+            
+            if($ItemGroupDataCount==$ItemGroupDataCountEmpty){
+              $frmStatus = "EMPTY";
+              $nbFormEmpty++;  
             }else{
-              $frmStatus = $this->m_ctrl->boqueries()->getFormStatus($SubjectKey, $StudyEventOID ,$StudyEventRepeatKey, $FormOID, $FormRepeatKey);
-            }           
-          }
-          $form->setAttribute("Status",$frmStatus);
-        }
-      }
-      if($nbForm==$nbFormEmpty){
-        $visitStatus = "EMPTY";
-      }else{
-        if($nbForm==$nbFormFrozen){
-          $visitStatus = "FROZEN"; 
-        }else{
-          $visitStatus = $this->m_ctrl->boqueries()->getStudyEventStatus($SubjectKey,$StudyEventOID ,$StudyEventRepeatKey);
-          if($visitStatus=="FILLED"){
-            //FILLED only if there is no empty forms
-            if($nbFormEmpty>0){
-              $visitStatus = "PARTIAL";
+              if($ItemGroupDataCount==$ItemGroupDataCountFrozen){
+                $frmStatus = "FROZEN";
+                $nbFormFrozen++;  
+              }else{
+                $frmStatus = $this->m_ctrl->boqueries()->getFormStatus($SubjectKey, $StudyEventOID ,$StudyEventRepeatKey, $FormOID, $FormRepeatKey);
+              }           
             }
+            $form->setAttribute("Status",$frmStatus);
           }
-        }           
+        }
+        if($nbForm==$nbFormEmpty){
+          $visitStatus = "EMPTY";
+        }else{
+          if($nbForm==$nbFormFrozen){
+            $visitStatus = "FROZEN"; 
+          }else{
+            $visitStatus = $this->m_ctrl->boqueries()->getStudyEventStatus($SubjectKey,$StudyEventOID ,$StudyEventRepeatKey);
+            if($visitStatus=="FILLED"){
+              //FILLED only if there is no empty forms
+              if($nbFormEmpty>0){
+                $visitStatus = "PARTIAL";
+              }
+            }
+          }           
+        }
+        $visit->setAttribute("Status",$visitStatus);
       }
-      $visit->setAttribute("Status",$visitStatus);
     }
     
-   return $doc;
+    return $doc;
   }
 
   //@desc Retourne la valeur actuelle d'une variable donnée

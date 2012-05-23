@@ -260,6 +260,10 @@ class uidbadmin extends CommonFunctions{
                                           
       $menu .= $this->getSubMenu("Clinical data", $submenu);                                                                                                                     
     }
+    
+    if($menu==""){
+      $menu .= $this->getSubMenu("Administration tools", "Sorry, you have no privilege in this module.");   
+    }
 
     return $menu;  
   }

@@ -21,7 +21,7 @@
     
 //////////////////////////////////////////////////////////////
 // Annotations
-function initAnnotation(ItemOID,IGRK){
+function initAnnotation(CurrentApp, ItemOID, IGRK, annotation_comment_name, annotation_picure_id){
 
   var elementId = "#annotation_div_"+ItemOID+"_"+IGRK;
   var elementIdEsc = elementId.replace(".","-");
@@ -34,6 +34,8 @@ function initAnnotation(ItemOID,IGRK){
     	buttons: {
     		'Close': function() {
           $(this).dialog('close');
+          //update icon (with or without a pin)
+          updateAnnotPict(CurrentApp, annotation_comment_name, annotation_picure_id);
     		}
     	},
     	close: function() {
@@ -44,15 +46,18 @@ function initAnnotation(ItemOID,IGRK){
 }
 
 
-function toggleAnnotation(ItemOID,IGRK){
+function toggleAnnotation(CurrentApp, ItemOID, IGRK, annotation_comment_name, annotation_picure_id){
   var elementId = "#annotation_div_"+ItemOID+"_"+IGRK;
   var elementIdEsc = elementId.replace(".","-");
+  
+  //update icon
+  updateAnnotPict(CurrentApp, annotation_comment_name, annotation_picure_id);
   
   //dialog initialized ?
   if($(elementIdEsc).attr('initialized')=='false'){
     //Initialisation of AuditTrail
     if(typeof(initAnnotation)=="function"){
-      initAnnotation(ItemOID,IGRK);
+      initAnnotation(CurrentApp, ItemOID, IGRK, annotation_comment_name, annotation_picure_id);
     }
   }
   

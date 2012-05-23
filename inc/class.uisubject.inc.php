@@ -310,7 +310,7 @@ class uisubject extends CommonFunctions
   protected function getMenu($SubjectKey,$MetaDataVersionOID,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,&$formStatus,$profileId){
   
     //Recuperation de tous les formulaires du patient
-    $tblForm = $this->m_ctrl->bocdiscoo()->getSubjectTblForm($SubjectKey);
+    $tblForm = $this->m_ctrl->bocdiscoo()->getSubjectsTblForm($SubjectKey);
   
     //HOOK => uisubject_getMenu_beforeRendering
     $this->callHook(__FUNCTION__,"beforeRendering",array($SubjectKey,&$tblForm,$this));
@@ -320,14 +320,6 @@ class uisubject extends CommonFunctions
     }else{
       $AllowLock = "false";
     }
-    
-    //Extraction du statut du formulaire demandé en param (generalement le formulaire en cours d'affichage)
-    $xpath = new DOMXPath($tblForm);
-
-    // Nous commençons à l'élément racine
-    $query = "/SubjectData/StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']/FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']/status";   
-    $formdata = $xpath->query($query);
-    $formStatus = $formdata->item(0)->nodeValue;
     
     //Application de l'XSL par défaut
     $xsl = new DOMDocument;
@@ -501,10 +493,10 @@ class uisubject extends CommonFunctions
     
     //Paramètes
     $siteId = $this->m_ctrl->bosubjects()->getSubjectColValue($SubjectKey,"SITEID");
-    $subjId = sprintf($this->config("SUBJID_FORMAT"),$SubjectKey);
+    $subjId = sprintf($this->m_tblConfig["SUBJID_FORMAT"],$SubjectKey);
     $siteName = $this->m_ctrl->bosites()->getSiteName($siteId);
     //$this->m_ctrl->_unset("socdiscoo");
-    $proc->setParameter('','studyName',$this->config("APP_NAME"));
+    $proc->setParameter('','studyName',$this->m_tblConfig["APP_NAME"]);
     $proc->setParameter('','siteId',$siteId);
     $proc->setParameter('','subjId',$subjId);
     $proc->setParameter('','siteName',$siteName);

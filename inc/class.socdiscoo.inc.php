@@ -364,7 +364,7 @@ class socdiscoo extends CommonFunctions
     $docs = $this->query($query);
     $res = array();
     foreach($docs[0] as $doc){
-      $res[] = $doc;
+      $res[] = (string)$doc;
     }
     
     return $res;

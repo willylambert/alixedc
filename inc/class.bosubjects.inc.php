@@ -62,187 +62,120 @@ class bosubjects extends CommonFunctions
   }
   
   /**
-   * @description update subject(s) summary in SubjectsList.dbxml
-   * @param optional $SubjectKey => update a specific subject, otherwise update every subjects
+   * @description return Subjects List
+   * @param optional boolean $checkRights : return only the subjects for which the current user is auhtorized to access to
+   * @return SimpleXMLElement $SubjectsList
    * @author tpi
-   */  
-  public function updateSubjectsList($SubjectKey=false){
-    $this->addLog(__METHOD__."($SubjectKey)",INFO);
+   */
+  public function getSubjectsList($checkRights=true, $order="SubjectKey ascending"){
+    $this->addLog(__METHOD__."($addParameters,$checkRights)",INFO);
     
-    if($SubjectKey!==false){
-      $this->updateSubjectInList($SubjectKey);
-    }else{
-      $this->initSubjectsList();
-    }
-  }
-  
-  /**
-   * @description create the subjects summary list in SubjectsList.dbxml
-   * @author tpi
-   */  
-  public function initSubjectsList(){
-    $this->addLog(__METHOD__."()",INFO);
-    
-    //We do not log long execution time
-    $this->m_tblConfig['LOG_LONG_EXECUTION'] = false;
-    
-    $DOMList = new DOMDocument();
-    $DOMList->loadXML("<subjects FileOID='SubjectsList'></subjects>");
-    $SubjectKeys = $this->m_ctrl->socdiscoo()->getDocumentsList('ClinicalData');
-    $isNewList = true;
-    foreach($SubjectKeys as $SubjectKey){
-      set_time_limit(30);
-      try{
-        $this->addLog(__METHOD__."() Adding Subject $SubjectKey",TRACE);
-        
-        $this->updateSubjectInList($SubjectKey, $DOMList, $isNewList);
-        $isNewList = false;
-        $DOMList = false;
-        $i++;
-      }catch(xmlexception $e){
-        $this->addLog($e->getMessage(),FATAL);
+    $SitesFilter = false;
+    if($checkRights){
+      //we need to make a list of sites for which the current user can see the subjects
+      $SitesFilter = array();
+      
+      //Is the user a Sponsor ?
+      $defaultProfilId = $this->m_ctrl->boacl()->getUserProfileId();
+      
+      //first: we get the complete list of sites
+      $sites = $this->m_ctrl->bosites()->getSites();
+      
+      //then: we keep the sites the user can see
+      foreach($sites as $site){
+        if($defaultProfilId=="SPO"){
+          $SitesFilter[] = $site["siteId"];
+        }else{
+          //do the user has a profile defined for this site ?
+          $profile = $this->m_ctrl->boacl()->getUserProfileId("",$site["siteId"]);
+          if(!empty($profile)){
+            $SitesFilter[] = $site["siteId"];
+          }else{
+            //no authorization for this site
+          }
+        }
       }
     }
-  }
-  
-  /**
-   * @description return Subjects List
-   * @author tpi
-   */  
-  public function getSubjectsList(){
-    $this->addLog(__METHOD__."()",INFO);
     
-    try{
-      $SubjectsList = $this->m_ctrl->socdiscoo()->getDocument("","SubjectsList");
-    }catch(Exception $e){
-      $this->addLog($e->getMessage(),INFO);
-      $this->initSubjectsList();
-      $SubjectsList = $this->m_ctrl->socdiscoo()->getDocument("","SubjectsList");
+    $SubjectsParams = $this->getSubjectsParams($SubjectKey, $SitesFilter, $order);
+    $SubjectsList = $SubjectsParams[0]->children();
+    
+    foreach($SubjectsList as $Subject){
+      $Subject['SubjectStatus'] = $this->getSubjectStatus($Subject);
+      $Subject['CRFStatus'] = $this->m_ctrl->bocdiscoo()->getSubjectStatus($Subject['SubjectKey']);
     }
+    
+    //return the array of names
     return $SubjectsList;
   }
-  
+
   /**
-   * @description update a subject summary in SubjectsList.dbxml
-   * @param $SubjectKey => update a specific subject
-   * @param optional $SubjectsList => DOM object
-   * @author tpi
-   */  
-  public function updateSubjectInList($SubjectKey,$SubjectsList=false, $isNewList=false){
-    $this->addLog(__METHOD__."($SubjectKey,".($SubjectsList?1:0).",$isNewList)",INFO);
-    
-    if($SubjectsList===false){
-      try{
-        $SubjectsList = $this->m_ctrl->socdiscoo()->getDocument("","SubjectsList",false);
-      }catch(Exception $e){
-        $this->addLog($e->getMessage(),INFO);
-        $this->initSubjectsList();
-        return true;
-      }
-    }
-    
-    $xPath = new DOMXPath($SubjectsList);
-    
-    //accessing subject, setting SubjectKey if necessary
-    $query = "/subjects/subject[./SubjectKey='$SubjectKey']";
-    $result = $xPath->query($query);
-    if($result->length==0){
-      $result = $xPath->query("/subjects");
-      if($result->length==0){
-        $element = $SubjectsList->createElement("subjects");
-        $result->appendChild($element);
-        $result = $xPath->query("/subjects");
-      }
-      $element = $SubjectsList->createElement("subject");
-      $element2 = $SubjectsList->createElement("SubjectKey", $SubjectKey);
-      $element->appendChild($element2);
-      $result->item(0)->appendChild($element);
-      
-      $result = $xPath->query($query);
-    }
-    
-    //Subject Parameters
-    $subject = $this->getSubjectParams($SubjectKey);
-    $subject[0]->subj->addAttribute("SUBJECTSTATUS", $this->getSubjectStatus($subject[0]->subj)); //adding SubjectStatus
-    $subject[0]->subj->addAttribute("CRFSTATUS", $this->m_ctrl->bocdiscoo()->getSubjectStatus($SubjectKey)); //adding CRFStatus
-    $subjectParams = $subject[0]->subj->attributes();
-    foreach($subjectParams as $col=>$val){
-      $query = "/subjects/subject[./SubjectKey='$SubjectKey']/$col";
-      $domcol = $xPath->query($query);
-      if($domcol->length!=0 && $val!=$domcol->item(0)->nodeValue){
-        $domcol->item(0)->nodeValue = $val;
-      }elseif($domcol->length==0){
-        $element = $SubjectsList->createElement("$col", $val);
-        $result->item(0)->appendChild($element);
-      }
-    }
-    
-    //Visits Status
-    $formList = $this->m_ctrl->bocdiscoo()->getSubjectTblForm($SubjectKey);
-    
-    //HOOK => bosubject_updateSubjectInList_customVisitStatus
-    $this->callHook(__FUNCTION__,"customVisitStatus",array($SubjectKey,&$formList,$this));
-
-    $formListNode = $SubjectsList->importNode($formList->documentElement,true);
-    
-    $query = "/subjects/subject[./SubjectKey='$SubjectKey']/formList/SubjectData";
-    $domFormList = $xPath->query($query);
-    
-    if($domFormList->length==0){
-      $element = $SubjectsList->createElement("formList", "");
-      $element->appendChild($formListNode);
-      $result->item(0)->appendChild($element);      
-    }else{
-      $domFormList->item(0)->parentNode->replaceChild($formListNode,$domFormList->item(0));
-    } 
-          
-    //update SubjectsList.dbxml
-    if($isNewList){
-      $this->m_ctrl->socdiscoo()->addDocument($SubjectsList,false,"",false);
-    }else{
-      $this->m_ctrl->socdiscoo()->replaceDocument($SubjectsList,false,"",false);
-    }
-  }
-
-  //Retourne une liste de paramètres pour un patient
-  private function getSubjectParams($SubjectKey)
+   * @desc Returns parameters for each subject (filtered by sites if $Sites is provided). These parameters are SUBJKEY, fileOID and those defined in config.inc.php
+   * @param array/string $SubjectKeys : an array of SubjectKey, or list of SubjectKey separated by commas
+   * @param optional array/string $Sites : an array of SiteId, or list of SiteId separated by commas
+   * @param optional string $order : ordering of the resuts (ex: FileOID ascending)   
+   * @return DOMDocument
+   * @author wlt, tpi
+   **/
+  private function getSubjectsParams($SubjectKey=false, $Sites=false, $order="")
   {
-    $this->addLog(__METHOD__."($SubjectKey)",INFO);
+    $this->addLog(__METHOD__ ."($SubjectKey,$Sites)",INFO);
     
-    //L'audit trail engendre plusieurs ItemData avec le même ItemOID, ce qui nous oblige
-    //pour chaque item à rechercher le dernier en regardant l'attribut AuditRecordID qui est le plus grand, et ce pour chaque item
+    $xqSubjectCollection = "";
+    if(!$SubjectKey){  //all the subjects (except BLANK)
+      $xqSubjectCollection = "collection('ClinicalData')/odm:ODM[@FileOID!='". $this->m_tblConfig["BLANK_OID"] ."']/odm:ClinicalData";
+    }else{ //only one subject
+      $xqSubjectCollection = "index-scan('SubjectODM', '$SubjectKey', 'EQ')/odm:ClinicalData";
+    }
+    
+    //Site filter if requested
+    $whereSite = "";
+    if($Sites!=false){
+      if(is_array($Sites)){
+        $siteList = "";
+        foreach($Sites as $siteId){
+          if($siteList!="") $siteList .= ",";
+          $siteList .= "'$siteId'";
+        }
+      }
+      $whereSite = "where exists(index-of(($siteList),\$colSITEID))";
+    }
+    
+    //Order
+    $orderBy = "";
+    if($order!=""){
+      $orderBy = "order by \$$order";
+    }
+    
+    //The audit trail generates many ItemData with the same ItemOID. So we have to llok for the last item (in first position)
     $query = "
-      declare function local:getLastValue(\$ItemData as node()*) as xs:string?
-      {
-        let \$v := ''
-        return \$ItemData[1]/string()
-      };
-
           <subjs>
               {
-                let \$SubjectsCol := collection('ClinicalData')[/odm:ODM/@FileOID='$SubjectKey']
-                for \$SubjectData in \$SubjectsCol/odm:ODM/odm:ClinicalData/odm:SubjectData
-				        let \$FileOID := \$SubjectData/../../@FileOID
+                let \$SubjectsCol := $xqSubjectCollection
+                for \$SubjectData in \$SubjectsCol/odm:SubjectData
+				        let \$SubjectKey := \$SubjectData/../../@FileOID
                 ";
                 
     foreach($this->m_tblConfig['SUBJECT_LIST']['COLS'] as $key=>$col){
       if(is_array($col['Value'])){
-        $query .= "let \$col$key := local:getLastValue(\$SubjectData/odm:StudyEventData[@StudyEventOID='{$col['Value']['SEOID']}' and @StudyEventRepeatKey='{$col['Value']['SERK']}']/
+        $query .= "let \$col$key := \$SubjectData/odm:StudyEventData[@StudyEventOID='{$col['Value']['SEOID']}' and @StudyEventRepeatKey='{$col['Value']['SERK']}']/
                                                           odm:FormData[@FormOID='{$col['Value']['FRMOID']}' and @FormRepeatKey='{$col['Value']['FRMRK']}']/
                                                           odm:ItemGroupData[@ItemGroupOID='{$col['Value']['IGOID']}' and @ItemGroupRepeatKey='{$col['Value']['IGRK']}']/
-                                                          odm:*[@ItemOID='{$col['Value']['ITEMOID']}'])
+                                                          odm:*[@ItemOID='{$col['Value']['ITEMOID']}'][1]
                   ";
       }else{
         if($key=="SUBJID"){
           $query .= "let \$col$key := \$FileOID \n";
         }else{
-          $query .= "let \$col$key := " . $col['Value'];
+          $query .= "let \$col$key := " . $col['Value'] ." \n";
         }
       }
     }            
 
-    $query .= " return 
-                  <subj fileOID='{\$FileOID}'";
+    $query .= " $whereSite
+                $orderBy
+                return 
+                  <subj SubjectKey='{\$SubjectKey}'";
                 
     foreach($this->m_tblConfig['SUBJECT_LIST']['COLS'] as $key=>$col){
       $query .= " col$key ='{\$col$key}' ";
