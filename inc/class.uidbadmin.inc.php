@@ -103,8 +103,7 @@ class uidbadmin extends CommonFunctions{
                 
           case 'importDoc' :
                 if($this->m_ctrl->boacl()->checkModuleAccess("importDoc")){
-                  $container=$_POST['p_container'];
-                  $htmlRet = $this->importDoc($container);
+                  $htmlRet = $this->importDoc();
                 }else{
                   $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
                 }
@@ -358,8 +357,6 @@ class uidbadmin extends CommonFunctions{
       
       $htmlRet .= "</tbody></table>";
       $htmlRet .= count($docs[0]) ." fichiers";
-      $htmlRet .= "</div>";
-      
       
       $htmlRet .= "<form action='".$GLOBALS['egw']->link('/index.php',array('menuaction' => $GLOBALS['egw_info']['flags']['currentapp'].'.uietude.dbadminInterface',
                                                                                               'action' => 'execXQuery',
@@ -389,15 +386,15 @@ class uidbadmin extends CommonFunctions{
 
   private function getImportInterface()
   {           
-      $htmlRet = "<div class='subjectBold'>Import</div>
-                       <form action='" . $GLOBALS['egw']->link('/index.php',array('menuaction'=>$this->getCurrentApp(false).'.uietude.dbadminInterface','action'=>'importDoc')) . "' method='post' enctype='multipart/form-data'>
+      $htmlRet = "<div class='ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix'>
+                      <span class='ui-dialog-title'>Import Metadata or Clinical Data Document</span>
+                    </div>
+                    <br/>
+                    <form action='" . $GLOBALS['egw']->link('/index.php',array('menuaction'=>$this->getCurrentApp(false).'.uietude.dbadminInterface','action'=>'importDoc')) . "' method='post' enctype='multipart/form-data'>
                       XML File to import : <input type='file' name='uploadedDoc'>
-                      <select name='p_container'>
-                        <option value='ClinicalData'>ClinicalData</option>
-                        <option value='MetaDataVersion'>MetaDataVersion</option>
-                      </select>
-                      <input type='submit' value='Importer'/>
-                    </form>";
+                      <input type='submit' value='Import'/>
+                    </form>
+                    <br/>";
       
       return $htmlRet;  
   }  
@@ -499,16 +496,22 @@ class uidbadmin extends CommonFunctions{
     $this->m_ctrl->socdiscoo()->initDB();  
   }
   
-  function importDoc($container){
+  function importDoc(){
     $html = "";
     
 	  $uploaddir = $this->m_tblConfig['CDISCOO_PATH'] . "/xml/";
     $uploadfile = $uploaddir . basename($_FILES['uploadedDoc']['name']);
     
-    if($container=="MetaDataVersion"){
-      $containerName = "MetaDataVersion";
+    //Detection of the target container
+    $xml = simplexml_load_file($uploadfile);
+    if(isset($xml->ClinicalData)){
+      $containerName = "ClinicalData";  
     }else{
-      $containerName = $container;
+      if(isset($xml->Study->MetaDataVersion)){
+        $containerName = "MetaDataVersion";      
+      }else{
+        $this->addLog("uidbadmin->importDoc : unrecognized document type",FATAL);
+      }
     }
     
     if (move_uploaded_file($_FILES['uploadedDoc']['tmp_name'], $uploadfile)){
