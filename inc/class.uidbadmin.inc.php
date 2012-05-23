@@ -103,8 +103,15 @@ class uidbadmin extends CommonFunctions{
                 
           case 'importDoc' :
                 if($this->m_ctrl->boacl()->checkModuleAccess("importDoc")){
-                  $container=$_POST['p_container'];
-                  $htmlRet = $this->importDoc($container);
+                  $htmlRet = $this->importDoc();
+                }else{
+                  $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
+                }
+                break;
+          
+          case 'ImportBulkServerDir' :      
+                if($this->m_ctrl->boacl()->checkModuleAccess("importDoc")){
+                  $htmlRet = $this->importDocBulkServerDir($_POST['importServerDir']);
                 }else{
                   $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
                 }
@@ -313,7 +320,7 @@ class uidbadmin extends CommonFunctions{
       }
       catch(xmlexception $e)
       {
-        $str = "Erreur de la requete : " . $e->getMessage() . "<br/><br/>" . $query . "</html>";
+        $str = "Error in query : " . $e->getMessage() . "<br/><br/>" . $query . "</html>";
         die($str);
       }
             
@@ -362,8 +369,6 @@ class uidbadmin extends CommonFunctions{
       
       $htmlRet .= "</tbody></table>";
       $htmlRet .= count($docs[0]) ." fichiers";
-      $htmlRet .= "</div>";
-      
       
       $htmlRet .= "<form action='".$GLOBALS['egw']->link('/index.php',array('menuaction' => $GLOBALS['egw_info']['flags']['currentapp'].'.uietude.dbadminInterface',
                                                                                               'action' => 'execXQuery',
@@ -393,15 +398,23 @@ class uidbadmin extends CommonFunctions{
 
   private function getImportInterface()
   {           
-      $htmlRet = "<div class='subjectBold'>Import</div>
-                       <form action='" . $GLOBALS['egw']->link('/index.php',array('menuaction'=>$this->getCurrentApp(false).'.uietude.dbadminInterface','action'=>'importDoc')) . "' method='post' enctype='multipart/form-data'>
-                      XML File to import : <input type='file' name='uploadedDoc'>
-                      <select name='p_container'>
-                        <option value='ClinicalData'>ClinicalData</option>
-                        <option value='MetaDataVersion'>MetaDataVersion</option>
-                      </select>
-                      <input type='submit' value='Importer'/>
-                    </form>";
+      $htmlRet = "<div class='ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix'>
+                      <span class='ui-dialog-title'>Import Metadata or Clinical Data Document</span>
+                    </div>
+                    <br/>
+                    <form action='" . $GLOBALS['egw']->link('/index.php',array('menuaction'=>$this->getCurrentApp(false).'.uietude.dbadminInterface','action'=>'importDoc')) . "' method='post' enctype='multipart/form-data'>
+                      XML File to import : <input type='file' size='80' name='uploadedDoc'>
+                      <input type='submit' value='Import'/>
+                    </form>
+                    <br/>
+                    <hr size='1'/>
+                    <br/>
+                    <form action='" . $GLOBALS['egw']->link('/index.php',array('menuaction'=>$this->getCurrentApp(false).'.uietude.dbadminInterface','action'=>'ImportBulkServerDir')) . "' method='post'>
+                      Import all xml located in server folder : <input type='text' name='importServerDir' size='80'/>
+                      <input type='submit' value='ImportBulkServerDir'/>
+                      <div><i>Full server path without trailing slash</i></div>
+                    </form>
+                    <br/>";
       
       return $htmlRet;  
   }  
@@ -499,21 +512,59 @@ class uidbadmin extends CommonFunctions{
  *  Load XQuery functions library
  *@author wlt   
  **/   
-  function initDB(){
+  private function initDB(){
     $this->m_ctrl->socdiscoo()->initDB();  
   }
+
+/**
+ * Import all xml located into the folder specified in parameter
+ * @param string $serverDir server folder containing xml to import
+ * @return string result of import as an html string
+ * @author wlt    
+ **/  
+  private function importDocBulkServerDir($serverDir){   
+   $html = "<div style='text-align: left'><ul>";
+   $tblFiles = scandir($serverDir);
+   $nbImportedFile = 0;
+   if(!$tblFiles){
+      $this->addLog("uidbadmin->importDocBulkServerDir() : Unable to open the directory $serverDir",FATAL);
+   }else{
+    foreach($tblFiles as $file){
+      if($file!="." && $file!=".."){
+        //Detection of the target container
+        $fullFileName = $serverDir . '/' . $file; 
+        $containerName = $this->m_ctrl->boimport()->getContainer($fullFileName);
+        try{
+          $html .= "<li>adding {$_FILES['uploadedDoc']['name']}...</li>";
+          $fileOID = $this->m_ctrl->socdiscoo()->addDocument($fullFileName,false,$containerName);
+          $nbImportedFile++;
+        }catch(Exception $e){
+            //maybe the document already existing, we will try to replace it
+            $html .= "<li>document already imported, replacing...</li>";
+            $fileOID = $this->m_ctrl->socdiscoo()->replaceDocument($fullFileName,false,$containerName);
+            $nbImportedFile++;
+        }
+      }
+    }   
+   }
+   $html .= "<li>import successfull !</li>";
+   $html .= "</ul>";
+   $html .= "<a href='".$GLOBALS['egw']->link('/index.php', array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
+			                                                                        'container' => $containerName,
+                                                                              'action' => 'viewDocs')) ."'>See $containerName</a><br/>";
+   $html .= "</div>";
+
+   return $html;
+  }
   
-  function importDoc($container){
+  private function importDoc(){
     $html = "";
     
 	  $uploaddir = $this->m_tblConfig['CDISCOO_PATH'] . "/xml/";
     $uploadfile = $uploaddir . basename($_FILES['uploadedDoc']['name']);
     
-    if($container=="MetaDataVersion"){
-      $containerName = "MetaDataVersion";
-    }else{
-      $containerName = $container;
-    }
+    //Detection of the target container
+    $containerName = $this->m_ctrl->boimport()->getContainer($uploadfile);
     
     if (move_uploaded_file($_FILES['uploadedDoc']['tmp_name'], $uploadfile)){
       $html .= "<div style='text-align: left'><ul>";
@@ -521,18 +572,18 @@ class uidbadmin extends CommonFunctions{
         $html .= "<li>adding {$_FILES['uploadedDoc']['name']}...</li>";
         $fileOID = $this->m_ctrl->socdiscoo()->addDocument($uploadfile,false,$containerName);
       }catch(Exception $e){
-          //document already existing, we will try to replace it
+          //maybe the document already existing, we will try to replace it
           $html .= "<li>document already imported, replacing...</li>";
           $fileOID = $this->m_ctrl->socdiscoo()->replaceDocument($uploadfile,false,$containerName);
       }
       $html .= "<li>import successfull !</li>";
       $html .= "</ul>";
       $html .= "<a href='".$GLOBALS['egw']->link('/index.php', array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
-  				                                                                        'container' => $container,
-                                                                                  'action' => 'viewDocs')) ."'>See $container</a><br/>";
+  				                                                                        'container' => $containerName,
+                                                                                  'action' => 'viewDocs')) ."'>See $containerName</a><br/>";
       $html .= "</div>";
       
-      //Updaate the subject in the SubjectsList
+      //Update the subject in the SubjectsList
       if(is_numeric($fileOID)){
         $this->m_ctrl->bosubjects()->updateSubjectInList($fileOID);
       }
