@@ -49,14 +49,12 @@
       color: blue;
     </xsl:attribute>	
 	</xsl:if>
-
   <xsl:value-of select="option[@selected='selected']/text()"/>
 	<xsl:element name="input">
     <xsl:attribute name="type">hidden</xsl:attribute>
     <xsl:attribute name="name"><xsl:value-of select="@name"/></xsl:attribute>
-    <xsl:attribute name="value"><xsl:value-of select="option[@selected='true']/@value"/></xsl:attribute>
+    <xsl:attribute name="value"><xsl:value-of select="option[@selected='selected']/@value"/></xsl:attribute>
    </xsl:element>
-
 </xsl:template>
 
 <!-- Call Bmi calculation--> 
@@ -69,7 +67,6 @@
 </xsl:template>
 
 <!-- Create convertion calculator -->      
-
 <xsl:template match="input[@name='text_dec_VS@VSORRES_1']">
   <xsl:copy>
     <xsl:copy-of select="@*"/>
@@ -93,6 +90,7 @@
 <!-- Hide VSORRESU--> 
 <xsl:template match="label">
 </xsl:template>
+
 <xsl:template match="input[@itemoid='VS.VSORRESU']">
 	<xsl:if test="@checked='checked'">
 		<xsl:value-of select="@value"/>

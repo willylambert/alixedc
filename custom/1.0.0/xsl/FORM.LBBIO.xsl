@@ -62,7 +62,7 @@
    <xsl:element name="input">
     <xsl:attribute name="type">hidden</xsl:attribute>
     <xsl:attribute name="name"><xsl:value-of select="@name"/></xsl:attribute>
-    <xsl:attribute name="value"><xsl:value-of select="option[@selected='true']/@value"/></xsl:attribute>
+    <xsl:attribute name="value"><xsl:value-of select="option[@selected='selected']/@value"/></xsl:attribute>
    </xsl:element>
 </xsl:template>                   
 

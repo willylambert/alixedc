@@ -2043,8 +2043,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
               return
                 <StudyEventData StudyEventOID='{\$StudyEventData/@StudyEventOID}'
                                 StudyEventRepeatKey='{\$StudyEventData/@StudyEventRepeatKey}'
-                                Title='{\$StudyEventDef/odm:Description/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()}'
-                                >
+                                Title='{\$StudyEventDef/odm:Description/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()}'>
                 {
                   for \$FormRef in \$StudyEventDef/odm:FormRef
                   let \$FormDef := \$MetaDataVersion/odm:FormDef[@OID=\$FormRef/@FormOID]
@@ -2059,14 +2058,13 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
                               
                               return
                                   <FormData FormOID='{\$FormRef/@FormOID}'
-                                      FormRepeatKey='{\$FormData/@FormRepeatKey}'
-                                      MetaDataVersionOID='{\$MetaDataVersion/@OID}'
-                                      ItemGroupDataCount='{\$ItemGroupDataCount}'
-                                      ItemGroupDataCountEmpty='{\$ItemGroupDataCountEmpty}'
-                                      ItemGroupDataCountFrozen='{\$ItemGroupDataCountFrozen}'
-                                      TransactionType='{\$FormData/@TransactionType}'
-                                      Title='{\$MetaDataVersion/odm:FormDef[@OID=\$FormRef/@FormOID]/odm:Description/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()}'>
-                                </FormData>
+                                            FormRepeatKey='{\$FormData/@FormRepeatKey}'
+                                            MetaDataVersionOID='{\$MetaDataVersion/@OID}'
+                                            ItemGroupDataCount='{\$ItemGroupDataCount}'
+                                            ItemGroupDataCountEmpty='{\$ItemGroupDataCountEmpty}'
+                                            ItemGroupDataCountFrozen='{\$ItemGroupDataCountFrozen}'
+                                            Title='{\$MetaDataVersion/odm:FormDef[@OID=\$FormRef/@FormOID]/odm:Description/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()}'>
+                                  </FormData>
                       else
                           <FormData FormOID='{\$FormRef/@FormOID}'
                                     FormRepeatKey='0'
@@ -2086,20 +2084,14 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
     }catch(xmlexception $e){
       $str = "Error in xQuery : " . $e->getMessage() . "<br/><br/>" . $query . "</html> (". __METHOD__ .")";
       $this->addLog($str,FATAL);
-      die($str);
     }
     
     //Set StudyEvent and Form status according to associated queries   
     //Loop through SubjectDatas
-    ////$SubjectKeys = explode(",",$SubjectKeys);
-    ///$SubjectDatas = $doc->childNodes;
     $SubjectDatas = $doc->getElementsByTagName("SubjectData");
-    ////foreach($SubjectKeys as $SubjectKey){
     foreach($SubjectDatas as $SubjectData){
       //Loop through visits
-      ////$visits = $doc->getElementsByTagName('StudyEventData');
       $SubjectKey = $SubjectData->getAttribute("SubjectKey");
-      ///$visits = $SubjectData->childNodes;
       $visits = $SubjectData->getElementsByTagName("StudyEventData");
       foreach($visits as $visit){
         $nbForm = 0;
@@ -2152,7 +2144,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
         $visit->setAttribute("Status",$visitStatus);
       }
     }
-    
+    //die($this->dumpRet($doc->saveXML()));
     return $doc;
   }
 
@@ -2328,7 +2320,6 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
   {
     $this->addLog("bocdiscoo->removeFormData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey)",INFO);
 
-    //SEDNA 3.5 syntax (still not conform with the XQuery Update Facility 1.0)
     $query = "UPDATE REPLACE \$x in collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']/odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']/@TransactionType
               WITH attribute {'TransactionType'} {'Remove'}";
     try{
@@ -2484,8 +2475,28 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
       if($igdata->length!=1){
         $str = "Error : duplicate entries for ItemGroupData=$ItemGroupOID RepeatKey=$ItemGroupRepeatKey (".__METHOD__.")";
         $this->addLog($str,FATAL);
+      }else{
+        //We have one itemgroupdata - we need to know if the annotation element is here
+        if($igdata->item(0)->firstChild->nodeName!="Annotation"){
+          $query = "declare default element namespace '".$this->m_tblConfig['SEDNA_NAMESPACE_ODM']."';
+                    UPDATE
+                    insert <Annotation SeqNum='1'>
+                              <Flag>
+                                <FlagValue CodeListOID='CL.SSTATUS'>FILLED</FlagValue>
+                                <FlagType CodeListOID='CL.FLAGTYPE'>STATUS</FlagType>
+                              </Flag>
+                            </Annotation>
+                    preceding collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData
+                                                        /odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']
+                                                        /odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']
+                                                        /odm:ItemGroupData[@ItemGroupOID='$ItemGroupOID' and @ItemGroupRepeatKey='$ItemGroupRepeatKey']
+                                                        /odm:*[1]";
+          $this->m_ctrl->socdiscoo()->query($query); 
+        }
       }
     }
+    
+    
     
     //Extraction from POSTed data
     if($bFormVarsIsAlreadyDecoded){
