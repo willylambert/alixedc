@@ -293,7 +293,6 @@ class uidbadmin extends CommonFunctions{
   {
       $containerName = $_GET['container'];
       
-      //Boucle sur les documents
       if($containerName!=""){
         $query = "<docs>
                   {
@@ -314,15 +313,7 @@ class uidbadmin extends CommonFunctions{
                   ";
       }
 
-      try
-      {
-        $docs = $this->m_ctrl->socdiscoo()->query($query);
-      }
-      catch(xmlexception $e)
-      {
-        $str = "Error in query : " . $e->getMessage() . "<br/><br/>" . $query . "</html>";
-        die($str);
-      }
+      $docs = $this->m_ctrl->socdiscoo()->query($query);
             
       $htmlRet = '
             	<div class="divSideboxHeader" align="center"><span>'.$containerName.'</span></div>';
@@ -330,7 +321,7 @@ class uidbadmin extends CommonFunctions{
 			$htmlRet .= "<table align='center' width='80%' cellspacing='0' cellpadding='2' class='tabloGris'>
 			<tbody><tr>
 			<th class='tabloGrisTitle'>Name</th>
-			<th class='tabloGrisTitle'>Status</th>
+			<th class='tabloGrisTitle'>ODM 1.3 compliance</th>
 			<th class='tabloGrisTitle' colspan='4'>Actions</th>
 			</tr>" ;  
       
@@ -339,15 +330,13 @@ class uidbadmin extends CommonFunctions{
       foreach($docs[0] as $doc)
       {
         $status = "ok";
-        if($containerName!=""){
-          try{
-            $xquery = "let \$res := exists(collection('$containerName')/odm:ODM/@FileOID='$doc')
-                       return<res>{\$res}</res>";
-            $results = $this->m_ctrl->socdiscoo()->query($xquery);
-            if((string)$results[0] != 'true') throw new xmlexception("Cannot find doc('$doc')/odm:ODM/@FileOID");
-          }catch(xmlexception $e){
-            $status = "<input type='button' value='ko' onClick=\"alert('". addslashes($e->getMessage()) ."')\" />";
-          }
+        $xml = $this->m_ctrl->socdiscoo()->getDocument($containerName, $doc, false);
+        if($xml->schemaValidate($this->m_tblConfig["ODM_1_3_SCHEMA"])==false){
+          $errors = libxml_get_errors();
+          $error = $errors[0];
+          $lines = explode("\r", $xml->saveXML());
+          $line = $lines[($error->line)-1];
+          $status = "Not ODM 1.3 compliant : ". $error->message.' at line '.$error->line.':<br />'.htmlentities($line);
         }
         
         $class = ($class=="row_off" ? "row_on" : "row_off");

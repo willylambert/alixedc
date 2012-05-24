@@ -216,24 +216,22 @@ class socdiscoo extends CommonFunctions
      
     if($schemaValidate && !$xml->schemaValidate($this->m_tblConfig["ODM_1_3_SCHEMA"]))
     {
-     throw new Exception("Le fichier $doc n'est pas valide.");
+     throw new Exception("The file $doc is not ODM 1.3 compliant.");
     }
     $fileOID = $xml->documentElement->getAttribute("FileOID");
     try
     {
-      $this->addLog("addDocument sur $collection de $fileOID",INFO);
+      $this->addLog("addDocument into $collection of $fileOID",INFO);
       
       //Insertion
       if($collection!=""){
         if(!sedna_load($xml->saveXML(), $fileOID, $collection)){
           $str = "Could not load the document '$fileOID' in collection '$collection': " . sedna_error() ." (". __METHOD__ .")";
-          //$this->addLog($str,FATAL);
           throw new Exception($str);
         }
       }else{
         if(!sedna_load($xml->saveXML(), $fileOID)){
           $str = "Could not load the document '$fileOID': " . sedna_error() ." (". __METHOD__ .")";
-          //$this->addLog($str,FATAL);
           throw new Exception($str);
         }
       }
@@ -244,7 +242,6 @@ class socdiscoo extends CommonFunctions
     }
   }
 
-  //Supprime un document dans le container indiquée
   function deleteDocument($collection,$name)
   {
     /* Remove the document */
@@ -261,14 +258,12 @@ class socdiscoo extends CommonFunctions
   
   function replaceDocument($doc,$isString=false,$collection="",$schemaValidate=true)
   {        
-    //Validation du schéma CDISC et Extraction du FileOID     
     if(is_object($doc))
     {
       $xml = $doc;
     }
     else
     {
-      //Soit c'est une string, soit c'est un fichier
       if($isString)
       {
         $xml = new DOMDocument();
@@ -288,14 +283,14 @@ class socdiscoo extends CommonFunctions
       $error = $errors[0];
       $lines = explode("\r", $xml->saveXML());
       $line = $lines[($error->line)-1];
-      $message = "Le fichier n'est pas valide au schéma ODM : ". $error->message.' at line '.$error->line.':<br />'.htmlentities($line);
+      $message = "Not ODM 1.3 compliant : : ". $error->message.' at line '.$error->line.':<br />'.htmlentities($line);
       
-      $this->addLog("Erreur lors de la validation xml. ".$message,FATAL);
+      $this->addLog("Error while checking ODM compliance. ".$message,FATAL);
       throw new Exception($message);
     }
     $fileOID = $xml->documentElement->getAttribute("FileOID");
     try{
-      $this->addLog("socdiscoo->replaceDocument() sur $collection de $fileOID",TRACE);
+      $this->addLog("socdiscoo->replaceDocument() on $collection of $fileOID",TRACE);
       
       $xml->formatOutput = true;
       $string = $xml->saveXML();
