@@ -311,9 +311,6 @@ class socdiscoo extends CommonFunctions
             $this->addLog($str,FATAL);
           }
         }
-        
-        //By security - we save the XML file on hard drive
-        $xml->save($this->m_tblConfig["CDISCOO_PATH"] . "/xml/$fileOID" . ".xml");
       }
       else
       {

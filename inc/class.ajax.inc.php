@@ -1284,23 +1284,22 @@ public function checkFormData(){
     return ($a['date'] < $b['date']) ? 1 : (($a['date'] > $b['date']) ? -1 : ($a['type']=='Query'?-1:+1));
   }
  
- /*
- *@desc méthode ajax, retourne la listes des patients filtrées sur les paramètres passés
- *@return array
- *@author tpi
- */
+ /**
+ * Ajax method, return the subjects list filtered on POSTed parameters
+ * @return array
+ * @author tpi
+ **/
   public function getSubjectsDataList(){
     $this->addlog(__METHOD__ ,INFO);  
 
     $response = new StdClass;
   
-    //Extraction des paramètres
     $MetaDataVersion = $this->m_tblConfig["METADATAVERSION"];
     $SubjectKey = "";
     $search = "";
     if(isset($_POST['MetaDataVersionOID'])) $MetaDataVersion = $_POST['MetaDataVersionOID'];
     if(isset($_POST['SubjectKey'])) $SubjectKey = $_POST['SubjectKey'];
-    if(isset($_REQUEST['search'])) $search = $_REQUEST['search']; //global search : texte libre
+    if(isset($_REQUEST['search'])) $search = $_REQUEST['search'];
     
     if(isset($_GET['excelExport']) && $_GET['excelExport']=='true'){
       $mode = "csv";
@@ -1318,22 +1317,11 @@ public function checkFormData(){
     }else{
       $sort_sign = "descending";
     }
-    //application du filtre de recherche
+
     $where = "";
     
     //retrieving subjects list
-    //try{
-      //getting an array of SubjectKey SubjectParams SubjectStatus, already filtered on user rights
-      $subjs = $this->m_ctrl->bosubjects()->getSubjectsList(true, "$sidx $sort_sign");
-      //$this->dumpPre($subjs);
-    //}catch(Exception $e){
-      //Warn if BLANK is missing
-    //  try{
-    //    $blank = $this->m_ctrl->socdiscoo()->getDocument("ClinicalData", $this->m_tblConfig["BLANK_OID"]);
-    //  }catch(Exception $e){
-    //    $this->addLog("NO BLANK Subject Found - Please add it to continue.",FATAL);
-    //  }
-    //}
+    $subjs = $this->m_ctrl->bosubjects()->getSubjectsList(true, "$sidx $sort_sign");
   
     $count = count($subjs);
     for($i=0; $i<$count; $i++){
@@ -1393,26 +1381,11 @@ public function checkFormData(){
     foreach($subjs as $subj) {
       if($i>=$start){
         $see = "<div class='imageFindIn imageOnly image16 pointer' onClick=\"location.href='index.php?menuaction=". $this->getCurrentApp(false) .".uietude.subjectInterface&action=view&SubjectKey=". $subj["SubjectKey"] ."&StudyEventOID=". $this->m_tblConfig['ENROL_SEOID'] ."&StudyEventRepeatKey=". $this->m_tblConfig['ENROL_SERK'] ."&FormOID=". $this->m_tblConfig['ENROL_FORMOID'] ."&FormRepeatKey=". $this->m_tblConfig['ENROL_FORMRK'] ."'\" altbox='Go to CRF'></div>";
-        /*
-        $status = $subj["CRFStatus"];
-        if($mode=="json"){
-          $statusCRF = "<div class='imageStatus$status imageOnly image16' altbox='$status' ></div>";
-        }else{
-          $statusCRF = $statut;
-        }
-        */
         if($this->m_ctrl->boacl()->existUserProfileId(array("DM","CRA","INV"),"",$subj['colSITEID'])){
           $pdf = "<button class='ui-state-default ui-corner-all' onClick=\"if(window.event){ var e = window.event; e.cancelBubble = true; if(e && e.stopPropagation){ e.stopPropagation();};}else{event.stopPropagation();}; window.location='index.php?menuaction=". $GLOBALS['egw_info']['flags']['currentapp'] .".uietude.subjectPDF&SubjectKey=". $subj["SubjectKey"] ."';\">PDF</button>";
         }else{
           $pdf = "";
         }
-        /*
-        if($this->m_ctrl->boacl()->existUserProfileId("DM","",$subj['colSITEID'])){
-          $check = "<button class='ui-state-default ui-corner-all' onClick=\"if(window.event){ var e = window.event; e.cancelBubble = true; if(e && e.stopPropagation){ e.stopPropagation();};}else{event.stopPropagation();}; runConsistencyChecks('". $GLOBALS['egw_info']['flags']['currentapp'] ."', '". $subj['colSITEID'] ."', '". $subj["SubjectKey"] ."');\">Run consistency checks</button>";
-        }else{
-          $check = "";
-        }
-        */
         
         $response->rows[$j]['id'] = "subject_". $subj["SubjectKey"];
         $response->rows[$j]['cell']=array();
@@ -1439,11 +1412,8 @@ public function checkFormData(){
           }
         }
         $response->rows[$j]['cell'][] = (string)$subj["SubjectStatus"];
-        //$response->rows[$j]['cell'][] = $this->m_ctrl->bopostit()->getPostItCount($subj["SubjectKey"]);
         $response->rows[$j]['cell'][] = $this->m_ctrl->boqueries()->getQueriesCount($subj["SubjectKey"],"","","","","","","","","","Y","QUERYSTATUS<>'C'");
-        //$response->rows[$j]['cell'][] = $statusCRF;
         $response->rows[$j]['cell'][] = $pdf;
-        //$response->rows[$j]['cell'][] = $check;
         $j++;
       }
       $i++;
@@ -1472,7 +1442,6 @@ public function checkFormData(){
       $buffer = fopen('php://output', 'w');
       fputcsv($buffer, $header,";");
       foreach($response->rows as $row){
-        //print_r($row['cell']);
         fputcsv($buffer, $row['cell'],";");
       }
 

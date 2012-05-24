@@ -26,9 +26,7 @@ require_once("class.instanciation.inc.php");
 require_once(dirname(__FILE__). "/../config.inc.php"); 
  /**
  * Class to access ALIX via XMLRPC
- *
  * eGW's xmlrpc interface is documented at http://egroupware.org/wiki/xmlrpc
- *
  * @link http://egroupware.org/wiki/xmlrpc
  */
 class boalixws extends CommonFunctions
@@ -95,21 +93,19 @@ class boalixws extends CommonFunctions
     //Check user right to import metadata - need to be an admin
     if($GLOBALS['egw_info']['user']['apps']['admin']){
       //decode base64
-      //$xmlContent = $params['docContent'];
       $xmlContent = base64_decode($params['docContent']);
       $containerName = $params['containerName'];
 
-   	  $uploaddir = $this->m_tblConfig['CDISCOO_PATH'] . "/xml/";
+   	  $uploaddir = $this->m_tblConfig['CDISCOO_PATH'] . "/import/";
       $uploadfile = $uploaddir . $params['shortFileName'];
 
-       file_put_contents($uploaddir . $params['shortFileName'],$xmlContent);
-      //try{
+      file_put_contents($uploaddir . $params['shortFileName'],$xmlContent);
+      try{
         $this->m_ctrl->socdiscoo()->addDocument($uploadfile,false,$containerName);
-      /*
       }catch(Exception $e){
-          $this->m_ctrl->socdiscoo()->replaceDocument($uploadfile,false,$containerName);
+        $this->m_ctrl->socdiscoo()->replaceDocument($uploadfile,false,$containerName);
       }
-      */
+
       return array("result"=>"ok");
     }else{
    		$GLOBALS['server']->xmlrpc_error($GLOBALS['xmlrpcerr']['no_access'],$GLOBALS['xmlrpcstr']['no_access']);  

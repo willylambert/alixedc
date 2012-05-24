@@ -327,6 +327,9 @@ class uidbadmin extends CommonFunctions{
       
       $class = "";
       
+      // Enable user error handling
+      libxml_use_internal_errors(true);
+      
       foreach($docs[0] as $doc)
       {
         $status = "ok";
@@ -336,7 +339,8 @@ class uidbadmin extends CommonFunctions{
           $error = $errors[0];
           $lines = explode("\r", $xml->saveXML());
           $line = $lines[($error->line)-1];
-          $status = "Not ODM 1.3 compliant : ". $error->message.' at line '.$error->line.':<br />'.htmlentities($line);
+          $status = "Not ODM 1.3 compliant : ". $error->message.' at line '.$error->line;
+          libxml_clear_errors();
         }
         
         $class = ($class=="row_off" ? "row_on" : "row_off");

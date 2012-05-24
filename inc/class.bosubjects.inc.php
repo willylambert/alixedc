@@ -22,10 +22,6 @@
     
 require_once("class.CommonFunctions.php");
 
-/*
-@desc classe de gestion des droits utilisateurs
-@author tpi
-*/
 class bosubjects extends CommonFunctions
 {
   private static $m_subjectCols = array(); //cache for subjects values of keys defined in $configEtude['SUBJECT_LIST']['COLS']
@@ -66,7 +62,7 @@ class bosubjects extends CommonFunctions
    * @param optional boolean $checkRights : return only the subjects for which the current user is auhtorized to access to
    * @return SimpleXMLElement $SubjectsList
    * @author tpi
-   */
+  **/
   public function getSubjectsList($checkRights=true, $order="SubjectKey ascending"){
     $this->addLog(__METHOD__."($addParameters,$checkRights)",INFO);
     
@@ -147,7 +143,7 @@ class bosubjects extends CommonFunctions
       $orderBy = "order by \$$order";
     }
     
-    //The audit trail generates many ItemData with the same ItemOID. So we have to llok for the last item (in first position)
+    //The audit trail generates many ItemData with the same ItemOID. So we have to look for the last item (in first position)
     $query = "
           <subjs>
               {
@@ -186,14 +182,10 @@ class bosubjects extends CommonFunctions
     $query .= "}
           </subjs>";
     
-    try{
-      $this->addLog(__METHOD__."() Run query",TRACE);
-      $doc = $this->m_ctrl->socdiscoo()->query($query);
-      $this->addLog(__METHOD__."() Query OK",TRACE);
-    }catch(xmlexception $e){
-      $str = "Erreur de la requete : " . $e->getMessage() . "<br/><br/>" . $query . __METHOD__ .")";
-      $this->addLog($str,FATAL);
-    }
+    $this->addLog(__METHOD__."() Run query",INFO);
+    $doc = $this->m_ctrl->socdiscoo()->query($query);
+    $this->addLog(__METHOD__."() Query OK",INFO);
+
     return $doc;
   }
   
