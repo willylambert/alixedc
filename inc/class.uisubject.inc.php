@@ -27,9 +27,9 @@
 class uisubject extends CommonFunctions
 {
   /**
-  * @desc Constructeur de class
-  * @param array $configEtude tableau des constantes de configuration    
-  * @param uietude $ctrlRef reference vers l'instance instanciation, où est délégué l'installation des objets (appel du type $this->m_ctrl->bcdiscoo() ) 
+  * class constructor
+  * @param array $configStudy array of configuration values    
+  * @param uietude $ctrlRef reference to instance of the instanciation class, used to delegate instanciation of all objects ( call syntax : $this->m_ctrl->bocdiscoo()->my_method_name ) 
   * @author WLT
   * 
   **/ 
@@ -39,8 +39,8 @@ class uisubject extends CommonFunctions
   }
 
   /**
-  * @desc fonction principale - retoure l'html à afficher, appelé depuis uietude
-  * @return string HTML à afficher
+  * Main function called from uietude
+  * @return string HTML to display
   * @author WLT
   **/     
   public function getInterface()
@@ -84,7 +84,6 @@ class uisubject extends CommonFunctions
              
       //Inclusion case
       if($SubjectKey=="BLANK"){
-        //On va chercher dans les profiles le premier centre pour lequel l'utilisateur connecté est investigateur
         $profiles = $this->m_ctrl->boacl()->getUserProfiles();
         $i = 0;
         
@@ -92,19 +91,18 @@ class uisubject extends CommonFunctions
           $i++;
         }
         if($i<count($profiles)){
-          //Profil investigateur trouvé - on prend ce centre par défaut
+          //Investigator profile found - used as default site
           $SiteId = $profiles[$i]['siteId'];
           $profile = $profiles[$i];
         }else{
           $this->addLog("Error : user '". $this->m_ctrl->boacl()->getUserId() ."' not found as Investigator.",FATAL);
         }      
       }else{
-        //Vérification des droits d'accès au patient demandé par l'utilisateur      
-        //Est-ce que l'utilisateur connecté a le droit d'accéder à ce patient ?
+        //Access right check      
         $profile = $this->m_ctrl->boacl()->getUserProfile("",$SiteId);
   
         if(!isset($profile['profileId']) || $profile['profileId']==""){
-          //Peut-être le Sponsor, on regarde le profil par défaut
+          //Could be Sponsor, check the default profile
           $defaultProfile = $this->m_ctrl->boacl()->getUserProfile();
           if($defaultProfile['profileId']!="SPO"){
             $this->addLog("Access violation : You don't have suffisient privilege to access the subject $SubjectKey, Site $SiteId",FATAL);
@@ -301,15 +299,13 @@ class uisubject extends CommonFunctions
       return $htmlRet;  
   }
 
-/*
-@desc retourne un tableau de formulaires
-@param string $SubjectKey identifiant du patient
-@return string html du tableau
-@return byref FormStatus = statut du formulaire demandé en paramètre
-*/  
+  /**
+  *get the flow chart of the current subject
+  *@return string html of study visits and forms
+  *@return byref FormStatus Status of the current Form
+  **/  
   protected function getMenu($SubjectKey,$MetaDataVersionOID,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,&$formStatus,$profileId){
   
-    //Recuperation de tous les formulaires du patient
     $tblForm = $this->m_ctrl->bocdiscoo()->getSubjectsTblForm($SubjectKey);
   
     //HOOK => uisubject_getMenu_beforeRendering
@@ -321,11 +317,10 @@ class uisubject extends CommonFunctions
       $AllowLock = "false";
     }
     
-    //Application de l'XSL par défaut
+    //Default XSL
     $xsl = new DOMDocument;
     $xsl->load(EGW_INCLUDE_ROOT . "/".$this->getCurrentApp(false)."/xsl/SubjectMenu.xsl");       
 
-    //Création du processeur XSLT et application sur le doc xml
     $proc = new XSLTProcessor;     
     $proc->importStyleSheet($xsl);
     
@@ -335,7 +330,7 @@ class uisubject extends CommonFunctions
     
     $doc = $proc->transformToDoc($tblForm);
 
-    //Xsl spécifique au form - si présent
+    //Specific Optional XSL
     $xslMenuFile = EGW_INCLUDE_ROOT ."/".$this->getCurrentApp(false)."/custom/$MetaDataVersionOID/xsl/SubjectMenu.xsl";
 
     if(file_exists($xslMenuFile))
@@ -359,10 +354,10 @@ class uisubject extends CommonFunctions
     return $htmlRet;
   }
   
-/*
-@desc retourne la légende des icônes
-@return string html
-*/  
+/**
+*Return icon legend as html
+*@return string html
+**/  
   protected function getLegend(){
     $htmlRet = "";
     $legend = array(
@@ -421,23 +416,23 @@ class uisubject extends CommonFunctions
     return $htmlRet;
   }
   
-/*
-@desc retourne une boîte à Outil (post-it pour les ARC)
+/**
+Return the toolbox buttons (post-it for CRA)
 @return string html
-*/  
+**/  
   protected function getToolbox($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$profileId=""){
     $htmlRet = "";
     
     //everybody can run form checking
     $htmlRet .= '<button id="btnRunChecks" class="ui-state-default ui-corner-all" onclick="checkFormData(\''.$this->getCurrentApp(false).'\',\''.$this->getCurrentApp(false).'\',\''.$SubjectKey.'\',\''.$StudyEventOID.'\',\''.$StudyEventRepeatKey.'\',\''.$FormOID.'\',\''.$FormRepeatKey.'\');location.reload();"><img src="'.$this->getCurrentApp(false).'/templates/default/images/ok.png" style="float:left; margin-right: 5px;" />Run checks</button>';
                    
-    //seuls les ARC peuvent placer des post-it
+    //only CRA could put Post-It
     if($profileId=="CRA"){
       $htmlRet .= '<button id="btnAddPostIt" class="ui-state-default ui-corner-all" onclick="displayNewPostIt(\''.$SubjectKey.'\',\''.$StudyEventOID.'\',\''.$StudyEventRepeatKey.'\',\''.$FormOID.'\',\''.$FormRepeatKey.'\');"><img src="'.$this->getCurrentApp(false).'/templates/default/images/postit_14.png" style="float:left; margin-right: 3px;" />Add a post-it</button>';
     }
-    //seuls les investigateurs peuvent saisir une déviation
+    //only investigator could put deviation
     if($profileId=="INV"){
-      //sur les formulaire susceptible de comporter une déviation uniquement
+      //and only on specified forms
       if($this->m_ctrl->bodeviations()->formCanHaveDeviation($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey)){
       /*
         //Si la dernière déviation enregistrée en base n'est pas une chaine de caractère vide (équivalent à déviation supprimée)
@@ -451,10 +446,10 @@ class uisubject extends CommonFunctions
     return $htmlRet;
   }
   
-/*
-@desc return a context menu, can be used with a right click on inputs
+/**
+return a context menu, can be used with a right click on inputs
 @return string html
-*/  
+**/  
   protected function getInputContextMenu(){
     $htmlRet = "";
     
@@ -470,32 +465,26 @@ class uisubject extends CommonFunctions
     return $htmlRet;
   }
   
-  /*
-  @desc return all subject data into PDF format (binary data)
-  @param $SubjectKey patient id
-  @return PDF data
-  */
+  /**
+  *return all subject data into PDF format (binary data)
+  *@param $SubjectKey patient id
+  *@return PDF data - binary content
+  **/
   public function getPDF($SubjectKey){
-    //////////////////////////////////////////////////////////////////////////////////////////
-    //récupérer l'ODM au format DOMDocument
     $doc = $this->m_ctrl->bocdiscoo()->getAllSubjectFormsAndIGsForPDF($SubjectKey);
-      
-    
-    //////////////////////////////////////////////////////////////////////////////////////////
-    //convertir en HTML simple
-    //Application de l'XSL par défaut
+ 
+    //clean html to convert to a more simple HTML 4 output without css
+    //Default XSL
     $xsl = new DOMDocument;
     $xsl->load(EGW_INCLUDE_ROOT . "/".$this->getCurrentApp(false)."/xsl/SubjectPDF.xsl"); 
 
-    //Création du processeur XSLT et application sur le doc xml
     $proc = new XSLTProcessor;     
     $proc->importStyleSheet($xsl);
     
-    //Paramètes
+    //XSL Parameters
     $siteId = $this->m_ctrl->bosubjects()->getSubjectColValue($SubjectKey,"SITEID");
     $subjId = sprintf($this->m_tblConfig["SUBJID_FORMAT"],$SubjectKey);
     $siteName = $this->m_ctrl->bosites()->getSiteName($siteId);
-    //$this->m_ctrl->_unset("socdiscoo");
     $proc->setParameter('','studyName',$this->m_tblConfig["APP_NAME"]);
     $proc->setParameter('','siteId',$siteId);
     $proc->setParameter('','subjId',$subjId);
@@ -504,10 +493,8 @@ class uisubject extends CommonFunctions
     $doc = $proc->transformToDoc($doc);
     
     $html = $doc->saveHTML();
-    //$html = "<!DOCTYPE html><html><body>Test :)</body></html>";
-    
-    //////////////////////////////////////////////////////////////////////////////////////////
-    //convertir en PDF
+
+    //convert to PDF using htmldoc command line
     $htmlTemp = tempnam("/tmp","htmlDocGfpc");
     $tmpHandle = fopen($htmlTemp,"w");
     fwrite($tmpHandle,$html);
@@ -515,8 +502,7 @@ class uisubject extends CommonFunctions
     
     # Tell HTMLDOC not to run in CGI mode...
     putenv("HTMLDOC_NOCGI=1");
-    //Generation et affichage sur la sortie standard
-    //$cmd = "htmldoc -f $filename -t pdf --quiet --color --webpage --jpeg  --left 30 --top 20 --bottom 20 --right 20 --footer c.: --fontsize 10 --textfont {helvetica}";
+    //Generation and output on standard output
     $cmd = "htmldoc -t pdf --quiet --color --webpage --jpeg  --left 30 --top 20 --bottom 20 --right 20 --footer c.: --fontsize 10 --textfont {helvetica}";
     ob_start();
     $err = passthru("$cmd '$htmlTemp'");
@@ -524,8 +510,6 @@ class uisubject extends CommonFunctions
     ob_end_clean();
     unlink($htmlTemp);
     
-    //////////////////////////////////////////////////////////////////////////////////////////
-    //retourner le résultat binaire brute
     return $pdf;
   }
   
