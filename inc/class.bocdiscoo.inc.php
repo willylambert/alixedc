@@ -2429,7 +2429,9 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
         $this->addLog($str,FATAL);
       }else{
         //We have one itemgroupdata - we need to know if the annotation element is here
-        if($igdata->item(0)->firstChild->nodeName!="Annotation"){
+        //$this->addLog("NodeName = ".$igdata->item(0)->getElementsByTagName("Annotation"),INFO);
+        $igAnnot = $igdata->item(0)->getElementsByTagName("Annotation");
+        if($igAnnot->length==0){
           $query = "declare default element namespace '".$this->m_tblConfig['SEDNA_NAMESPACE_ODM']."';
                     UPDATE
                     insert <Annotation SeqNum='1'>
