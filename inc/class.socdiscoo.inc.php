@@ -162,16 +162,7 @@ class socdiscoo extends CommonFunctions
       }
       
       $results = sedna_result_array();
-/*      
-      if(!$results){
-        $str = "Could not get query result or result is empty for query: $query\n" . sedna_error() ." (". __METHOD__ .")";
-        if($throwException){
-          throw new Exception($str);
-        }else{
-          $this->addLog($str,WARN);
-        }
-      }
-*/      
+     
       if($raw)
       {
         $xmlResult = $results;

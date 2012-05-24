@@ -42,7 +42,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
 @return array array of ItemDatas to be inserted into ItemGroupData, empty string if no modification 
 @author wlt
 */
-  private function addItemData($ItemGroupRepeatKey,$ItemGroupRef,$formVars,&$tblFilledVar,$subj,$AuditRecordID,$bEraseNotFoundItem=true,$nbAnnotations)
+  private function addItemData($SubjectKey,$ItemGroupRepeatKey,$ItemGroupRef,$formVars,&$tblFilledVar,$subj,$AuditRecordID,$bEraseNotFoundItem=true,$nbAnnotations)
   {
     $this->addLog("bocdiscoo->addItemData() : tblFilledVar = " . $this->dumpRet($tblFilledVar),TRACE);
     $tblRet = array();
@@ -66,7 +66,8 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
         $AnnotationSeqNum = $nbAnnotations+1;
         $AnnotationID = sprintf("Annot-%06s",$nbAnnotations+1);
         $comment = htmlspecialchars(stripslashes($comment));     
-        $query = "UPDATE
+        $query = "declare default element namespace '".$this->m_tblConfig['SEDNA_NAMESPACE_ODM']."';
+                  UPDATE
                   insert <Annotation ID='$AnnotationID' SeqNum='$AnnotationSeqNum'>
                           <Comment>$comment</Comment>
                           <Flag>
@@ -74,10 +75,13 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
                           </Flag>
                          </Annotation> 
                   into collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:Annotations";
-        $this->m_ctrl->socdiscoo()->query($query);
-          
-        $str = "bocdiscoo->addItemData() Adding annotation $AnnotationID : ". $flag ." / ". $comment;
-        $this->addLog($str,INFO);        
+        try{
+          $this->m_ctrl->socdiscoo()->query($query);
+        }catch(xmlexception $e){
+          $str = "Error in query " . $e->getMessage() . " " . $query ." (".__METHOD__.")";
+          $this->addLog($str,FATAL);
+        }
+        $this->addLog("bocdiscoo->addItemData() Adding annotation $AnnotationID : ". $flag ." / ". $comment,INFO);        
       }
       else
       {
@@ -2522,7 +2526,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
       $this->addLog($str,FATAL);
     }
 
-    $tblItemDatas = $this->addItemData($ItemGroupRepeatKey,$ItemGroupRef[0],$formVars,$tblFilledVar,$subj,$AuditRecordID,!$bFormVarsIsAlreadyDecoded,$nbAnnotations);
+    $tblItemDatas = $this->addItemData($SubjectKey,$ItemGroupRepeatKey,$ItemGroupRef[0],$formVars,$tblFilledVar,$subj,$AuditRecordID,!$bFormVarsIsAlreadyDecoded,$nbAnnotations);
     $strItemDatas = implode(',',$tblItemDatas);      
     //Update XML DB only if needed
     if($strItemDatas!="")
