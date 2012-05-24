@@ -2027,7 +2027,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
       $xqSubjectCollection = "index-scan('SubjectODM', '$SubjectKeys', 'EQ')/odm:ClinicalData";
     }
     
-    //for performance issues, the same MetaDataVersionOID is used for every subject. (I assume that every subjectin the study in created or updated with the same version of Metadatas)
+    //for performance issues, the same MetaDataVersionOID is used for every subject. (I assume that every subject in the study in created or updated with the same version of Metadatas)
     $query = "     
         let \$SubjectDatas := $xqSubjectCollection
         let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID='{$this->m_tblConfig['METADATAVERSION']}']
@@ -2204,15 +2204,14 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
     try{
       $doc = $this->m_ctrl->socdiscoo()->query($query);
     }catch(xmlexception $e){
-      $str = "Erreur de la requete : " . $e->getMessage() . "<br/><br/>" . $query . "</html> (". __METHOD__ .")";
+      $str = "xQuery error : " . $e->getMessage() . "<br/><br/>" . $query . "</html> (". __METHOD__ .")";
       $this->addLog($str,FATAL);
-      die($str);
     }
     return (string)$doc[0]['value'];
   }
   
   /**
-   * Optimize the query written in metadata
+   * Optimize query written into the metadata
    * @return string optimized query code
    * @author tpi       
    **/  
@@ -2344,16 +2343,13 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
   {
     $this->addLog("bocdiscoo->removeItemGroupData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey)",INFO);
 
-    //SEDNA 3.5 syntax (still not conform with the XQuery Update Facility 1.0)
     $query = "UPDATE REPLACE \$x in collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']/odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']/odm:ItemGroupData[@ItemGroupOID='$ItemGroupOID' and @ItemGroupRepeatKey='$ItemGroupRepeatKey']/@TransactionType
               WITH attribute {'TransactionType'} {'Remove'}";
-
     try{
       $res = $this->m_ctrl->socdiscoo()->query($query);
     }catch(xmlexception $e){
-      $str = "Erreur de la requete : " . $e->getMessage() . " : " . $query;
+      $str = "xQuery error : " . $e->getMessage() . " : " . $query;
       $this->addLog("bocdiscoo->removeItemGroupData() Erreur : $str",FATAL);
-      die($str);
     }
   }
 

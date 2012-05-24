@@ -411,7 +411,7 @@ class uidbadmin extends CommonFunctions{
                     <br/>
                     <form action='" . $GLOBALS['egw']->link('/index.php',array('menuaction'=>$this->getCurrentApp(false).'.uietude.dbadminInterface','action'=>'ImportBulkServerDir')) . "' method='post'>
                       Import all xml located in server folder : <input type='text' name='importServerDir' size='80'/>
-                      <input type='submit' value='ImportBulkServerDir'/>
+                      <input type='submit' value='Import'/>
                       <div><i>Full server path without trailing slash</i></div>
                     </form>
                     <br/>";
@@ -560,13 +560,13 @@ class uidbadmin extends CommonFunctions{
   private function importDoc(){
     $html = "";
     
-	  $uploaddir = $this->m_tblConfig['CDISCOO_PATH'] . "/xml/";
+	  $uploaddir = $this->m_tblConfig['CDISCOO_PATH'] . "/import/";
     $uploadfile = $uploaddir . basename($_FILES['uploadedDoc']['name']);
-    
-    //Detection of the target container
-    $containerName = $this->m_ctrl->boimport()->getContainer($uploadfile);
-    
+        
     if (move_uploaded_file($_FILES['uploadedDoc']['tmp_name'], $uploadfile)){
+      //Detection of the target container
+      $containerName = $this->m_ctrl->boimport()->getContainer($uploadfile);
+
       $html .= "<div style='text-align: left'><ul>";
       try{
         $html .= "<li>adding {$_FILES['uploadedDoc']['name']}...</li>";
