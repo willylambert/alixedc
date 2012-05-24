@@ -2352,11 +2352,9 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
   **/
   function saveItemGroupData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$formVars,$who,$where,$why,$fillst="",$bFormVarsIsAlreadyDecoded=false)
   {
-    $this->addLog("bocdiscoo->saveItemGroupData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$formVars,$who,$where,$why,$fillst)",INFO);
-    $this->addLog("$formVars = " . $this->dumpRet($formVars),TRACE);
-    
     $hasModif = false;
-    
+    $this->addLog("bocdiscoo->saveItemGroupData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$formVars,$who,$where,$why,$fillst,$bFormVarsIsAlreadyDecoded)",INFO);
+        
     //DomDocument of Subject
     try{
       $subj = $this->m_ctrl->socdiscoo()->getDocument("ClinicalData",$SubjectKey,false);
@@ -2368,22 +2366,8 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
     $xPath = new DOMXPath($subj);
     $xPath->registerNamespace("odm", ODM_NAMESPACE);
 
-    //Add StudyEventData if needed
-    $result = $xPath->query("/odm:ODM/odm:ClinicalData/odm:SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']");
-    if($result->length==0){
-      $this->addLog("bocdiscoo->saveItemGroupData() Add StudyEventData[@StudyEventOID='$StudyEventOID' @StudyEventRepeatKey=$StudyEventRepeatKey]",INFO);
-      $query = "declare default element namespace '".$this->m_tblConfig['SEDNA_NAMESPACE_ODM']."';
-                UPDATE
-                insert <StudyEventData StudyEventOID='$StudyEventOID' StudyEventRepeatKey='$StudyEventRepeatKey'  TransactionType='Insert'/>
-                following collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData/odm:StudyEventData[1]";
-      $this->m_ctrl->socdiscoo()->query($query);
-    }else{
-      if($result->length!=1){
-        $str = "Error : Duplicate entry of StudyEventData[@StudyEventOID='$StudyEventOID' StudyEventRepeatKey=$StudyEventRepeatKey] (". __METHOD__ .")";
-        $this->addLog($str,FATAL);
-      }
-    }
-
+    //Note : StudyEventData, AuditRecords and Annotations elements must be declared into the blank subject 
+    
     //Add FormData if needed
     $result = $xPath->query("/odm:ODM/odm:ClinicalData/odm:SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']/odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']");
     if($result->length==0){
@@ -2400,25 +2384,9 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
       }
     }
 
-    //Add AuditRecords if needed
-    $result = $xPath->query("/odm:ODM/odm:ClinicalData/odm:AuditRecords");
-    if($result->length==0){
-      $this->addLog("Adding AuditRecords",INFO);
-      $query = "declare default element namespace '".$this->m_tblConfig['SEDNA_NAMESPACE_ODM']."';
-                UPDATE
-                insert <AuditRecords />
-                following collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:SubjectData";
-      $this->m_ctrl->socdiscoo()->query($query);
-    }else{
-      if($result->length!=1){
-        $str = "Error : duplicate entry AuditRecords for Subject $SubjectKey result->length={$result->length} (".__METHOD__.")";
-        $this->addLog($str,FATAL);
-      }
-    }
-
     //Generation of new ID as Audit-XXXXXX
     $result = $xPath->query("/odm:ODM/odm:ClinicalData/odm:AuditRecords/odm:AuditRecord");
-    $AuditRecordID = sprintf("Audit-%06s",$result->length+1);
+    $AuditRecordID = sprintf("AT-%06s",$result->length+1);
 
     $query = "declare default element namespace '".$this->m_tblConfig['SEDNA_NAMESPACE_ODM']."';
               UPDATE
@@ -2430,22 +2398,6 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
                      </AuditRecord>
               following collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:AuditRecords/odm:AuditRecord[1]";
     $this->m_ctrl->socdiscoo()->query($query);
-
-    //Add Annotations if needed
-    $annotations = $xPath->query("/odm:ODM/odm:ClinicalData/odm:Annotations");
-    if($annotations->length==0){
-      $this->addLog("Adding Annotations",INFO);
-      $query = "declare default element namespace '".$this->m_tblConfig['SEDNA_NAMESPACE_ODM']."';
-                UPDATE
-                insert <Annotations />
-                following collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData/odm:AuditRecords";
-      $this->m_ctrl->socdiscoo()->query($query);
-    }else{
-      if($annotations->length!=1){
-        $str = "Error : multiple Annotations for patient $SubjectKey result->length={$annotations->length} (".__METHOD__.")";
-        $this->addLog($str,FATAL);
-      }
-    }
 
     $annotationsChildren = $xPath->query("/odm:ODM/odm:ClinicalData/odm:Annotations/odm:Annotation");
     $nbAnnotations = $annotationsChildren->length;
