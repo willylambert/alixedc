@@ -39,14 +39,13 @@ function loadAlixCRFjs(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepe
   //Bind des buttons
   $("#btnSave").click(function(){
     
-    //Code couleur sur le clique => confirmation rapide que le bouton a été cliqué (couleur doit ensuite passer au ver tà la fin de l'enregistrement)
-    $("#btnSave").css({color: '#ff0000'});
-    $("#btnSave").animate({opacity: 0.3});
-    
     //Dialog d'attente durant l'enregistrement
   	$("#dialog-modal-save").dialog("open");
-  	
-    saveAllItemGroup(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey,bCheckFormData);
+    
+    //Code couleur sur le clique => confirmation rapide que le bouton a été cliqué (couleur doit ensuite passer au ver tà la fin de l'enregistrement)
+    $("#btnSave").animate({opacity: 0.25}, 200, function(){
+      saveAllItemGroup(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey,bCheckFormData);
+    });
   });
   
   $("#btnCancel").click(function(){
@@ -456,7 +455,6 @@ function saveAllItemGroup(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventR
                   Description = Description.replace(regexp,"");
                   alert(Description);        
                 }
-                $("#btnSave").css({color: '#393939'});
                 $("#btnSave").animate({opacity: 1});
               }
             }
