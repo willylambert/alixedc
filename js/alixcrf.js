@@ -39,14 +39,13 @@ function loadAlixCRFjs(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepe
   //Bind des buttons
   $("#btnSave").click(function(){
     
-    //Code couleur sur le clique => confirmation rapide que le bouton a été cliqué (couleur doit ensuite passer au ver tà la fin de l'enregistrement)
-    $("#btnSave").css({color: '#ff0000'});
-    $("#btnSave").animate({opacity: 0.3});
-    
     //Dialog d'attente durant l'enregistrement
   	$("#dialog-modal-save").dialog("open");
-  	
-    saveAllItemGroup(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey,bCheckFormData);
+    
+    //Code couleur sur le clique => confirmation rapide que le bouton a été cliqué (couleur doit ensuite passer au ver tà la fin de l'enregistrement)
+    $("#btnSave").animate({opacity: 0.25}, 200, function(){
+      saveAllItemGroup(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey,bCheckFormData);
+    });
   });
   
   $("#btnCancel").click(function(){
@@ -132,7 +131,7 @@ function loadAlixCRFjs(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepe
                                                   newAnnot.attr("id","annotation_div_"+tdName.replace(".","-")+"_"+newIGRK);
                                                   newAnnot.find(":input").each(function(index){
                                                     inputName = new String($(this).attr("name"));
-                                                    $(this).attr("name",inputId.replace("_"+sourceIGRK,"_"+newIGRK));
+                                                    $(this).attr("name",inputName.replace("_"+sourceIGRK,"_"+newIGRK));
                                                     
                                                     if(this.type=="hidden"){
                                                       this.value="";
@@ -413,8 +412,7 @@ function saveAllItemGroup(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventR
   $("form").each( 
     function(index){
       dataString = $(this).serialize();
-      if(dataString!=$(this).data('initials_values') ||
-         index==$("form").length-1 )
+      if(dataString!=$(this).data('initials_values'))
       {
         //Form is modified - we submit it
         $.ajax({
@@ -457,7 +455,6 @@ function saveAllItemGroup(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventR
                   Description = Description.replace(regexp,"");
                   alert(Description);        
                 }
-                $("#btnSave").css({color: '#393939'});
                 $("#btnSave").animate({opacity: 1});
               }
             }

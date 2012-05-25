@@ -166,7 +166,7 @@ class CommonFunctions{
  
   }
   
-  public function dumpPre($mixed = null, $expandable=false)
+  public function print_r($mixed = null, $expandable=false)
   {
     echo '<pre>';
     if(!$expandable){

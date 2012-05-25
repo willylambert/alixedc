@@ -62,7 +62,7 @@ class uidashboard extends CommonFunctions
     switch($action){
       case "curve":
         $TITLE = "Inclusions curve";
-        //$CONTENT = $this->getCurve();
+        $CONTENT = $this->getCurve();
         break;
       case "inclusions":
         $TITLE = "Inclusions";
@@ -576,22 +576,25 @@ class uidashboard extends CommonFunctions
       //on ne calcule pas les valeurs du futur
       $toDate = $year."-".sprintf("%02d", $month)."-".date('d');
       if($toDate <= $today){
-        $query = "let \$SubjectsCol := doc('SubjectsList')
-                  for \$SubjectData in \$SubjectsCol/subjects/subject
-                  let \$SVSVSTDTC := \$SubjectData/colSVSVSTDTC
-                  where \$SVSVSTDTC!='' and \$SVSVSTDTC lt '$toDate'
+        $query = "let \$SubjectsCol := collection('ClinicalData')/odm:ODM/odm:ClinicalData
+                  for \$SubjectData in \$SubjectsCol/odm:SubjectData
+                  let \$INCLUSIONDATE := \$SubjectData/odm:StudyEventData[@StudyEventOID='{$this->m_tblConfig['SUBJECT_LIST']['COLS']['INCLUSIONDATE']['Value']['SEOID']}' and @StudyEventRepeatKey='{$this->m_tblConfig['SUBJECT_LIST']['COLS']['INCLUSIONDATE']['Value']['SERK']}']/
+                                                odm:FormData[@FormOID='{$this->m_tblConfig['SUBJECT_LIST']['COLS']['INCLUSIONDATE']['Value']['FRMOID']}' and @FormRepeatKey='{$this->m_tblConfig['SUBJECT_LIST']['COLS']['INCLUSIONDATE']['Value']['FRMRK']}']/
+                                                odm:ItemGroupData[@ItemGroupOID='{$this->m_tblConfig['SUBJECT_LIST']['COLS']['INCLUSIONDATE']['Value']['IGOID']}' and @ItemGroupRepeatKey='{$this->m_tblConfig['SUBJECT_LIST']['COLS']['INCLUSIONDATE']['Value']['IGRK']}']/
+                                                odm:*[@ItemOID='{$this->m_tblConfig['SUBJECT_LIST']['COLS']['INCLUSIONDATE']['Value']['ITEMOID']}'][1]
+                  where \$INCLUSIONDATE!='' and \$INCLUSIONDATE lt '$toDate'
                   return
                   <Subject     
                        SubjectKey='{\$SubjectData/@SubjectKey}'
-                       SVSVSTDTC= '{\$SVSVSTDTC}'
+                       INCLUSIONDATE= '{\$INCLUSIONDATE}'
                        />";
         try{
           $res = $this->m_ctrl->socdiscoo()->query($query);
         }catch(xmlexception $e){
           $str = __METHOD__." Erreur de la requete : " . $e->getMessage() . " " . $query ." (". __METHOD__ .")";
           $this->addLog($str,FATAL);
-          die($str);
         }
+        
         $nbSubj = count($res);
         $nbThisMonth = $nbSubj - $count;
         $count = $nbSubj;
@@ -615,7 +618,6 @@ class uidashboard extends CommonFunctions
     $xaxis = "[". $xaxis ."]";
     $values = "[". $values ."]";
     $valuesByMonth = "[". $valuesByMonth ."]";
-
     
     $yaxis = "";
     $factor = 25; //la plupart des nombre de patients prévus seront multiples de 25 (je pense)
@@ -634,7 +636,7 @@ class uidashboard extends CommonFunctions
                     courbe = $.jqplot('conteneur', [cumul], {
                       height: 450,
                       
-                      title: 'ALIX EDC',
+                      title: 'INCLUSIONS',
                       series:[ 
                           {label:'eCRF inclusions',lineWidth:2, markerOptions:{style:'dimaond'}}, 
                           {show:false,label:'Inclusions by month', renderer:$.jqplot.BarRenderer,rendererOptions:{barWidth : 12}}

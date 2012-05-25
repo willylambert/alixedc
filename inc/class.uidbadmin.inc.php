@@ -361,7 +361,8 @@ class uidbadmin extends CommonFunctions{
       }
       
       $htmlRet .= "</tbody></table>";
-      $htmlRet .= count($docs[0]) ." fichiers";
+      $nbDocs = count($docs[0]);
+      $htmlRet .= $nbDocs ." document". ($nbDocs>1?"s":"");
       
       $htmlRet .= "<form action='".$GLOBALS['egw']->link('/index.php',array('menuaction' => $GLOBALS['egw_info']['flags']['currentapp'].'.uietude.dbadminInterface',
                                                                                               'action' => 'execXQuery',

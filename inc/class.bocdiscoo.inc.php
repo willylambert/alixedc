@@ -845,7 +845,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
             }
             //$tblParams = str_replace("¤", " ", $tblParams); //restauration des espaces ' ' substitués (par des '¤', cf getXQueryConsistency())
             //$error["Description"] = str_replace("\"","'",$error["Description"]);
-            $cmdEval = "\$desc = sprintf(\"".$error["Description"]."\",\"".implode('","',$tblParams)."\");";
+            $cmdEval = "\$desc = sprintf(\"".addcslashes($error["Description"],"\"")."\",\"".implode('","',$tblParams)."\");";
             $this->addLog("Eval=".$cmdEval,INFO);
             eval($cmdEval);
             $errorToAdd["Description"] = $desc;

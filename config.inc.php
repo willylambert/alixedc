@@ -83,7 +83,7 @@
   $configEtude['ENROL_FORMOID'] = "FORM.ENROL";
   $configEtude['ENROL_FORMRK'] = "0";
     
-  
+  //SITEID, INCLUSIONDATE = mandatory column
   $configEtude['SUBJECT_LIST']['COLS']['COUNTRY'] = array('Visible' => true,
                                                  'Title'=>'Country',
                                                  'Width'=>60,
@@ -105,7 +105,10 @@
                                                  'Title'=>'Patient<br/>Number',
                                                  'Width'=>60,
                                                  'Value'=>array('SEOID'=>'1','SERK'=>'0','FRMOID'=>'FORM.ENROL','FRMRK'=>'0','IGOID'=>'ENROL','IGRK'=>'0','ITEMOID'=>'ENROL.SUBJID'));
-
+  $configEtude['SUBJECT_LIST']['COLS']['INCLUSIONDATE'] = array('Visible' => false,
+                                                 'Title'=>'Inclusion Date',
+                                                 'Width'=>0,
+                                                 'Value'=>array('SEOID'=>'2','SERK'=>'0','FRMOID'=>'FORM.SV','FRMRK'=>'0','IGOID'=>'SV','IGRK'=>'0','ITEMOID'=>'SV.SVSTDTC'));
   $configEtude['SUBJECT_LIST']['COLS']['SCREENINGSTATUS'] = array('Visible' => true,
                                                  'Title'=>'Screening visit',
                                                  'ShortTitle' => 'SC',
@@ -128,8 +131,8 @@
                                                  'Width'=>20,
                                                  'Value'=>array('SEOID'=>'3','SERK'=>'0'));
   $configEtude['SUBJECT_LIST']['COLS']['V2'] = array('Visible' => true,
-                                                 'Title'=>'Visit V1',
-                                                 'ShortTitle' => 'V1',
+                                                 'Title'=>'Visit V2',
+                                                 'ShortTitle' => 'V2',
                                                  'Orientation'=>'V',
                                                  'Type' => 'VISITSTATUS',
                                                  'Width'=>20,
