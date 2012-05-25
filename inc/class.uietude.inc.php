@@ -75,7 +75,7 @@ class uietude extends CommonFunctions
 		//parse_navbar();
  
 		if($_SESSION[$this->getCurrentApp(false)]['testmode']){
-      echo "<div style='width:100%;text-align:center;color:white;background-color:red;'><strong><blink>WARNING</blink> : Test mode is activated !</strong>
+      echo "<div style='width:100%;text-align:center;color:white;background-color:red;'><strong>WARNING : Test mode is activated !</strong>
               <a style='color:white;' href=".$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.startupInterface',
   				                                                                              'testmode' => 'false', 
                                                                                            'title' => urlencode(lang('testmode')))).">Click here to exit test mode</a></div>";

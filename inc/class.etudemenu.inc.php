@@ -3,7 +3,7 @@
     * ALIX EDC SOLUTIONS                                                       *
     * Copyright 2011 Business & Decision Life Sciences                         *
     * http://www.alix-edc.com                                                  *
-    * ------------------------------------------------------------------------ *                                                                       *
+    * ------------------------------------------------------------------------ *
     * This file is part of ALIX.                                               *
     *                                                                          *
     * ALIX is free software: you can redistribute it and/or modify             *
@@ -43,36 +43,37 @@ class etudemenu extends CommonFunctions
     //Inclusion (investigators only)
     $enroll = "";
     if($this->m_ctrl->boacl()->existUserProfileId("INV")){
-      $enroll = '<li style="'.$jqabStyle.'" ><a id="addSubj" href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.subjectInterface',
+      $enroll = '<a id="addSubj" href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.subjectInterface',
                                                                          'MetaDataVersionOID' => $this->m_tblConfig["METADATAVERSION"],
                                                                          'SubjectKey' => $this->m_tblConfig['BLANK_OID'],
                                                                          'StudyEventOID' => $this->m_tblConfig['ENROL_SEOID'],
                                                                          'StudyEventRepeatKey' => $this->m_tblConfig['ENROL_SERK'],
                                                                          'FormOID' => $this->m_tblConfig['ENROL_FORMOID'],
-                                                                         'FormRepeatKey' => $this->m_tblConfig['ENROL_FORMRK'])).'"><img src="'.$this->getCurrentApp(false).'/templates/default/images/user_add.png" alt="" />Enrol Subject</a></li>';
+                                                                         'FormRepeatKey' => $this->m_tblConfig['ENROL_FORMRK'])).'">
+                <li class="ui-state-default" style="'.$jqabStyle.'" ><img src="'.$this->getCurrentApp(false).'/templates/default/images/user_add.png" alt="" /><div><p>Enrol Subject</p></div></li></a>';
     }
        
-    $toolsButtons = '<li id="adminMenu" style="'.$jqabStyle.'" ><a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface')).'"><img src="'.$GLOBALS['egw_info']['flags']['currentapp'].'/templates/default/images/notification_warning.png" alt="" />Tools</a></li>';
+    $toolsButtons = '<a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface')).'"><li class="ui-state-default" id="adminMenu" style="'.$jqabStyle.'" ><img src="'.$GLOBALS['egw_info']['flags']['currentapp'].'/templates/default/images/notification_warning.png" alt="" /><div><p>Tools</p></div></li></a>';
     
-    $dashboard = '<li style="'.$jqabStyle.'" ><a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.dashboardInterface')).'"><img src="'. $GLOBALS['egw_info']['flags']['currentapp'].'/templates/default/images/piechart2.png" alt="" />Dashboard</a></li>';
+    $dashboard = '<a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.dashboardInterface')).'"><li class="ui-state-default" style="'.$jqabStyle.'" ><img src="'. $GLOBALS['egw_info']['flags']['currentapp'].'/templates/default/images/piechart2.png" alt="" /><div><p>Dashboard</p></div></li></a>';
     
     //Queries
     if($this->m_ctrl->boacl()->existUserProfileId(array("CRA","DM"))){
-      $queries = '<li style="'.$jqabStyle.'" ><a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.queriesInterface')).'"><img src="'. $GLOBALS['egw_info']['flags']['currentapp'].'/templates/default/images/file_notification_warning.png" alt="" />Queries</a></li>';
+      $queries = '<a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.queriesInterface')).'"><li class="ui-state-default" style="'.$jqabStyle.'" ><img src="'. $GLOBALS['egw_info']['flags']['currentapp'].'/templates/default/images/file_notification_warning.png" alt="" /><div><p>Queries</p></div></li></a>';
     }elseif($this->m_ctrl->boacl()->existUserProfileId("SPO")){
-      $queries = '<li class="inactiveButton"><a href="#"><img src="'. $this->getCurrentApp(false).'/templates/default/images/file_notification_warning.png" alt=""/>Queries</a></li>';
+      $queries = '<a href="#"><li class="ui-state-default" class="inactiveButton"><img src="'. $this->getCurrentApp(false).'/templates/default/images/file_notification_warning.png" alt=""/><div><p>Queries</p></div></li></a>';
     }
     
     //Deviations
     if($this->m_ctrl->boacl()->existUserProfileId(array("CRA","DM","SPO"))){
-      $deviations = '<li style="'.$jqabStyle.'" ><a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.deviationsInterface')).'"><img src="'. $this->getCurrentApp(false).'/templates/default/images/file_warning.png" alt="" />Deviations</a></li>';
+      $deviations = '<a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.deviationsInterface')).'"><li class="ui-state-default" style="'.$jqabStyle.'" ><img src="'. $this->getCurrentApp(false).'/templates/default/images/file_warning.png" alt="" /><div><p>Deviations</p></div></li></a>';
     }elseif($this->m_ctrl->boacl()->existUserProfileId("SPO")){
-      $deviations = '<li class="inactiveButton"><a href="#"><img src="'. $this->getCurrentApp(false).'/templates/default/images/file_warning.png" alt=""/>Deviations</a></li>';
+      $deviations = '<a href="#"><li class="ui-state-default" class="inactiveButton"><img src="'. $this->getCurrentApp(false).'/templates/default/images/file_warning.png" alt=""/><div><p>Deviations</p></div></li></a>';
     }
 
     //Audit Trail
     if($this->m_ctrl->boacl()->existUserProfileId(array("CRA","DM","SPO"))){
-      $auditTrail = '<li style="'.$jqabStyle.'" ><a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.auditTrailInterface')).'"><img src="'. $this->getCurrentApp(false).'/templates/default/images/file_notification_warning.png" alt="" />Audit Trail</a></li>';
+      $auditTrail = '<a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.auditTrailInterface')).'"><li class="ui-state-default" style="'.$jqabStyle.'" ><img src="'. $this->getCurrentApp(false).'/templates/default/images/file_notification_warning.png" alt="" /><div><p>Audit Trail</p></div></li></a>';
     }
     
     $testmode = $_SESSION[$this->getCurrentApp(false)]['testmode'];
@@ -81,20 +82,20 @@ class etudemenu extends CommonFunctions
              <div id="toolbar_ico">         
               <ul>
                 '.$enroll.'
-                <li><a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.subjectListInterface')).'"><img src="'. $GLOBALS['egw_info']['flags']['currentapp'].'/templates/default/images/user_manage.png" alt="" />Subjects list</a></li>
+                <a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.subjectListInterface')).'"><li class="ui-state-default"><img src="'. $GLOBALS['egw_info']['flags']['currentapp'].'/templates/default/images/user_manage.png" alt="" /><div><p>Subjects list</p></div></li></a>
                 '.$dashboard.'
-                <li><a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.documentsInterface')).'"><img src="'. $GLOBALS['egw_info']['flags']['currentapp'].'/templates/default/images/folder.png" alt="" />Documents</a></li>
-                <li id="testModeMenu" ><a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.startupInterface','testmode'=>($testmode?'false':'true'))).'"><img src="'. $this->getCurrentApp(false).'/templates/default/images/application_warning.png" alt="" />
+                <a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.documentsInterface')).'"><li class="ui-state-default"><img src="'. $GLOBALS['egw_info']['flags']['currentapp'].'/templates/default/images/folder.png" alt="" /><div><p>Documents</p></div></li></a>
+                <a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.startupInterface','testmode'=>($testmode?'false':'true'))).'"><li class="ui-state-default" id="testModeMenu" ><img src="'. $this->getCurrentApp(false).'/templates/default/images/application_warning.png" alt="" /><div><p>
                   '. ($testmode?'Exit test mode':'Test Mode') .'
-                  </a></li>
+                  </p></div></li></a>
                 '.$queries.'
                 '.$deviations.'
                 '.$auditTrail.'
                 '.$toolsButtons.'
-                <li><a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.logout')).'"><img src="'.$this->getCurrentApp(false).'/templates/default/images/logout2.png" alt="" />Logout</a></li>
+                <a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.logout')).'"><li class="ui-state-default"><img src="'.$this->getCurrentApp(false).'/templates/default/images/logout2.png" alt="" /><div><p>Logout</p></div></li></a>
               </ul>
             </div>';
-
+    
     return $menu;
 	}	
 }

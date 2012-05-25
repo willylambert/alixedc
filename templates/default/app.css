@@ -38,6 +38,8 @@ body,td{
 #userInfo{
   margin-right:5px;
   float:right;
+  font-weight: normal;
+  text-transform: none;
 }
 
 #userInfo a{
@@ -52,7 +54,7 @@ body,td{
   background: black url(images/fond_boitemenu_noir.png) repeat-x center left;
   margin-bottom: 0px; /*bottom spacing between header and rest of content*/
   text-transform: uppercase;
-  padding: 4px 0 4px 7px; /*header text is indented 10px*/
+  padding: 4px 0;
   margin-top:0;
 }
 
@@ -864,6 +866,9 @@ div.itemGroupLine:hover{
   width:97%;
   margin-left: 5px;
   min-height: 500px;
+  
+  background: #fff url(images/sarxos_Simple_Folder_Documents.png) 50% 0%;
+  background-repeat: no-repeat;
 }
 
 #documentsMenu a{
@@ -959,18 +964,34 @@ form#addProfile input.text { margin-bottom:12px; width:95%; padding: .4em; }
 
 #toolbar_ico ul{
   list-style-type: none;
- /* padding:10px 20px;*/
+  margin: 0px;
 }
 
 #toolbar_ico ul li{
   float:left;
   width:120px;
   text-align:center;
+  
+  padding-top: 5px;
+  padding-bottom: 5px;
+  background: #FFFFFF url(images/ui-bg_glass_75_f0f0f0_1x400.png) 50% 50%;
+  margin: 1px 1px 1px 1px;
+}
+#toolbar_ico ul li:hover{
+  background: #FFFFFF url(jquery-ui/images/ui-bg_glass_75_e6e6e6_1x400.png) 50% 50%;
+  cursor: pointer;
 }
 
 #toolbar_ico img{
-  width:32px;
+  width: 32px;
 } 
+
+#toolbar_ico div{
+  width: 80px;
+  height: 32px;
+  text-align: center;
+  float: right;
+}
 
 .itemGroupHeadLine{
   clear:both;
