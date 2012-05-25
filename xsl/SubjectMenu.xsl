@@ -70,7 +70,7 @@
   </div>
 </xsl:template>
 
-<xsl:template match="Subjects">
+<xsl:template match="SubjectData">
   <div id="subjectMenu" class="ui-accordion ui-widget ui-helper-reset ui-accordion-icons">
     <xsl:apply-templates/>
     <script>

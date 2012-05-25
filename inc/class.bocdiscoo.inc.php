@@ -2009,79 +2009,58 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
 
   /**
    * @desc Get all subject(s) forms and visits, with status for each form (EMPTY, PARTIAL, INCONSISTENT, FROZEN)
-   * @param array/string $SubjectKeys
    * @return DOMDocument
    * @author wlt, tpi
    **/  
-  public function getSubjectsTblForm($SubjectKeys)
+  public function getSubjectsTblForm($SubjectKey)
   {
-    $this->addLog(__METHOD__ ."($SubjectKeys)",INFO);
-    
-    $xqSubjectCollection = "";
-    if(is_array($SubjectKeys) || strpos($SubjectKeys, ",")){ //an array of SubjectKey, or list of SubjectKey separated by commas
-      if(is_array($SubjectKeys)){
-        $subjList = "";
-        foreach($SubjectKeys as $SubjectKey){
-          if($subjList!="") $subjList .= ",";
-          $subjList .= "'$SubjectKey'";
-        }
-      }
-      $xqSubjectCollection = "collection('ClinicalData')/odm:ODM[exists(index-of(($subjList),@FileOID))]/odm:ClinicalData";
-    }else{ //only one subject
-      $xqSubjectCollection = "index-scan('SubjectODM', '$SubjectKeys', 'EQ')/odm:ClinicalData";
-    }
+    $this->addLog(__METHOD__ ."()",INFO);
     
     //for performance issues, the same MetaDataVersionOID is used for every subject. (I assume that every subject in the study in created or updated with the same version of Metadatas)
     $query = "     
-        let \$SubjectDatas := $xqSubjectCollection
-        let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID='{$this->m_tblConfig['METADATAVERSION']}']
+        let \$SubjectData := index-scan('SubjectData', '$SubjectKey', 'EQ')
+        let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
         return
-          <Subjects>
+          <SubjectData SubjectKey='{\$SubjectData/../../@FileOID}'>
           {
-            for \$SubjectData in \$SubjectDatas/odm:SubjectData
+            for \$StudyEventData in \$SubjectData/odm:StudyEventData
+            let \$StudyEventDef := \$MetaDataVersion/odm:StudyEventDef[@OID=\$StudyEventData/@StudyEventOID]
             return
-            <SubjectData SubjectKey='{\$SubjectData/../../@FileOID}'>
-            {
-              for \$StudyEventData in \$SubjectData/odm:StudyEventData
-              let \$StudyEventDef := \$MetaDataVersion/odm:StudyEventDef[@OID=\$StudyEventData/@StudyEventOID]
-              return
-                <StudyEventData StudyEventOID='{\$StudyEventData/@StudyEventOID}'
-                                StudyEventRepeatKey='{\$StudyEventData/@StudyEventRepeatKey}'
-                                Title='{\$StudyEventDef/odm:Description/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()}'>
-                {
-                  for \$FormRef in \$StudyEventDef/odm:FormRef
-                  let \$FormDef := \$MetaDataVersion/odm:FormDef[@OID=\$FormRef/@FormOID]
-                  let \$AllFormData := \$StudyEventData/odm:FormData[@FormOID=\$FormRef/@FormOID]
-                  return
-                      if (count(\$AllFormData) > 0)
-                      then
-                          for \$FormData in \$AllFormData
-                              let \$ItemGroupDataCount := count(\$FormData/odm:ItemGroupData[@TransactionType!='Remove'])
-                              let \$ItemGroupDataCountEmpty := count(\$FormData/odm:ItemGroupData[@TransactionType!='Remove']/odm:Annotation/odm:Flag[odm:FlagValue/string()='EMPTY'])
-                              let \$ItemGroupDataCountFrozen := count(\$FormData/odm:ItemGroupData[@TransactionType!='Remove']/odm:Annotation/odm:Flag[odm:FlagValue/string()='FROZEN'])
-                              
-                              return
-                                  <FormData FormOID='{\$FormRef/@FormOID}'
-                                            FormRepeatKey='{\$FormData/@FormRepeatKey}'
-                                            MetaDataVersionOID='{\$MetaDataVersion/@OID}'
-                                            ItemGroupDataCount='{\$ItemGroupDataCount}'
-                                            ItemGroupDataCountEmpty='{\$ItemGroupDataCountEmpty}'
-                                            ItemGroupDataCountFrozen='{\$ItemGroupDataCountFrozen}'
-                                            Title='{\$MetaDataVersion/odm:FormDef[@OID=\$FormRef/@FormOID]/odm:Description/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()}'>
-                                  </FormData>
-                      else
-                          <FormData FormOID='{\$FormRef/@FormOID}'
-                                    FormRepeatKey='0'
-                                    MetaDataVersionOID='{\$MetaDataVersion/@OID}'
-                                    Title='{\$MetaDataVersion/odm:FormDef[@OID=\$FormRef/@FormOID]/odm:Description/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()}'
-                                    Status='EMPTY'>
-                          </FormData>
-                }
-                </StudyEventData>
-            }
-            </SubjectData>
+              <StudyEventData StudyEventOID='{\$StudyEventData/@StudyEventOID}'
+                              StudyEventRepeatKey='{\$StudyEventData/@StudyEventRepeatKey}'
+                              Title='{\$StudyEventDef/odm:Description/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()}'>
+              {
+                for \$FormRef in \$StudyEventDef/odm:FormRef
+                let \$FormDef := \$MetaDataVersion/odm:FormDef[@OID=\$FormRef/@FormOID]
+                let \$AllFormData := \$StudyEventData/odm:FormData[@FormOID=\$FormRef/@FormOID]
+                return
+                    if (count(\$AllFormData) > 0)
+                    then
+                        for \$FormData in \$AllFormData
+                            let \$ItemGroupDataCount := count(\$FormData/odm:ItemGroupData[@TransactionType!='Remove'])
+                            let \$ItemGroupDataCountEmpty := count(\$FormData/odm:ItemGroupData[@TransactionType!='Remove']/odm:Annotation/odm:Flag[odm:FlagValue/string()='EMPTY'])
+                            let \$ItemGroupDataCountFrozen := count(\$FormData/odm:ItemGroupData[@TransactionType!='Remove']/odm:Annotation/odm:Flag[odm:FlagValue/string()='FROZEN'])
+                            
+                            return
+                                <FormData FormOID='{\$FormRef/@FormOID}'
+                                          FormRepeatKey='{\$FormData/@FormRepeatKey}'
+                                          MetaDataVersionOID='{\$MetaDataVersion/@OID}'
+                                          ItemGroupDataCount='{\$ItemGroupDataCount}'
+                                          ItemGroupDataCountEmpty='{\$ItemGroupDataCountEmpty}'
+                                          ItemGroupDataCountFrozen='{\$ItemGroupDataCountFrozen}'
+                                          Title='{\$MetaDataVersion/odm:FormDef[@OID=\$FormRef/@FormOID]/odm:Description/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()}'>
+                                </FormData>
+                    else
+                        <FormData FormOID='{\$FormRef/@FormOID}'
+                                  FormRepeatKey='0'
+                                  MetaDataVersionOID='{\$MetaDataVersion/@OID}'
+                                  Title='{\$MetaDataVersion/odm:FormDef[@OID=\$FormRef/@FormOID]/odm:Description/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()}'
+                                  Status='EMPTY'>
+                        </FormData>
+              }
+              </StudyEventData>
           }
-          </Subjects>";
+          </SubjectData>";
 
     try{
       $doc = $this->m_ctrl->socdiscoo()->query($query,false);
@@ -2148,7 +2127,6 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
         $visit->setAttribute("Status",$visitStatus);
       }
     }
-    //die($this->dumpRet($doc->saveXML()));
     return $doc;
   }
 
@@ -2539,6 +2517,26 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
                                                     /odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']
                                                     /odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']/odm:ItemGroupData[@ItemGroupOID='$ItemGroupOID' and @ItemGroupRepeatKey='$ItemGroupRepeatKey']/odm:Annotation";
       $this->m_ctrl->socdiscoo()->query($query);
+    }
+
+    if($hasModif){
+      //We may need to update the SITEID - SiteRef Element
+      $SITEIDdef = $this->m_tblConfig['SUBJECT_LIST']['COLS']['SITEID']['Value'];     
+      if($StudyEventOID==$SITEIDdef['SEOID'] && $StudyEventRepeatKey==$SITEIDdef['SERK'] && 
+         $FormOID==$SITEIDdef['FRMOID'] && $FormRepeatKey==$SITEIDdef['FRMRK'] && 
+         $ItemGroupOID==$SITEIDdef['IGOID'] && $ItemGroupRepeatKey==$SITEIDdef['IGRK']){
+ 
+        $query = "declare default element namespace '".$this->m_tblConfig['SEDNA_NAMESPACE_ODM']."';
+                  UPDATE
+                  replace \$r in index-scan('SubjectData','$SubjectKey','EQ')/odm:SiteRef/@LocationOID
+                  with attribute LocationOID {index-scan('SubjectData','$SubjectKey','EQ')/odm:StudyEventData[@StudyEventOID='{$SITEIDdef['SEOID']}' and @StudyEventRepeatKey='{$SITEIDdef['SERK']}']/
+                                                                    odm:FormData[@FormOID='{$SITEIDdef['FRMOID']}' and @FormRepeatKey='{$SITEIDdef['FRMRK']}']/
+                                                                    odm:ItemGroupData[@ItemGroupOID='{$SITEIDdef['IGOID']}' and @ItemGroupRepeatKey='{$SITEIDdef['IGRK']}']/
+                                                                    odm:*[@ItemOID='{$SITEIDdef['ITEMOID']}'][1]}";  
+
+        $this->addLog("bocdiscoo->saveItemGroupData() : updating SiteRef",INFO); 
+        $this->m_ctrl->socdiscoo()->query($query);
+      }
     }
 
     return $hasModif;

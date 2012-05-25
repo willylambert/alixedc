@@ -70,13 +70,18 @@ function loadSubjectsGrid(CurrentApp, config, bShowPDF)
         }
         
         colNames.push(title);
+        if(config[i].Key=="SITEID"){
+          bSearch = true;
+        }else{
+          bSearch = false;
+        }
         colModel.push({
           name: "col"+ config[i].Key,
           index: "col"+ config[i].Key,
           width: width,
           align:'center',
-          search: true,
-          formatter: formatter
+          formatter: formatter,
+          search: bSearch
         });
       }
     }
@@ -87,7 +92,7 @@ function loadSubjectsGrid(CurrentApp, config, bShowPDF)
       index: "SUBJECTSTATUS",
       width: 120,
       align:'center',
-      search: true
+      search: false
     });
     /*
     colNames.push("Post-it<br/>number");

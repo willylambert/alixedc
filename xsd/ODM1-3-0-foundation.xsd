@@ -8,7 +8,6 @@
     <xs:import namespace="http://www.w3.org/XML/1998/namespace" schemaLocation="xml.xsd"/>
     <xs:import namespace="http://www.w3.org/2000/09/xmldsig#"   schemaLocation="xmldsig-core-schema.xsd"/>
 
-
   <!--  
         +===========================================================================+
         | ODM datatype definitions                                                  |

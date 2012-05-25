@@ -1285,7 +1285,7 @@ public function checkFormData(){
   }
  
  /**
- * Ajax method, return the subjects list filtered on POSTed parameters
+ * Ajax method, return the subjects list. Filters could be applied on SubjectKey and SiteId
  * @return array
  * @author tpi
  **/
@@ -1299,7 +1299,6 @@ public function checkFormData(){
     $search = "";
     if(isset($_POST['MetaDataVersionOID'])) $MetaDataVersion = $_POST['MetaDataVersionOID'];
     if(isset($_POST['SubjectKey'])) $SubjectKey = $_POST['SubjectKey'];
-    if(isset($_REQUEST['search'])) $search = $_REQUEST['search'];
     
     if(isset($_GET['excelExport']) && $_GET['excelExport']=='true'){
       $mode = "csv";
@@ -1309,52 +1308,20 @@ public function checkFormData(){
     
     $page = $_POST['page']; // get the requested page
     $limit = $_POST['rows']; // get how many rows we want to have into the grid
-    $sidx = $_POST['sidx']; // get index row - i.e. user click to sort
-    $sord = $_POST['sord']; // get the direction
-    if(!$sidx) $sidx = 'colSUBJID';
-    if($sord=="asc"){
-      $sort_sign = "ascending";
+    
+    if(isset($_REQUEST['colSITEID'])){
+      $siteId = $_REQUEST['colSITEID'];
     }else{
-      $sort_sign = "descending";
+      $siteId = false;
     }
-
-    $where = "";
-    
+       
     //retrieving subjects list
-    $subjs = $this->m_ctrl->bosubjects()->getSubjectsList(true, "$sidx $sort_sign");
-  
-    $count = count($subjs);
-    for($i=0; $i<$count; $i++){
-      //filters
-      if(isset($_REQUEST['_search']) && $_REQUEST['_search']=="true"){
-        foreach($this->m_tblConfig['SUBJECT_LIST']['COLS'] as $key=>$col){
-          if(isset($_REQUEST['col'.$key])){
-            eval("\$colValue = \$subjs[\$i]['col$key'];");
-            if(stripos($colValue, $_REQUEST['col'.$key]) === false){
-              $subjs[$i] = false;
-              break 1;
-            }
-          }
-        }
-        
-        //more filters
-        if(isset($subjs[$i])){
-          if(isset($_REQUEST['SUBJECTSTATUS'])){
-            if(stripos($subjs[$i]["SubjectStatus"], $_REQUEST['SUBJECTSTATUS']) === false){
-              $subjs[$i] = false;
-            }
-          }
-        }
-      }
-    }
-    
-    for($i=0; $i<$count; $i++){
-      if(!$subjs[$i]) unset($subjs[$i]);
-    }
-    $count = count($subjs);
-    
+    $tblSubjectKeys = $this->m_ctrl->bosubjects()->getSubjectsList($siteId);
+
+    $this->addLog("subjs = " . $this->dumpRet($tblSubjectKeys),INFO);
+
     //pagination
-    if($count>0 && $limit>0) {
+    if(count($subjects)>0 && $limit>0) {
     	$total_pages = ceil($count/$limit);
     } else {
     	$total_pages = 0;
@@ -1368,18 +1335,15 @@ public function checkFormData(){
     $response->records = $count;
     $i=0; //current item in all set
     $j=0; //current (number) item being added
-    
-    //We will need the status of each visit for each subject to display
-    $SubjectKeys = array();
-    foreach($subjs as $subj) {
-      $SubjectKeys[] = $subj["SubjectKey"];
-    }
-    //Get visits (and form) status in a DOMDocument
-    $SubjectsTblForm = $this->m_ctrl->bocdiscoo()->getSubjectsTblForm($SubjectKeys);
-    $xPath = new DOMXPath($SubjectsTblForm);
-    
-    foreach($subjs as $subj) {
+        
+    foreach($tblSubjectKeys as $SubjectKey) {
       if($i>=$start){
+        $subj = $this->m_ctrl->bosubjects()->getSubjectsParams($SubjectKey);
+        
+        //Get visits (and form) status in a DOMDocument
+        $SubjectTblForm = $this->m_ctrl->bocdiscoo()->getSubjectsTblForm($SubjectKey);
+        $xPath = new DOMXPath($SubjectTblForm);
+
         $see = "<div class='imageFindIn imageOnly image16 pointer' onClick=\"location.href='index.php?menuaction=". $this->getCurrentApp(false) .".uietude.subjectInterface&action=view&SubjectKey=". $subj["SubjectKey"] ."&StudyEventOID=". $this->m_tblConfig['ENROL_SEOID'] ."&StudyEventRepeatKey=". $this->m_tblConfig['ENROL_SERK'] ."&FormOID=". $this->m_tblConfig['ENROL_FORMOID'] ."&FormRepeatKey=". $this->m_tblConfig['ENROL_FORMRK'] ."'\" altbox='Go to CRF'></div>";
         if($this->m_ctrl->boacl()->existUserProfileId(array("DM","CRA","INV"),"",$subj['colSITEID'])){
           $pdf = "<button class='ui-state-default ui-corner-all' onClick=\"if(window.event){ var e = window.event; e.cancelBubble = true; if(e && e.stopPropagation){ e.stopPropagation();};}else{event.stopPropagation();}; window.location='index.php?menuaction=". $GLOBALS['egw_info']['flags']['currentapp'] .".uietude.subjectPDF&SubjectKey=". $subj["SubjectKey"] ."';\">PDF</button>";
@@ -1396,7 +1360,7 @@ public function checkFormData(){
           if($col['Visible']){
             if($col['Type']=="VISITSTATUS"){
               $status = "EMPTY";
-              $xResult = $xPath->query("SubjectData[@SubjectKey='{$subj["SubjectKey"]}']/StudyEventData[@StudyEventOID='{$col['Value']['SEOID']}' and @StudyEventRepeatKey='{$col['Value']['SERK']}']/@Status");
+              $xResult = $xPath->query("/SubjectData/StudyEventData[@StudyEventOID='{$col['Value']['SEOID']}' and @StudyEventRepeatKey='{$col['Value']['SERK']}']/@Status");
               if($xResult->length!=0){
                 $status = $xResult->item(0)->value;
               }

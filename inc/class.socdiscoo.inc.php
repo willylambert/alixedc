@@ -369,16 +369,31 @@ class socdiscoo extends CommonFunctions
   }
   
   private function setIndexes(){
+    //SubjectData  / @SubjectKey
     $query = $this->odm_declaration . " 
-        CREATE INDEX \"SubjectODM\"
-        ON collection('ClinicalData')/odm:ODM BY @FileOID
+        CREATE INDEX \"SubjectData\"
+        ON collection('ClinicalData')/odm:ODM/odm:ClinicalData/odm:SubjectData BY @SubjectKey
         AS xs:string";
     if(!sedna_execute($query)){
       if(sedna_ercls() != "SE2033"){ //Index with the same name already exists.
         $str = "Could create index '$query': " . sedna_error() ." (". __METHOD__ .")";
         $this->addLog($str,FATAL);
       }else{
-        echo "index SubjectODM already created<br/>";
+        echo "index SubjectData already created<br/>";
+      }
+    }
+    
+    //SubjectData / SiteRef
+    $query = $this->odm_declaration . " 
+        CREATE INDEX \"SiteRef\"
+        ON collection('ClinicalData')/odm:ODM/odm:ClinicalData/odm:SubjectData BY odm:SiteRef/@LocationOID
+        AS xs:string";
+    if(!sedna_execute($query)){
+      if(sedna_ercls() != "SE2033"){ //Index with the same name already exists.
+        $str = "Could create index '$query': " . sedna_error() ." (". __METHOD__ .")";
+        $this->addLog($str,FATAL);
+      }else{
+        echo "index SiteRef already created<br/>";
       }
     }
   }
