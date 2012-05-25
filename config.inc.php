@@ -88,6 +88,7 @@
                                                  'Title'=>'Country',
                                                  'Width'=>60,
                                                  'Value'=>array('SEOID'=>'1','SERK'=>'0','FRMOID'=>'FORM.ENROL','FRMRK'=>'0','IGOID'=>'ENROL','IGRK'=>'0','ITEMOID'=>'ENROL.COUNTID')); 
+  //SITEID = mandatory column
   $configEtude['SUBJECT_LIST']['COLS']['SITEID'] = array('Visible' => true,
                                                  'Title'=>'Site<br/>N°',
                                                  'Width'=>35,

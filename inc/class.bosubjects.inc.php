@@ -31,7 +31,6 @@ class bosubjects extends CommonFunctions
   {
       CommonFunctions::__construct($tblConfig,$ctrlRef);
   }
-
   
   /**
    * @description Retourne le statut du patient (Screened, Randomized, etc)
@@ -58,135 +57,105 @@ class bosubjects extends CommonFunctions
   }
   
   /**
-   * @description return Subjects List
-   * @param optional boolean $checkRights : return only the subjects for which the current user is auhtorized to access to
-   * @return SimpleXMLElement $SubjectsList
-   * @author tpi
+   * return Subjects List
+   * @param optional siteFilter if a string, contains the requested patient's SiteID
+   * @return array of SubjectKey
+   * @author tpi,wlt
   **/
-  public function getSubjectsList($checkRights=true, $order="SubjectKey ascending"){
-    $this->addLog(__METHOD__."($addParameters,$checkRights)",INFO);
+  public function getSubjectsList($siteId=false){
+    $this->addLog(__METHOD__."($siteId)",INFO);
     
-    $SitesFilter = false;
-    if($checkRights){
-      //we need to make a list of sites for which the current user can see the subjects
-      $SitesFilter = array();
-      
-      //Is the user a Sponsor ?
-      $defaultProfilId = $this->m_ctrl->boacl()->getUserProfileId();
-      
-      //first: we get the complete list of sites
-      $sites = $this->m_ctrl->bosites()->getSites();
-      
-      //then: we keep the sites the user can see
-      foreach($sites as $site){
-        if($defaultProfilId=="SPO"){
-          $SitesFilter[] = $site["siteId"];
+    //we need to make a list of sites for which the current user can see the subjects
+    $SitesFilter = array();
+    
+    //Is the user a Sponsor ?
+    $defaultProfilId = $this->m_ctrl->boacl()->getUserProfileId();
+    
+    //first: we get the complete list of sites
+    $sites = $this->m_ctrl->bosites()->getSites();
+    
+    //then: we keep the sites the user can see
+    foreach($sites as $site){
+      if($defaultProfilId=="SPO"){
+        $SitesFilter[] = $site["siteId"];
+      }else{
+        //do the user has a profile defined for this site ?
+        $profile = $this->m_ctrl->boacl()->getUserProfileId("",$site["siteId"]);
+        if(!empty($profile)){
+          $SitesFilter[] = (string)$site["siteId"];
         }else{
-          //do the user has a profile defined for this site ?
-          $profile = $this->m_ctrl->boacl()->getUserProfileId("",$site["siteId"]);
-          if(!empty($profile)){
-            $SitesFilter[] = $site["siteId"];
-          }else{
-            //no authorization for this site
-          }
+          //no authorization for this site
         }
       }
     }
-    
-    $SubjectsParams = $this->getSubjectsParams($SubjectKey, $SitesFilter, $order);
-    $SubjectsList = $SubjectsParams[0]->children();
-    
-    foreach($SubjectsList as $Subject){
-      $Subject['SubjectStatus'] = $this->getSubjectStatus($Subject);
-      $Subject['CRFStatus'] = $this->m_ctrl->bocdiscoo()->getSubjectStatus($Subject['SubjectKey']);
+
+    if($siteId!=false && in_array($siteId,$SitesFilter)){
+      $SitesFilter = array($siteId);
+    }
+
+    $queryCol = array();
+    foreach($SitesFilter as $siteId){
+      $queryCol[] = "index-scan('SiteRef','$siteId','EQ')";  
     }
     
-    //return the array of names
-    return $SubjectsList;
+    $query = "let \$Subjects := " . implode(" UNION ",$queryCol) . "
+              for \$SubjectData in \$Subjects
+              return
+                <SubjectData SubjectKey='{\$SubjectData/@SubjectKey}' />";
+    $subjectDatas = $this->m_ctrl->socdiscoo()->query($query);
+    
+    //We will need the status of each visit for each subject to display
+    $tblSubjectKeys = array();
+    foreach($subjectDatas as $subjectData) {
+      $tblSubjectKeys[] = $subjectData["SubjectKey"];
+    }
+    
+    return $tblSubjectKeys;
   }
 
   /**
-   * @desc Returns parameters for each subject (filtered by sites if $Sites is provided). These parameters are SUBJKEY, fileOID and those defined in config.inc.php
-   * @param array/string $SubjectKeys : an array of SubjectKey, or list of SubjectKey separated by commas
-   * @param optional array/string $Sites : an array of SiteId, or list of SiteId separated by commas
-   * @param optional string $order : ordering of the resuts (ex: FileOID ascending)   
+   * @desc Returns parameters for a subject . These parameters are SUBJKEY, fileOID and those defined in config.inc.php
+   * @param string $SubjectKey
    * @return DOMDocument
    * @author wlt, tpi
    **/
-  private function getSubjectsParams($SubjectKey=false, $Sites=false, $order="")
+  public function getSubjectsParams($SubjectKey)
   {
-    $this->addLog(__METHOD__ ."($SubjectKey,$Sites)",INFO);
-    
-    $xqSubjectCollection = "";
-    if(!$SubjectKey){  //all the subjects (except BLANK)
-      $xqSubjectCollection = "collection('ClinicalData')/odm:ODM[@FileOID!='". $this->m_tblConfig["BLANK_OID"] ."']/odm:ClinicalData";
-    }else{ //only one subject
-      $xqSubjectCollection = "index-scan('SubjectODM', '$SubjectKey', 'EQ')/odm:ClinicalData";
-    }
-    
-    //Site filter if requested
-    $whereSite = "";
-    if($Sites!=false){
-      if(is_array($Sites)){
-        $siteList = "";
-        foreach($Sites as $siteId){
-          if($siteList!="") $siteList .= ",";
-          $siteList .= "'$siteId'";
-        }
-      }
-      $whereSite = "where exists(index-of(($siteList),\$colSITEID))";
-    }
-    
-    //Order
-    $orderBy = "";
-    if($order!=""){
-      $orderBy = "order by \$$order";
-    }
+    $this->addLog(__METHOD__ ."($SubjectKey)",INFO);
     
     //The audit trail generates many ItemData with the same ItemOID. So we have to look for the last item (in first position)
-    $query = "
-          <subjs>
-              {
-                let \$SubjectsCol := $xqSubjectCollection
-                for \$SubjectData in \$SubjectsCol/odm:SubjectData
-				        let \$SubjectKey := \$SubjectData/../../@FileOID
+    $query = "  let \$SubjectsCol := index-scan('SubjectData', '$SubjectKey', 'EQ')
+                for \$SubjectData in \$SubjectsCol
+				        let \$SubjectKey := \$SubjectData/@SubjectKey
                 ";
                 
     foreach($this->m_tblConfig['SUBJECT_LIST']['COLS'] as $key=>$col){
       if(is_array($col['Value'])){
         $query .= "let \$col$key := \$SubjectData/odm:StudyEventData[@StudyEventOID='{$col['Value']['SEOID']}' and @StudyEventRepeatKey='{$col['Value']['SERK']}']/
-                                                          odm:FormData[@FormOID='{$col['Value']['FRMOID']}' and @FormRepeatKey='{$col['Value']['FRMRK']}']/
-                                                          odm:ItemGroupData[@ItemGroupOID='{$col['Value']['IGOID']}' and @ItemGroupRepeatKey='{$col['Value']['IGRK']}']/
-                                                          odm:*[@ItemOID='{$col['Value']['ITEMOID']}'][1]
+                                                  odm:FormData[@FormOID='{$col['Value']['FRMOID']}' and @FormRepeatKey='{$col['Value']['FRMRK']}']/
+                                                  odm:ItemGroupData[@ItemGroupOID='{$col['Value']['IGOID']}' and @ItemGroupRepeatKey='{$col['Value']['IGRK']}']/
+                                                  odm:*[@ItemOID='{$col['Value']['ITEMOID']}'][1]
                   ";
       }else{
         if($key=="SUBJID"){
-          $query .= "let \$col$key := \$FileOID \n";
+          $query .= "let \$col$key := \$SubjectKey \n";
         }else{
           $query .= "let \$col$key := " . $col['Value'] ." \n";
         }
       }
     }            
 
-    $query .= " $whereSite
-                $orderBy
-                return 
-                  <subj SubjectKey='{\$SubjectKey}'";
+   $query .= "return 
+              <subj SubjectKey='{\$SubjectKey}'";
                 
     foreach($this->m_tblConfig['SUBJECT_LIST']['COLS'] as $key=>$col){
       $query .= " col$key ='{\$col$key}' ";
     } 
   
     $query .= "/>";
-      
-    $query .= "}
-          </subjs>";
     
-    $this->addLog(__METHOD__."() Run query",INFO);
     $doc = $this->m_ctrl->socdiscoo()->query($query);
-    $this->addLog(__METHOD__."() Query OK",INFO);
-
-    return $doc;
+    return $doc[0];
   }
   
   /**
