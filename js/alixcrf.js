@@ -132,7 +132,7 @@ function loadAlixCRFjs(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepe
                                                   newAnnot.attr("id","annotation_div_"+tdName.replace(".","-")+"_"+newIGRK);
                                                   newAnnot.find(":input").each(function(index){
                                                     inputName = new String($(this).attr("name"));
-                                                    $(this).attr("name",inputId.replace("_"+sourceIGRK,"_"+newIGRK));
+                                                    $(this).attr("name",inputName.replace("_"+sourceIGRK,"_"+newIGRK));
                                                     
                                                     if(this.type=="hidden"){
                                                       this.value="";
@@ -413,8 +413,7 @@ function saveAllItemGroup(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventR
   $("form").each( 
     function(index){
       dataString = $(this).serialize();
-      if(dataString!=$(this).data('initials_values') ||
-         index==$("form").length-1 )
+      if(dataString!=$(this).data('initials_values'))
       {
         //Form is modified - we submit it
         $.ajax({
