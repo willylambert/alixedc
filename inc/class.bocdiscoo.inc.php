@@ -1105,32 +1105,6 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
     
     return $doc;
   }
-
-  /*
-  @desc retourne une codelist des metadata sous la forme d'un array php
-        utilisé dans la classe boimport
-  @author wlt
-  */
-  function getCodelist($metaDataVersionOID,$CodeListOID,$lang)
-  {
-    $query = "let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID='$metaDataVersionOID']
-              let \$CL := \$MetaDataVersion/odm:CodeList[@OID='$CodeListOID']
-              for \$CLItem in \$CL/odm:CodeListItem
-              return
-                <CodeListItem CodedValue='{\$CLItem/@CodedValue}'> 
-                  <Decode>{\$CLItem/odm:Decode/odm:TranslatedText[@xml:lang='$lang']/string()}</Decode>
-                </CodeListItem>             
-             ";  
-    
-    $result = $this->m_ctrl->socdiscoo()->query($query);
-    
-    $tblCodeListItem = array();
-    foreach($result as $clitem){
-      $tblCodeListItem[(string)$clitem['CodedValue']] = (string)$clitem->Decode;  
-    }
-    
-    return $tblCodeListItem;        
-  }
   
   //Retourne le libellé de la valeur actuelle d'une variable donnée
   public function getDecodedValue($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$ItemOID)

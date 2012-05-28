@@ -1,4 +1,25 @@
 <?php
+    /**************************************************************************\
+    * ALIX EDC SOLUTIONS                                                       *
+    * Copyright 2012 Business & Decision Life Sciences                         *
+    * http://www.alix-edc.com                                                  *
+    * ------------------------------------------------------------------------ *                                                                       *
+    * This file is part of ALIX.                                               *
+    *                                                                          *
+    * ALIX is free software: you can redistribute it and/or modify             *
+    * it under the terms of the GNU General Public License as published by     *
+    * the Free Software Foundation, either version 3 of the License, or        *
+    * (at your option) any later version.                                      *
+    *                                                                          *
+    * ALIX is distributed in the hope that it will be useful,                  *
+    * but WITHOUT ANY WARRANTY; without even the implied warranty of           *
+    * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            *
+    * GNU General Public License for more details.                             *
+    *                                                                          *
+    * You should have received a copy of the GNU General Public License        *
+    * along with ALIX.  If not, see <http://www.gnu.org/licenses/>.            *
+    \**************************************************************************/
+    
 require_once("class.CommonFunctions.php");
 require_once("class.instanciation.inc.php");
 
@@ -9,10 +30,6 @@ class uiexport extends CommonFunctions{
 			'getExportFile'	=> True,
 		);
  
-  /*
-  class constructor
-  @author wlt
-  */
   function __construct()
   {	
     global $configEtude;
@@ -23,6 +40,10 @@ class uiexport extends CommonFunctions{
   
   function getInterface(){
     $this->addLog("uisubject->getInterface()",TRACE);
+    
+    if(!$this->m_ctrl->boacl()->checkModuleAccess("ExportData")){
+      $this->addLog("Unauthorized Access to Export Module - Administrator has been notified",FATAL);
+    }
 
     if(!isset($_GET['action'])){
       $htmlRet = $this->getExportList();
@@ -54,11 +75,11 @@ class uiexport extends CommonFunctions{
   }
   
   /**
-   *Interface to edit an export type
-   *@param integer $id id of the export to edit - an empty string for a new export type   
-   *@return string html to display
-   *@author wlt - 07/12/2011        
-   **/  
+  * Interface to edit an export type
+  * @param integer $id id of the export to edit - an empty string for a new export type   
+  * @return string html to display
+  * @author wlt - 07/12/2011        
+  **/  
   function editInterface($id){
 
     if($id!=""){
@@ -178,9 +199,10 @@ class uiexport extends CommonFunctions{
     return $errors;
   }
   
-  /* Building of the Export List
-  @author wlt
-  */
+  /**
+   * Building of the Export List
+   * @author wlt
+  **/
   function getExportList($errors=""){
   
     $htmlExports = "

@@ -1,7 +1,7 @@
 <?php
     /**************************************************************************\
     * ALIX EDC SOLUTIONS                                                       *
-    * Copyright 2011 Business & Decision Life Sciences                         *
+    * Copyright 2012 Business & Decision Life Sciences                         *
     * http://www.alix-edc.com                                                  *
     * ------------------------------------------------------------------------ *                                                                       *
     * This file is part of ALIX.                                               *
@@ -42,8 +42,7 @@ class uidbadmin extends CommonFunctions{
     $this->m_ctrl = $ctrl;
   }
   
-  //Appel direct depuis la liste des patients (par ex)
-  function viewDoc()
+ public function viewDoc()
   {
     //Check right
     if(!$GLOBALS['egw_info']['user']['apps']['admin']){
@@ -60,113 +59,112 @@ class uidbadmin extends CommonFunctions{
     exit(0);
   }
 
-  function deleteDoc()
+  public function deleteDoc()
   {
     $this->m_ctrl->socdiscoo()->deleteDocument($_GET['container'],$_GET['doc']);
   }
   
-  function getInterface()
+  public function getInterface()
   {
-    $this->addLog("uidbadmin->getInterface()",TRACE);
+    $this->addLog("uidbadmin->getInterface()",INFO);
     $htmlRet = "";
 
-      //En fonction du contexte, on retourne l'html à afficher
-      if(!isset($_GET['action'])){
-        $htmlRet = $this->getDefaultInterface();
-      }else{
-        switch($_GET['action'])
-        {
-          case 'importDocInterface' :
-                if($this->m_ctrl->boacl()->checkModuleAccess("importDoc")){
-                  $htmlRet = $this->getImportInterface();
-                }else{
-                  $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
-                }
-                break;
+    if(!isset($_GET['action'])){
+      $htmlRet = $this->getDefaultInterface();
+    }else{
+      switch($_GET['action'])
+      {
+        case 'importDocInterface' :
+              if($this->m_ctrl->boacl()->checkModuleAccess("importDoc")){
+                $htmlRet = $this->getImportInterface();
+              }else{
+                $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
+              }
+              break;
 
-          case 'runXQuery' :
-                
-                if($this->m_ctrl->boacl()->checkModuleAccess("importDoc")){
-                  $htmlRet = $this->getSandBoxInterface($_POST['xQueryCode']);
-                }else{
-                  $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
-                }
-                break;
+        case 'runXQuery' :
+              
+              if($this->m_ctrl->boacl()->checkModuleAccess("importDoc")){
+                $htmlRet = $this->getSandBoxInterface($_POST['xQueryCode']);
+              }else{
+                $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
+              }
+              break;
 
-          case 'sandboxInterface' :
-                if($this->m_ctrl->boacl()->checkModuleAccess("importDoc")){
-                  $htmlRet = $this->getSandBoxInterface();
-                }else{
-                  $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
-                }
-                break;
-                
-          case 'importDoc' :
-                if($this->m_ctrl->boacl()->checkModuleAccess("importDoc")){
-                  $htmlRet = $this->importDoc();
-                }else{
-                  $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
-                }
-                break;
-          
-          case 'ImportBulkServerDir' :      
-                if($this->m_ctrl->boacl()->checkModuleAccess("importDoc")){
-                  $htmlRet = $this->importDocBulkServerDir($_POST['importServerDir']);
-                }else{
-                  $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
-                }
-                break;
-                                              
-          case 'deleteDoc' :
-                if($this->m_ctrl->boacl()->checkModuleAccess("importDoc")){
-                  $this->deleteDoc();
-                  $htmlRet = $this->getMainInterface($_GET['container']);
-                }else{
-                  $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
-                }
+        case 'sandboxInterface' :
+              if($this->m_ctrl->boacl()->checkModuleAccess("importDoc")){
+                $htmlRet = $this->getSandBoxInterface();
+              }else{
+                $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
+              }
+              break;
+              
+        case 'importDoc' :
+              if($this->m_ctrl->boacl()->checkModuleAccess("importDoc")){
+                $htmlRet = $this->importDoc();
+              }else{
+                $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
+              }
+              break;
+        
+        case 'ImportBulkServerDir' :      
+              if($this->m_ctrl->boacl()->checkModuleAccess("importDoc")){
+                $htmlRet = $this->importDocBulkServerDir($_POST['importServerDir']);
+              }else{
+                $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
+              }
+              break;
+                                            
+        case 'deleteDoc' :
+              if($this->m_ctrl->boacl()->checkModuleAccess("importDoc")){
+                $this->deleteDoc();
+                $htmlRet = $this->getMainInterface($_GET['container']);
+              }else{
+                $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
+              }
 
-                break;  
+              break;  
 
-          case 'viewDoc' : 
-                if($this->m_ctrl->boacl()->checkModuleAccess("viewDocs")){
-                  $this->viewDoc();
-                }else{
-                  $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
-                }
+        case 'viewDoc' : 
+              if($this->m_ctrl->boacl()->checkModuleAccess("viewDocs")){
+                $this->viewDoc();
+              }else{
+                $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
+              }
 
-                break;  
+              break;  
 
-          case 'viewDocs' : 
-                if($this->m_ctrl->boacl()->checkModuleAccess("viewDocs")){
-                  $htmlRet = $this->getMainInterface($_GET['container']);
-                }else{
-                  $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
-                }
-                break;  
+        case 'viewDocs' : 
+              if($this->m_ctrl->boacl()->checkModuleAccess("viewDocs")){
+                $htmlRet = $this->getMainInterface($_GET['container']);
+              }else{
+                $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
+              }
+              break;  
 
-          case 'viewDoc' : 
-                if($this->m_ctrl->boacl()->checkModuleAccess("viewDocs")){
-                  $htmlRet = $this->viewDoc();
-                }else{
-                  $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
-                }
-                break;  
-          
-          case 'initDB' :
-                if($this->m_ctrl->boacl()->checkModuleAccess("viewDocs")){
-                  $htmlRet = $this->initDB();
-                }else{
-                  $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
-                }
-                break;  
-                                
-          case 'updateSubjectStatus' : 
-                $this->m_ctrl->bosubjects()->updateSubjectInList($_GET['doc']);
-                $htmlRet = $this->getMainInterface("ClinicalData");
-                break;            
-          
-        }        
-      }
+        case 'viewDoc' : 
+              if($this->m_ctrl->boacl()->checkModuleAccess("viewDocs")){
+                $htmlRet = $this->viewDoc();
+              }else{
+                $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
+              }
+              break;  
+        
+        case 'initDB' :
+              if($this->m_ctrl->boacl()->checkModuleAccess("viewDocs")){
+                $htmlRet = $this->initDB();
+              }else{
+                $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
+              }
+              break;  
+                              
+        case 'updateSubjectStatus' : 
+              $this->m_ctrl->bosubjects()->updateSubjectInList($_GET['doc']);
+              $htmlRet = $this->getMainInterface("ClinicalData");
+              break;            
+        
+      }        
+    }
 
     $menu = $this->m_ctrl->etudemenu()->getMenu();
 
