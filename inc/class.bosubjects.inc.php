@@ -109,7 +109,6 @@ class bosubjects extends CommonFunctions
               </Subjects>";
     $subjectDatas = $this->m_ctrl->socdiscoo()->query($query);
     
-    //We will need the status of each visit for each subject to display
     $tblSubjectKeys = array();
     foreach($subjectDatas[0] as $subjectData) {
       $tblSubjectKeys[] = $subjectData["SubjectKey"];

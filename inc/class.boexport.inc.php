@@ -71,7 +71,7 @@ class boexport extends CommonFunctions
   @param string $rawValue 'Y' or 'N' Do we extract raws values or decoded values ?
   @author WLT - 09/12/2011
   **/   
-  function runExport($id,$type,$rawValue='Y')
+  public function runExport($id,$type,$rawValue='Y')
   { 	        
     $this->addLog("boexport::runExport($id,$type,$rawValue)",INFO);
     //Checking parameters
@@ -85,14 +85,13 @@ class boexport extends CommonFunctions
       }
     }   
     
-    //TODO : Add rights check here        
     if($type=="config_file"){
       if(isset($this->m_tblConfig['EXPORT']['TYPE'][$id]['index'])){
         $exportIndex = $this->m_tblConfig['EXPORT']['TYPE'][$id]['index'];
         $exportDef = $this->m_tblConfig[$exportIndex];
         $contextVars = $this->m_tblConfig['EXPORT']['TYPE'][$id]['contextVars']; 
       }else{
-        $this->addLog("export : type $id inconnu",FATAL);
+        $this->addLog("export : unknown type $id",FATAL);
       }
     }else{
       if($type=="db"){
@@ -119,7 +118,7 @@ class boexport extends CommonFunctions
       }
     }        
     
-    //Stockage temporaire des fichiers csv avant zippage
+    //temporary storage of files, before zipping
     $tmp = sys_get_temp_dir();
   	$uid = uniqid($type);
   	mkdir($tmp.'/'.$uid);    
@@ -128,9 +127,9 @@ class boexport extends CommonFunctions
     ob_flush(); 
     flush();
     
-    //Extraction des metadatas
+    //Retrieve metadatas
     $query = "
-             let \$MetaDataVersion := doc('MetaDataVersion.dbxml/{$this->m_tblConfig["METADATAVERSION"]}')/odm:ODM/odm:Study/odm:MetaDataVersion
+             let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID='{$this->m_tblConfig["METADATAVERSION"]}']
                 
              for \$ItemGroupDef in \$MetaDataVersion/odm:ItemGroupDef
               return
@@ -151,13 +150,7 @@ class boexport extends CommonFunctions
                   }
                 </ItemGroupDef>
              ";
-    try{
-      $ItemGroupDefs = $this->m_ctrl->socdiscoo()->query($query);
-    }catch(xmlexception $e){
-      $str = "<html>Erreur de la requete : " . htmlentities($e->getMessage()) . "<br/><br/>" . htmlentities($query) . "</html> (". __METHOD__ .")";
-      $this->addLog("Erreur : exportDSMB() => $str",FATAL);
-      die($str);
-    }     
+    $ItemGroupDefs = $this->m_ctrl->socdiscoo()->query($query);
     
     $filename = $tmp.'/'.$uid."/Structure.csv";
     $fp = fopen($filename, 'w');
@@ -176,7 +169,7 @@ class boexport extends CommonFunctions
           $ItemOID = (string)$ItemDef['OID'];
           if(!isset($exportDef[$ItemGroupOID]['FIELDLIST']) || 
              in_array($ItemOID,$exportDef[$ItemGroupOID]['FIELDLIST'])){
-            //Champ demandé dans l'export
+            //Requested field
             if($ItemDef['Length']!="" && $ItemDef['SignificantDigits']!=""){
               $length = $ItemDef['Length'] . "." . $ItemDef['SignificantDigits']; 
             }else{
@@ -200,7 +193,7 @@ class boexport extends CommonFunctions
     
     fclose($fp);
     
-    //Fichier Codelist
+    //Codelist file
     $filename = $tmp.'/'.$uid."/Codelists.csv";
     $fp = fopen($filename, 'w');
     
@@ -227,14 +220,14 @@ class boexport extends CommonFunctions
 /*************************************************************************************/
 /** Modifications                                                                   **/
 /** -------------                                                                   **/
-/** Date     | Author | Explications                                                **/
+/** Date     | Author | Descritption                                                **/
 /**                                                                                 **/
 /**                                                                                 **/
 /*************************************************************************************/
 /*************************************************************************************/"; 
    
     $query = "
-             let \$MetaDataVersion := doc('MetaDataVersion.dbxml/{$this->m_tblConfig["METADATAVERSION"]}')/odm:ODM/odm:Study/odm:MetaDataVersion
+             let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID='{$this->m_tblConfig["METADATAVERSION"]}']
                 
              for \$CodeList in \$MetaDataVersion/odm:CodeList
               return
@@ -249,14 +242,9 @@ class boexport extends CommonFunctions
                   }
                 </CodeList>
              ";
-    try{
-      $Codelists = $this->m_ctrl->socdiscoo()->query($query);
-    }catch(xmlexception $e){
-      $str = "<html>Erreur de la requete : " . htmlentities($e->getMessage()) . "<br/><br/>" . htmlentities($query) . "</html> (". __METHOD__ .")";
-      $this->addLog("Erreur : export() => $str",FATAL);
-      die($str);
-    }         
-      $procSasFormat .= "
+    $Codelists = $this->m_ctrl->socdiscoo()->query($query);
+
+    $procSasFormat .= "
 proc format;
 ";    
     foreach($Codelists as $Codelist){
@@ -290,9 +278,16 @@ run;";
     
     fclose($fp);
     
-    //travail préparatoire : pour chaque patient, on va extraire les clés qui seront ajoutés dans toutes les tables
-    $subjCol = $this->m_ctrl->socdiscoo()->getClinicalDataCollection();
-    $query = "for \$SubjectData in $subjCol/odm:ODM/odm:ClinicalData/odm:SubjectData[@SubjectKey!='BLANK']";
+    //For each patient, context keys values are extracted, to be inserted in every tables
+    $tblSubjects = $this->m_ctrl->bosubjects()->getSubjectsList();
+    $SubjectDatas = array();
+    foreach($tblSubjects as $SubjectKey){
+      $SubjectDatas[] = "index-scan('SubjectData','$SubjectKey','EQ')";  
+    }
+    $SubjectDatasQuery = implode(" union ",$SubjectDatas);
+    $query = "let \$SubjectDatas := $SubjectDatasQuery
+              for \$SubjectData in \$SubjectDatas
+              ";
 
     foreach($contextVars as $key=>$col){
       if(!in_array($key,array("SUBJID","VISITNUM","VISITNAME"))){
@@ -315,13 +310,8 @@ run;";
     }                     
     $query .= "/>";    
     
-    try{
-      $subjs = $this->m_ctrl->socdiscoo()->query($query);
-    }catch(xmlexception $e){
-      $str = "<html>Erreur de la requete : " . htmlentities($e->getMessage()) . "<br/><br/>" . htmlentities($query) . "</html> (". __METHOD__ .")";
-      $this->addLog("Erreur : export() => $str",FATAL);
-      die($str);
-    } 
+    $subjs = $this->m_ctrl->socdiscoo()->query($query);
+
     $tblSubj = array();
     foreach($subjs as $subj){
       $subjKey = (string)$subj['SubjectKey'];
@@ -332,7 +322,7 @@ run;";
       }
     }
 
-    //Préparation du fichier Macro SAS
+    //Setup of the SAS Import file
     $procSAS = "
 /*************************************************************************************/
 /*************************************************************************************/
@@ -352,7 +342,7 @@ run;";
 /*************************************************************************************/
 /** Modifications                                                                   **/
 /** -------------                                                                   **/
-/** Date     | Author | Explications                                                **/
+/** Date     | Author | Description                                                 **/
 /**                                                                                 **/
 /**                                                                                 **/
 /*************************************************************************************/
@@ -362,12 +352,10 @@ run;";
 
 %include \"&PATH_TO_CSV\\importFormat.sas\";
 ";
-
-    //Boucle sur les itemgroup, traitement des tables 
-    //non poolées horizontalement (les pools verticaux sont gérés ici)
-    //Les tables poolées horizontalement sont stockées dans le table TblPoolH pour utilisation en deuxième temps
+    //Loop through itemgroup = tables with vertical pool 
+    //tables with horizontal pool are stored in array TblPoolH, to be used later 
     $tblPoolH = array();
-    $tblHeadLine = array(); //Entete - correspondance nom du champ - offset
+    $tblHeadLine = array(); //Header - field match - offset
     foreach($exportDef as $ItemGroupOID => $ItemGroupDest){
       $tblFields = $ItemGroupDest['FIELDLIST'];
       
@@ -393,16 +381,17 @@ run;";
         $tblPoolH[$destFile][] = $ItemGroupOID;
       }else{
         if(!isset($ItemGroupDest['POOL']) || isset($ItemGroupDest['POOL']) && $ItemGroupDest['POOL']=="V"){
-          //2 minutes par ItemGroup
+          //360 seconds per ItemGroup
           set_time_limit(360);
           
           echo "<br/>Exporting $ItemGroupOID...";
           flush();
           
-          //Lecture des metadatas - pour connaitre les champs
-          $query = "let \$ItemGroupDef := doc('MetaDataVersion.dbxml/{$this->m_tblConfig["METADATAVERSION"]}')/odm:ODM/odm:Study/odm:MetaDataVersion/odm:ItemGroupDef[@OID='$ItemGroupOID']
+          //read metadata - to get fields informations
+          $query = "let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID='{$this->m_tblConfig["METADATAVERSION"]}']
+                    let \$ItemGroupDef := \$MetaDataVersion/odm:ItemGroupDef[@OID='$ItemGroupOID']
                     for \$ItemRef in \$ItemGroupDef/odm:ItemRef
-                    let \$ItemDef := doc('MetaDataVersion.dbxml/{$this->m_tblConfig["METADATAVERSION"]}')/odm:ODM/odm:Study/odm:MetaDataVersion/odm:ItemDef[@OID=\$ItemRef/@ItemOID]
+                    let \$ItemDef := \$MetaDataVersion/odm:ItemDef[@OID=\$ItemRef/@ItemOID]
                     
                     return
                       <ItemRef ItemOID='{\$ItemRef/@ItemOID}' 
@@ -412,15 +401,9 @@ run;";
                                Label='{\$ItemDef/odm:Question/odm:TranslatedText[@xml:lang='".$this->m_lang."']/string()}'
                                Length='{\$ItemDef/@Length}'
                                SignificantDigits='{\$ItemDef/@SignificantDigits}'/>";
-          try{
-            $tblItemRef = $this->m_ctrl->socdiscoo()->query($query);
-          }catch(xmlexception $e){
-            $str = "<html>Erreur de la requete : " . htmlentities($e->getMessage()) . "<br/><br/>" . htmlentities($query) . "</html> (". __METHOD__ .")";
-            $this->addLog("Erreur : export() => $str",FATAL);
-            die($str);
-          } 
+          $tblItemRef = $this->m_ctrl->socdiscoo()->query($query);
                           
-          //Creation du fichier csv destination
+          //Creation of dest csv file
           $filename = $tmp.'/'.$uid."/$destFile.csv";
           $fexists = file_exists($filename);
           $fp = fopen($filename, 'a+');
@@ -441,7 +424,7 @@ run;";
                    
     Label ";
               
-          //Ligne d'entete - noms des champs
+          //header line - fields name
           if($fexists==false){
             $tblHeadLine = array();
             
@@ -538,26 +521,14 @@ run;";
           
           $procSAS .= "\n;" . $procSASformat . "\n;" . $procSASlabel . "\n; \nrun;";
           
-          //$subjCol = "collection('0703.dbxml')";
           //Data extraction
-          $query = "
-                    declare function local:getDecode(\$ItemData as node()*,\$MetaDataVersion as node()) as xs:string?
-                    {
-                      let \$value := \$ItemData/string()
-                      let \$CodeListOID := \$MetaDataVersion/odm:ItemDef[@OID=\$ItemData/@ItemOID]/odm:CodeListRef/@CodeListOID
-                      return
-                        if(\$CodeListOID)
-                        then \$MetaDataVersion/odm:CodeList[@OID=\$CodeListOID]/odm:CodeListItem[@CodedValue=\$value]/odm:Decode/odm:TranslatedText[@xml:lang='".$this->m_lang."']/string()
-                        else \$value
-                    };
+          $query = "import module namespace alix = 'http://www.alix-edc.com/alix';
               
-                    let \$SubjectData := $subjCol/odm:ODM/odm:ClinicalData/odm:SubjectData[@SubjectKey!='BLANK']
-                    
-                    let \$BLANKSubjectData := collection('BLANK.dbxml')/odm:ODM/odm:ClinicalData/odm:SubjectData
-                    
-                    let \$MetaDataVersion := doc('MetaDataVersion.dbxml/{$this->m_tblConfig["METADATAVERSION"]}')/odm:ODM/odm:Study/odm:MetaDataVersion
+                    let \$SubjectDatas := $SubjectDatasQuery
+                    let \$BLANKSubjectData := index-scan('SubjectData','BLANK','EQ')
+                    let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID='{$this->m_tblConfig["METADATAVERSION"]}']
                     let \$ItemGroupDef := \$MetaDataVersion/odm:ItemGroupDef[@OID='$ItemGroupOID']
-                    for \$ItemGroupData in \$SubjectData/odm:StudyEventData/
+                    for \$ItemGroupData in \$SubjectDatas/odm:StudyEventData/
                                                          odm:FormData[@TransactionType!='Remove']/
                                                          odm:ItemGroupData[@ItemGroupOID='$ItemGroupOID' and @TransactionType!='Remove']
                     let \$SubjectKey := \$ItemGroupData/../../../@SubjectKey
@@ -579,7 +550,7 @@ run;";
                         for \$ItemRef in \$ItemGroupDef/odm:ItemRef
                         let \$ItemDef := \$MetaDataVersion/odm:ItemDef[@OID=\$ItemRef/@ItemOID]
                         let \$ItemData := (\$ItemGroupData/odm:*[@ItemOID=\$ItemRef/@ItemOID])[last()]
-                        let \$DecodedValue := local:getDecode(\$ItemData,\$MetaDataVersion)
+                        let \$DecodedValue := alix:getDecode(\$ItemData,\$MetaDataVersion)
                         return
                           <ItemData OID='{\$ItemRef/@ItemOID}' 
                                     Name='{\$ItemDef/@SASFieldName}' 
@@ -589,15 +560,9 @@ run;";
                       </ItemGroupData>  
                    ";
       
-          try{         
-            $ItemGroupDatas = $this->m_ctrl->socdiscoo()->query($query);
-          }catch(xmlexception $e){
-            $str = "<html>Erreur de la requete : " . htmlentities($e->getMessage()) . "<br/><br/>" . htmlentities($query) . "</html> (". __METHOD__ .")";
-            $this->addLog("Erreur : exportDSMB() => $str",FATAL);
-            die($str);
-          } 
+          $ItemGroupDatas = $this->m_ctrl->socdiscoo()->query($query);
           
-          //Boucle sur les lignes
+          //Loop through lines
           $rowNum = 0;
           foreach($ItemGroupDatas as $ItemGroupData){
             $subjKey = (string)$ItemGroupData['SubjectKey'];
@@ -658,16 +623,16 @@ run;";
       }
     }
 
-    //Boucle sur les tables, traitement des itemgroup poolées horizontalement
-    //Un pooling horizontal implique qu'il n'y ai q'un seul itemgroupdata de chaque itemgroup par visite
+    //Loop through table, handle of itemgroup pooled horizontaly
+    //Horizontal pool implies only 1 itemgroupdata of each itemgroup per visit
     $tblFields = array();
     foreach($tblPoolH as  $destFile => $ItemGroupOIDList){
-      //2 minutes par ItemGroup
+      //360 seconds per ItemGroup
       set_time_limit(360);
       
       $xQuerySelect = "";
       $xQuerySelectIGOID = "";
-      $lstIGOID = "";  //Just for printing
+      $lstIGOID = "";  //Only for display
       for($i=0;$i<count($ItemGroupOIDList);$i++){
         $ItemGroupOID = $ItemGroupOIDList[$i];
         $xQuerySelect .= "@OID='$ItemGroupOID'";
@@ -682,10 +647,11 @@ run;";
         }
       }   
         
-      //Lecture des metadatas - pour connaitre les champs
-      $query = "let \$ItemGroupDef := doc('MetaDataVersion.dbxml/{$this->m_tblConfig["METADATAVERSION"]}')/odm:ODM/odm:Study/odm:MetaDataVersion/odm:ItemGroupDef[$xQuerySelect]
+      //Retrieve metadatas - get fields informations
+      $query = "let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID='{$this->m_tblConfig["METADATAVERSION"]}']                    
+                let \$ItemGroupDef := \$MetaDataVersion/odm:ItemGroupDef[$xQuerySelect]
                 for \$ItemRef in \$ItemGroupDef/odm:ItemRef
-                let \$ItemDef := doc('MetaDataVersion.dbxml/{$this->m_tblConfig["METADATAVERSION"]}')/odm:ODM/odm:Study/odm:MetaDataVersion/odm:ItemDef[@OID=\$ItemRef/@ItemOID]
+                let \$ItemDef := \$MetaDataVersion/odm:ItemDef[@OID=\$ItemRef/@ItemOID]
                 return
                   <ItemRef ItemOID='{\$ItemRef/@ItemOID}' 
                            Name='{\$ItemDef/@SASFieldName}'
@@ -694,13 +660,7 @@ run;";
                            Label='{\$ItemDef/odm:Question/odm:TranslatedText[@xml:lang='".$this->m_lang."']/string()}'
                            Length='{\$ItemDef/@Length}'
                            SignificantDigits='{\$ItemDef/@SignificantDigits}'/>";
-      try{
-        $tblItemRef = $this->m_ctrl->socdiscoo()->query($query);
-      }catch(xmlexception $e){
-        $str = "<html>Erreur de la requete : " . htmlentities($e->getMessage()) . "<br/><br/>" . htmlentities($query) . "</html> (". __METHOD__ .")";
-        $this->addLog("Erreur : export() => $str",FATAL);
-        die($str);
-      } 
+      $tblItemRef = $this->m_ctrl->socdiscoo()->query($query);
       
       $procSAS .= " 
 
@@ -718,12 +678,12 @@ delimiter = ';' MISSOVER DSD lrecl=32767 firstobs=2;
       $procSASlabel = "
                    
     Label ";                      
-      //Creation du fichier csv destination
+      //Creation of the dest csv file
       $filename = $tmp.'/'.$uid."/$destFile.csv";
       $fexists = file_exists($filename);
       $fp = fopen($filename, 'a+');
       
-      //Ligne d'entete - noms des champs
+      //header line - fields name
       if($fexists==false){
         $colNum = 0;
         $line = array();
@@ -794,13 +754,11 @@ delimiter = ';' MISSOVER DSD lrecl=32767 firstobs=2;
 
       $procSAS .= "\n;" . $procSASformat . "\n;" . $procSASlabel . "\n; \nrun;";
  
-      $query = "
-                let \$SubjectData := $subjCol/odm:ODM/odm:ClinicalData/odm:SubjectData[@SubjectKey!='BLANK']
-                let \$BLANKSubjectData := doc('BLANK.dbxml')/odm:ODM/odm:ClinicalData/odm:SubjectData
-                
-                let \$MetaDataVersion := doc('MetaDataVersion.dbxml/{$this->m_tblConfig["METADATAVERSION"]}')
+      $query = "let \$SubjectDatas := $SubjectDatasQuery
+                let \$BLANKSubjectData := index-scan('SubjectData','BLANK','EQ')
+                let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID='{$this->m_tblConfig["METADATAVERSION"]}']                    
                 let \$ItemGroupDef := \$MetaDataVersion/odm:ODM/odm:Study/odm:MetaDataVersion/odm:ItemGroupDef[$xQuerySelect]
-                for \$StudyEventData in \$SubjectData/odm:StudyEventData[odm:FormData/odm:ItemGroupData[$xQuerySelectIGOID and @TransactionType!='Remove']]
+                for \$StudyEventData in \$SubjectDatas/odm:StudyEventData[odm:FormData/odm:ItemGroupData[$xQuerySelectIGOID and @TransactionType!='Remove']]
                 let \$SubjectKey := \$StudyEventData/../@SubjectKey
                 let \$StudyEventOID := \$StudyEventData/@StudyEventOID
                 let \$StudyEventRepeatKey := \$StudyEventData/@StudyEventRepeatKey
@@ -813,7 +771,7 @@ delimiter = ';' MISSOVER DSD lrecl=32767 firstobs=2;
                                   NbIG='{\$nbIG}'>
                   {
                     for \$ItemRef in \$ItemGroupDef/odm:ItemRef
-                    let \$ItemDef := doc('MetaDataVersion.dbxml/{$this->m_tblConfig["METADATAVERSION"]}')/odm:ODM/odm:Study/odm:MetaDataVersion/odm:ItemDef[@OID=\$ItemRef/@ItemOID]
+                    let \$ItemDef := \$MetaDataVersion/odm:ItemDef[@OID=\$ItemRef/@ItemOID]
                     let \$ItemData := (\$StudyEventData/odm:FormData/odm:ItemGroupData/odm:*[@ItemOID=\$ItemRef/@ItemOID])[last()]
                     return
                       <ItemData OID='{\$ItemRef/@ItemOID}' 
@@ -822,24 +780,14 @@ delimiter = ';' MISSOVER DSD lrecl=32767 firstobs=2;
                   }
                   </StudyEventData>  
                ";
-  
-      try{         
-        $StudyEventDatas = $this->m_ctrl->socdiscoo()->query($query);
-      }catch(xmlexception $e){
-        $str = "<html>Erreur de la requete : " . htmlentities($e->getMessage()) . "<br/><br/>" . htmlentities($query) . "</html> (". __METHOD__ .")";
-        $this->addLog("Erreur : exportDSMB() => $str",FATAL);
-        die($str);
-      } 
- 
+      $StudyEventDatas = $this->m_ctrl->socdiscoo()->query($query);
         
-      //Boucle sur les lignes
       $rowNum = 0;
       foreach($StudyEventDatas as $ItemGroupData){
         //Preliminary check : we expect only one ItemGroupData of each Itemgroup listed per StudyEventData
         if($ItemGroupData['NbIG']>count($ItemGroupOIDList)){
           $str = "<html>Export / Subject {$ItemGroupData['SubjectKey']} / Visit {$ItemGroupData['StudyEventOID']}-{$ItemGroupData['StudyEventName']} : Expecting ".count($ItemGroupOIDList)." ItemGroupData, but {$ItemGroupData['NbIG']} found. ($xQuerySelectIGOID)</html> (". __METHOD__ .")";
-          $this->addLog("Erreur : exportDSMB() => $str",FATAL);
-          die($str);          
+          $this->addLog("Error : exportDSMB() => $str",FATAL);
         }
         $colNum = 0;
         $line = array();
@@ -872,7 +820,7 @@ delimiter = ';' MISSOVER DSD lrecl=32767 firstobs=2;
           $colNum++;
         }
         $rowNum++;
-        //Ajout de la ligne dans le fichier csv
+        //Add line to csv file
         fputcsv($fp, $line,';');
       }
       fclose($fp); 
@@ -885,45 +833,39 @@ delimiter = ';' MISSOVER DSD lrecl=32767 firstobs=2;
     file_put_contents($tmp.'/'.$uid . '/importFormat.sas',$procSasFormat);
 
 
-    //Creation du fichier csv destination
+    //Annotations - Creation of the dest csv file
     $filename = $tmp.'/'.$uid."/Annotations.csv";
     $fexists = file_exists($filename);
     $fp = fopen($filename, 'a+');
           
     //Processing of Annotation - Here we add all annonations into one file
-    $query = "let \$ClinicalDatas := $subjCol/odm:ODM/odm:ClinicalData
-              for \$ClinicalData in \$ClinicalDatas
-                let \$SubjectKey := \$ClinicalData/odm:SubjectData/@SubjectKey
-                for \$Annotation in \$ClinicalData/odm:Annotations/odm:Annotation
-                  let \$AnnotationID := \$Annotation/@ID
-                  let \$ItemDatas := \$ClinicalData/odm:SubjectData/odm:StudyEventData/odm:FormData/odm:ItemGroupData/odm:*[@AnnotationID=\$AnnotationID]
-                  for \$ItemData in \$ItemDatas
-                    let \$StudyEventOID := \$ItemData/../../../@StudyEventOID
-                    let \$StudyEventRepeatKey := \$ItemData/../../../@StudyEventRepeatKey
-                    let \$FormOID := \$ItemData/../../@FormOID
-                    let \$FormRepeatKey := \$ItemData/../../@FormRepeatKey
-                    let \$ItemGroupOID := \$ItemData/../@ItemGroupOID
-                    let \$ItemGroupRepeatKey := \$ItemData/../@ItemGroupRepeatKey
-                    return
-                      <AnnotedItem SubjectKey='{\$SubjectKey}'
-                                   StudyEventOID='{\$StudyEventOID}'
-                                   StudyEventRepeatKey='{\$StudyEventRepeatKey}'
-                                   FormOID='{\$FormOID}'
-                                   FormRepeatKey='{\$FormRepeatKey}'
-                                   ItemGroupOID='{\$ItemGroupOID}'
-                                   ItemGroupRepeatKey='{\$ItemGroupRepeatKey}'
-                                   ItemOID='{\$ItemData/@ItemOID}'>
-                        <FlagValue>{\$Annotation/odm:Flag/odm:FlagValue/text()}</FlagValue>
-                        <Comment>{\$Annotation/odm:Comment/text()}</Comment>  
-                      </AnnotedItem>      
+    $query = "let \$SubjectDatas := $SubjectDatasQuery             
+              for \$SubjectData in \$SubjectDatas
+              let \$SubjectKey := \$SubjectData/@SubjectKey 
+              for \$Annotation in \$SubjectData/../odm:Annotations/odm:Annotation                
+                let \$AnnotationID := \$Annotation/@ID
+                let \$ItemDatas := \$SubjectData/odm:StudyEventData/odm:FormData/odm:ItemGroupData/odm:*[@AnnotationID=\$AnnotationID]
+                for \$ItemData in \$ItemDatas
+                  let \$StudyEventOID := \$ItemData/../../../@StudyEventOID
+                  let \$StudyEventRepeatKey := \$ItemData/../../../@StudyEventRepeatKey
+                  let \$FormOID := \$ItemData/../../@FormOID
+                  let \$FormRepeatKey := \$ItemData/../../@FormRepeatKey
+                  let \$ItemGroupOID := \$ItemData/../@ItemGroupOID
+                  let \$ItemGroupRepeatKey := \$ItemData/../@ItemGroupRepeatKey
+                  return
+                    <AnnotedItem SubjectKey='{\$SubjectKey}'
+                                 StudyEventOID='{\$StudyEventOID}'
+                                 StudyEventRepeatKey='{\$StudyEventRepeatKey}'
+                                 FormOID='{\$FormOID}'
+                                 FormRepeatKey='{\$FormRepeatKey}'
+                                 ItemGroupOID='{\$ItemGroupOID}'
+                                 ItemGroupRepeatKey='{\$ItemGroupRepeatKey}'
+                                 ItemOID='{\$ItemData/@ItemOID}'>
+                      <FlagValue>{\$Annotation/odm:Flag/odm:FlagValue/text()}</FlagValue>
+                      <Comment>{\$Annotation/odm:Comment/text()}</Comment>  
+                    </AnnotedItem>      
               ";   
-    try{         
-      $AnnotedItems = $this->m_ctrl->socdiscoo()->query($query);
-    }catch(xmlexception $e){
-      $str = "<html>Erreur de la requete : " . htmlentities($e->getMessage()) . "<br/><br/>" . htmlentities($query) . "</html> (". __METHOD__ .")";
-      $this->addLog("Erreur : exportDSMB() => $str",FATAL);
-      die($str);
-    }
+    $AnnotedItems = $this->m_ctrl->socdiscoo()->query($query);
     fputcsv($fp, array("SubjectKey","StudyEventOID","StudyEventRepeatKey","FormOID","FormRepeatKey","ItemGroupOID","ItemGroupRepeatKey","ItemOID","Flag","Comment"),';');                              
     
     $tblAnnot = array();
@@ -969,8 +911,8 @@ delimiter = ';' MISSOVER DSD lrecl=32767 firstobs=2;
   
   public function getMetaDataStructure(){
     $query = "
-      let \$SubjectData := collection('BLANK.dbxml')/odm:ODM/odm:ClinicalData/odm:SubjectData
-      let \$MetaDataVersion := collection('MetaDataVersion.dbxml')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
+      let \$SubjectData := index-scan('SubjectData','BLANK','EQ')
+      let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
       
       for \$StudyEventDef in \$MetaDataVersion/odm:StudyEventDef
         return
@@ -1001,13 +943,7 @@ delimiter = ';' MISSOVER DSD lrecl=32767 firstobs=2;
           }
           </StudyEvent>    
     ";
-    try{
     $doc = $this->m_ctrl->socdiscoo("BLANK")->query($query);
-    }catch(xmlexception $e){
-      $str = "Error in xQuery : " . $e->getMessage() . "<br/><br/>" . $query . "</html> (". __METHOD__ .")";
-      $this->addLog($str,FATAL);
-      die($str);
-    }
     return $doc;    
   }
 

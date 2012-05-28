@@ -115,37 +115,37 @@ declare function alix:getRawValue($ItemData as node(),$StudyEventOID as xs:strin
   return alix:getRawValue($destItemData)
 };
 
-declare function alix:getDecode($ItemData as node(),$SubjectData as node(),$MetaDataVersion as node(),$ItemGroupOID as xs:string,$ItemOID as xs:string) as xs:string?
+declare function alix:getDecode($ItemData as node(),$MetaDataVersion as node(),$ItemGroupOID as xs:string,$ItemOID as xs:string) as xs:string?
 {
   let $destItemData := $ItemData/../../odm:ItemGroupData[@ItemGroupOID=$ItemGroupOID]/odm:*[@ItemOID=$ItemOID]
-  return alix:getDecode($destItemData,$SubjectData,$MetaDataVersion)
+  return alix:getDecode($destItemData,$MetaDataVersion)
 };
 
-declare function alix:getDecode($ItemData as node(),$SubjectData as node(),$MetaDataVersion as node(),$FormOID as xs:string,$ItemGroupOID as xs:string,$ItemOID as xs:string) as xs:string?
+declare function alix:getDecode($ItemData as node(),$MetaDataVersion as node(),$FormOID as xs:string,$ItemGroupOID as xs:string,$ItemOID as xs:string) as xs:string?
 {
   let $destItemData := $ItemData/../../../odm:FormData[@FormOID=$FormOID]/odm:ItemGroupData[@ItemGroupOID=$ItemGroupOID]/odm:*[@ItemOID=$ItemOID]
-  return alix:getDecode($destItemData,$SubjectData,$MetaDataVersion)
+  return alix:getDecode($destItemData,$MetaDataVersion)
 };
 
-declare function alix:getDecode($ItemData as node(),$SubjectData as node(),$MetaDataVersion as node(),$StudyEventOID as xs:string,$FormOID as xs:string,$ItemGroupOID as xs:string,$ItemOID as xs:string) as xs:string?
+declare function alix:getDecode($ItemData as node(),$MetaDataVersion as node(),$StudyEventOID as xs:string,$FormOID as xs:string,$ItemGroupOID as xs:string,$ItemOID as xs:string) as xs:string?
 {
   let $destItemData := $ItemData/../../../../odm:StudyEventData[@StudyEventOID=$StudyEventOID]/odm:FormData[@FormOID=$FormOID]/odm:ItemGroupData[@ItemGroupOID=$ItemGroupOID]/odm:*[@ItemOID=$ItemOID]
-  return alix:getDecode($destItemData,$SubjectData,$MetaDataVersion)
+  return alix:getDecode($destItemData,$MetaDataVersion)
 };
 
-declare function alix:getDecode($ItemData as node(),$SubjectData as node(),$MetaDataVersion as node(),$StudyEventOID as xs:string,$FormOID as xs:string, $FormRepeatKey as xs:string, $ItemGroupOID as xs:string,$ItemOID as xs:string) as xs:string?
+declare function alix:getDecode($ItemData as node(),$MetaDataVersion as node(),$StudyEventOID as xs:string,$FormOID as xs:string, $FormRepeatKey as xs:string, $ItemGroupOID as xs:string,$ItemOID as xs:string) as xs:string?
 {
   let $destItemData := $ItemData/../../../../odm:StudyEventData[@StudyEventOID=$StudyEventOID]/odm:FormData[@FormOID=$FormOID and @FormRepeatKey=$FormRepeatKey]/odm:ItemGroupData[@ItemGroupOID=$ItemGroupOID]/odm:*[@ItemOID=$ItemOID]
-  return alix:getDecode($destItemData,$SubjectData,$MetaDataVersion)
+  return alix:getDecode($destItemData,$MetaDataVersion)
 };
 
-declare function alix:getDecode($ItemData as node(),$SubjectData as node(),$MetaDataVersion as node(),$ItemOID as xs:string) as xs:string?
+declare function alix:getDecode($ItemData as node(),$MetaDataVersion as node(),$ItemOID as xs:string) as xs:string?
 {
   let $destItemData := $ItemData/../odm:*[@ItemOID=$ItemOID]
-  return alix:getDecode($destItemData,$SubjectData,$MetaDataVersion)
+  return alix:getDecode($destItemData,$MetaDataVersion)
 };
 
-declare function alix:getDecode($ItemData as node()*,$SubjectData as node(),$MetaDataVersion as node()) as xs:string?
+declare function alix:getDecode($ItemData as node()*,$MetaDataVersion as node()) as xs:string?
 {
   let $value := alix:getValue($ItemData)
   let $CodeListOID := $MetaDataVersion/odm:ItemDef[@OID=$ItemData/@ItemOID]/odm:CodeListRef/@CodeListOID

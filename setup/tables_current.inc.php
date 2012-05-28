@@ -39,18 +39,49 @@
 		'ix' => array(),
 		'uc' => array()
 		),		
+	'egw_alix_export_log' => array(
+		'fd' => array(
+			'logid' => array('type' => 'auto','nullable' => False),
+			'exportfilename' => array('type' => 'varchar','precision' => '200','nullable' => False),
+			'exporttype' => array('type' => 'varchar','precision' => '100','nullable' => False),
+			'exportdate' => array('type' => 'datetime'),
+      'exportpassword' => array('type' => 'varchar','precision' => '50','nullable' => False),
+      'exportuser' => array('type' => 'varchar','precision' => '50','nullable' => False),
+      'currentapp' => array('type' => 'varchar','precision' => '50','nullable' => False),
+      'exportpath' => array('type' => 'varchar','precision' => '255','nullable' => False),
+      'exportid' => array('type' => 'varchar','precision' => '20','nullable' => False),
+		),
+		'pk' => array('logid'),
+		'fk' => array(),
+		'ix' => array(),
+		'uc' => array()
+		),
+	'egw_alix_export_def' => array(
+		'fd' => array(
+			'exportid' => array('type' => 'int','precision' => '11','nullable' => False),
+			'studyeventoid' => array('type' => 'varchar','precision' => '50','nullable' => False),
+			'formoid' => array('type' => 'varchar','precision' => '50','nullable' => False),
+			'itemgroupoid' => array('type' => 'varchar','precision' => '50','nullable' => False),
+			'fields' => array('type' => 'text','nullable' => False),
+			'updateDT' => array('type' => 'datetime'),
+		),
+		'pk' => array('exportid','studyeventoid','formoid','itemgroupoid'),
+		'fk' => array(),
+		'ix' => array(),
+		'uc' => array()
+		),
 	'egw_alix_export' => array(
 		'fd' => array(
-			'EXPORTID' => array('type' => 'auto','nullable' => False),
-			'EXPORTNAME' => array('type' => 'varchar','precision' => '200','nullable' => False),
-			'EXPORTTYPE' => array('type' => 'varchar','precision' => '100','nullable' => False),
-			'EXPORTDATE' => array('type' => 'datetime'),
-      'EXPORTPASSWORD' => array('type' => 'varchar','precision' => '50','nullable' => False),
-      'EXPORTUSER' => array('type' => 'varchar','precision' => '50','nullable' => False),
-      'CURRENTAPP' => array('type' => 'varchar','precision' => '20','nullable' => False),
-      'EXPORTPATH' => array('type' => 'varchar','precision' => '255','nullable' => False),
+			'id' => array('type' => 'int','precision' => '11','nullable' => False),
+			'name' => array('type' => 'varchar','precision' => '100','nullable' => False),
+			'description' => array('type' => 'text','nullable' => False),
+			'user' => array('type' => 'varchar','precision' => '100','nullable' => False),
+			'creationDate' => array('type' => 'datetime'),
+      'share' => array('type' => 'varchar','precision' => '1','nullable' => False),
+      'currentapp' => array('type' => 'varchar','precision' => '50','nullable' => False),
+      'share' => array('type' => 'varchar','precision' => '1','nullable' => False),
 		),
-		'pk' => array('EXPORTID'),
+		'pk' => array('id'),
 		'fk' => array(),
 		'ix' => array(),
 		'uc' => array()
