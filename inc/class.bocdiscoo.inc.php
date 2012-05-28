@@ -75,12 +75,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
                           </Flag>
                          </Annotation> 
                   into index-scan('SubjectData','$SubjectKey','EQ')/../odm:Annotations";
-        try{
-          $this->m_ctrl->socdiscoo()->query($query);
-        }catch(xmlexception $e){
-          $str = "Error in query " . $e->getMessage() . " " . $query ." (".__METHOD__.")";
-          $this->addLog($str,FATAL);
-        }
+        $this->m_ctrl->socdiscoo()->query($query);
         $this->addLog("bocdiscoo->addItemData() Adding annotation $AnnotationID : ". $flag ." / ". $comment,INFO);        
       }
       else
@@ -334,12 +329,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
                              FormalExpression='{\$RangeCheck/odm:FormalExpression[@Context='XQuery']/string()}'
                              FormalExpressionDecode='{\$RangeCheck/odm:FormalExpression[@Context='XQueryDecode']/string()}'
                              Title='{\$ItemDef/odm:Question/odm:TranslatedText[@xml:lang='{$this->m_lang}']/text()}' />";
-    try{
-      $ctrls = $this->m_ctrl->socdiscoo()->query($query);
-    }catch(xmlexception $e){
-      $str = "XQuery error" . $e->getMessage() . " " . $query ." (". __METHOD__ .")";
-      $this->addLog($str,FATAL);
-    }
+    $ctrls = $this->m_ctrl->socdiscoo()->query($query);
     $errors = array();
 
     if($ctrls[0]->getName()!="NoItemGroupData")
@@ -349,7 +339,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
         if($ctrl->getName()!="NoControl"){        
           $testXQuery = $this->getXQueryConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ctrl);
           try{
-            $ctrlResult = $this->m_ctrl->socdiscoo()->query($testXQuery);
+            $ctrlResult = $this->m_ctrl->socdiscoo()->query($testXQuery,true,false,true);
           }catch(xmlexception $e){
             //Error is probably due to the edit check code. Error is not display to the user, and administrator notified by email 
             $str = "Consistency : Xquery error : " . $e->getMessage() . " " . $testXQuery;
@@ -440,28 +430,16 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
                        FormalExpressionDecode=\"$FormalExpressionDecode\"
                        Title=\"{\$ItemDef/odm:Question/odm:TranslatedText[@xml:lang=\"{$this->m_lang}\"]/text()}\"/>
         ";
-    //return $query;
-    try{
-      $ctrls = $this->m_ctrl->socdiscoo()->query($query);
-      //return $ctrls;
-    }catch(xmlexception $e){
-      $str = "Erreur de la requete : " . $e->getMessage() . " " . $query ." (". __METHOD__ .")";
-      $this->addLog($str,FATAL);
-      die($str);
-    }
+    $ctrls = $this->m_ctrl->socdiscoo()->query($query);
     $errors = array();
 
     foreach($ctrls as $ctrl)
     {
       $testXQuery = $macros . $this->getXQueryConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ctrl,$Value);
-      //return $testXQuery;
       try{
-        $ctrlResult = $this->m_ctrl->socdiscoo()->query($testXQuery);
-        //return $ctrlResult;
+        $ctrlResult = $this->m_ctrl->socdiscoo()->query($testXQuery,true,false,true);
       }catch(xmlexception $e){
-        //L'erreur est probablement liée à l"ecriture du contrôle contenu dans les metadatas,
-        //ainsi on présente cela d'une façon élégante à l'utilsateur. On conserve la notification par e-mail,
-        //pour rectifier le tir.
+        //Error is probably due to the edit check code. Error is not display to the user, and administrator notified by email             
         $str = "xQuery error : " . $e->getMessage() . " " . $testXQuery;
         $this->addLog($str,ERROR);
         //Have to return the message !
@@ -815,11 +793,11 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
       if($error['FormalExpression']!=""){
         $testXQuery = $this->getXQueryConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$error);//-
         try{
-          $ctrlResult = $this->m_ctrl->socdiscoo()->query($testXQuery);
+          $ctrlResult = $this->m_ctrl->socdiscoo()->query($testXQuery,true,false,true);
           $this->addLog("query=".$testXQuery,INFO);
         }catch(xmlexception $e){
           //Error is probably due to the ConditionDef code. Error is not display to the user, and administrator notified by email             
-          $str = "Mandatory : Erreur du controle : " . $e->getMessage() . " " . $testXQuery;
+          $str = "Mandatory : Erreur in editcheck code : " . $e->getMessage() . " " . $testXQuery;
           $this->addLog($str,ERROR);
           $desc = "Misformated control on the {$error['ItemOID']} value. Notification was sent to administrator.";
           $errors["$desc"] = array( 'desc' => $desc,
@@ -868,160 +846,31 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
     
     return $tblRet;
   }
-
-  //Copie d'un StudyEvent d'un patient vers un autre,
-  //Attention valable uniquement pour les visites de type Repeating="Yes"
-  function copyStudyEventData($SubjectKeySource,$SubjectKeyDest,$StudyEventOID,$incrementSERK=1)
-  {
-    $this->addLog("bocdiscoo->copyStudyEventData($SubjectKeySource,$SubjectKeyDest,$StudyEventOID)",INFO);
-
-    //Recuperation de la visite à inserer
-    $query = "
-          let \$StudyEventData := index-scan('SubjectData','$SubjectKeySource','EQ')/odm:StudyEventData[@StudyEventOID='$StudyEventOID']
-          return
-            <StudyEventData xmlns='" . ODM_NAMESPACE . "' StudyEventOID='$StudyEventOID'>
-              {
-                \$StudyEventData/node()
-              }
-            </StudyEventData>
-         ";
-
-    try{
-      $StudyEventData = $this->m_ctrl->socdiscoo()->query($query,false);
-    }catch(xmlexception $e){
-      $str = "Erreur de la requete : " . $e->getMessage() . $query ." (". __METHOD__ .")";
-      $this->addLog($str,FATAL);
-      die($str);
-    }
-
-    //Ouverture du patient cible
-    try{
-      $subj = $this->m_ctrl->socdiscoo()->getDocument("ClinicalData",$SubjectKeyDest,false);
-    }catch(xmlexception $e){
-      $str= "Patient $SubjectKey non trouvé dans la base : " . $e->getMessage() ." (". __METHOD__ .")";
-      $this->addLog($str,FATAL);
-      die($str);
-    }
-
-    //Recuperation du dernier StudyEventRepeatKey
-    $query = "
-          let \$StudyEventRepeatKey := max(index-scan('SubjectData','$SubjectKeyDest','EQ')/odm:StudyEventData[@StudyEventOID='$StudyEventOID']/@StudyEventRepeatKey)
-          return
-            <StudyEventRepeatKey max='{\$StudyEventRepeatKey}'/>
-         ";
-
-    try{
-      $result = $this->m_ctrl->socdiscoo()->query($query);
-    }catch(xmlexception $e){
-      $str = "Erreur de la requete : " . $e->getMessage() . $query ." (". __METHOD__ .")";
-      $this->addLog($str,FATAL);
-      die($str);
-    }
-
-    $newRepeatKey = $result[0]['max'] + $incrementSERK;
-    $StudyEventDataNode = $subj->ImportNode($StudyEventData->documentElement,true);
-    $StudyEventDataNode->setAttribute("StudyEventOID","$StudyEventOID");
-    $StudyEventDataNode->setAttribute("StudyEventRepeatKey","$newRepeatKey");
-
-    //Insertion
-    $xPath = new DOMXPath($subj);
-    $xPath->registerNamespace("odm", ODM_NAMESPACE);
-
-    //Recuperation des noeuds StudyEventData
-    $result = $xPath->query("/odm:ODM/odm:ClinicalData/odm:SubjectData/odm:StudyEventData");
-    if($result->length>0){
-      //C'est tout bon, on ajoute notre noeud
-      $result->item(0)->parentNode->insertBefore($StudyEventDataNode,$result->item($result->length-1)->nextSibling);
-    }else{
-      //C'est la première visite, on l'ajoute
-      $result = $xPath->query("/odm:ODM/odm:ClinicalData/odm:SubjectData/odm:StudyEventData[@StudyEventOID='AE']");
-      $result->item(0)->parentNode->insertBefore($StudyEventDataNode,$result->item($result->length-1)->nextSibling);
-    }
-
-    //Mise à jour de notre document dans la base
-    $this->m_ctrl->socdiscoo()->replaceDocument($subj,false,"ClinicalData");
-
-    return $newRepeatKey;
-  }
-
   
-  /*
-  @desc Retourne le nombre d'items dans le noeud de niveau spécifié (items qui sont les derniers ajoutés et qui ne sont pas dans un ItemGroupData[@TransactionType='Remove']) = nombre de champs du CRF qui sont saisis (avec ou sans valeur)
-  @author tpi
-  */
-  function countItems($SubjectKey,$StudyEventOID="",$StudyEventRepeatKey="",$FormOID="",$FormRepeatKey="",$ItemGroupOID="",$ItemGroupRepeatKey="")
-  {
-    $path = "";
-    
-    if($StudyEventOID!=""){
-      $andStudyEventRepeatKey = "";
-      if($StudyEventRepeatKey!=""){
-        $andStudyEventRepeatKey = "and @StudyEventRepeatKey='$StudyEventRepeatKey'";
-      }
-      $path .= "odm:StudyEventData[@StudyEventOID='$StudyEventOID' $andStudyEventRepeatKey]";
-    }
-    
-    if($FormOID!=""){
-      $andFormRepeatKey = "";
-      if($FormRepeatKey!=""){
-        $andFormRepeatKey = "and @FormRepeatKey='$FormRepeatKey'";
-      }
-      if($path!="") $path .= "/";
-      $path .= "odm:FormData[@FormOID='$FormOID' $andFormRepeatKey]";
-    }
-    
-    if($ItemGroupOID!=""){
-      $andItemGroupRepeatKey = "";
-      if($ItemGroupRepeatKey!=""){
-        $andItemGroupRepeatKey = "and @ItemGroupRepeatKey='$ItemGroupRepeatKey'";
-      }
-      if($path!="") $path .= "/";
-      $path .= "odm:ItemGroupData[@ItemGroupOID='$ItemGroupOID' $andItemGroupRepeatKey]";
-    }
-    
-    $query = "
-      let \$SubjectData := index-scan('SubjectData','$SubjectKeySource','EQ')
-      let \$value := count(\$SubjectData/$path/odm:*[@ItemOID])
-      return
-        <result value='{\$value}' />
-    ";
-    
-    try{
-      $doc = $this->m_ctrl->socdiscoo()->query($query);
-    }catch(xmlexception $e){
-      $str = "Erreur de la requete : " . $e->getMessage() . "<br/><br/>" . $query . "</html> (". __METHOD__ .")";
-      $this->addLog($str,FATAL);
-      die($str);
-    }
-    
-    return $doc[0]['value'];
-  }
-
-/*  
-@desc Création d'un nouveau patient, on copie le patient BLANK
-      Retourne le n° (le subjectKey) du nouveau patient
-*/
+  /**
+  * Create a new subject. The BLANK patient is duplicated, and saved into a new subject document 
+  * @return string the new SubjectKey  
+  **/    
   function enrolNewSubject()
   {
     $newSubj = $this->m_ctrl->socdiscoo()->getDocument("ClinicalData",$this->m_tblConfig['BLANK_OID']);
 
-    //Calcul du nouveau numéro patient
+    //Get the new Patient id
     $subjKey = $this->getNewPatientID($site);
     //zero padding
     $subjKey = sprintf($this->m_tblConfig["SUBJID_FORMAT"],$subjKey);
 
-    //Mise à jour du patient BLANK
+    //Update the BLANK copy
     $newSubj['FileOID'] = $subjKey;
     $newSubj['Description'] = "";
     $newSubj->ClinicalData->SubjectData['SubjectKey'] = $subjKey;
 
-    //Enregistrement de notre patient
+    //Save the new patient
     $this->m_ctrl->socdiscoo()->addDocument($newSubj->asXML(),true,"ClinicalData");
 
     return $newSubj['FileOID'];
   }
   
-
 /*  
 @desc returns the list of the visits, forms and itemgroups to display a full CRF (usefull for PDF generation)
 */
@@ -1147,12 +996,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
                 }
                 </SubjectData>";
 
-    try{
-      $doc = $this->m_ctrl->socdiscoo()->query($query,false);
-    }catch(xmlexception $e){
-      $str = "xQuery error : " . $e->getMessage();
-      $this->addLog($str,FATAL);
-    }
+    $doc = $this->m_ctrl->socdiscoo()->query($query,false);
     return $doc;
   }
   
@@ -1163,14 +1007,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
               return
                 <subject siteId='{\$Subject/colSITEID}' subjectKey='{\$Subject/SubjectKey}'/>
              ";
-    try{
-      $result = $this->m_ctrl->socdiscoo()->query($query);
-    }catch(xmlexception $e){
-      $str = "Erreur de la requete : " . $e->getMessage() . "<br/><br/>" . $query . "</html> (". __METHOD__ .")";
-      $this->addLog($str,FATAL);
-      die($str);
-    }
-    
+    $result = $this->m_ctrl->socdiscoo()->query($query);
     $subjList = "";
     foreach($result as $subj){
       $siteId = (string)$subj['siteId'];
@@ -1224,12 +1061,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
                     />
                  
     ";    
-    try{
-      $result = $this->m_ctrl->socdiscoo()->query($query);
-    }catch(xmlexception $e){
-      $str = "xQuery error : " . $e->getMessage() . "<br/><br/>" . $query . " (". __METHOD__ .")";
-      $this->addLog($str,FATAL);
-    }
+    $result = $this->m_ctrl->socdiscoo()->query($query);
 
     return $result;
   }
@@ -1267,14 +1099,8 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
                              </ItemDataAT>
               			}</ItemGroupDataAT>
               ";
+    $doc = $this->m_ctrl->socdiscoo()->query($query,false);
 
-    try{
-      $doc = $this->m_ctrl->socdiscoo()->query($query,false);
-    }catch(xmlexception $e){
-      $str = __METHOD__." Erreur de la requete : " . $e->getMessage() . " " . $query ." (". __METHOD__ .")";
-      $this->addLog($str,FATAL);
-      die($str);
-    }
     $this->addLog(__METHOD__." return ".$doc->saveXML(),TRACE);
     
     return $doc;
@@ -1296,13 +1122,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
                 </CodeListItem>             
              ";  
     
-    try{
-      $result = $this->m_ctrl->socdiscoo()->query($query);
-    }catch(xmlexception $e){
-      $str = "Erreur de la requete : " . $e->getMessage() . "<br/><br/>" . $query . "</html> (". __METHOD__ .")";
-      $this->addLog($str,FATAL);
-      die($str);
-    }
+    $result = $this->m_ctrl->socdiscoo()->query($query);
     
     $tblCodeListItem = array();
     foreach($result as $clitem){
@@ -1346,13 +1166,8 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
         <result value='{\$decodedValue}' />
     ";
     
-    try{
-      $doc = $this->m_ctrl->socdiscoo()->query($query);
-    }catch(xmlexception $e){
-      $str = "Erreur de la requete : " . $e->getMessage() . "<br/><br/>" . $query . "</html> (". __METHOD__ .")";
-      $this->addLog($str,FATAL);
-      die($str);
-    }
+    $doc = $this->m_ctrl->socdiscoo()->query($query);
+
     return (string)$doc[0]['value'];
   }
   
@@ -1423,14 +1238,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
                     </ItemGroupDefs>
                   </Descriptions>
             ";
-
-    try{
-      $sxe = $this->m_ctrl->socdiscoo("BLANK")->query($query,true);
-    }catch(xmlexception $e){
-      $str = __METHOD__." Erreur de la requete : " . $e->getMessage() . " " . $query ." (". __METHOD__ .")";
-      $this->addLog($str,FATAL);
-      die($str);
-    }
+    $sxe = $this->m_ctrl->socdiscoo("BLANK")->query($query,true);
     
     foreach($sxe[0] as $Defs){
       foreach($Defs as $Def){
@@ -1478,14 +1286,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
                   FormOID='{\$FormData/@FormOID}'
                   FormRepeatKey='{\$FormData/@FormRepeatKey}'/>
              ";
-
-    try{
-      $FormDatas = $this->m_ctrl->socdiscoo()->query($query);
-    }catch(xmlexception $e){
-      $str = "<html>Erreur de la requete : " . htmlentities($e->getMessage()) . "<br/><br/>" . htmlentities($query) . "</html> (". __METHOD__ .")";
-      $this->addLog("Erreur : getItemGroupData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey) => $str",FATAL);
-      die($str);
-    }
+    $FormDatas = $this->m_ctrl->socdiscoo()->query($query);
     return $FormDatas;
   }
     
@@ -1505,16 +1306,8 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
                     </Types>
                     
                 ";
-    try
-    {
-      $doc = $this->m_ctrl->socdiscoo()->query($query);
-    }
-    catch(xmlexception $e)
-    {
-      $str = "bocdiscoo->getItemDataTypes($igoid, $subj) Erreur de la requete : " . $e->getMessage() . " " . $query . "(". __METHOD__ .")";
-      $this->addLog($str,FATAL);
-      die($str);
-    }
+    $doc = $this->m_ctrl->socdiscoo()->query($query);
+
     $doc = $doc[0];
     $res = array();
     foreach ($doc->children() as $type)
@@ -1540,13 +1333,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
                       Value='{\$ItemData/string()}'/>
              ";
 
-    try{
     $ItemGroupData = $this->m_ctrl->socdiscoo()->query($query);
-    }catch(xmlexception $e){
-      $str = "<html>Erreur de la requete : " . htmlentities($e->getMessage()) . "<br/><br/>" . htmlentities($query) . "</html> (". __METHOD__ .")";
-      $this->addLog("Erreur : getItemGroupData($SubjectKey,$StudyEventOID,$FormOID,$ItemGroupOID,$RepeatKey) => $str",FATAL);
-      die($str);
-    }
     return $ItemGroupData;
   }
 
@@ -1571,14 +1358,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
                                ItemGroupRepeatKey='{\$ItemGroupData/@ItemGroupRepeatKey}'
                                Status='{\$ItemGroupData/odm:Annotation/odm:Flag/odm:FlagValue/string()}'/>
              ";
-
-    try{
     $ItemGroupData = $this->m_ctrl->socdiscoo()->query($query);
-    }catch(xmlexception $e){
-      $str = "<html>Erreur de la requete : " . htmlentities($e->getMessage()) . "<br/><br/>" . htmlentities($query) . "</html> (". __METHOD__ .")";
-      $this->addLog("Erreur : getItemGroupData($SubjectKey,$StudyEventOID,$FormOID,$ItemGroupOID,$RepeatKey) => $str",FATAL);
-      die($str);
-    }
     return $ItemGroupData;
   }
   
@@ -1598,13 +1378,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
                 <ItemGroupDatas CountIG='{\$countIG}'/>
              ";
 
-    try{
     $ItemGroupDataCount = $this->m_ctrl->socdiscoo()->query($query);
-    }catch(xmlexception $e){
-      $str = "<html>xQuery error : " . htmlentities($e->getMessage()) . "<br/><br/>" . htmlentities($query) . "</html> (". __METHOD__ .")";
-      $this->addLog("Erreur : getItemGroupDataCount($SubjectKey,$StudyEventOID,$FormOID,$ItemGroupOID,$RepeatKey) => $str",FATAL);
-      die($str);
-    }
 
     return (int)$ItemGroupDataCount[0]['CountIG'];
   }
@@ -1619,24 +1393,12 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
               let \$maxSubjId := max(\$SubjectsCol/odm:ODM/odm:ClinicalData/odm:SubjectData[@SubjectKey!='". $this->m_tblConfig['BLANK_OID'] ."']/@SubjectKey)
               return <MaxSubjId>{\$maxSubjId}</MaxSubjId>";   
     
-    try
-    {
-      $Result = $this->m_ctrl->socdiscoo()->query($query, true);
-    }
-    catch(xmlexception $e)
-    {
-      $str = "Erreur de la requete : " . $e->getMessage() . " : " . $query . " (". __METHOD__ .")";
-      $this->addLog("bocdiscoo->getNewPatientID() Erreur : $str",FATAL);
-      die($str);
-    }
+    $Result = $this->m_ctrl->socdiscoo()->query($query, true);
     
-    if($ligneResult = $Result[0])
-    {
+    if($ligneResult = $Result[0]){
       $subjKey = (string)$ligneResult + 1;
-    }
-    else
-    {
-        $subjKey = 1;
+    }else{
+      $subjKey = 1;
     }
     
     //HOOK => bocdiscoo_getNewPatientID_customSubjId
@@ -1817,13 +1579,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
                 }</StudyEvent>
               ";
 
-    try{
-      $doc = $this->m_ctrl->socdiscoo()->query($query,false);
-    }catch(xmlexception $e){
-      $str = "bocdiscoo->getStudyEventForms() Erreur de la requete : " . $e->getMessage() . " " . $query ." (". __METHOD__ .")";
-      $this->addLog($str,FATAL);
-      die($str);
-    }
+    $doc = $this->m_ctrl->socdiscoo()->query($query,false);
     $this->addLog("bocdiscoo->getStudyEventForms() ended",INFO);
     return $doc;
   }
@@ -1842,13 +1598,8 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
           <StudyEvent StudyEventOID='{\$StudyEventRef/@StudyEventOID}'
                       Title='{\$StudyEventDef/odm:Description/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()}'
           />";
-    try{
-      $doc = $this->m_ctrl->socdiscoo("MetaDataVersion")->query($query);
-    }catch(xmlexception $e){
-      $str = "Error in xQuery : " . $e->getMessage() . "<br/><br/>" . $query . "</html> (". __METHOD__ .")";
-      $this->addLog($str,FATAL);
-      die($str);
-    }
+    $doc = $this->m_ctrl->socdiscoo()->query($query);
+
     return $doc;                        
   }
 
@@ -1906,12 +1657,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
           }
           </SubjectData>";
 
-    try{
-      $doc = $this->m_ctrl->socdiscoo()->query($query,false);
-    }catch(xmlexception $e){
-      $str = "Error in xQuery : " . $e->getMessage() . "<br/><br/>" . $query . "</html> (". __METHOD__ .")";
-      $this->addLog($str,FATAL);
-    }
+    $doc = $this->m_ctrl->socdiscoo()->query($query,false);
     
     //Set StudyEvent and Form status according to associated queries   
     //Loop through SubjectDatas
@@ -2003,12 +1749,8 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
         <result value='{\$value}' />
     ";
     
-    try{
-      $doc = $this->m_ctrl->socdiscoo()->query($query);
-    }catch(xmlexception $e){
-      $str = "xQuery error : " . $e->getMessage() . "<br/><br/>" . $query . "</html> (". __METHOD__ .")";
-      $this->addLog($str,FATAL);
-    }
+    $doc = $this->m_ctrl->socdiscoo()->query($query);
+
     return (string)$doc[0]['value'];
   }
   
@@ -2132,12 +1874,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
 
     $query = "UPDATE REPLACE \$x in index-scan('SubjectData','$SubjectKey','EQ')/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']/odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']/@TransactionType
               WITH attribute {'TransactionType'} {'Remove'}";
-    try{
-      $res = $this->m_ctrl->socdiscoo()->query($query);
-    }catch(xmlexception $e){
-      $str = "XQuery error " . $e->getMessage() . " : " . $query;
-      $this->addLog("bocdiscoo->removeItemGroupData() Error : $str",FATAL);
-    }
+    $res = $this->m_ctrl->socdiscoo()->query($query);
   }
 
   public function removeItemGroupData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey)
@@ -2146,12 +1883,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
 
     $query = "UPDATE REPLACE \$x in index-scan('SubjectData','$SubjectKey','EQ')/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']/odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']/odm:ItemGroupData[@ItemGroupOID='$ItemGroupOID' and @ItemGroupRepeatKey='$ItemGroupRepeatKey']/@TransactionType
               WITH attribute {'TransactionType'} {'Remove'}";
-    try{
-      $res = $this->m_ctrl->socdiscoo()->query($query);
-    }catch(xmlexception $e){
-      $str = "xQuery error : " . $e->getMessage() . " : " . $query;
-      $this->addLog("bocdiscoo->removeItemGroupData() Erreur : $str",FATAL);
-    }
+    $res = $this->m_ctrl->socdiscoo()->query($query);
   }
 
   /**
@@ -2323,12 +2055,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
     </ItemGroupRef>
     ";
 
-    try{
-      $ItemGroupRef = $this->m_ctrl->socdiscoo()->query($query);
-    }catch(xmlexception $e){
-      $str = "Error in query " . $e->getMessage() . " " . $query ." (".__METHOD__.")";
-      $this->addLog($str,FATAL);
-    }
+    $ItemGroupRef = $this->m_ctrl->socdiscoo()->query($query);
 
     $tblItemDatas = $this->addItemData($SubjectKey,$ItemGroupRepeatKey,$ItemGroupRef[0],$formVars,$tblFilledVar,$subj,$AuditRecordID,!$bFormVarsIsAlreadyDecoded,$nbAnnotations);
     $strItemDatas = implode(',',$tblItemDatas);      
@@ -2380,17 +2107,7 @@ met à jour le statut FROZEN / FILLED / INCONSISTENT / PARTIAL / EMPTY d'un Item
                                                                                 /odm:ItemGroupData[@ItemGroupOID='$ItemGroupOID' and @ItemGroupRepeatKey='$ItemGroupRepeatKey']
                                                                                 /odm:Annotation/odm:Flag[odm:FlagType/@CodeListOID='CL.FLAGTYPE']/odm:FlagValue
              WITH <odm:FlagValue CodeListOID=\"CL.IGSTATUS\">$status</odm:FlagValue>";
-    
-
-    try{
-      $res = $this->m_ctrl->socdiscoo()->query($query,true,false);
-    }catch(xmlexception $e){
-      $str = "Erreur de la requete : " . $e->getMessage() . " : " . $query;
-      $this->addLog("bocdiscoo->setItemGroupStatus() Erreur : $str",TRACE);
-      
-      //Annotation absente ? On la créé avec le statut désiré
-      $this->addItemGroupStatus($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$status);
-    }
+    $res = $this->m_ctrl->socdiscoo()->query($query);
   }
 
 /*
