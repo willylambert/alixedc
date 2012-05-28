@@ -98,15 +98,20 @@ class bosubjects extends CommonFunctions
       $queryCol[] = "index-scan('SiteRef','$siteId','EQ')";  
     }
     
-    $query = "let \$Subjects := " . implode(" UNION ",$queryCol) . "
-              for \$SubjectData in \$Subjects
+    $query = "let \$Subjects := " . implode(" union ",$queryCol) . "
               return
-                <SubjectData SubjectKey='{\$SubjectData/@SubjectKey}' />";
+              <Subjects>
+              {  
+                for \$SubjectData in \$Subjects
+                return
+                  <SubjectData SubjectKey='{\$SubjectData/@SubjectKey}' />
+              }
+              </Subjects>";
     $subjectDatas = $this->m_ctrl->socdiscoo()->query($query);
     
     //We will need the status of each visit for each subject to display
     $tblSubjectKeys = array();
-    foreach($subjectDatas as $subjectData) {
+    foreach($subjectDatas[0] as $subjectData) {
       $tblSubjectKeys[] = $subjectData["SubjectKey"];
     }
     
