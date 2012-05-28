@@ -41,7 +41,6 @@ class socdiscoo extends CommonFunctions
       $this->addLog("socdiscoo->socdiscoo()",INFO);
                   
       $this->initContext();
-      //$this->initDB();
   }
   
   function __destruct()
