@@ -412,7 +412,9 @@ run;";
 
   data $destFile;
   infile \"&PATH_TO_CSV\\$destFile.csv\" 
-  delimiter = ';' MISSOVER DSD lrecl=32767 firstobs=2;
+  delimiter = ';' MISSOVER DSD lrecl=32767 firstobs=2;";
+  
+          $procSASinput = "
     
     INPUT";
           
@@ -431,16 +433,19 @@ run;";
             $line = array();
             foreach($contextVars as $contextVar => $infos){
               $line[] = $contextVar;  
-              $procSAS .= "
+              $procSASinput .= "
        $contextVar";
                   
               if($infos['type']=="string" || $infos['type']==="text"){
-                $procSAS .= " \$ ";
+                $procSASinput .= " \$ ";
               }
                              
               if($infos['codelist']!=""){
                 //We remove the $ character
                 $CodelistOID = str_replace(".\$","_",$infos['codelist']);
+                if($infos['type']=="string" || $infos['type']==="text"){
+                  $CodelistOID = "\$" . $CodelistOID;
+                }
                 $procSASformat .= $contextVar . " " . $CodelistOID. ".
        ";
               }else{
@@ -480,16 +485,19 @@ run;";
                   $DataType = (string)($tblItemRef[$i]['DataType']);
                   $CodeListOID = (string)($tblItemRef[$i]['CodeListOID']); 
                   if($DataType=="string" || $DataType=="text" || $DataType=="partialDate" || $DataType=="partialTime"){
-                    $procSAS .= "
+                    $procSASinput .= "
        $col \$";
                   }else{
-                    $procSAS .= "
+                    $procSASinput .= "
        $col";
                   }
                   
                   if($CodeListOID!=""){
                     //We remove the $ character
                     $CodeListOID = str_replace(".\$","_",$CodeListOID);
+                    if($DataType=="string" || $DataType=="text" || $DataType=="partialDate" || $DataType=="partialTime"){
+                    $CodeListOID = "\$".$CodeListOID;
+                    }
                     $procSASformat .= $col . " " . $CodeListOID . ".
        ";
                   }else{
@@ -519,7 +527,7 @@ run;";
             }
           }
           
-          $procSAS .= "\n;" . $procSASformat . "\n;" . $procSASlabel . "\n; \nrun;";
+          $procSAS .= $procSASformat. "\n;" . $procSASinput . "\n;" . $procSASlabel . "\n; \nrun;";
           
           //Data extraction
           $query = "import module namespace alix = 'http://www.alix-edc.com/alix';
@@ -666,14 +674,15 @@ run;";
 
 data $destFile;
 infile \"&PATH_TO_CSV\\$destFile.csv\" 
-delimiter = ';' MISSOVER DSD lrecl=32767 firstobs=2;
-
-  INPUT
-    ";
+delimiter = ';' MISSOVER DSD lrecl=32767 firstobs=2;";
 
       $procSASformat = "
                               
     Format ";
+    
+      $procSASinput = "
+
+    INPUT ";
           
       $procSASlabel = "
                    
@@ -689,16 +698,19 @@ delimiter = ';' MISSOVER DSD lrecl=32767 firstobs=2;
         $line = array();
         foreach($contextVars as $contextVar => $infos){
           $line[] = $contextVar;  
-          $procSAS .= "
+          $procSASinput .= "
        $contextVar";
               
           if($infos['type']=="string" || $infos['type']==="text"){
-            $procSAS .= " \$ ";
+            $procSASinput .= " \$ ";
           }
                          
           if($infos['codelist']!=""){
             //We remove the $ character
             $CodelistOID = str_replace(".\$","_",$infos['codelist']);    
+            if($infos['type']=="string" || $infos['type']=="text" || $infos['type']=="partialDate" || $infos['type']=="partialTime"){
+              $CodelistOID = "\$".$CodelistOID;
+            }
             $procSASformat .= $contextVar . " " . $CodelistOID . "
        ";
           }else{
@@ -717,7 +729,7 @@ delimiter = ';' MISSOVER DSD lrecl=32767 firstobs=2;
             $line[] = (string)$ItemRef['Name']; 
             $colNum++;
             
-            $procSAS .= "
+            $procSASinput .= "
        ".(string)$ItemRef['Name'];
             
             $bItemFind = false;
@@ -728,7 +740,7 @@ delimiter = ';' MISSOVER DSD lrecl=32767 firstobs=2;
                 $CodeListOID = (string)($tblItemRef[$i]['CodeListOID']);
                 $SASName = (string)$ItemRef['Name']; 
                 if($DataType=="string" || $DataType=="text" || $DataType=="partialDate" || $DataType=="partialTime"){
-                  $procSAS .= " \$ ";
+                  $procSASinput .= " \$ ";
                 }
                 if($CodeListOID!=""){
                   //We remove the $ character
@@ -752,7 +764,7 @@ delimiter = ';' MISSOVER DSD lrecl=32767 firstobs=2;
         fputcsv($fp, $line,';');     
       }
 
-      $procSAS .= "\n;" . $procSASformat . "\n;" . $procSASlabel . "\n; \nrun;";
+      $procSAS .= $procSASformat . "\n;" . $procSASinput . "\n;" . $procSASlabel . "\n; \nrun;";
  
       $query = "let \$SubjectDatas := $SubjectDatasQuery
                 let \$BLANKSubjectData := index-scan('SubjectData','BLANK','EQ')
@@ -1130,7 +1142,7 @@ delimiter = ';' MISSOVER DSD lrecl=32767 firstobs=2;
         $sasFormat =  $Length . ".";
         break;
       case "float" : 
-        $sasFormat = $Length . "." . $SignificantDigits . ".";
+        $sasFormat = $Length . "." . $SignificantDigits;
         break;
       case "date" :
         $sasFormat = "is8601da.";
