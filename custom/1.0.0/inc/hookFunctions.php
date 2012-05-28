@@ -139,8 +139,21 @@ function uisubject_getMenu_xslParameters($xslProc,$uisubject){
  *wrapper to uisubject_getMenu_beforeRendering hook
  *@author wlt 
  */
-function bosubjects_updateSubjectInList_customVisitStatus($SubjectKey,$tblForm,$uisubject){
-  uisubject_getMenu_beforeRendering($SubjectKey,$tblForm,$uisubject);
+function bosubjects_updateSubjectInList_customVisitStatus($SubjectKey,$tblForm,$bosubjects){
+  uisubject_getMenu_beforeRendering($SubjectKey,$tblForm,$bosubjects);
+}
+
+/**
+ *@desc Should return the status of the subject in the CRF, determined from its data
+ *@param SumpleXMLElement $subj : one subject as return by bosubjects->getSubjectsParams
+ *@param string $SubjectStatus has to be updated 
+ *@param bosubjects $bosubjects
+ *@author tpi 
+ */
+function bosubjects_getSubjectStatus_customSubjectStatus($subj,&$SubjectStatus,$bosubjects){
+    if($subj['colINCLUSIONDATE']!=""){
+      $SubjectStatus = "Screened";
+    }
 }
 
 function uisubject_getMenu_beforeRendering($SubjectKey,&$tblForm,$uisubject){

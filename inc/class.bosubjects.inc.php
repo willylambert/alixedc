@@ -33,27 +33,22 @@ class bosubjects extends CommonFunctions
   }
   
   /**
-   * @description Retourne le statut du patient (Screened, Randomized, etc)
-   * @todo à déplacer dans custom avec un hook 
+   * @description Return subject status (Screened, Randomized, etc)
+   * @param SumpleXMLElement $subj : one subject as return by bosubjects->getSubjectsParams
    * @author tpi
    */  
   public function getSubjectStatus($subj){
     $this->addLog(__METHOD__."($subj)",INFO);
     
-    if($subj['colCONT']=="1" && $subj['colDSTERMN']==""){
-      return "Completed";
-    }elseif($subj['colCONT']!="1" && $subj['colDSTERMN']!=""){
-      return "Withdrawal";
-    }elseif($subj['colIEYN']=="1" && $subj['colRDNUM']!=""){
-      return "Randomized";
-    }elseif($subj['colIEYN']=="2" && $subj['colRDNUM']==""){
-      return "Randomization Failure";
-    }elseif($subj['colIEELIG']=="2"){
-      return "Screening Failure";
-    }elseif($subj['colIEELIG']=="1"){
-      return "Screened";
+    $SubjectStatus = "";
+    //We can determined if the subject is screened with the mandatory parameter INCLUSIONDATE
+    if($subj['colINCLUSIONDATE']!=""){
+      $SubjectStatus = "Screened";
     }
-    return "";
+    
+    $this->callHook(__FUNCTION__,"customSubjectStatus",array($subj,&$SubjectStatus,$this));
+    
+    return $SubjectStatus;
   }
   
   /**

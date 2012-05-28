@@ -1375,7 +1375,7 @@ public function checkFormData(){
             $response->rows[$j]['cell'][] = $colValue;
           }
         }
-        $response->rows[$j]['cell'][] = (string)$subj["SubjectStatus"];
+        $response->rows[$j]['cell'][] = $this->m_ctrl->bosubjects()->getSubjectStatus($subj);
         $response->rows[$j]['cell'][] = $this->m_ctrl->boqueries()->getQueriesCount($subj["SubjectKey"],"","","","","","","","","","Y","QUERYSTATUS<>'C'");
         $response->rows[$j]['cell'][] = $pdf;
         $j++;
