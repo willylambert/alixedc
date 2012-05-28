@@ -1,7 +1,7 @@
 <?php
     /**************************************************************************\
     * ALIX EDC SOLUTIONS                                                       *
-    * Copyright 2011 Business & Decision Life Sciences                         *
+    * Copyright 2012 Business & Decision Life Sciences                         *
     * http://www.alix-edc.com                                                  *
     * ------------------------------------------------------------------------ *                                                                       *
     * This file is part of ALIX.                                               *
@@ -34,7 +34,7 @@ class bosubjects extends CommonFunctions
   
   /**
    * @description Return subject status (Screened, Randomized, etc)
-   * @param SumpleXMLElement $subj : one subject as return by bosubjects->getSubjectsParams
+   * @param SumpleXMLElement $subj : one subject as returned by bosubjects->getSubjectsParams
    * @author tpi
    */  
   public function getSubjectStatus($subj){

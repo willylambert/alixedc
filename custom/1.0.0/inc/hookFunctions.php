@@ -1,7 +1,7 @@
 <?
     /**************************************************************************\
     * ALIX EDC SOLUTIONS                                                       *
-    * Copyright 2011 Business & Decision Life Sciences                         *
+    * Copyright 2012 Business & Decision Life Sciences                         *
     * http://www.alix-edc.com                                                  *
     * ------------------------------------------------------------------------ *                                                                       *
     * This file is part of ALIX.                                               *
@@ -21,8 +21,8 @@
     \**************************************************************************/
   
   /**
-  * @desc Hook appellé avant la restitution de l'html d'un formulaire
-  * @param $FormOID OID du Form 
+  * @desc Hook called befor the HTML restitution of a form
+  * @param $FormOID OID of the form
   * @param $uisubject instance of uisubject
   * @return nothing
   * @author WLT
@@ -31,9 +31,10 @@ function uisubject_getInterface_start($FormOID,$uisubject){
 }
 
   /**
-  * @desc Definition des paramètres passés à l'XSL de rendu du formulaire
-  * @param XSLTProcessor $xslProc Processeur XSL  
-  * @return XSLTProcessor HTML à afficher
+  * @desc Define parameters passed to the XSL create the form final display
+  * @param string $FormOID
+  * @param XSLTProcessor $xslProc XSL processor  
+  * @return XSLTProcessor HTML to display
   * @author WLT
   **/  
 function uisubject_getInterface_xslParameters($FormOID,$xslProc,$uisubject){
@@ -89,7 +90,7 @@ function uisubject_getInterface_xslParameters($FormOID,$xslProc,$uisubject){
         $tblUTdisp1[$i] = 9000 + $i;    
       }
 
-      //Passage des listes d'UT à l'XSL
+      //Including UT lists into XSL
       for($i=1;$i<=count($tblUTdisp1);$i++){
         $xslProc->setParameter('',"tblUTdisp1_$i",$tblUTdisp1[$i-1]);        
       }
@@ -192,13 +193,15 @@ function bocdiscoo_getNewPatientID_customSubjId($bocdiscoo){
 }
 
   /**
-  * @desc Traitement spécifique des queries pour chaque formulaire à la mise à jour de queries
-  * @param string $FormOID identifiant du formulaire
+  * @desc Specific treatment of queries for each form when the queries are updated
+  * @param string $FormOID
+  * @param string $FormRepeatKey
+  * @param string $queryType
   * @return array $queries
   * @author TPI
   **/  
 function boqueries_updateQueries_form($FormOID, $FormRepeatKey, $queryType, $queries){
-  //ne créer aucune query à l'enrollement
+  //No query at enrolment
   if($FormOID=="FORM.ENROL"){
     $queries = array();
   }

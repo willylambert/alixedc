@@ -1,7 +1,7 @@
 <?php
     /**************************************************************************\
     * ALIX EDC SOLUTIONS                                                       *
-    * Copyright 2011 Business & Decision Life Sciences                         *
+    * Copyright 2012 Business & Decision Life Sciences                         *
     * http://www.alix-edc.com                                                  *
     * ------------------------------------------------------------------------ *
     * This file is part of ALIX.                                               *
@@ -78,7 +78,7 @@ class ajax extends CommonFunctions
   }		
 
 /*
-*@desc place TransactionType='Remove' au niveau de l'ItemGroupData demandé
+*@desc put TransactionType='Remove' at the specified ItemGroupData
 *@author : wlt
 */
 public function removeItemGroupData(){
@@ -94,12 +94,12 @@ public function removeItemGroupData(){
   $ItemGroupOID = $_POST['ItemGroupOID'];
   $ItemGroupRepeatKey = $_POST['ItemGroupRepeatKey'];
 
-  //Enregistrement des données 
+  //Saving data
   $this->m_ctrl->bocdiscoo()->removeItemGroupData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey);  
 }
 
 /*
-*@desc place TransactionType='Remove' au niveau de l'ItemGroupData demandé
+*@desc put TransactionType='Remove' at the specified ItemGroupData
 *@author : wlt
 */
 public function removeFormData(){
@@ -119,14 +119,14 @@ public function removeFormData(){
 
 
 /*
-@desc applique les checkMandatory et les checkConsistency sur le formulaire demandé
-      le resultat est enregistré en base, un appel à getQueriesList permet de les retourner
+@desc aplies checkMandatory and checkConsistency to the specified form
+      the results are saved in the database, a call to getQueriesList allow to get them back
 @author wlt      
 */  
 public function checkFormData(){
     $this->addLog(__METHOD__ ,INFO); 
     
-    //Extraction des paramètres
+    //Extracting parameters
     $SubjectKey = $_POST['SubjectKey'];
     $StudyEventOID = $_POST['StudyEventOID'];
     $StudyEventRepeatKey = $_POST['StudyEventRepeatKey'];
@@ -196,14 +196,14 @@ public function checkFormData(){
   }
 
  /*
- *@desc méthode ajax, retourne une deviation d'après son identifiant
+ *@desc Ajax method, returns a deviation specified by its identifiant
  *@return array
  *@author tpi
  */
   public function getDeviation(){
     $this->addlog(__METHOD__ ,INFO);  
   
-    //Extraction des paramètres
+    //Extracting parameters
     $DeviationId = $_POST['DeviationId'];
     
     $res = $this->m_ctrl->bodeviations()->getDeviation($DeviationId);
@@ -213,17 +213,17 @@ public function checkFormData(){
  
  
  /*
- *@desc méthode ajax, reçoit en paramètre l'identifiant d'un patient et retourne la liste des formulaires contenant une ou des deviations
+ *@desc Ajax method, return a list of forms containing deviations for the specified subject
  *@return array
  *@author tpi
  */
   public function getDeviationsFormList(){
     $this->addlog(__METHOD__ ,INFO);  
   
-    //Extraction des paramètres
+    //Extracting parameters
     $SubjectKey = $_POST['SubjectKey'];
       
-    //Enregistrement des données 
+    //Saving data
     $res = $this->m_ctrl->bodeviations()->getDeviationsFormList($SubjectKey);
     
     echo json_encode($res);   
@@ -231,14 +231,14 @@ public function checkFormData(){
 
 
  /*
- *@desc méthode ajax, retourne la listes des deviations filtrées sur les paramètres passé
+ *@desc Ajax method, returns the list of deviations filtered with the specified parameters
  *@return array
  *@author tpi
  */
   public function getDeviationsList(){
     $this->addlog(__METHOD__,INFO);  
   
-    //Extraction des paramètres
+    //Extracting parameters
     $SubjectKey = "";
     $StudyEventOID = "";
     $StudyEventRepeatKey = "";
@@ -266,7 +266,7 @@ public function checkFormData(){
   }
 
  /*
- *@desc méthode ajax, retourne la listes des deviations filtrées sur les paramètres passés, pour l'interface de gestion globale
+ *@desc Ajax method, returns the list of deviations filtered with the specified parameters, for the deviation module
  *@return array
  *@author tpi
  */
@@ -275,7 +275,7 @@ public function checkFormData(){
   
     $response = new StdClass;
   
-    //Extraction des paramètres       
+    //Extracting parameters       
     $MetaDataVersion = "1.0.0";
     $SubjectKey = "";
     $StudyEventOID = "";
@@ -310,13 +310,13 @@ public function checkFormData(){
     $sord = $_POST['sord']; // get the direction
     if(!$sidx) $sidx =1;
     
-    //nous allons avoir besoin des libellés des visites, formulaires et itemgroups présents dans les metadatas
+    //we need the labels of visits, forms and itemgroups available in the metadatas
     $description = $this->m_ctrl->bocdiscoo()->getDescriptions($MetaDataVersion);
     
-    //application du filtre de recherche
+    //SQL filter
     $where = "";
     
-    //filtre global
+    //filters: global
     if($search!=""){
       $fields = array("UPDATEDT","SITEID","SUBJKEY","ITEMTITLE","DESCRIPTION");
       $search = addslashes($search);
@@ -325,7 +325,7 @@ public function checkFormData(){
         $where .= $field." LIKE '%". $search ."%'";
       }
       
-      //recherche plus délicate dans les visites, formulaires, sections : il faut d'abord faire la recherche de clés dans le tableau de descriptions pour ensuite inclure la recherche dans le la requête sql
+      //filter more difficult for visits, forms and itemgroups: we first have to search in the keys of the descriptions array, then include the search parameters in the SQL query
       $desKeys = array("StudyEventDef" => "SEOID", "FormDef" => "FRMOID", "ItemGroupDef" => "IGOID",);
       foreach($desKeys as $descKey => $descValue){
         $descSearches = array();
@@ -344,7 +344,7 @@ public function checkFormData(){
       }
     }
     
-    //filtre sur le type
+    //filters: type
     if($deviationType!=""){
       $types = explode(",",$deviationType);
       $in = "";
@@ -358,7 +358,7 @@ public function checkFormData(){
       }
     }
     
-    //filtre sur le type
+    //filters: date
     if(isset($_REQUEST['datePos']) && $_REQUEST['datePos']!="any" && isset($_REQUEST['dateRef']) && $_REQUEST['dateRef']!=""){
       if($_REQUEST['datePos']=="after"){
         $operator = ">";
@@ -371,7 +371,7 @@ public function checkFormData(){
         $where .= "UPDATEDT $operator '". $_REQUEST['dateRef'] ." $time'";
     }
     
-    //filtres avancés
+    //filters: advanced
     if(isset($_REQUEST['_search']) && $_REQUEST['_search']=="true"){
     
       //Site
@@ -390,7 +390,7 @@ public function checkFormData(){
       $desKeys = array("StudyEventDef" => "SEOID", "FormDef" => "FRMOID", "ItemGroupDef" => "IGOID",);
       foreach($desKeys as $descKey => $descValue){
         if(isset($_REQUEST[$descValue])){
-            $descSearches = array(0=>""); //au moins une valeur vide pour valeur vide ou non trouvable
+            $descSearches = array(0=>""); //at least an empty value for empty value or value not found
             foreach($description[$MetaDataVersion][$descKey] as $OID => $desc){
               if(eregi($_REQUEST[$descValue],$desc)){
                 $descSearches[$OID] = $OID;
@@ -419,7 +419,7 @@ public function checkFormData(){
       }
     }
     
-    //précomptage
+    //Counting
     $count = $this->m_ctrl->bodeviations()->getDeviationsCount($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupKey,$ItemOID,$deviationStatus,$isLast,$where); //deviations count
     if($count>0 && $limit>0) {
     	$total_pages = ceil($count/$limit);
@@ -430,7 +430,7 @@ public function checkFormData(){
     $start = $limit*$page - $limit; // do not put $limit*($page - 1)
     if ($start<0) $start = 0;
     
-    //requêtage final
+    //final query
     $orderBy = $sidx." ".$sord;
     if($limit!=""){
       $limit = "$start , $limit";
@@ -444,7 +444,7 @@ public function checkFormData(){
     
     if($mode=="CSV"){ //export CSV
       
-      //document d'export
+      //document export
       $tmp = sys_get_temp_dir();
     	$uid = uniqid('deviations');
     	mkdir($tmp.'/'.$uid);
@@ -453,7 +453,7 @@ public function checkFormData(){
       header('Content-type: text/csv');
       header('Content-Disposition: attachment; filename="deviations.csv"');
       
-      //nettoyage
+      //cleaning
       ob_end_flush();
       ob_flush(); 
       flush();
@@ -493,9 +493,9 @@ public function checkFormData(){
           $edit = "";
           $imageClass = "imageZoom";
           $canEdit = false;
-          if($deviation['STATUS']=="C"){ //personne ne peut modifier le statut d'une deviation CLOSED
+          if($deviation['STATUS']=="C"){ //nobody can modify a CLOSED deviation
             $canEdit = false;
-          }elseif($profileId=="INV" && ($deviation['STATUS']=="O" || $deviation['STATUS']=="U")){ //les investigateurs peuvent modifier que le statut des deviations OPEN et UPDATED
+          }elseif($profileId=="INV" && ($deviation['STATUS']=="O" || $deviation['STATUS']=="U")){ //The investigator cannot modify the status of the deviations OPEN and UPDATED
             $canEdit = true;
           }
           if($canEdit){
@@ -517,14 +517,14 @@ public function checkFormData(){
   }
 
  /*
- *@desc méthode ajax, retourne l'historique d'une deviation (liste de deviations)
+ *@desc Ajax method, returns the history of a deviation (= a list of deviations)
  *@return array
  *@author tpi
  */
   public function getDeviationHistory(){
     $this->addlog(__METHOD__,INFO);
     
-    //Extraction des paramètres
+    //Extracting parameters
     $DEVIATIONID = "";
     $SubjectKey = "";
     $StudyEventOID = "";
@@ -555,7 +555,7 @@ public function checkFormData(){
       $ItemGroupKey = $deviation['IGRK'];
       $ItemOID = $deviation['ITEMOID'];
     }else{
-      // sinon on ne fait rien : soit on a déjà toutes les clés nécessaires, soit on ne peut même pas les récupérer
+      //otherwise nothing is done : either we already have all the keys either we just cannot get them
     }
     
     $res = $this->m_ctrl->bodeviations()->getDeviationsList($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupKey,$ItemOID,"","N","","DEVIATIONID DESC");
@@ -618,14 +618,14 @@ public function checkFormData(){
   }
 
  /*
- *@desc méthode ajax, retourne une query d'après son identifiant
+ *@desc Ajax method, returns a query from its specified identifier
  *@return array
  *@author tpi
  */
   public function getQuery(){
     $this->addlog(__METHOD__,INFO);  
   
-    //Extraction des paramètres
+    //Extracting parameters
     $QueryId = $_POST['QueryId'];
     
     $query = $this->m_ctrl->boqueries()->getQuery($QueryId);
@@ -671,7 +671,7 @@ public function checkFormData(){
   }
 
  /*
- *@desc méthode ajax, retourne la listes des queries filtrées sur les paramètres passés, pour l'interface de gestion globale
+ *@desc Ajax method, returns a list of queries filter with the specified parameters, for the queries module
  *@return array
  *@author tpi
  */
@@ -680,7 +680,7 @@ public function checkFormData(){
 
     $response = new StdClass;
 
-    //Extraction des paramètres       
+    //Extracting parameters       
     $MetaDataVersion = "1.0.0";
     $SubjectKey = "";
     $StudyEventOID = "";
@@ -717,13 +717,13 @@ public function checkFormData(){
     $sord = $_POST['sord']; // get the direction
     if(!$sidx) $sidx =1;
     
-    //nous allons avoir besoin des libellés des visites, formulaires et itemgroups présents dans les metadatas
+    //we need the labels of visits, forms and itemgroups available in the metadatas
     $description = $this->m_ctrl->bocdiscoo()->getDescriptions($MetaDataVersion);
     
-    //application du filtre de recherche
+    //SQL filter
     $where = "";
     
-    //filtre global
+    //filters: global
     if($search!=""){
       $fields = array("UPDATEDT","SITEID","SUBJKEY","ITEMTITLE","LABEL","ANSWER");
       $search = addslashes($search);
@@ -732,7 +732,7 @@ public function checkFormData(){
         $where .= $field." LIKE '%". $search ."%'";
       }
       
-      //recherche plus délicate dans les visites, formulaires, sections : il faut d'abord faire la recherche de clés dans le tableau de descriptions pour ensuite inclure la recherche dans le la requête sql
+      //filter more difficult for visits, forms and itemgroups: we first have to search in the keys of the descriptions array, then include the search parameters in the SQL query
       $desKeys = array("StudyEventDef" => "SEOID", "FormDef" => "FRMOID", "ItemGroupDef" => "IGOID",);
       foreach($desKeys as $descKey => $descValue){
         $descSearches = array();
@@ -751,7 +751,7 @@ public function checkFormData(){
       }
     }
     
-    //filtre sur le type
+    //filters: type
     if($queryType!=""){
       $types = explode(",",$queryType);
       $in = "";
@@ -765,7 +765,7 @@ public function checkFormData(){
       }
     }
     
-    //filtre sur le type
+    //filters: date
     if(isset($_REQUEST['datePos']) && $_REQUEST['datePos']!="any" && isset($_REQUEST['dateRef']) && $_REQUEST['dateRef']!=""){
       if($_REQUEST['datePos']=="after"){
         $operator = ">";
@@ -778,7 +778,7 @@ public function checkFormData(){
         $where .= "UPDATEDT $operator '". $_REQUEST['dateRef'] ." $time'";
     }
     
-    //filtres avancés
+    //filters: advanced
     if(isset($_REQUEST['_search']) && $_REQUEST['_search']=="true"){
     
       //Site
@@ -832,7 +832,7 @@ public function checkFormData(){
       }
     }
     
-    //précomptage
+    //Counting
     $count = $this->m_ctrl->boqueries()->getQueriesCount($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupKey,$ItemOID,$position,$queryStatus,$isLast,$where); //queries count
     if($count>0 && $limit>0) {
     	$total_pages = ceil($count/$limit);
@@ -843,7 +843,7 @@ public function checkFormData(){
     $start = $limit*$page - $limit; // do not put $limit*($page - 1)
     if ($start<0) $start = 0;
     
-    //requêtage final
+    //final query
     $orderBy = $sidx." ".$sord;
     if($limit!=""){
       $limit = "$start , $limit";
@@ -857,7 +857,7 @@ public function checkFormData(){
     
     if($mode=="CSV"){ //export CSV
       
-      //document d'export
+      //document export
       $tmp = sys_get_temp_dir();
     	$uid = uniqid('queries');
     	mkdir($tmp.'/'.$uid);
@@ -866,7 +866,7 @@ public function checkFormData(){
       header('Content-type: text/csv');
       header('Content-Disposition: attachment; filename="queries.csv"');
       
-      //nettoyage
+      //cleaning
       ob_end_flush();
       ob_flush(); 
       flush();
@@ -908,11 +908,11 @@ public function checkFormData(){
           $edit = "";
           $imageClass = "imageZoom";
           $canEdit = false;
-          if($query['QUERYSTATUS']=="C"){ //personne ne peut pas modifier le statut d'une query CLOSED
+          if($query['QUERYSTATUS']=="C"){ //nobody can modify a CLOSED query
             $canEdit = false;
-          }elseif($profileId=="CRA" && !($query['QUERYSTATUS']=="O" && $query['QUERYSTATUS']=="M")){ //l'ARC ne peut pas modifier le statut des queries ouvertes manuellement
+          }elseif($profileId=="CRA" && !($query['QUERYSTATUS']=="O" && $query['QUERYSTATUS']=="M")){ //The CRA cannot modify the status of the manually opened queries
             $canEdit = true;
-          }elseif($profileId=="INV" && ($query['QUERYSTATUS']=="O" || $query['QUERYSTATUS']=="P")){ //les investigateurs ne peuvent modifier que le statut des queries OPEN et RESOLUTION PROPOSED, 
+          }elseif($profileId=="INV" && ($query['QUERYSTATUS']=="O" || $query['QUERYSTATUS']=="P")){ //The investigator cannot modify the status of the queries OPEN and RESOLUTION PROPOSED, 
             $canEdit = true;
           }
           if($canEdit){
@@ -934,14 +934,14 @@ public function checkFormData(){
   }
 
  /*
- *@desc méthode ajax, retourne l'historique d'une query (liste de queries)
+ *@desc Ajax method, returns the history of a query (= a list of queries)
  *@return array
  *@author tpi
  */
   public function getQueryHistory(){
     $this->addlog(__METHOD__,INFO);
     
-    //Extraction des paramètres
+    //Extracting parameters
     $QUERYID = "";
     $SubjectKey = "";
     $StudyEventOID = "";
@@ -975,7 +975,7 @@ public function checkFormData(){
       $ItemOID = $query['ITEMOID'];
       $position = $query['POSITION'];
     }else{
-      // sinon on ne fait rien : soit on a déjà toutes les clés nécessaires, soit on ne peut même pas les récupérer
+      //otherwise nothing is done : either we already have all the keys either we just cannot get them
     }
     
     $queries = $this->m_ctrl->boqueries()->getQueriesList($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupKey,$ItemOID,$position,"","N","","QUERYID DESC");
@@ -984,14 +984,14 @@ public function checkFormData(){
   }
  
  /*
- *@desc méthode ajax, reçoit en paramètre les données d'une deviation à créer (création manuelle)
+ *@desc Ajax method, receives in paramters the data to create a new deviaiton (manual creation)
  *@return ''
  *@author tpi
  */
   public function addDeviation(){
     $this->addlog(__METHOD__." : _POST=".$this->dumpRet($_POST),INFO);
     
-    //Extraction des paramètres
+    //Extracting parameters
     $Description = utf8_encode($_POST['DESCRIPTION']);
     $Title = utf8_encode($_POST['ITEMTITLE']);
     
@@ -1017,19 +1017,19 @@ public function checkFormData(){
   }
 
  /*
- *@desc méthode ajax, reçoit en paramètre les données d'une deviation à mettre à jour et l'enregistre
+ *@desc Ajax method, receives in parameters the data to update a deviation then save it
  *@return ''
  *@author tpi
  */
   public function updateDeviation(){
     $this->addlog(__METHOD__." : _POST=".$this->dumpRet($_POST),INFO);
     
-    //Extraction des paramètres
+    //Extracting parameters
     $DEVIATIONID = $_POST['DEVIATIONID'];
     $STATUS = $_POST['STATUS'];
     $DESCRIPTION = utf8_encode($_POST['DESCRIPTION']);
     
-    //Mise à jour : on a besoin des infos originales de la deviation
+    //Update : we nedd the original data of the deviation
     $sql = "SELECT *
               FROM egw_alix_deviations
               WHERE CURRENTAPP='".$this->getCurrentApp(true)."' AND
@@ -1060,19 +1060,19 @@ public function checkFormData(){
   }
 
  /*
- *@desc méthode ajax, reçoit en paramètre les données d'une querie à mettre à jour et l'enregistre
- *@history : WLT 29/07/2011 => on ne fait plus tourner les controles à chaque mise à jour de query, uniquement sur la dernière du formulaire 
+ *@desc Ajax method, receives in paramters the data for a query to update then save it
+ *@history : WLT 29/07/2011 => controls are not ran any more after each update of queries, only on the last one of the form 
  *@author tpi,wlt
  */
   public function updateQuery(){
     $this->addlog(__METHOD__." : _POST=".$this->dumpRet($_POST),INFO);
     
-    //Extraction des paramètres
+    //Extracting parameters
     $QUERYID = $_POST['QUERYID'];
     $QUERYSTATUS = $_POST['QUERYSTATUS'];
     $ANSWER = utf8_encode($_POST['ANSWER']);
     
-    //Mise à jour : on a besoin des infos originales de la query
+    //Update : we need the original data of the query
     $sql = "SELECT *
               FROM egw_alix_queries
               WHERE CURRENTAPP='".$this->getCurrentApp(true)."' AND
@@ -1117,14 +1117,14 @@ public function checkFormData(){
   }
 
  /*
- *@desc méthode ajax, reçoit en paramètre les données d'une querie à créer (création manuelle)
+ *@desc Ajax method, receives in parameters the data of a query to create (manual creation)
  *@return ''
  *@author tpi
  */
   public function addQuery(){
     $this->addlog(__METHOD__." : _POST=".$this->dumpRet($_POST),INFO);
     
-    //Extraction des paramètres
+    //Extracting parameters
     $Description = utf8_encode($_POST['LABEL']);
     $answer = utf8_encode($_POST['ANSWER']);
     $Type = $_POST['QUERYTYPE'];
@@ -1145,7 +1145,7 @@ public function checkFormData(){
       $decodedValue = $value;
     }
     
-    //il s'agit d'une query manuelle, nous avons besoin d'un identifiatn de position => on utilise un identifiant négatif pour distinguer cette querie manuelle de celle issue des rangeCheck
+    //That's a new query, we need a position identifier => we use a negative identifier to make th difference between this manual query and those coming from the rangeChecks
     $sql = "SELECT MIN(POSITION) as MINPOSITION
               FROM egw_alix_queries
               WHERE CURRENTAPP='".$this->getCurrentApp(true)."' AND
@@ -1192,7 +1192,7 @@ public function checkFormData(){
     try{
       $this->addlog(__METHOD__." : _POST=".$this->dumpRet($_POST),INFO);  
     
-      //Extraction des paramètres
+      //Extracting parameters
       $SubjectKey = $_POST['SubjectKey'];
       $StudyEventOID = $_POST['StudyEventOID'];
       $StudyEventRepeatKey = $_POST['StudyEventRepeatKey'];
@@ -1202,7 +1202,7 @@ public function checkFormData(){
       $ItemGroupRepeatKey = $_POST['ItemGroupRepeatKey'];
       $ItemOID = $_POST['ItemOID'];
       
-      //On récupère  l'audit trail (changement des valeurs)
+      //Getting audit trail
       $itemAT = $this->m_ctrl->bocdiscoo()->getAuditTrail($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$ItemOID,true);
       
       $history = array();
@@ -1220,7 +1220,7 @@ public function checkFormData(){
           if($childNode->nodeName == "AuditRecord"){
             $item['user'] = $childNode->getAttribute("User");
             $item['date'] = $childNode->getAttribute("Date");
-            //on reformate la date au format "Y-m-d H:i:s" pour être en adéquatin avec le format de date des queries
+            //formating date "Y-m-d H:i:s" to be sure to be in adequation with the date format of the queries
             $item['date'] = date("Y-m-d H:i:s", mktime(substr($item['date'], 11, 2) , substr($item['date'], 14, 2), substr($item['date'], 17, 2), substr($item['date'], 5, 2), substr($item['date'], 8, 2), substr($item['date'], 0, 4)) );
           }
           if($childNode->nodeName == "Annotation"){
@@ -1231,7 +1231,7 @@ public function checkFormData(){
         $audit[] = $item;
       }
       
-      //On récupère l'audit des queries (historiques des queries)
+      //Getting audit of the queries (history of the queries)
       $queriesAT = $this->m_ctrl->boqueries()->getQueriesList($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$ItemOID);
       foreach($queriesAT as $query){
         $item = array();
@@ -1247,7 +1247,7 @@ public function checkFormData(){
         $audit[] = $item;
       }
       
-      //On récupère l'audit des deviations (historiques des deviations)
+      //Getting audit of the deviations (history of the deviations)
       $deviationsAT = $this->m_ctrl->bodeviations()->getDeviationsList($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$ItemOID);
       foreach($deviationsAT as $deviation){
         $item = array();
@@ -1263,7 +1263,7 @@ public function checkFormData(){
         $audit[] = $item;
       }
       
-      //On ordonne le contenu par date décroissante (du plus récent au plus ancien)
+      //Ordering the content by decreasing date (from the most recent to the older)
       usort($audit, array("ajax", "sortAuditTrailByDate"));
       
       $res = $audit;
@@ -1276,7 +1276,7 @@ public function checkFormData(){
   }
   
   /*
-  *@desc méthode privée, tri du tableau d'audit (par date DESC) retourné par la fonction public getAuditTrail
+  *@desc méthode privée, ordering the audit array (by date DESC) returned by the public function getAuditTrail
   *@return integer -1 0 1
   *@author tpi
   */
@@ -1418,17 +1418,17 @@ public function checkFormData(){
   }
  
  /*
- *@desc méthode ajax, reçoit en paramètre les données d'un post-it sur son ItemOID et les enregistre
+ *@desc Ajax method, reçoit en paramètre les données d'un post-it sur son ItemOID et les enregistre
  *@return true on success
  *@author tpi
  */
   public function savePostIt(){
     $this->addlog(__METHOD__ ." : _POST=".$this->dumpRet($_POST),INFO);  
   
-    //Tableau de retour
+    //array for the response
     $tblRet = array();
   
-    //Extraction des paramètres
+    //Extracting parameters
     $SubjectKey = $_POST['SubjectKey'];
     $StudyEventOID = $_POST['StudyEventOID'];
     $StudyEventRepeatKey = $_POST['StudyEventRepeatKey'];
@@ -1440,7 +1440,7 @@ public function checkFormData(){
     $txt = $_POST['txt'];
     $txt = utf8_encode($txt);
       
-    //Enregistrement des données 
+    //Saving data
     $res = $this->m_ctrl->bopostit()->savePostIt($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$ItemOID,$txt);
     
     echo json_encode($res);   
@@ -1448,24 +1448,24 @@ public function checkFormData(){
  
  
  /*
- *@desc méthode ajax, reçoit en paramètre l'identifiant d'un patient et retourne la liste edes formulaires contenant un ou des post-its
+ *@desc Ajax method, reçoit en paramètre l'identifiant d'un patient et retourne la liste edes formulaires contenant un ou des post-its
  *@return array
  *@author tpi
  */
   public function getPostItFormList(){
     $this->addlog(__METHOD__,INFO);  
   
-    //Extraction des paramètres
+    //Extracting parameters
     $SubjectKey = $_POST['SubjectKey'];
       
-    //Enregistrement des données 
+    //Saving data
     $res = $this->m_ctrl->bopostit()->getPostItFormList($SubjectKey);
     
     echo json_encode($res);   
   }
  
  /*
- *@desc méthode ajax, reçoit en paramètre l'identification d'un post-it sur son ItemOID et le supprime
+ *@desc Ajax method, reçoit en paramètre l'identification d'un post-it sur son ItemOID et le supprime
  *@return true on success
  *@author tpi
  */
@@ -1475,7 +1475,7 @@ public function checkFormData(){
     //Tableau de retour
     $tblRet = array();
   
-    //Extraction des paramètres
+    //Extracting parameters
     $SubjectKey = $_POST['SubjectKey'];
     $StudyEventOID = $_POST['StudyEventOID'];
     $StudyEventRepeatKey = $_POST['StudyEventRepeatKey'];
@@ -1492,7 +1492,7 @@ public function checkFormData(){
   }
  
  /*
- *@desc méthode ajax, reçoit en paramètre l'identification d'un formulaire et en retourne un tableau de post-it
+ *@desc Ajax method, returns an array of post-it for the specified form
  *@return array
  *@author tpi
  */
@@ -1502,21 +1502,21 @@ public function checkFormData(){
     //Tableau de retour
     $tblRet = array();
   
-    //Extraction des paramètres
+    //Extracting parameters
     $SubjectKey = $_POST['SubjectKey'];
     $StudyEventOID = $_POST['StudyEventOID'];
     $StudyEventRepeatKey = $_POST['StudyEventRepeatKey'];
     $FormOID = $_POST['FormOID'];
     $FormRepeatKey = $_POST['FormRepeatKey'];
       
-    //Récupération d'un tableau de post-it
+    //get an array of post-it
     $res = $this->m_ctrl->bopostit()->getPostItList($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey);
     
     echo json_encode($res);   
   }
  
  /*
- *@desc méthode ajax, retourne la liste des formulaires existant dans le CRF d'un patient
+ *@desc Ajax method, retourne la liste des formulaires existant dans le CRF d'un patient
  *@return array
  *@author tpi
  */
@@ -1526,7 +1526,7 @@ public function checkFormData(){
     //Tableau de retour
     $tblRet = array();
   
-    //Extraction des paramètres
+    //Extracting parameters
     $SubjectKey = $_POST['SubjectKey'];
       
     //Récupération d'un tableau de post-it
