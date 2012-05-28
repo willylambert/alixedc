@@ -30,7 +30,6 @@ class uisubjectlist extends CommonFunctions
     CommonFunctions::__construct($configEtude,$ctrlRef);
   } 
   
-  //Affichage de la liste des patients (HTML simple)
   function getInterface()
   {
 
@@ -44,21 +43,15 @@ class uisubjectlist extends CommonFunctions
                 <div id='mainFormOnly' class='ui-dialog ui-widget ui-widget-content ui-corner-all'>
                   <div class='ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix'>
                     <span class='ui-dialog-title'>Subjects List</span>
-                  </div>
-                  
+                  </div>                  
                   <div class='ui-dialog-content ui-widget-content'>
                     $lstSubjectsEx
                   </div>                  
-                
-                  $lstSubjects
-                </div>
-                 
-                ";
+                </div>";
       
       return $htmlRet;    
   }
   
-  //Obtention d'un tableau HTML des patients jqGrid
   private function getSubjectsListEx()
   {
     $html = "";
@@ -80,7 +73,7 @@ class uisubjectlist extends CommonFunctions
       $bShowPDF = true;
     }
     
-    //variable ajoutée aux URLs Javascript afin de forcer le rechargement coté navigateur
+    //variable added to URLs, to force browser files reload 
     $jsVersion = $this->m_tblConfig['JS_VERSION'];
     
     $html .= "<SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jqGrid/grid.locale-en.js') . "'></SCRIPT>
@@ -117,35 +110,4 @@ class uisubjectlist extends CommonFunctions
               
     return $html;
   }
-
-/**
- * @description Retourne le statut du patient (Screened, Randomized, etc)
- * @todo à déplacer dans custom avec un hook 
- * @author tpi
- */  
-  private function getSubjectStatus($subj){
-    if($subj['colCONT']=="1" && $subj['colDSTERMN']==""){
-      return "Completed";
-    }elseif($subj['colIEYN']=="2" && $subj['colRDNUM']==""){
-      return "Randomization Failure";
-    }elseif($subj['colIEELIG']=="2"){
-      return "Screening Failure";
-    }elseif($subj['colCONT']!="1" && $subj['colDSTERMN']!=""){
-      return "Withdrawal";
-    }elseif($subj['colIEYN']=="1" && $subj['colRDNUM']!=""){
-      return "Randomized";
-    }elseif($subj['colIEELIG']=="1"){
-      return "Screened";
-    }
-    return "";
-  }
-
-/**
- * @description Retourne le statut du CRF (FILLED / INCONSISTENT / PARTIAL / EMPTY)
- * @author tpi
- */  
-  private function getCRFStatus($SubjectKey){
-    $status = $this->m_ctrl->bocdiscoo()->getSubjectStatus($SubjectKey);
-    return "<div class='imageStatus$status imageOnly image16 pointer' altbox='$status' >";
-  }
-}  
+}
