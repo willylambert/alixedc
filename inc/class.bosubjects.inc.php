@@ -60,30 +60,8 @@ class bosubjects extends CommonFunctions
   public function getSubjectsList($siteId=false){
     $this->addLog(__METHOD__."($siteId)",INFO);
     
-    //we need to make a list of sites for which the current user can see the subjects
-    $SitesFilter = array();
+    $SitesFilter = $this->getUserSites();
     
-    //Is the user a Sponsor ?
-    $defaultProfilId = $this->m_ctrl->boacl()->getUserProfileId();
-    
-    //first: we get the complete list of sites
-    $sites = $this->m_ctrl->bosites()->getSites();
-    
-    //then: we keep the sites the user can see
-    foreach($sites as $site){
-      if($defaultProfilId=="SPO"){
-        $SitesFilter[] = $site["siteId"];
-      }else{
-        //do the user has a profile defined for this site ?
-        $profile = $this->m_ctrl->boacl()->getUserProfileId("",$site["siteId"]);
-        if(!empty($profile)){
-          $SitesFilter[] = (string)$site["siteId"];
-        }else{
-          //no authorization for this site
-        }
-      }
-    }
-
     if($siteId!=false && in_array($siteId,$SitesFilter)){
       $SitesFilter = array($siteId);
     }
@@ -110,6 +88,38 @@ class bosubjects extends CommonFunctions
     }
     
     return $tblSubjectKeys;
+  }
+  
+  /**
+   * Get the Sites allowes to the current user - if sponsor, return the full sites list
+   * @return array sites list    
+   **/     
+  public function getUserSites(){
+    //we need to make a list of sites for which the current user can see the subjects
+    $sitesFilter = array();
+    
+    //Is the user a Sponsor ?
+    $defaultProfilId = $this->m_ctrl->boacl()->getUserProfileId();
+    
+    //first: we get the complete list of sites
+    $sites = $this->m_ctrl->bosites()->getSites();
+    
+    //then: we keep the sites the user can see
+    foreach($sites as $site){
+      if($defaultProfilId=="SPO"){
+        $sitesFilter[] = $site["siteId"];
+      }else{
+        //do the user has a profile defined for this site ?
+        $profile = $this->m_ctrl->boacl()->getUserProfileId("",$site["siteId"]);
+        if(!empty($profile)){
+          $sitesFilter[] = (string)$site["siteId"];
+        }else{
+          //no authorization for this site
+        }
+      }
+    }
+
+    return $sitesFilter;
   }
 
   /**

@@ -279,13 +279,16 @@ run;";
     fclose($fp);
     
     //For each patient, context keys values are extracted, to be inserted in every tables
-    $tblSubjects = $this->m_ctrl->bosubjects()->getSubjectsList();
-    $SubjectDatas = array();
-    foreach($tblSubjects as $SubjectKey){
-      $SubjectDatas[] = "index-scan('SubjectData','$SubjectKey','EQ')";  
+    $sitesFilter = $this->m_ctrl->bosubjects()->getUserSites();
+
+    $queryCol = array();
+    foreach($sitesFilter as $siteId){
+      $queryCol[] = "index-scan('SiteRef','$siteId','EQ')";  
     }
-    $SubjectDatasQuery = implode(" union ",$SubjectDatas);
-    $query = "let \$SubjectDatas := $SubjectDatasQuery
+   
+    $SubjectDatasSelect = implode(" union ",$queryCol);
+   
+    $query = "let \$SubjectDatas := $SubjectDatasSelect
               for \$SubjectData in \$SubjectDatas
               ";
 
@@ -532,7 +535,7 @@ run;";
           //Data extraction
           $query = "import module namespace alix = 'http://www.alix-edc.com/alix';
               
-                    let \$SubjectDatas := $SubjectDatasQuery
+                    let \$SubjectDatas := $SubjectDatasSelect
                     let \$BLANKSubjectData := index-scan('SubjectData','BLANK','EQ')
                     let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID='{$this->m_tblConfig["METADATAVERSION"]}']
                     let \$ItemGroupDef := \$MetaDataVersion/odm:ItemGroupDef[@OID='$ItemGroupOID']
@@ -766,7 +769,7 @@ delimiter = ';' MISSOVER DSD lrecl=32767 firstobs=2;";
 
       $procSAS .= $procSASformat . "\n;" . $procSASinput . "\n;" . $procSASlabel . "\n; \nrun;";
  
-      $query = "let \$SubjectDatas := $SubjectDatasQuery
+      $query = "let \$SubjectDatas := $SubjectDatasSelect
                 let \$BLANKSubjectData := index-scan('SubjectData','BLANK','EQ')
                 let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID='{$this->m_tblConfig["METADATAVERSION"]}']                    
                 let \$ItemGroupDef := \$MetaDataVersion/odm:ODM/odm:Study/odm:MetaDataVersion/odm:ItemGroupDef[$xQuerySelect]
@@ -851,7 +854,7 @@ delimiter = ';' MISSOVER DSD lrecl=32767 firstobs=2;";
     $fp = fopen($filename, 'a+');
           
     //Processing of Annotation - Here we add all annonations into one file
-    $query = "let \$SubjectDatas := $SubjectDatasQuery             
+    $query = "let \$SubjectDatas := $SubjectDatasSelect             
               for \$SubjectData in \$SubjectDatas
               let \$SubjectKey := \$SubjectData/@SubjectKey 
               for \$Annotation in \$SubjectData/../odm:Annotations/odm:Annotation                
