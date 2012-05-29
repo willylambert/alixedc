@@ -1000,48 +1000,46 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
     return $doc;
   }
   
+  /**
+   * Get the Audit Trail for requested sites between $startDate and $enDate
+   * @param array $sitesList
+   * @param string $startDate (ISO format) YYYY-MM-DD
+   * @param string $endDate (ISO format) YYYY-MM-DD
+   * @return array of SimpleXML Objects <audit subjectKey='{\$SubjectKey'
+                                               studyEvent='{\$StudyEventTitle}'
+                                               form='{\$FormTitle}'
+                                               item='{\$ItemTitle}'
+                                               value='{\$Value}'
+                                               user='{\$UserOID}'
+                                               auditDate='{\$AuditDate}'                           
+                    />            
+   **/     
   public function getAuditTrailByDate($sitesList,$startDate,$endDate){
-    //From sitesList, we extract a subject list
-    $query = "
-              for \$Subject in doc('SubjectsList')/subjects/subject
-              return
-                <subject siteId='{\$Subject/colSITEID}' subjectKey='{\$Subject/SubjectKey}'/>
-             ";
-    $result = $this->m_ctrl->socdiscoo()->query($query);
-    $subjList = "";
-    foreach($result as $subj){
-      $siteId = (string)$subj['siteId'];
-      if(in_array($siteId,$sitesList)){
-         if($subjList!="") $subjList .= ",";
-         $subjList .= "'". (string)$subj['subjectKey'] ."'";
-      }
+
+    $queryCol = array();
+    foreach($sitesList as $siteId){
+      $queryCol[] = "index-scan('SiteRef','$siteId','EQ')";  
     }
+   
+    $SubjectDatasSelect = implode(" union ",$queryCol);
 
     $startDate .= "T00:00:00";
     $endDate .= "T00:00:00";
     
-    $query = "
-              declare function local:getDecode(\$ItemData as node(),\$MetaDataVersion as node()) as xs:string?
-              {
-                let \$value := \$ItemData/string()
-                let \$CodeListOID := \$MetaDataVersion/odm:ItemDef[@OID=\$ItemData/@ItemOID]/odm:CodeListRef/@CodeListOID
-                return
-                  if(\$CodeListOID)
-                  then \$MetaDataVersion/odm:CodeList[@OID=\$CodeListOID]/odm:CodeListItem[@CodedValue=\$value]/odm:Decode/odm:TranslatedText[@xml:lang='".$this->m_lang."']/string()
-                  else \$value
-              };
+    $query = "import module namespace alix = 'http://www.alix-edc.com/alix';
                   
-              for \$ClinicalData in collection('ClinicalData')/odm:ODM[exists(index-of(($subjList),@FileOID))]/odm:ClinicalData
-               let \$SubjectKey := \$ClinicalData/odm:SubjectData/@SubjectKey 
-               let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$ClinicalData/odm:SubjectData/../@MetaDataVersionOID]
-                 for \$AuditRecord in \$ClinicalData/
+              let \$SubjectDatas := $SubjectDatasSelect
+              for \$SubjectData in \$SubjectDatas 
+                let \$SubjectKey := \$SubjectData/@SubjectKey 
+                let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
+                for \$AuditRecord in \$SubjectData/../
                       odm:AuditRecords/odm:AuditRecord[xs:dateTime(odm:DateTimeStamp) > xs:dateTime('$startDate') and  
                                                        xs:dateTime(odm:DateTimeStamp) < xs:dateTime('$endDate')]
                  let \$AuditDate := \$AuditRecord/odm:DateTimeStamp 
                  let \$UserOID := \$AuditRecord/odm:UserRef/@UserOID 
                  let \$ID := \$AuditRecord/@ID
-                 for \$ItemData in \$ClinicalData/odm:SubjectData/odm:StudyEventData/odm:FormData/odm:ItemGroupData/odm:*[@AuditRecordID=\$ID]
-                   let \$Value := local:getDecode(\$ItemData,\$MetaDataVersion)
+                 for \$ItemData in \$SubjectData/odm:StudyEventData/odm:FormData/odm:ItemGroupData/odm:*[@AuditRecordID=\$ID]
+                   let \$Value := alix:getDecode(\$ItemData,\$MetaDataVersion)
                    let \$StudyEventOID := \$ItemData/../../../@StudyEventOID 
                    let \$FormOID := \$ItemData/../../@FormOID
                    let \$ItemOID := \$ItemData/@ItemOID
@@ -1056,11 +1054,8 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
                            item='{\$ItemTitle}'
                            value='{\$Value}'
                            user='{\$UserOID}'
-                           auditDate='{\$AuditDate}'
-                           
-                    />
-                 
-    ";    
+                           auditDate='{\$AuditDate}'                           
+                    />";    
     $result = $this->m_ctrl->socdiscoo()->query($query);
 
     return $result;
