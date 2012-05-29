@@ -68,7 +68,11 @@ function compactItemGroup(FormOID){
           if(value==""){
             value = " ";
           }
-          htmlRet += "<div>&#160;"+value+"</div>";
+          if($.browser.msie * jQuery.browser.version.substr(0, 1)<="7"){
+            htmlRet += "<span>&#160;"+value+"</span>";
+          }else{
+            htmlRet += "<div>&#160;"+value+"</div>";
+          }
         }          
       });
       htmlRet += "</div>";

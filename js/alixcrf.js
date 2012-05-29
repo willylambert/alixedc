@@ -26,6 +26,9 @@ profileId = "";
 //Libellé de l'application egroupware
 currentApp = "";
 
+//Veille version de IE ?
+var isOldIE = false;
+
 /*
 @desc point d'entrée - appelée pour initialiser le comportement AJAX
 @author wlt
@@ -35,6 +38,9 @@ function loadAlixCRFjs(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepe
   //Utile (ex: postit.js)
   profileId = ProfileId;
   currentApp = CurrentApp;
+  if($.browser.msie * jQuery.browser.version.substr(0, 1)<="7"){
+    isOldIE = true;
+  }
   
   //Bind des buttons
   $("#btnSave").click(function(){
@@ -96,8 +102,13 @@ function loadAlixCRFjs(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepe
     newIGRK = 0;
     
     //Recherche du nouveau ItemGroupRepeatKey
-    newIGRK = $("form[name='"+ItemGroupOID+"']").first().find("input[name='NewItemGroupRepeatKey']").val();   
-    newForm = $("form[name='"+ItemGroupOID+"']").first().clone();
+    newIGRK = $("form[name='"+ItemGroupOID+"']").first().find("input[name='NewItemGroupRepeatKey']").val();
+    //fix a bug with clone with IE7
+    if(isOldIE){
+      newForm = helperIE.clone($("form[name='"+ItemGroupOID+"']").first());
+    }else{
+      newForm = $("form[name='"+ItemGroupOID+"']").first().clone();
+    }
     sourceIGRK = newForm.find("input[name='ItemGroupRepeatKey']").val(); 
     newForm.find("input[name='ItemGroupRepeatKey']").val(newIGRK);
     newForm.attr('style','');
@@ -113,6 +124,44 @@ function loadAlixCRFjs(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepe
     newForm.find(":input").each(function(index){
                                                   inputName = new String($(this).attr("name"));
                                                   $(this).attr("name",inputName.replace("_"+sourceIGRK,"_"+newIGRK));
+                                                  
+                                                  //IE7 and earlier do not allow users to dynamically set the name attribute of an input element at all.
+                                                  if(isOldIE){
+                                                    try{
+                                                      var tagName = $(this).prop("tagName");
+                                                      if(tagName=="INPUT" || tagName=="TEXTAREA" || tagName=="SELECT"){
+                                                        if(tagName=="INPUT"){
+                                                          //attribute "name" is also needed and is different than "Name" for IE.
+                                                          var attrs = new Array("type", "value", "class", "id", "name", "maxLength", "size", "MaxAuditRecordID", "flagvalue", "oldvalue", "itemoid", "readonly");
+                                                        }else if(tagName=="TEXTAREA"){
+                                                          var attrs = new Array("class", "id", "name", "MaxAuditRecordID", "flagvalue", "oldvalue", "itemoid", "rows", "cols", "readonly");
+                                                        }else if(tagName=="SELECT"){
+                                                          var attrs = new Array("class", "id", "name", "MaxAuditRecordID", "flagvalue", "oldvalue", "itemoid", "readonly");
+                                                        }
+                                                        
+                                                        newInput=document.createElement(tagName);
+                                                        newInput.Name = $(this).attr("name"); //here is the trick ! (.Name)
+                                                        newInput = $(newInput);
+                                                        for(var i=0; i<attrs.length; i++){
+                                                          if($(this).attr(attrs[i])!="undefined"){
+                                                            newInput.attr(attrs[i], $(this).attr(attrs[i]));
+                                                          }
+                                                        }
+                                                        
+                                                        //for SELECT => copy OPTIONs
+                                                        if(tagName=="SELECT"){
+                                                          $(this).find("option").each( function(){
+                                                            newInput.append($(this));
+                                                          });
+                                                        }
+                                                        
+                                                        $(this).replaceWith(newInput);
+                                                        //helper.showPrompt($("<div />").text($('<div>').append(newForm).html()).html());
+                                                      }
+                                                    }catch(err){
+                                                      helper.showPrompt(err.message);
+                                                    }
+                                                  }
                                                 }); 
     
     newForm.find("td.ItemDataAnnot img").each(function(index){
@@ -166,8 +215,10 @@ function loadAlixCRFjs(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepe
     
     //On ne garde qu'un seul bouton d'ajout
     newForm.find("button").detach();
-        
-    newInsertedForm = $("div#Form").append("<form id='newForm' name="+ItemGroupOID+">"+newForm.html()+"</form>");
+      
+    $("form[name='"+ItemGroupOID+"']").last().after("<form id='newForm' name="+ItemGroupOID+">"+newForm.html()+"</form>");
+
+    newInsertedForm = $("#newForm");
 
     //Reset of inputs
     clearForm($("#newForm"));

@@ -52,6 +52,16 @@ function nl2br (str, is_xhtml) {
     return (str + '').replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1'+ breakTag +'$2');
 }
 
+var helperIE = {
+  //a patch to clone element with ie7
+  clone : function(srcElement){
+    newElement = document.createElement(srcElement.prop("tagName"));
+    //todo : clone attributes (be careful, name must be copied as element.Name)
+    newElement.innerHTML = srcElement.html();
+    return $(newElement);
+  }
+}
+
 var helper = {
   addslashes : function(str){
     return (str + '').replace(/[\\"']/g, '\\$&').replace(/\u0000/g, '\\0');
