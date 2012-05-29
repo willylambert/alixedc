@@ -1,6 +1,6 @@
     /**************************************************************************\
     * ALIX EDC SOLUTIONS                                                       *
-    * Copyright 2011 Business & Decision Life Sciences                         *
+    * Copyright 2012 Business & Decision Life Sciences                         *
     * http://www.alix-edc.com                                                  *
     * ------------------------------------------------------------------------ *                                                                       *
     * This file is part of ALIX.                                               *
@@ -19,13 +19,14 @@
     * along with ALIX.  If not, see <http://www.gnu.org/licenses/>.            *
     \**************************************************************************/
     
-/*
-@desc point d'entrée - appelée pour initialiser le comportement AJAX de la page listant les patients
-@author tpi
-*/
+/**
+* Entry point - called to initialize AJAX behavior for displaying subjects list
+* @author tpi
+**/
 function loadAlixCRFSubjectsJS(CurrentApp, jsonConfig, bShowPDF)
 {
   var config = eval('(' + jsonConfig + ')');
+  
   loadSubjectsGrid(CurrentApp, config, bShowPDF);
 }
 
@@ -34,7 +35,7 @@ function loadSubjectsGrid(CurrentApp, config, bShowPDF)
   $(document).ready(function(){
     var colNames = new Array();
     var colModel = new Array();
-    
+      
     //Direct access (<a> link)
     colNames.push(" ");
     colModel.push({
@@ -70,19 +71,30 @@ function loadSubjectsGrid(CurrentApp, config, bShowPDF)
         }
         
         colNames.push(title);
+        
+        //Handle of magic column SITEID
+        
         if(config[i].Key=="SITEID"){
-          bSearch = true;
+          siteId = getSiteIdFromCookie();
+          colModel.push({
+            name: "col"+ config[i].Key,
+            index: "col"+ config[i].Key,
+            width: width,
+            align:'center',
+            formatter: formatter,
+            search: true,
+            searchoptions: { defaultValue:siteId }
+          });
         }else{
-          bSearch = false;
+          colModel.push({
+            name: "col"+ config[i].Key,
+            index: "col"+ config[i].Key,
+            width: width,
+            align:'center',
+            formatter: formatter,
+            search: false,
+          });
         }
-        colModel.push({
-          name: "col"+ config[i].Key,
-          index: "col"+ config[i].Key,
-          width: width,
-          align:'center',
-          formatter: formatter,
-          search: bSearch
-        });
       }
     }
       
@@ -150,7 +162,7 @@ function loadSubjectsGrid(CurrentApp, config, bShowPDF)
     var mygrid = jQuery("#listSubjects").jqGrid({
       url: "index.php?menuaction="+CurrentApp+".ajax.getSubjectsDataList",
       mtype: "POST",
-    	datatype: "json",
+    	datatype: "local",
     	height: "auto",
      	colNames: colNames,
      	colModel: colModel,
@@ -162,6 +174,9 @@ function loadSubjectsGrid(CurrentApp, config, bShowPDF)
       gridview : true,
       sortorder: "asc",
       caption: "",
+      loadComplete : function(){
+        saveSiteIdToCookie();
+      },
       onSelectRow: function(id){
         ids = id.split('_');
         subjkey = ids[1];
@@ -186,9 +201,8 @@ function loadSubjectsGrid(CurrentApp, config, bShowPDF)
         }
       }
     });
-    
+        
     //Rotate headline - from http://www.trirand.com/blog/?page_id=393/feature-request/headers-with-vertical-orientation/
-
     var trHead = $("thead:first tr");
     var cm = mygrid.getGridParam("colModel");
     $("thead:first tr th").height("120px");
@@ -241,8 +255,34 @@ function loadSubjectsGrid(CurrentApp, config, bShowPDF)
     });
     
     jQuery("#listSubjects").jqGrid('filterToolbar');
-
+    
+    $('#listSubjects').setGridParam({datatype: 'json'});
+    $('#listSubjects')[0].triggerToolbar();
+        
   });
+}
+
+/**
+ * Save jqgrid parameters into a cookie - 
+ * @see http://www.intothecloud.nl/index.php/2010/04/saving-jqgrid-parameters-in-cookie/ 
+**/
+function saveSiteIdToCookie() {
+  if(typeof JSON!="undefined"){
+    var gridInfo = new Object();
+    name = 'listSubjects' + window.location.pathname;
+    gridInfo.siteId = $("#gs_colSITEID").val(); 
+    $.cookie(name, JSON.stringify(gridInfo));
+  }
+}
+ 
+function getSiteIdFromCookie() {
+  if(typeof JSON!="undefined"){
+    var c = $.cookie('listSubjects' + window.location.pathname);
+    if (c == null)
+    return;
+    var gridInfo = JSON.parse(c);
+    return gridInfo.siteId; 
+  }
 }
 
 /*
