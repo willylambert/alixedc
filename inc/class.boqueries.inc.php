@@ -52,12 +52,16 @@ class boqueries extends CommonFunctions
  * @return string "FILLED","PARTIAL","INCONSISTENT" 
  * @author wlt 
  **/ 
-  function getFormStatus($SubjectKey, $StudyEventOID, $StudyEventRepeatKey, $FormOID,$FormRepeatKey){
+  function getFormStatus($SubjectKey, $StudyEventOID, $StudyEventRepeatKey, $FormOID, $FormRepeatKey, $profileId="INV"){
     $nbCM = $this->getQueriesCount($SubjectKey, $StudyEventOID, $StudyEventRepeatKey, $FormOID,$FormRepeatKey, "", "", "","","O", "Y", "QUERYTYPE='CM'");      
     if($nbCM>0){
       $frmStatus = "MISSING";
     }else{
-      $nbHC = $this->getQueriesCount($SubjectKey, $StudyEventOID, $StudyEventRepeatKey, $FormOID,$FormRepeatKey, "", "", "","","O", "Y", "QUERYTYPE='HC'");     
+      $queryStatus = "O"; //For investigators, we only show open queries but not the confirmed queries
+      if($profileId=="CRA"){ //CRAs need to see when a query has been confirmed (acknowledged) (it still have to be reopened or closed)
+        $queryStatus .= ",A";
+      }
+      $nbHC = $this->getQueriesCount($SubjectKey, $StudyEventOID, $StudyEventRepeatKey, $FormOID,$FormRepeatKey, "", "", "","",$queryStatus, "Y", "QUERYTYPE='HC'");     
       if($nbHC>0){
         $frmStatus = "INCONSISTENT";
       }else{
@@ -75,12 +79,16 @@ class boqueries extends CommonFunctions
  * @return string "FILLED","PARTIAL","INCONSISTENT" 
  * @author wlt 
  **/ 
-  function getStudyEventStatus($SubjectKey, $StudyEventOID, $StudyEventRepeatKey){
+  function getStudyEventStatus($SubjectKey, $StudyEventOID, $StudyEventRepeatKey, $profileId="INV"){
     $nbCM = $this->getQueriesCount($SubjectKey, $StudyEventOID, $StudyEventRepeatKey, "", "","", "", "","","O", "Y", "QUERYTYPE='CM'");     
     if($nbCM>0){
       $seStatus = "MISSING";
     }else{
-      $nbHC = $this->getQueriesCount($SubjectKey, $StudyEventOID, $StudyEventRepeatKey, "", "","", "", "","","O", "Y", "QUERYTYPE='HC'");           
+      $queryStatus = "O"; //For investigators, we only show open queries but not the confirmed queries
+      if($profileId=="CRA"){ //CRAs need to see when a query has been confirmed (acknowledged) (it still have to be reopened or closed)
+        $queryStatus .= ",A";
+      }
+      $nbHC = $this->getQueriesCount($SubjectKey, $StudyEventOID, $StudyEventRepeatKey, "", "","", "", "","",$queryStatus, "Y", "QUERYTYPE='HC'");           
       if($nbHC>0){
         $seStatus = "INCONSISTENT";
       }else{
@@ -488,7 +496,7 @@ get the existing queries list from db depending on incoming parameters
     //HOOK => boqueries_updateQueries_form
     $this->callHook(__FUNCTION__,"form",array($FormOID, $FormRepeatKey, $queryType, &$queries));
 
-    $userId = $this->m_ctrl->boacl()->getUserId(); 
+    $userId = $this->m_ctrl->boacl()->getUserId();
     $siteId = $this->m_ctrl->bosubjects()->getSubjectColValue($SubjectKey,"SITEID");
     $profileId = $this->m_ctrl->boacl()->getUserProfileId("",$siteId);
     
