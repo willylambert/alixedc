@@ -1,18 +1,63 @@
+(:
+    /**************************************************************************\
+    * ALIX EDC SOLUTIONS                                                       *
+    * Copyright 2012 Business & Decision Life Sciences                         *
+    * http://www.alix-edc.com                                                  *
+    * ------------------------------------------------------------------------ *                                                                       *
+    * This file is part of ALIX.                                               *
+    *                                                                          *
+    * ALIX is free software: you can redistribute it and/or modify             *
+    * it under the terms of the GNU General Public License as published by     *
+    * the Free Software Foundation, either version 3 of the License, or        *
+    * (at your option) any later version.                                      *
+    *                                                                          *
+    * ALIX is distributed in the hope that it will be useful,                  *
+    * but WITHOUT ANY WARRANTY; without even the implied warranty of           *
+    * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            *
+    * GNU General Public License for more details.                             *
+    *                                                                          *
+    * You should have received a copy of the GNU General Public License        *
+    * along with ALIX.  If not, see <http://www.gnu.org/licenses/>.            *
+    \**************************************************************************/
+:)
+
 module namespace alix = "http://www.alix-edc.com/alix";
 declare namespace odm = 'http://www.cdisc.org/ns/odm/v1.3';
 
 (:
-    On a plusieurs macros pour faciliter l'écriture des FormalExpression
-    1°) getValue() => Retourne la valeur de l'ItemData courant
-    2°) getValue('ItemOID') => Retourne la valeur d'un ItemData adjacent (dans le même ItemGroupData)
-    3°) getValue('ItemGroupOID','ItemOID') => Retourne la valeur d'un ItemData du même formulaire, mais dans un ItemGroupData différent
-    4°) getValue('FormOID','ItemGroupOID','ItemOID') => Même chose que le 3°) mais on peut jumper sur un autre Form
-    5°) getValue('StudyEventOID','FormOID','ItemGroupOID','ItemOID') => Même chose que le 3°) mais on peut jumper sur une autre visite
+    here we have several helpers functions to be used in writing edit-checks
+    1°) alix:getValue($ItemData,'ItemOID') => Get the value Item in the same ItemGroupData
+    2°) alix:getValue($ItemData,'ItemGroupOID','ItemOID') => Get the value of an Item located in the same Form, but in a different ItemGroupData
+    3°) alix:getValue($ItemData,'FormOID','ItemGroupOID','ItemOID') => As 2°) but it's possible to choose another form within the same StudyEventData
+    4°) alix:getValue($ItemData,'StudyEventOID','FormOID','ItemGroupOID','ItemOID') =>As 3°) with the another StudyEventData
 
-    !!!!!Attention!!!!! Note : pour le 3°,4° et 5°, on ne précise pas le RepeatKey, donc Attention à son utilisation
+    !!!!!Warning!!!!! Note : For 2°,3° and 4°, The RepeatKey is unused, so be carefull
+
+    other helpers :
+
+    alix:getRawValue($ItemData,'ItemOID') => raw value from database, even for ItemDataPartialDate
+    alix:getRawValue($ItemData,'ItemGroupOID','ItemOID') => see alix:getRawValue($ItemData,'ItemOID')
+    alix:getRawValue($ItemData,'FormOID','ItemGroupOID','ItemOID') => see alix:getRawValue($ItemData,'ItemOID')
+    alix:getRawValue($ItemData,'StudyEventOID','FormOID','ItemGroupOID','ItemOID') => see alix:getRawValue($ItemData,'ItemOID')
+
+    alix:getDecode($ItemData,'ItemOID') => Decoded value, use CodeList if available
+    alix:getDecode($ItemData,'ItemGroupOID','ItemOID') => see alix:getDecode($ItemData,'ItemOID')
+    alix:getDecode($ItemData,'FormOID','ItemGroupOID','ItemOID') => see alix:getDecode($ItemData,'ItemOID')
+    alix:getDecode($ItemData,'StudyEventOID','FormOID','ItemGroupOID','ItemOID') => see alix:getDecode($ItemData,'ItemOID')
+
+    alix:compareDate($dt1 as xs:string,$dt2 as xs:string)
+    
+    alix:getMonth($month) => Receive '1', '2',... and return 'January', 'February', ...
+    
+    alix:DateISOtoFR('isodate') => Receive an ISO date string, and return a 'dd/mm/yyyy' formatted date string
+    
+    alix:getAnnotation($ItemData,'ItemOID') => Get the annotation FlagValue : Ø / UNK / ND / NA
+    alix:getAnnotation($ItemData,'ItemGroupOID','ItemOID') => see alix:getAnnotation($ItemData,'ItemOID')
+    alix:getAnnotation($ItemData,'FormOID','ItemGroupOID','ItemOID') => see alix:getAnnotation($ItemData,'ItemOID')
+    alix:getAnnotation($ItemData,'StudyEventOID','FormOID','ItemGroupOID','ItemOID') => see alix:getAnnotation($ItemData,'ItemOID')        
 :)
 
-(:Pour comparer les dates partielles, on complète par convention avec des 01:)
+(:To compare partialDate, missing parts are set to 01:)
 declare function alix:fillPartialDate($partialDateValue as xs:string?) as xs:string
 {
   let $length := string-length($partialDateValue)
@@ -39,7 +84,7 @@ declare function alix:fillAny($anyValue as xs:string?) as xs:string
 
 declare function alix:getValue($ItemData as node()*) as xs:string?
 {
-  let $lastItemData := $ItemData[1]
+  let $lastItemData := $ItemData[last()]
   return
     if($lastItemData/name()='ItemDataPartialDate')
     then alix:fillPartialDate($lastItemData/string())
@@ -81,8 +126,8 @@ declare function alix:getValue($ItemData as node(),$StudyEventOID as xs:string,$
 
 declare function alix:getRawValue($ItemData as node()*) as xs:string?
 {
-  let $v := '' (:car il nous faut un let :)
-  return $ItemData[1]/string()
+  let $v := ''
+  return $ItemData[last()]/string()
 };
 
 declare function alix:getRawValue($ItemData as node(),$ItemOID as xs:string) as xs:string?
@@ -217,10 +262,10 @@ declare function alix:getAnnotation($ItemData as node(),$ItemOID as xs:string) a
 
 declare function alix:getAnnotation($ItemData as node()*) as xs:string?
 {
-  let $ClinicalData := collection('ClinicalData')/odm:ODM[@FileOID='$SubjectKey']/odm:ClinicalData
-  let $AnnotationId := $ItemData[1]/@AnnotationID
+  let $Annotations := $ItemData/../../../../../odm:Annotations
+  let $AnnotationId := $ItemData[last()]/@AnnotationID
   return
     if($AnnotationId)
-      then $ClinicalData/odm:Annotations/odm:Annotation[@ID=$AnnotationId]/odm:Flag/odm:FlagValue/string()
+      then $Annotations/odm:Annotation[@ID=$AnnotationId]/odm:Flag/odm:FlagValue/string()
       else ''
 };

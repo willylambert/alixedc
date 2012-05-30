@@ -224,70 +224,11 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
     return $tblRet;
   }
 
-
-/*
-@desc Ajout d'une Annotation à un SubjectData
-@author tpi
-*/
-  private function addSubjectStatus($SubjectKey,$status="EMPTY",$SeqNum="1")
-  {
-    $this->addLog("bocdiscoo->addSubjectStatus($SubjectKey,$status,$SeqNum)",INFO);
-    
-    try{
-      $subj = $this->m_ctrl->socdiscoo()->getDocument("ClinicalData",$SubjectKey,false);
-    }catch(xmlexception $e){
-      $str= "Patient $SubjectKey non trouvé dans la base : " . $e->getMessage() ." (". __METHOD__ .")";
-      $this->addLog($str,FATAL);
-      die($str);
-    }
-
-    $xPath = new DOMXPath($subj);
-    $xPath->registerNamespace("odm", ODM_NAMESPACE);
-    
-    $query = "/odm:ODM/odm:ClinicalData/odm:SubjectData[not(./Annotation[@SeqNum='$SeqNum'])]";
-    $resultIGDT = $xPath->query($query);
-    if($resultIGDT->length==0){
-      $str = "bocdiscoo->addItemGroupStatus() : SubjectData non trouvé ou SubjectData avec Annotation(SeqNum='$SeqNum') déjà présente ! Requête : $query (". __METHOD__ .")";
-      $this->addLog($str,INFO);
-    }else{
-      $IGDT = $resultIGDT->item(0);
-      $Annotation = $subj->createElementNS(ODM_NAMESPACE,"Annotation");
-      $Flag = $subj->createElementNS(ODM_NAMESPACE,"Flag");
-      $FlagValue = $subj->createElementNS(ODM_NAMESPACE,"FlagValue",$status);
-      $FlagType = $subj->createElementNS(ODM_NAMESPACE,"FlagType","STATUS");
-
-      $Annotation->setAttribute("SeqNum","1");
-      $FlagValue->setAttribute("CodeListOID","CL.SSTATUS");
-      $FlagType->setAttribute("CodeListOID","CL.FLAGTYPE");
-
-      $Flag->appendChild($FlagValue);
-      $Flag->appendChild($FlagType);
-      $Annotation->appendChild($Flag);
-      
-      //Les annotations doivent êtes le premier noeud de l'IGDT
-      $firstChild = $IGDT->firstChild;
-      if($firstChild)
-      {
-        $IGDT->insertBefore($Annotation, $firstChild);
-      }
-      else
-      {
-        $IGDT->appendChild($Annotation);
-      }
-      
-      //Mise à jour de notre document dans la base
-      $this->m_ctrl->socdiscoo()->replaceDocument($subj,false,"ClinicalData");
-      
-      $str = "bocdiscoo->addSubjectStatus() Un FlagValue non trouvé a été créé/restauré sur un SubjectData (".__METHOD__.")";
-      $this->addLog($str,INFO);
-    }
-  }
-
   private function checkFormConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey)
   {
     $this->addLog("bocdiscoo->checkFormConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID)", INFO);
 
-    //Loop through ItemData having Edit Checks (RangeCheck in ODM)
+    //Loop through ItemDatas having Edit Checks (RangeCheck in ODM)
     $query = "
         import module namespace alix = 'http://www.alix-edc.com/alix';
          
@@ -305,7 +246,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
             let \$ItemGroupRepeatKey := \$ItemGroupData/@ItemGroupRepeatKey
             for \$ItemOID in distinct-values(\$ItemGroupData/odm:*/@ItemOID)
               let \$ItemDatas := \$ItemGroupData/odm:*[@ItemOID=\$ItemOID]
-              let \$ItemData := \$ItemDatas[1]
+              let \$ItemData := \$ItemDatas[last()]
               let \$ItemDef := \$MetaDataVersion/odm:ItemDef[@OID=\$ItemOID]
               return
                 if (count(\$ItemDef/odm:RangeCheck) = 0 and \$ItemData/string()!='') 
@@ -409,7 +350,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
         let \$ItemGroupRepeatKey := \$ItemGroupData/@ItemGroupRepeatKey
           let \$ItemOID := \"$ItemOID\"
           let \$ItemDatas := \$ItemGroupData/odm:*[@ItemOID=\$ItemOID]
-          let \$ItemData := \$ItemDatas[1]
+          let \$ItemData := \$ItemDatas[last()]
           let \$ItemDef := \$MetaDataVersion/odm:ItemDef[@OID=\$ItemOID]
           $whereItemData
           return
@@ -731,7 +672,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
               return                  
                  for \$ItemOID in distinct-values(\$ItemGroupData/odm:*/@ItemOID)
                   let \$ItemDatas := \$ItemGroupData/odm:*[@ItemOID=\$ItemOID]
-                  let \$ItemData := \$ItemDatas[1]
+                  let \$ItemData := \$ItemDatas[last()]
                   let \$FlagValue := \$SubjectData/../odm:Annotations/odm:Annotation[@ID=\$ItemData/@AnnotationID]/odm:Flag/odm:FlagValue/string()
                   let \$ItemRef := \$MetaDataVersion/odm:ItemGroupDef[@OID=\$ItemGroupOID]/odm:ItemRef[@ItemOID=\$ItemOID]
                   let \$CollectionException := \$MetaDataVersion/odm:ConditionDef[@OID=\$ItemRef/@CollectionExceptionConditionOID]
@@ -971,7 +912,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
                                                 {
                                                     for \$ItemOID in distinct-values(\$ItemGroupData/odm:*/@ItemOID)
                                                     let \$ItemDatas := \$ItemGroupData/odm:*[@ItemOID=\$ItemOID]
-                                                    let \$ItemData := \$ItemDatas[1]
+                                                    let \$ItemData := \$ItemDatas[last()]
                                                     let \$ItemDef := \$MetaDataVersion/odm:ItemDef[@OID=\$ItemOID]
                                                     return
                                                         <ItemData   OID='{\$ItemData/@ItemOID}'
@@ -1115,14 +1056,8 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
     //L'audit trail engendre plusieurs ItemData avec le même ItemOID, ce qui nous oblige
     //pour chaque item à rechercher le dernier en regardant l'attribut AuditRecordID qui est le plus grand, et ce pour chaque item
     $query = "
-      declare function local:getLastValue(\$ItemData as node()*) as xs:string?
-      {
-        let \$v := ''
-        return \$ItemData[1]/string()
-      };
-      
       let \$SubjectData := index-scan('SubjectData','$SubjectKey','EQ')
-      let \$value := local:getLastValue(\$SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' $andStudyEventRepeatKey]/odm:FormData[@FormOID='$FormOID' $andFormRepeatKey]/odm:ItemGroupData[@ItemGroupOID='$ItemGroupOID' $andItemGroupRepeatKey and (@TransactionType!='Remove' or not(@TransactionType))]/odm:*[@ItemOID='$ItemOID'])
+      let \$value := \$SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' $andStudyEventRepeatKey]/odm:FormData[@FormOID='$FormOID' $andFormRepeatKey]/odm:ItemGroupData[@ItemGroupOID='$ItemGroupOID' $andItemGroupRepeatKey and (@TransactionType!='Remove' or not(@TransactionType))]/odm:*[@ItemOID='$ItemOID'][last()]
       let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
       let \$codeListOID := \$MetaDataVersion/odm:ItemDef[@OID='$ItemOID']/odm:CodeListRef/@CodeListOID
       let \$decodedValue := \$MetaDataVersion/odm:CodeList[@OID=\$codeListOID]/odm:CodeListItem[@CodedValue=\$value]/odm:Decode/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()
@@ -1401,7 +1336,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
         $customQueryLet .= "let \$$key := \$SubjectData/odm:StudyEventData[@StudyEventOID='{$col['SEOID']}' and @StudyEventRepeatKey='{$col['SERK']}']/
                                                           odm:FormData[@FormOID='{$col['FRMOID']}' and @FormRepeatKey='{$col['FRMRK']}']/
                                                           odm:ItemGroupData[@ItemGroupOID='{$col['IGOID']}' and @ItemGroupRepeatKey='{$col['IGRK']}']/
-                                                          odm:*[@ItemOID='{$col['ITEMOID']}'][1]
+                                                          odm:*[@ItemOID='{$col['ITEMOID']}'][last()]
                     ";
       $customQueryReturn .= " $key ='{\$$key}' ";
       }
@@ -1439,7 +1374,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
               let \$SiteId := \$SubjectData/odm:StudyEventData[@StudyEventOID='{$this->m_tblConfig['SUBJECT_LIST']['COLS']['SITEID']['Value']['SEOID']}' and @StudyEventRepeatKey='{$this->m_tblConfig['SUBJECT_LIST']['COLS']['SITEID']['Value']['SERK']}']/
                                                         odm:FormData[@FormOID='{$this->m_tblConfig['SUBJECT_LIST']['COLS']['SITEID']['Value']['FRMOID']}' and @FormRepeatKey='{$this->m_tblConfig['SUBJECT_LIST']['COLS']['SITEID']['Value']['FRMRK']}']/
                                                         odm:ItemGroupData[@ItemGroupOID='{$this->m_tblConfig['SUBJECT_LIST']['COLS']['SITEID']['Value']['IGOID']}' and @ItemGroupRepeatKey='{$this->m_tblConfig['SUBJECT_LIST']['COLS']['SITEID']['Value']['IGRK']}']/
-                                                        odm:ItemDataString[@ItemOID='{$this->m_tblConfig['SUBJECT_LIST']['COLS']['SITEID']['Value']['ITEMOID']}'][1]
+                                                        odm:ItemDataString[@ItemOID='{$this->m_tblConfig['SUBJECT_LIST']['COLS']['SITEID']['Value']['ITEMOID']}'][last()]
               $customQueryLet
               return
                 <StudyEvent OID='$StudyEventOID'
@@ -1519,7 +1454,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
                             {
                               for \$ItemOID in distinct-values(\$ItemGroupData/odm:*/@ItemOID)
                               let \$ItemDatas := \$ItemGroupData/odm:*[@ItemOID=\$ItemOID]
-                              let \$ItemData := \$ItemDatas[1]
+                              let \$ItemData := \$ItemDatas[last()]
                               let \$ItemDataDecode := alix:getDecode(\$ItemData,\$SubjectData,\$MetaDataVersion)
                               let \$Annotation := \$SubjectData/../odm:Annotations/odm:Annotation[@ID=\$ItemData/@AnnotationID]
                               let \$ItemDef := \$MetaDataVersion/odm:ItemDef[@OID=\$ItemOID]
@@ -1623,10 +1558,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
 
     $doc = $this->m_ctrl->socdiscoo()->query($query,false);
     
-    //Set StudyEvent and Form status according to associated queries
-    //The status to display depends on the profile of the user (for acknoledged queries) in the subjects site
-    $siteId = $this->m_ctrl->bosubjects()->getSubjectColValue($SubjectKey,"SITEID");
-    $profile = $this->m_ctrl->boacl()->getUserProfileId("",$siteId);
+    //Set StudyEvent and Form status according to associated queries   
     //Loop through SubjectDatas
     $SubjectDatas = $doc->getElementsByTagName("SubjectData");
     foreach($SubjectDatas as $SubjectData){
@@ -1660,7 +1592,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
                 $frmStatus = "FROZEN";
                 $nbFormFrozen++;  
               }else{
-                $frmStatus = $this->m_ctrl->boqueries()->getFormStatus($SubjectKey, $StudyEventOID ,$StudyEventRepeatKey, $FormOID, $FormRepeatKey, $profile);
+                $frmStatus = $this->m_ctrl->boqueries()->getFormStatus($SubjectKey, $StudyEventOID ,$StudyEventRepeatKey, $FormOID, $FormRepeatKey);
               }           
             }
             $form->setAttribute("Status",$frmStatus);
@@ -1672,7 +1604,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
           if($nbForm==$nbFormFrozen){
             $visitStatus = "FROZEN"; 
           }else{
-            $visitStatus = $this->m_ctrl->boqueries()->getStudyEventStatus($SubjectKey,$StudyEventOID ,$StudyEventRepeatKey, $profile);
+            $visitStatus = $this->m_ctrl->boqueries()->getStudyEventStatus($SubjectKey,$StudyEventOID ,$StudyEventRepeatKey);
             if($visitStatus=="FILLED"){
               //FILLED only if there is no empty forms
               if($nbFormEmpty>0){
@@ -1705,7 +1637,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
       declare function local:getLastValue(\$ItemData as node()*) as xs:string?
       {
         let \$v := ''
-        return \$ItemData[1]/string()
+        return \$ItemData[last()]/string()
       };
       
       let \$SubjectData := index-scan('SubjectData','$SubjectKey','EQ')
@@ -1854,10 +1786,10 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
   }
 
   /**
-   *save into xml database the ItemGroupData
-   *@return boolean true if data have been updated
-   *                false if database update was unnecessary        
-   *@author wlt                 
+  * save into xml database the ItemGroupData
+  * @return boolean true if data have been updated
+  *                false if database update was unnecessary        
+  * @author wlt                 
   **/
   function saveItemGroupData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$formVars,$who,$where,$why,$fillst="",$bFormVarsIsAlreadyDecoded=false)
   {
@@ -1905,7 +1837,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
                       <DateTimeStamp>".date('c')."</DateTimeStamp>
                       <ReasonForChange>$why</ReasonForChange>
                      </AuditRecord>
-              following index-scan('SubjectData','$SubjectKey','EQ')/../odm:AuditRecords/odm:AuditRecord[1]";
+              following index-scan('SubjectData','$SubjectKey','EQ')/../odm:AuditRecords/odm:AuditRecord[last()]";
     $this->m_ctrl->socdiscoo()->query($query);
 
     $annotationsChildren = $xPath->query("/odm:ODM/odm:ClinicalData/odm:Annotations/odm:Annotation");
@@ -1935,29 +1867,8 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
       if($igdata->length!=1){
         $str = "Error : duplicate entries for ItemGroupData=$ItemGroupOID RepeatKey=$ItemGroupRepeatKey (".__METHOD__.")";
         $this->addLog($str,FATAL);
-      }else{
-        //We have one itemgroupdata - we need to know if the annotation element is here
-        //$this->addLog("NodeName = ".$igdata->item(0)->getElementsByTagName("Annotation"),INFO);
-        $igAnnot = $igdata->item(0)->getElementsByTagName("Annotation");
-        if($igAnnot->length==0){
-          $query = "declare default element namespace '".$this->m_tblConfig['SEDNA_NAMESPACE_ODM']."';
-                    UPDATE
-                    insert <Annotation SeqNum='1'>
-                              <Flag>
-                                <FlagValue CodeListOID='CL.SSTATUS'>FILLED</FlagValue>
-                                <FlagType CodeListOID='CL.FLAGTYPE'>STATUS</FlagType>
-                              </Flag>
-                            </Annotation>
-                    preceding index-scan('SubjectData','$SubjectKey','EQ')/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']
-                                                                          /odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']
-                                                                          /odm:ItemGroupData[@ItemGroupOID='$ItemGroupOID' and @ItemGroupRepeatKey='$ItemGroupRepeatKey']
-                                                                          /odm:*[1]";
-          $this->m_ctrl->socdiscoo()->query($query); 
-        }
       }
     }
-    
-    
     
     //Extraction from POSTed data
     if($bFormVarsIsAlreadyDecoded){
@@ -2007,7 +1918,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
                                       odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']/
                                       odm:ItemGroupData[@ItemGroupOID=\$ItemGroupRef/@ItemGroupOID and @ItemGroupRepeatKey='$ItemGroupRepeatKey']/
                                       odm:*[@ItemOID=\$ItemOID]
-      let \$LastItemData := \$ItemData[1]
+      let \$LastItemData := \$ItemData[last()]
       return
         <Item ItemOID='{\$ItemOID}'
               DataType='{\$ItemDef/@DataType}'
@@ -2034,7 +1945,9 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
                 UPDATE
                 insert ($strItemDatas)
                 following index-scan('SubjectData','$SubjectKey','EQ')/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']
-                                                                      /odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']/odm:ItemGroupData[@ItemGroupOID='$ItemGroupOID' and @ItemGroupRepeatKey='$ItemGroupRepeatKey']/odm:Annotation";
+                                                                      /odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']
+                                                                      /odm:ItemGroupData[@ItemGroupOID='$ItemGroupOID' and @ItemGroupRepeatKey='$ItemGroupRepeatKey']
+                                                                      /odm:*[last()]";
       $this->m_ctrl->socdiscoo()->query($query);
     }
 
@@ -2051,7 +1964,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
                   with attribute LocationOID {index-scan('SubjectData','$SubjectKey','EQ')/odm:StudyEventData[@StudyEventOID='{$SITEIDdef['SEOID']}' and @StudyEventRepeatKey='{$SITEIDdef['SERK']}']/
                                                                     odm:FormData[@FormOID='{$SITEIDdef['FRMOID']}' and @FormRepeatKey='{$SITEIDdef['FRMRK']}']/
                                                                     odm:ItemGroupData[@ItemGroupOID='{$SITEIDdef['IGOID']}' and @ItemGroupRepeatKey='{$SITEIDdef['IGRK']}']/
-                                                                    odm:*[@ItemOID='{$SITEIDdef['ITEMOID']}'][1]}";  
+                                                                    odm:*[@ItemOID='{$SITEIDdef['ITEMOID']}'][last()]}";  
 
         $this->addLog("bocdiscoo->saveItemGroupData() : updating SiteRef",INFO); 
         $this->m_ctrl->socdiscoo()->query($query);
@@ -2061,10 +1974,9 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
     return $hasModif;
   }
 
-/*
-met à jour le statut FROZEN / FILLED / INCONSISTENT / PARTIAL / EMPTY d'un ItemGroupData
-@author wlt
-*/
+  /**
+  * Update ItemGroupData Status to FROZEN / FILLED / INCONSISTENT / PARTIAL / EMPTY
+  **/
   protected function setItemGroupStatus($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$status)
   {
     $this->addLog("bocdiscoo->setItemGroupStatus($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$status)",INFO);
@@ -2077,31 +1989,29 @@ met à jour le statut FROZEN / FILLED / INCONSISTENT / PARTIAL / EMPTY d'un Item
     $res = $this->m_ctrl->socdiscoo()->query($query);
   }
 
-/*
-@desc set le statut des itemgroupdata d'un formulaire donné
-@creationdate 02/03/2011
-@author wlt
-*/
-public function setLock($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$bLock)
-{
-  //pour tous les itemgroupdatas du formulaire
-  $ItemGroupDatas = $this->getItemGroupDatas($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey);
-  foreach($ItemGroupDatas as $ItemGroupData){
-    $ItemGroupOID = (string)$ItemGroupData['ItemGroupOID'];
-    $ItemGroupRepeatKey = (string)$ItemGroupData['ItemGroupRepeatKey'];
-    if($bLock){
-      $status = "FROZEN";
-    }else{
-      $status = "FILLED";
+  /**
+  * Set all itemgroupdata status of given form to FROZEN or FILLED according to boolean $bLock parameter
+  * @author wlt
+  **/
+  public function setLock($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$bLock)
+  {
+    $ItemGroupDatas = $this->getItemGroupDatas($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey);
+    foreach($ItemGroupDatas as $ItemGroupData){
+      $ItemGroupOID = (string)$ItemGroupData['ItemGroupOID'];
+      $ItemGroupRepeatKey = (string)$ItemGroupData['ItemGroupRepeatKey'];
+      if($bLock){
+        $status = "FROZEN";
+      }else{
+        $status = "FILLED";
+      }
+      $this->setItemGroupStatus($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$status);
     }
-    $this->setItemGroupStatus($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$status);
   }
-}
   
-/**
- *Callback function used int getXQueryConsistency, to build let section
- *@author tpi 
- **/
+  /**
+   *Callback function used int getXQueryConsistency, to build let section
+   *@author tpi 
+  **/
   private function updateFormalExpression($matches){
     if(!isset($this->handeldExpressionsForExpressionUpdate[$matches[0]])){ //already matched
       $var = "$". chr(97 + $this->iVarForExpressionUpdate); //ascii code for a,b,c etc => $a, $b, $c)
@@ -2128,5 +2038,4 @@ public function setLock($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID
     $errorsConsistency = $this->checkFormConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey);
     return count($errorsMandatory)+count($errorsConsistency);
   }
-  
 }
