@@ -1,7 +1,7 @@
 <?php
     /**************************************************************************\
     * ALIX EDC SOLUTIONS                                                       *
-    * Copyright 2011 Business & Decision Life Sciences                         *
+    * Copyright 2012 Business & Decision Life Sciences                         *
     * http://www.alix-edc.com                                                  *
     * ------------------------------------------------------------------------ *                                                                       *
     * This file is part of ALIX.                                               *
@@ -37,7 +37,6 @@ class boqueries extends CommonFunctions
       "SC" => "Information",
     );
 
-  //Constructeur
   function boqueries(&$tblConfig,$ctrlRef)
   {
       CommonFunctions::__construct($tblConfig,$ctrlRef);
@@ -121,69 +120,68 @@ class boqueries extends CommonFunctions
     return $subjStatus;
   }
 
-/*
-@desc ferme la query queryid, gère également l'audit trail
-@author wlt
-*/
-function closeQuery($queryId,$userId,$profileId){
-  $this->addLog(__METHOD__."($queryId,$userId,$profileId)",INFO);
-  //Cloture automatique de la query
-  $sql = "UPDATE egw_alix_queries 
-          SET ISLAST='N'
-          WHERE QUERYID='$queryId'";
-  $GLOBALS['egw']->db->query($sql);
-  
-  //récupération de la nouvelle valeur enregistrée pour insertion en base de queries
-  $value = "?";
-  $decodedValue = "?";
-  $sql = "SELECT * FROM egw_alix_queries
-          WHERE QUERYID='$queryId'";
-  $GLOBALS['egw']->db->query($sql);
-  if($GLOBALS['egw']->db->next_record()){
-    $value = $this->m_ctrl->bocdiscoo()->getValue($GLOBALS['egw']->db->f('SUBJKEY'),$GLOBALS['egw']->db->f('SEOID'),$GLOBALS['egw']->db->f('SERK'),$GLOBALS['egw']->db->f('FRMOID'),$GLOBALS['egw']->db->f('FRMRK'),$GLOBALS['egw']->db->f('IGOID'),$GLOBALS['egw']->db->f('IGRK'),$GLOBALS['egw']->db->f('ITEMOID'));
-    $decodedValue = $this->m_ctrl->bocdiscoo()->getDecodedValue($GLOBALS['egw']->db->f('SUBJKEY'),$GLOBALS['egw']->db->f('SEOID'),$GLOBALS['egw']->db->f('SERK'),$GLOBALS['egw']->db->f('FRMOID'),$GLOBALS['egw']->db->f('FRMRK'),$GLOBALS['egw']->db->f('IGOID'),$GLOBALS['egw']->db->f('IGRK'),$GLOBALS['egw']->db->f('ITEMOID'));
-  }
-  $sql = "INSERT INTO egw_alix_queries(CURRENTAPP,SITEID,SUBJKEY,SEOID,SERK,FRMOID,FRMRK,IGOID,IGRK,POSITION,ITEMOID,
-                                       LABEL,ITEMTITLE,ISMANUAL,QUERYTYPE,QUERYSTATUS,ANSWER,BYWHO,BYWHOGROUP,UPDATEDT,ISLAST,VALUE,DECODE)
-            (
-             SELECT CURRENTAPP,SITEID,SUBJKEY,SEOID,SERK,FRMOID,FRMRK,IGOID,IGRK,POSITION,ITEMOID,
-                    LABEL,ITEMTITLE,ISMANUAL,QUERYTYPE,'C',ANSWER,'$userId','$profileId',now(),'Y','". $value ."','". addslashes($decodedValue) ."'
-             FROM egw_alix_queries 
-             WHERE QUERYID=$queryId
-            )";                              
-                                       
-  $GLOBALS['egw']->db->query($sql);    
-}
+  /**
+  * Close query $queryId  
+  **/
+  function closeQuery($queryId,$userId,$profileId){
+    $this->addLog(__METHOD__."($queryId,$userId,$profileId)",INFO);
 
-/*
-get the existing queries list from db depending on incoming parameters
-@return false or array(
-                        'QUERYID'=>$GLOBALS['egw']->db->f('QUERYID'),
-                        'SITEID'=>$GLOBALS['egw']->db->f('SITEID'),
-                        'SUBJKEY'=>$GLOBALS['egw']->db->f('SUBJKEY'),
-                        'SEOID'=>$GLOBALS['egw']->db->f('SEOID'),
-                        'SERK'=>$GLOBALS['egw']->db->f('SERK'),
-                        'FRMOID'=>$GLOBALS['egw']->db->f('FRMOID'),
-                        'FRMRK'=>$GLOBALS['egw']->db->f('FRMRK'),
-                        'IGOID'=>$GLOBALS['egw']->db->f('IGOID'),
-                        'IGRK'=>$GLOBALS['egw']->db->f('IGRK'),
-                        'POSITION'=>$GLOBALS['egw']->db->f('POSITION'),
-                        'ITEMOID'=>$GLOBALS['egw']->db->f('ITEMOID'),
-                        'LABEL'=>$GLOBALS['egw']->db->f('LABEL'),
-                        'ITEMTITLE'=>$GLOBALS['egw']->db->f('ITEMTITLE'),
-                        'ISMANUAL'=>$GLOBALS['egw']->db->f('ISMANUAL'),
-                        'BYWHO'=>$GLOBALS['egw']->db->f('BYWHO'),
-                        'BYWHOGROUP'=>$GLOBALS['egw']->db->f('BYWHOGROUP'),
-                        'UPDATEDT'=>$GLOBALS['egw']->db->f('UPDATEDT'),
-                        'QUERYTYPE'=>$GLOBALS['egw']->db->f('QUERYTYPE'),
-                        'QUERYSTATUS'=>$GLOBALS['egw']->db->f('QUERYSTATUS'),
-                        'QUERYORIGIN'=> ($GLOBALS['egw']->db->f('POSITION')<0 ? 'M' : 'A'),
-                        'ANSWER'=>$GLOBALS['egw']->db->f('ANSWER'),
-                        'VALUE'=>$GLOBALS['egw']->db->f('VALUE'),
-                        'DECODE'=>$GLOBALS['egw']->db->f('DECODE')
-                       );
-@author wlt,tpi
-*/
+    $sql = "UPDATE egw_alix_queries 
+            SET ISLAST='N'
+            WHERE QUERYID='$queryId'";
+    $GLOBALS['egw']->db->query($sql);
+    
+    //Get the Item new value, to be stored into the queries db
+    $value = "?";
+    $decodedValue = "?";
+    $sql = "SELECT * FROM egw_alix_queries
+            WHERE QUERYID='$queryId'";
+    $GLOBALS['egw']->db->query($sql);
+    if($GLOBALS['egw']->db->next_record()){
+      $value = $this->m_ctrl->bocdiscoo()->getValue($GLOBALS['egw']->db->f('SUBJKEY'),$GLOBALS['egw']->db->f('SEOID'),$GLOBALS['egw']->db->f('SERK'),$GLOBALS['egw']->db->f('FRMOID'),$GLOBALS['egw']->db->f('FRMRK'),$GLOBALS['egw']->db->f('IGOID'),$GLOBALS['egw']->db->f('IGRK'),$GLOBALS['egw']->db->f('ITEMOID'));
+      $decodedValue = $this->m_ctrl->bocdiscoo()->getDecodedValue($GLOBALS['egw']->db->f('SUBJKEY'),$GLOBALS['egw']->db->f('SEOID'),$GLOBALS['egw']->db->f('SERK'),$GLOBALS['egw']->db->f('FRMOID'),$GLOBALS['egw']->db->f('FRMRK'),$GLOBALS['egw']->db->f('IGOID'),$GLOBALS['egw']->db->f('IGRK'),$GLOBALS['egw']->db->f('ITEMOID'));
+    }
+    $sql = "INSERT INTO egw_alix_queries(CURRENTAPP,SITEID,SUBJKEY,SEOID,SERK,FRMOID,FRMRK,IGOID,IGRK,POSITION,ITEMOID,
+                                         LABEL,ITEMTITLE,ISMANUAL,QUERYTYPE,QUERYSTATUS,ANSWER,BYWHO,BYWHOGROUP,UPDATEDT,ISLAST,VALUE,DECODE)
+              (
+               SELECT CURRENTAPP,SITEID,SUBJKEY,SEOID,SERK,FRMOID,FRMRK,IGOID,IGRK,POSITION,ITEMOID,
+                      LABEL,ITEMTITLE,ISMANUAL,QUERYTYPE,'C',ANSWER,'$userId','$profileId',now(),'Y','". $value ."','". addslashes($decodedValue) ."'
+               FROM egw_alix_queries 
+               WHERE QUERYID=$queryId
+              )";                              
+                                         
+    $GLOBALS['egw']->db->query($sql);    
+  }
+
+  /**
+  * get the existing queries list from db depending on incoming parameters
+  * @return false or array(
+  *                        'QUERYID'=>$GLOBALS['egw']->db->f('QUERYID'),
+  *                        'SITEID'=>$GLOBALS['egw']->db->f('SITEID'),
+  *                        'SUBJKEY'=>$GLOBALS['egw']->db->f('SUBJKEY'),
+  *                        'SEOID'=>$GLOBALS['egw']->db->f('SEOID'),
+  *                        'SERK'=>$GLOBALS['egw']->db->f('SERK'),
+  *                        'FRMOID'=>$GLOBALS['egw']->db->f('FRMOID'),
+  *                        'FRMRK'=>$GLOBALS['egw']->db->f('FRMRK'),
+  *                        'IGOID'=>$GLOBALS['egw']->db->f('IGOID'),
+  *                        'IGRK'=>$GLOBALS['egw']->db->f('IGRK'),
+  *                        'POSITION'=>$GLOBALS['egw']->db->f('POSITION'),
+  *                        'ITEMOID'=>$GLOBALS['egw']->db->f('ITEMOID'),
+  *                        'LABEL'=>$GLOBALS['egw']->db->f('LABEL'),
+  *                        'ITEMTITLE'=>$GLOBALS['egw']->db->f('ITEMTITLE'),
+  *                        'ISMANUAL'=>$GLOBALS['egw']->db->f('ISMANUAL'),
+  *                        'BYWHO'=>$GLOBALS['egw']->db->f('BYWHO'),
+  *                        'BYWHOGROUP'=>$GLOBALS['egw']->db->f('BYWHOGROUP'),
+  *                        'UPDATEDT'=>$GLOBALS['egw']->db->f('UPDATEDT'),
+  *                        'QUERYTYPE'=>$GLOBALS['egw']->db->f('QUERYTYPE'),
+  *                        'QUERYSTATUS'=>$GLOBALS['egw']->db->f('QUERYSTATUS'),
+  *                        'QUERYORIGIN'=> ($GLOBALS['egw']->db->f('POSITION')<0 ? 'M' : 'A'),
+  *                        'ANSWER'=>$GLOBALS['egw']->db->f('ANSWER'),
+  *                        'VALUE'=>$GLOBALS['egw']->db->f('VALUE'),
+  *                        'DECODE'=>$GLOBALS['egw']->db->f('DECODE')
+  *                       );
+  * @author wlt,tpi
+  **/
   function getQueriesList($SubjectKey="", $StudyEventOID="", $StudyEventRepeatKey="", $FormOID="", $FormRepeatKey="", $ItemGroupOID="", $ItemGroupKey="", $ItemOID="", $position="", $queryStatus="", $isLast="", $where="", $orderBy="", $limit=""){
      $tblQueries = array();
     $sql = "SELECT QUERYID, SITEID,SUBJKEY,SEOID,SERK,FRMOID,FRMRK,IGOID,IGRK,POSITION,ITEMOID,
@@ -265,7 +263,6 @@ get the existing queries list from db depending on incoming parameters
       $sql .= " LIMIT $limit";
     }
     
-    $this->addLog(__METHOD__." : $sql",INFO);
     $GLOBALS['egw']->db->query($sql); 
     while($GLOBALS['egw']->db->next_record()){
       $tblQueries[] = array(
@@ -297,45 +294,44 @@ get the existing queries list from db depending on incoming parameters
     return $tblQueries;
   }
 
-/*
-@desc retourne la query d'identifiant QUERYID
-@param int QUERYID
-@return false or array(
-                        'QUERYID'=>$GLOBALS['egw']->db->f('QUERYID'),
-                        'SITEID'=>$GLOBALS['egw']->db->f('SITEID'),
-                        'SUBJKEY'=>$GLOBALS['egw']->db->f('SUBJKEY'),
-                        'SEOID'=>$GLOBALS['egw']->db->f('SEOID'),
-                        'SERK'=>$GLOBALS['egw']->db->f('SERK'),
-                        'FRMOID'=>$GLOBALS['egw']->db->f('FRMOID'),
-                        'FRMRK'=>$GLOBALS['egw']->db->f('FRMRK'),
-                        'IGOID'=>$GLOBALS['egw']->db->f('IGOID'),
-                        'IGRK'=>$GLOBALS['egw']->db->f('IGRK'),
-                        'POSITION'=>$GLOBALS['egw']->db->f('POSITION'),
-                        'ITEMOID'=>$GLOBALS['egw']->db->f('ITEMOID'),
-                        'LABEL'=>$GLOBALS['egw']->db->f('LABEL'),
-                        'ITEMTITLE'=>$GLOBALS['egw']->db->f('ITEMTITLE'),
-                        'ISMANUAL'=>$GLOBALS['egw']->db->f('ISMANUAL'),
-                        'BYWHO'=>$GLOBALS['egw']->db->f('BYWHO'),
-                        'BYWHOGROUP'=>$GLOBALS['egw']->db->f('BYWHOGROUP'),
-                        'UPDATEDT'=>$GLOBALS['egw']->db->f('UPDATEDT'),
-                        'QUERYTYPE'=>$GLOBALS['egw']->db->f('QUERYTYPE'),
-                        'QUERYSTATUS'=>$GLOBALS['egw']->db->f('QUERYSTATUS'),
-                        'QUERYORIGIN'=> ($GLOBALS['egw']->db->f('POSITION')<0 ? 'M' : 'A'),
-                        'ANSWER'=>$GLOBALS['egw']->db->f('ANSWER'),
-                        'VALUE'=>$GLOBALS['egw']->db->f('VALUE'),
-                        'DECODE'=>$GLOBALS['egw']->db->f('DECODE')
-                       );
-@author wlt,tpi
-*/
-  function getQuery($QueryId){
+  /**
+  * Retrieve query $queryId information
+  * @param int $queryId
+  * @return false or array(
+  *                      'QUERYID'=>$GLOBALS['egw']->db->f('QUERYID'),
+  *                      'SITEID'=>$GLOBALS['egw']->db->f('SITEID'),
+  *                      'SUBJKEY'=>$GLOBALS['egw']->db->f('SUBJKEY'),
+  *                      'SEOID'=>$GLOBALS['egw']->db->f('SEOID'),
+  *                      'SERK'=>$GLOBALS['egw']->db->f('SERK'),
+  *                      'FRMOID'=>$GLOBALS['egw']->db->f('FRMOID'),
+  *                      'FRMRK'=>$GLOBALS['egw']->db->f('FRMRK'),
+  *                      'IGOID'=>$GLOBALS['egw']->db->f('IGOID'),
+  *                      'IGRK'=>$GLOBALS['egw']->db->f('IGRK'),
+  *                      'POSITION'=>$GLOBALS['egw']->db->f('POSITION'),
+  *                      'ITEMOID'=>$GLOBALS['egw']->db->f('ITEMOID'),
+  *                      'LABEL'=>$GLOBALS['egw']->db->f('LABEL'),
+  *                      'ITEMTITLE'=>$GLOBALS['egw']->db->f('ITEMTITLE'),
+  *                      'ISMANUAL'=>$GLOBALS['egw']->db->f('ISMANUAL'),
+  *                      'BYWHO'=>$GLOBALS['egw']->db->f('BYWHO'),
+  *                      'BYWHOGROUP'=>$GLOBALS['egw']->db->f('BYWHOGROUP'),
+  *                      'UPDATEDT'=>$GLOBALS['egw']->db->f('UPDATEDT'),
+  *                      'QUERYTYPE'=>$GLOBALS['egw']->db->f('QUERYTYPE'),
+  *                      'QUERYSTATUS'=>$GLOBALS['egw']->db->f('QUERYSTATUS'),
+  *                      'QUERYORIGIN'=> ($GLOBALS['egw']->db->f('POSITION')<0 ? 'M' : 'A'),
+  *                      'ANSWER'=>$GLOBALS['egw']->db->f('ANSWER'),
+  *                      'VALUE'=>$GLOBALS['egw']->db->f('VALUE'),
+  *                      'DECODE'=>$GLOBALS['egw']->db->f('DECODE')
+  *                     );
+  * @author wlt,tpi
+  **/
+  function getQuery($queryId){
     $tblQuery = false;
-    //Recuperation de la query
     $sql = "SELECT QUERYID, SITEID,SUBJKEY,SEOID,SERK,FRMOID,FRMRK,IGOID,IGRK,POSITION,ITEMOID,
                    LABEL,ITEMTITLE,ISMANUAL,BYWHO,BYWHOGROUP,UPDATEDT,
                    QUERYTYPE,QUERYSTATUS,ANSWER,VALUE,DECODE
             FROM egw_alix_queries
             WHERE CURRENTAPP='".$this->getCurrentApp(true)."' AND
-                  QUERYID='".$QueryId."'
+                  QUERYID='".$queryId."'
             LIMIT 1";
     
     $this->addLog(__METHOD__." : $sql",TRACE);
@@ -370,10 +366,9 @@ get the existing queries list from db depending on incoming parameters
     return $tblQuery;
   }
 
-  //Retourne le nombre de queries correspondant aux paramètres spécifiés
   function getQueriesCount($SubjectKey="", $StudyEventOID="", $StudyEventRepeatKey="", $FormOID="", $FormRepeatKey="", $ItemGroupOID="", $ItemGroupKey="", $ItemOID="", $position="", $queryStatus="", $isLast="", $where=""){
      $tblQueries = array();
-    //Recuperation de la liste des queries
+
     $sql = "SELECT COUNT(*) as NBQUERIES
             FROM egw_alix_queries
             WHERE CURRENTAPP='".$this->getCurrentApp(true)."'";
@@ -454,41 +449,25 @@ get the existing queries list from db depending on incoming parameters
     return $res;
   }
   
-/*
-@desc retourne le libellé de statut de query
-@author tpi
-*/
   public function getStatusLabel($status){
     return $this->statuses[$status];
   }
   
-/*
-@desc retourne le libellé de type de query
-@author tpi
-*/
   public function getTypeLabel($type){
     return $this->types[$type];
   }
   
-/*
-@desc retourne lun tableau de statuts de query
-@author tpi
-*/
   public function getStatuses(){
     return $this->statuses;
   }
   
-/*
-@desc retourne lun tableau de types de query
-@author tpi
-*/
   public function getTypes(){
     return $this->types;
   }
 
-  /*
+  /**
   @param string $queryType : 'M' => Mandatory 'C' => Consistency (Hard ou Soft)
-  */
+  **/
   function updateQueries($SubjectKey, $StudyEventOID, $StudyEventRepeatKey, $FormOID, $FormRepeatKey, $queryType, $queries)
   {  
     $this->addLog(__METHOD__."($SubjectKey, $StudyEventOID, $StudyEventRepeatKey, $FormOID, $FormRepeatKey, $queryType, $queries)",INFO);
@@ -496,9 +475,7 @@ get the existing queries list from db depending on incoming parameters
     //HOOK => boqueries_updateQueries_form
     $this->callHook(__FUNCTION__,"form",array($FormOID, $FormRepeatKey, $queryType, &$queries));
 
-    $userId = $this->m_ctrl->boacl()->getUserId();
-    $siteId = $this->m_ctrl->bosubjects()->getSubjectColValue($SubjectKey,"SITEID");
-    $profileId = $this->m_ctrl->boacl()->getUserProfileId("",$siteId);
+    $userId = $this->m_user;
     
     if($queryType=="C"){
       $where = "(QUERYTYPE='SC' or QUERYTYPE='HC')";
@@ -506,7 +483,7 @@ get the existing queries list from db depending on incoming parameters
       $where = "QUERYTYPE='CM'";
     }
 
-    //Recuperation des queries non fermées et non manuelles pour le formulaire demandé
+    //Get automatic (<> manual queries) non closed queries for asked form
     $sql = "SELECT QUERYID,IGOID,IGRK,ITEMOID,POSITION,LABEL,ITEMTITLE,QUERYTYPE,VALUE,DECODE,QUERYSTATUS
             FROM egw_alix_queries
             WHERE CURRENTAPP='".$this->getCurrentApp(true)."' AND
@@ -535,8 +512,8 @@ get the existing queries list from db depending on incoming parameters
     
     foreach($tblQueryFromDB as $queryDB){  
       $this->addLog(__METHOD__." : query {$queryDB['QueryId']} est ouverte",INFO);
-      //La query est-elle toujours présente ?
-      if($queryDB['Position']<0){ //on ne ferme pas automatiquement les queries manuelles (on fait un updateQuery pour les passer à RESOLVED si la valeur est modifiée)
+      //Query is still here
+      if($queryDB['Position']<0){ //Do not close automatically manual queries
         $queryDB['Value'] = $this->m_ctrl->bocdiscoo()->getValue($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$queryDB['ItemGroupOID'],$queryDB['ItemGroupRepeatKey'],$queryDB['ItemOID']);
         $queryDB['Decode'] = $this->m_ctrl->bocdiscoo()->getDecodedValue($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$queryDB['ItemGroupOID'],$queryDB['ItemGroupRepeatKey'],$queryDB['ItemOID']);
         $this->updateQuery($SubjectKey, $StudyEventOID, $StudyEventRepeatKey, $FormOID, $FormRepeatKey, false, 'Value changed', $queryDB);
@@ -551,74 +528,71 @@ get the existing queries list from db depending on incoming parameters
               $query['ItemOID']==$queryDB['ItemOID'] &&
               $query['Position']==$queryDB['Position']
               ){
-                //Oui !
+                //Found !
                 $bFind = true;
-                $this->addLog(__METHOD__." : query {$queryDB['QueryId']} est toujours la",INFO);
+                $this->addLog(__METHOD__." : query {$queryDB['QueryId']} still here",INFO);
               }
         }
         if($bFind==false){
-          //Fermeture de la query
-          if($queryDB['QueryStatus']!="A"){ //le CRF n'a pas le droit de fermer automatiquement les queries CONFIRMED
+          //Close query
+          if($queryDB['QueryStatus']!="A"){ //CRF must not close automatically CONFIRMED queries
+            $siteId = $this->m_ctrl->bosubjects()->getSubjectColValue($SubjectKey,"SITEID");
+            $profileId = $this->m_ctrl->boacl()->getUserProfileId("",$siteId);
             $this->closeQuery($queryDB['QueryId'],$userId,$profileId);
           }
         }    
-       } 
+      } 
     }
     
     foreach($queries as $query){
-      //Mise à jour ou creation
       $this->updateQuery($SubjectKey, $StudyEventOID, $StudyEventRepeatKey, $FormOID, $FormRepeatKey, false, '', $query);
-    }
-   
+    }   
   }
 
-/*
-@desc ajoute ou met à jour la query $query
-@param array $query : représente une query, avec les champs suivants : array("ItemOID" => '',
-                                                                             "ItemGroupOID" => '',
-                                                                             "ItemGroupRepeatKey" => '',
-                                                                             "Description" => '',
-                                                                             "Title" => ''
-                                                                             'Position' => '' (Position du ranheCheck dans L'itemDef)
-                                                                             'Type' =>  'CM' (CheckMandatory),
-                                                                                        'CS' (CheckSoft)
-                                                                                        'CH' (CheckHard),
-                                                                             'Value' => '',
-                                                                             'Decode' => ''
-@return false or array(
-                        'QUERYID'=>$GLOBALS['egw']->db->f('QUERYID'),
-                        'SITEID'=>$GLOBALS['egw']->db->f('SITEID'),
-                        'SUBJKEY'=>$GLOBALS['egw']->db->f('SUBJKEY'),
-                        'SEOID'=>$GLOBALS['egw']->db->f('SEOID'),
-                        'SERK'=>$GLOBALS['egw']->db->f('SERK'),
-                        'FRMOID'=>$GLOBALS['egw']->db->f('FRMOID'),
-                        'FRMRK'=>$GLOBALS['egw']->db->f('FRMRK'),
-                        'IGOID'=>$GLOBALS['egw']->db->f('IGOID'),
-                        'IGRK'=>$GLOBALS['egw']->db->f('IGRK'),
-                        'POSITION'=>$GLOBALS['egw']->db->f('POSITION'),
-                        'ITEMOID'=>$GLOBALS['egw']->db->f('ITEMOID'),
-                        'LABEL'=>$GLOBALS['egw']->db->f('LABEL'),
-                        'ITEMTITLE'=>$GLOBALS['egw']->db->f('ITEMTITLE'),
-                        'ISMANUAL'=>$GLOBALS['egw']->db->f('ISMANUAL'),
-                        'BYWHO'=>$GLOBALS['egw']->db->f('BYWHO'),
-                        'BYWHOGROUP'=>$GLOBALS['egw']->db->f('BYWHOGROUP'),
-                        'UPDATEDT'=>$GLOBALS['egw']->db->f('UPDATEDT'),
-                        'QUERYTYPE'=>$GLOBALS['egw']->db->f('QUERYTYPE'),
-                        'QUERYSTATUS'=>$GLOBALS['egw']->db->f('QUERYSTATUS'),
-                        'QUERYORIGIN'=> ($GLOBALS['egw']->db->f('POSITION')<0 ? 'M' : 'A'),
-                        'ANSWER'=>$GLOBALS['egw']->db->f('ANSWER'),
-                        'VALUE'=>$GLOBALS['egw']->db->f('VALUE'),
-                        'DECODE'=>$GLOBALS['egw']->db->f('DECODE')
-                       );
-@author wlt,tpi
-*/
+  /**
+  * Add or update query $query
+  * @param array $query query, with fields : array("ItemOID" => '',
+  *                                                "ItemGroupOID" => '',
+  *                                                "ItemGroupRepeatKey" => '',
+  *                                                "Description" => '',
+  *                                                "Title" => ''
+  *                                                'Position' => '' (Position du ranheCheck dans L'itemDef)
+  *                                                'Type' =>  'CM' (CheckMandatory),
+  *                                                           'CS' (CheckSoft)
+  *                                                           'CH' (CheckHard),
+  *                                                'Value' => '',
+  *                                                'Decode' => ''
+  * @return false or array(
+  *                        'QUERYID'=>$GLOBALS['egw']->db->f('QUERYID'),
+  *                        'SITEID'=>$GLOBALS['egw']->db->f('SITEID'),
+  *                        'SUBJKEY'=>$GLOBALS['egw']->db->f('SUBJKEY'),
+  *                        'SEOID'=>$GLOBALS['egw']->db->f('SEOID'),
+  *                        'SERK'=>$GLOBALS['egw']->db->f('SERK'),
+  *                        'FRMOID'=>$GLOBALS['egw']->db->f('FRMOID'),
+  *                        'FRMRK'=>$GLOBALS['egw']->db->f('FRMRK'),
+  *                        'IGOID'=>$GLOBALS['egw']->db->f('IGOID'),
+  *                        'IGRK'=>$GLOBALS['egw']->db->f('IGRK'),
+  *                        'POSITION'=>$GLOBALS['egw']->db->f('POSITION'),
+  *                        'ITEMOID'=>$GLOBALS['egw']->db->f('ITEMOID'),
+  *                        'LABEL'=>$GLOBALS['egw']->db->f('LABEL'),
+  *                        'ITEMTITLE'=>$GLOBALS['egw']->db->f('ITEMTITLE'),
+  *                        'ISMANUAL'=>$GLOBALS['egw']->db->f('ISMANUAL'),
+  *                        'BYWHO'=>$GLOBALS['egw']->db->f('BYWHO'),
+  *                        'BYWHOGROUP'=>$GLOBALS['egw']->db->f('BYWHOGROUP'),
+  *                        'UPDATEDT'=>$GLOBALS['egw']->db->f('UPDATEDT'),
+  *                        'QUERYTYPE'=>$GLOBALS['egw']->db->f('QUERYTYPE'),
+  *                        'QUERYSTATUS'=>$GLOBALS['egw']->db->f('QUERYSTATUS'),
+  *                        'QUERYORIGIN'=> ($GLOBALS['egw']->db->f('POSITION')<0 ? 'M' : 'A'),
+  *                        'ANSWER'=>$GLOBALS['egw']->db->f('ANSWER'),
+  *                        'VALUE'=>$GLOBALS['egw']->db->f('VALUE'),
+  *                        'DECODE'=>$GLOBALS['egw']->db->f('DECODE')
+  *                       );
+  * @author wlt,tpi
+  **/
   function updateQuery($SubjectKey, $StudyEventOID, $StudyEventRepeatKey, $FormOID, $FormRepeatKey, $isManual, $answer, $query, $queryStatus='O')
   {
     $this->addLog(__METHOD__."($SubjectKey, $StudyEventOID, $StudyEventRepeatKey, $FormOID, $FormRepeatKey, $isManual, $answer, {$query['ItemGroupOID']}/{$query['ItemGroupRepeatKey']}/{$query['Position']}/{$query['ItemOID']}, $queryStatus)",INFO);
-    
-    $userId = $this->m_ctrl->boacl()->getUserId(); 
-    $siteId = $this->m_ctrl->bosubjects()->getSubjectColValue($SubjectKey,"SITEID");
-
+  
     if($isManual){
       $cIsManual = "Y";
     }else{
@@ -639,7 +613,6 @@ get the existing queries list from db depending on incoming parameters
                             POSITION='{$query['Position']}' AND
                             ITEMOID='{$query['ItemOID']}' AND
                             ISLAST='Y'";
-    $this->addLog(__METHOD__." : sql = ".$sql,TRACE);
     $GLOBALS['egw']->db->query($sql);
     $hasModif = false;
     
@@ -651,24 +624,26 @@ get the existing queries list from db depending on incoming parameters
         $GLOBALS['egw']->db->f('VALUE') != $query['Value'] ||
         $GLOBALS['egw']->db->f('CONTEXTKEY') != $query['ContextKey']){
           
-          $QUERYORIGIN = ($GLOBALS['egw']->db->f('POSITION')<0 ? 'M' : 'A'); //champ absent de la base. M : query OPEN de façon manuelle (ARC), A : query OPEN de façon automatique (CRF)
+           //M : query OPEN manually (ARC), A : query OPEN automatically (CRF)
+          $QUERYORIGIN = ($GLOBALS['egw']->db->f('POSITION')<0 ? 'M' : 'A');
           
-          if($isManual){ //Tout modifications demandée manuellement est autorisée par l'interface
-            //TODO ? vérifier les droits ici ? (Les actions possibles sont déjà limitées dans l'interface via le code JavaScript.)
+          if($isManual){ //Every manual modifications are allowed
+            //@TODO : check rights here. Rights are already checks in javascript.
             $hasModif = true;
-          }else{ //On vérifie plus finement ici pour les modifications automatiques (CRF)
-            if($GLOBALS['egw']->db->f('VALUE') != $query['Value'] || $GLOBALS['egw']->db->f('CONTEXTKEY') != $query['ContextKey']){ //le CRF ne peut modifier une querie que si la valeur a été modifiée
+          }else{ //Handle of automatic query update (CRF)
+            if($GLOBALS['egw']->db->f('VALUE') != $query['Value'] || $GLOBALS['egw']->db->f('CONTEXTKEY') != $query['ContextKey']){ 
+              //CRF can update a query only if the value have been updated
               /*
-              * le CRF peut donc modifier :
-              *              les queries OPEN
-              *               - et uniquement les passer en statut RESOLVED si elles ont été créées manuellement
+              * CRF can update :
+              *              OPEN queries 
+              *               - and set to RESOLVED manual queries
               *              les queries RESOLUTION PROPOSED
-              *               - si le nouveau statut est CLOSED
-              *               - la description uniquement si celle-ci a changé (valeur modifiée qui peut être reprise dans la description)              
-              *              les queries CONFIRMED si le nouveau staut est OPEN
-              *              les queries CLOSED
-              *               - qui ont été fermées automatiquement
-              *               - qui ont été ouvertes automatiquement
+              *               - if new stasus is CLOSED
+              *               - description only if it was updated              
+              *              CONFIRMED queries  if new status is OPEN
+              *              CLOSED queries
+              *               - automatically closed
+              *               - automatically opened
               */
               if($GLOBALS['egw']->db->f('QUERYSTATUS') == "O"){
                 $hasModif = true;
@@ -698,11 +673,14 @@ get the existing queries list from db depending on incoming parameters
           }
       }
     }else{
-      //Pas d'ancien enregistrement, on va insérer la query
+      //No previous record, query will be inserted
       $hasModif = true;
     }
 
     if($hasModif){    
+      $userId = $this->m_userId; 
+      $siteId = $this->m_ctrl->bosubjects()->getSubjectColValue($SubjectKey,"SITEID");
+
       $sql = "UPDATE egw_alix_queries 
               SET ISLAST='N'
               WHERE CURRENTAPP='".$this->getCurrentApp(true)."' AND
@@ -715,7 +693,6 @@ get the existing queries list from db depending on incoming parameters
                     IGRK='".$query['ItemGroupRepeatKey']."' AND
                     POSITION='".$query['Position']."' AND
                     ITEMOID='".$query['ItemOID']."'";
-      $this->addLog(__METHOD__." : sql = ".$sql,TRACE);
       $this->addLog(__METHOD__." : hasModif = true => mise à jour de la query  {$query['ItemGroupOID']}/{$query['ItemGroupRepeatKey']}/{$query['Position']}/{$query['ItemOID']} ",INFO);
       $GLOBALS['egw']->db->query($sql);
   
@@ -725,7 +702,6 @@ get the existing queries list from db depending on incoming parameters
              VALUES('".$this->getCurrentApp(true)."',
                     '$siteId','$SubjectKey','$StudyEventOID','$StudyEventRepeatKey','$FormOID','$FormRepeatKey','".$query['ItemGroupOID']."','".$query['ItemGroupRepeatKey']."',
                     '".$query['Position']."','".$query['ItemOID']."','".addslashes($query['Description'])."','".addslashes($query['Title'])."','$cIsManual','$userId',now(),'".$query['Type']."','".$queryStatus."','".addslashes($answer)."','Y','".$query['Value']."','".addslashes($query['Decode'])."','".$query['ContextKey']."')";
-      $this->addLog(__METHOD__." : sql = ".$sql,TRACE);
       $GLOBALS['egw']->db->query($sql);
       
       return array(
@@ -747,7 +723,7 @@ get the existing queries list from db depending on incoming parameters
                     'UPDATEDT'=>date("Y-m-d H:i:s"),
                     'QUERYTYPE'=>$query['Type'],
                     'QUERYSTATUS'=>$queryStatus,
-                    'QUERYORIGIN'=> ($query['Position']<0 ? 'M' : 'A'), //champ absent de la base. M : query OPEN de façon manuelle (ARC), A : query OPEN de façon automatique (CRF)
+                    'QUERYORIGIN'=> ($query['Position']<0 ? 'M' : 'A'), //M : query OPEN manually (ARC), A : query OPEN automatically (CRF)
                     'ANSWER'=>$answer,
                     'VALUE'=>$query['Value'],
                     'DECODE'=>$query['Decode']
@@ -757,5 +733,4 @@ get the existing queries list from db depending on incoming parameters
       return false;
     }            
   }
-  
 }

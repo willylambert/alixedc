@@ -721,7 +721,6 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
         $testXQuery = $this->getXQueryConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$error);//-
         try{
           $ctrlResult = $this->m_ctrl->socdiscoo()->query($testXQuery,true,false,true);
-          $this->addLog("query=".$testXQuery,INFO);
         }catch(xmlexception $e){
           //Error is probably due to the ConditionDef code. Error is not display to the user, and administrator notified by email             
           $str = "Mandatory : Erreur in editcheck code : " . $e->getMessage() . " " . $testXQuery;
@@ -732,11 +731,11 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
   								                  'itemOID' => $error['ItemOID']);
         }
   
-        $this->addLog("bocdiscoo->checkFormMandatory() Control[{$StudyEventOID}][{$FormOID}][{$error['ItemGroupOID']}][{$error['ItemGroupRepeatKey']}]['{$error['ItemOID'] }'] => Result=" . $ctrlResult[0]->Result, INFO);
+        $this->addLog("bocdiscoo->checkMandatoryData() Control[{$StudyEventOID}][{$FormOID}][{$error['ItemGroupOID']}][{$error['ItemGroupRepeatKey']}]['{$error['ItemOID'] }'] => Result=" . $ctrlResult[0]->Result, INFO);
         
         if($ctrlResult[0]->Result=='true'){
           // CollectionConditionException return true - the Item is no more longer mandatory
-          $this->addLog("bocdiscoo->checkFormMandatory() : " . $error['ItemOID'] . " n'est plus obligatoire",INFO);
+          $this->addLog("bocdiscoo->checkMandatoryData() : " . $error['ItemOID'] . " is no longer mandatory",INFO);
         }else{
           //Decode(s) extraction
           //We use an eval here to handle multiple decode, passed as parameters to function sprintf()

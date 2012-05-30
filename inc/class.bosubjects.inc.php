@@ -36,7 +36,7 @@ class bosubjects extends CommonFunctions
    * @description Return subject status (Screened, Randomized, etc)
    * @param SumpleXMLElement $subj : one subject as returned by bosubjects->getSubjectsParams
    * @author tpi
-   */  
+   **/  
   public function getSubjectStatus($subj){
     $this->addLog(__METHOD__."($subj)",INFO);
     
@@ -132,7 +132,6 @@ class bosubjects extends CommonFunctions
   {
     $this->addLog(__METHOD__ ."($SubjectKey)",INFO);
     
-    //The audit trail generates many ItemData with the same ItemOID. So we have to look for the last item (in first position)
     $query = "  let \$SubjectsCol := index-scan('SubjectData', '$SubjectKey', 'EQ')
                 for \$SubjectData in \$SubjectsCol
 				        let \$SubjectKey := \$SubjectData/@SubjectKey
@@ -143,7 +142,7 @@ class bosubjects extends CommonFunctions
         $query .= "let \$col$key := \$SubjectData/odm:StudyEventData[@StudyEventOID='{$col['Value']['SEOID']}' and @StudyEventRepeatKey='{$col['Value']['SERK']}']/
                                                   odm:FormData[@FormOID='{$col['Value']['FRMOID']}' and @FormRepeatKey='{$col['Value']['FRMRK']}']/
                                                   odm:ItemGroupData[@ItemGroupOID='{$col['Value']['IGOID']}' and @ItemGroupRepeatKey='{$col['Value']['IGRK']}']/
-                                                  odm:*[@ItemOID='{$col['Value']['ITEMOID']}'][1]
+                                                  odm:*[@ItemOID='{$col['Value']['ITEMOID']}'][last()]
                   ";
       }else{
         if($key=="SUBJID"){
@@ -173,7 +172,7 @@ class bosubjects extends CommonFunctions
    * @param $key => the parameter for which a value is requested
    * @return the value   
    * @author tpi
-   */ 
+   **/ 
   public function getSubjectColValue($SubjectKey,$key,$useCache=true){
     $this->addLog(__METHOD__."($SubjectKey)",INFO);
     if(!$SubjectKey) throw new Exception("Error: SubjectKey is empty (". __METHOD__ .")");
@@ -184,35 +183,33 @@ class bosubjects extends CommonFunctions
       //We will find the Key in the CRF
       $col = $this->m_tblConfig['SUBJECT_LIST']['COLS'][$key];
       
-      $query = "
-        declare function local:getLastValue(\$ItemData as node()*) as xs:string?
-        {
-          let \$v := ''
-          return \$ItemData[1]/string()
-        };
-  
-            <subjs>
-                {
-                  let \$SubjectsCol := collection('ClinicalData')[/odm:ODM/@FileOID='$SubjectKey']
-                  for \$SubjectData in \$SubjectsCol/odm:ODM/odm:ClinicalData/odm:SubjectData
-  				        let \$FileOID := \$SubjectData/../../@FileOID
-                  let \$col$key := local:getLastValue(\$SubjectData/odm:StudyEventData[@StudyEventOID='{$col['Value']['SEOID']}' and @StudyEventRepeatKey='{$col['Value']['SERK']}']/
-                                                          odm:FormData[@FormOID='{$col['Value']['FRMOID']}' and @FormRepeatKey='{$col['Value']['FRMRK']}']/
-                                                          odm:ItemGroupData[@ItemGroupOID='{$col['Value']['IGOID']}' and @ItemGroupRepeatKey='{$col['Value']['IGRK']}']/
-                                                          odm:*[@ItemOID='{$col['Value']['ITEMOID']}'])
-                  return 
-                    <subj col$key ='{\$col$key}' />
-                }
-            </subjs>";
-      
-      try{
-        $this->addLog(__METHOD__."() Run query",TRACE);
-        $doc = $this->m_ctrl->socdiscoo()->query($query);
-        $this->addLog(__METHOD__."() Query OK",TRACE);
-      }catch(xmlexception $e){
-        $str = "Erreur de la requete : " . $e->getMessage() . "<br/><br/>" . $query . __METHOD__ .")";
-        $this->addLog($str,FATAL);
-      }
+      //Handle of magic key SITEID - we have SiteRef tag for it
+      if($key=='SITEID'){
+        $query = "
+              <subjs>
+                  {
+                    let \$SubjectData := index-scan('SubjectData','$SubjectKey','EQ')
+                    let \$col$key := \$SubjectData/odm:SiteRef/@LocationOID
+                    return 
+                      <subj col$key ='{\$col$key}' />
+                  }
+              </subjs>";
+
+      }else{
+        $query = "
+              <subjs>
+                  {
+                    let \$SubjectData := index-scan('SubjectData','$SubjectKey','EQ')
+                    let \$col$key := \$SubjectData/odm:StudyEventData[@StudyEventOID='{$col['Value']['SEOID']}' and @StudyEventRepeatKey='{$col['Value']['SERK']}']/
+                                                   odm:FormData[@FormOID='{$col['Value']['FRMOID']}' and @FormRepeatKey='{$col['Value']['FRMRK']}']/
+                                                   odm:ItemGroupData[@ItemGroupOID='{$col['Value']['IGOID']}' and @ItemGroupRepeatKey='{$col['Value']['IGRK']}']/
+                                                   odm:*[@ItemOID='{$col['Value']['ITEMOID']}'][last()]
+                    return 
+                      <subj col$key ='{\$col$key}' />
+                  }
+              </subjs>";
+      }      
+      $doc = $this->m_ctrl->socdiscoo()->query($query);
       
       //we update the cache self::$m_subjectCols
       self::$m_subjectCols[$SubjectKey][$key] = (string)$doc[0]->subj["col$key"];
@@ -224,6 +221,5 @@ class bosubjects extends CommonFunctions
     $this->callHook(__FUNCTION__,"customValue",array($SubjectKey,$key,&$value,$this));
     
     return $value;
-  }
-  
+  }  
 }
