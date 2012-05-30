@@ -1623,7 +1623,10 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
 
     $doc = $this->m_ctrl->socdiscoo()->query($query,false);
     
-    //Set StudyEvent and Form status according to associated queries   
+    //Set StudyEvent and Form status according to associated queries
+    //The status to display depends on the profile of the user (for acknoledged queries) in the subjects site
+    $siteId = $this->m_ctrl->bosubjects()->getSubjectColValue($SubjectKey,"SITEID");
+    $profile = $this->m_ctrl->boacl()->getUserProfileId("",$siteId);
     //Loop through SubjectDatas
     $SubjectDatas = $doc->getElementsByTagName("SubjectData");
     foreach($SubjectDatas as $SubjectData){
@@ -1657,7 +1660,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
                 $frmStatus = "FROZEN";
                 $nbFormFrozen++;  
               }else{
-                $frmStatus = $this->m_ctrl->boqueries()->getFormStatus($SubjectKey, $StudyEventOID ,$StudyEventRepeatKey, $FormOID, $FormRepeatKey);
+                $frmStatus = $this->m_ctrl->boqueries()->getFormStatus($SubjectKey, $StudyEventOID ,$StudyEventRepeatKey, $FormOID, $FormRepeatKey, $profile);
               }           
             }
             $form->setAttribute("Status",$frmStatus);
@@ -1669,7 +1672,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
           if($nbForm==$nbFormFrozen){
             $visitStatus = "FROZEN"; 
           }else{
-            $visitStatus = $this->m_ctrl->boqueries()->getStudyEventStatus($SubjectKey,$StudyEventOID ,$StudyEventRepeatKey);
+            $visitStatus = $this->m_ctrl->boqueries()->getStudyEventStatus($SubjectKey,$StudyEventOID ,$StudyEventRepeatKey, $profile);
             if($visitStatus=="FILLED"){
               //FILLED only if there is no empty forms
               if($nbFormEmpty>0){
