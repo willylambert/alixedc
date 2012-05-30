@@ -59,9 +59,21 @@ class uidbadmin extends CommonFunctions{
     exit(0);
   }
 
-  public function deleteDoc()
+  private function deleteDoc()
   {
-    $this->m_ctrl->socdiscoo()->deleteDocument($_GET['container'],$_GET['doc']);
+    $FileOID = $_GET['doc'];
+    $containerName = $_GET['container']; 
+    $tblSubjs = $this->m_ctrl->bosubjects()->getSubjectsList();
+    if(false && $containerName=="ClinicalData" && !in_array($FileOID,$tblSubjs)){
+      $this->addLog("Unauthorized Access to deleteDoc $FileOID  - Administrator has been notified",FATAL);
+    }else{
+      $this->m_ctrl->socdiscoo()->deleteDocument($containerName,$FileOID);
+      if($containerName=="ClinicalData"){
+        $this->m_ctrl->bopostit()->deleteSubjectPostIt($FileOID);
+        $this->m_ctrl->boqueries()->deleteQueries($FileOID);
+        $this->m_ctrl->bodeviations()->deleteDeviations($FileOID);
+      }
+    }
   }
   
   public function getInterface()

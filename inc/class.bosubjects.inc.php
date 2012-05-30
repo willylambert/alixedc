@@ -84,7 +84,7 @@ class bosubjects extends CommonFunctions
     
     $tblSubjectKeys = array();
     foreach($subjectDatas[0] as $subjectData) {
-      $tblSubjectKeys[] = $subjectData["SubjectKey"];
+      $tblSubjectKeys[] = (string)$subjectData["SubjectKey"];
     }
     
     return $tblSubjectKeys;

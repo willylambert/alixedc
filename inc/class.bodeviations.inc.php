@@ -1,7 +1,7 @@
 <?php
     /**************************************************************************\
     * ALIX EDC SOLUTIONS                                                       *
-    * Copyright 2011 Business & Decision Life Sciences                         *
+    * Copyright 2012 Business & Decision Life Sciences                         *
     * http://www.alix-edc.com                                                  *
     * ------------------------------------------------------------------------ *                                                                       *
     * This file is part of ALIX.                                               *
@@ -520,5 +520,17 @@ class bodeviations extends CommonFunctions
   public function getStatuses(){
     return $this->statuses;
   }
-  
+
+  /**
+   * Delete deviations of Subject $SubjectKey - only used from uidbadmin
+   *
+   **/        
+  public function deleteDeviations($SubjectKey){
+    $this->addLog(__METHOD__ . " SubjectKey='$SubjectKey'",INFO);
+    if($SubjectKey==""){
+      $this->addLog("bodeviations->deleteDeviations SubjectKey is empty",FATAL);
+    }
+    $sql = "DELETE FROM egw_alix_deviations WHERE SUBJKEY='$SubjectKey'";
+    $GLOBALS['egw']->db->query($sql);
+  }  
 }

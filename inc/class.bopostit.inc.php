@@ -1,7 +1,7 @@
 <?php
     /**************************************************************************\
     * ALIX EDC SOLUTIONS                                                       *
-    * Copyright 2011 Business & Decision Life Sciences                         *
+    * Copyright 2012 Business & Decision Life Sciences                         *
     * http://www.alix-edc.com                                                  *
     * ------------------------------------------------------------------------ *                                                                       *
     * This file is part of ALIX.                                               *
@@ -113,7 +113,19 @@ class bopostit extends CommonFunctions
     
     return true; 
   }
-
+  
+  /**
+   * Delete post it of Subject $SubjectKey - only used from uidbadmin
+   *
+   **/        
+  public function deleteSubjectPostIt($SubjectKey){
+    $this->addLog(__METHOD__ . " SubjectKey='$SubjectKey'",INFO);
+    if($SubjectKey==""){
+      $this->addLog("bopostit->deleteSubjectPostIt SubjectKey is empty",FATAL);
+    }
+    $sql = "DELETE FROM egw_alix_postit WHERE SUBJKEY='$SubjectKey'";
+    $GLOBALS['egw']->db->query($sql);
+  }
 
 /*
 @desc retourne un tableau de post-it

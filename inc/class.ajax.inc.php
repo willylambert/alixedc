@@ -1318,8 +1318,6 @@ public function checkFormData(){
     //retrieving subjects list
     $tblSubjectKeys = $this->m_ctrl->bosubjects()->getSubjectsList($siteId);
 
-    $this->addLog("subjs = " . $this->dumpRet($tblSubjectKeys),INFO);
-
     //pagination
     if(count($subjects)>0 && $limit>0) {
     	$total_pages = ceil($count/$limit);

@@ -511,7 +511,7 @@ class boqueries extends CommonFunctions
     }
     
     foreach($tblQueryFromDB as $queryDB){  
-      $this->addLog(__METHOD__." : query {$queryDB['QueryId']} est ouverte",INFO);
+      $this->addLog(__METHOD__." : query {$queryDB['QueryId']} is opened",INFO);
       //Query is still here
       if($queryDB['Position']<0){ //Do not close automatically manual queries
         $queryDB['Value'] = $this->m_ctrl->bocdiscoo()->getValue($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$queryDB['ItemGroupOID'],$queryDB['ItemGroupRepeatKey'],$queryDB['ItemOID']);
@@ -732,5 +732,18 @@ class boqueries extends CommonFunctions
     else{
       return false;
     }            
+  }
+  
+  /**
+   * Delete queries of Subject $SubjectKey - only used from uidbadmin
+   *
+   **/        
+  public function deleteQueries($SubjectKey){
+    $this->addLog(__METHOD__ . " SubjectKey='$SubjectKey'",INFO);
+    if($SubjectKey==""){
+      $this->addLog("boqueries->deleteQueries SubjectKey is empty",FATAL);
+    }
+    $sql = "DELETE FROM egw_alix_queries WHERE SUBJKEY='$SubjectKey'";
+    $GLOBALS['egw']->db->query($sql);
   }
 }
