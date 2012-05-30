@@ -339,7 +339,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
       $whereItemData = "where \$ItemData/string()!=''";
     }
     
-    //Boucle sur les ItemDatas ayant un ItemDef contenant un FormalExpression
+    //Loop through ItemDatas with ItemDef having a FormalExpression (EditChecks)
     $query = "
         let \$SubjectData := index-scan('SubjectData','$SubjectKey','EQ')
         let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
@@ -389,7 +389,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
         }else{
           $type = 'SC';
         }
-        //On doit passer par un eval pour gérer les décodes multiples, que l'on passe en param de la func sprintf()
+        //Handle of multiple decodes into error message
         $nbS = substr_count($ctrl['ErrorMessage'],"%s");
         if($nbS>0){
           $tblParams = explode(' ',$ctrlResult[0]->Decode . str_pad("",$nbS));
@@ -398,7 +398,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
           $cmdEval = "\$desc = sprintf(\"".$ctrl['ErrorMessage']."\",\"".implode('","',$tblParams)."\");";
           eval($cmdEval);
         }else{
-          //Ici, pas de decode, on affiche simplement le message d'erreur
+          //No decode, simply display the error messages as-is
           $desc = $ctrl['ErrorMessage'];
         }
         $this->addLog("message = $desc",INFO);
@@ -426,15 +426,15 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
     return $errors;
   }
   
-/*
-@desc Verification que les données de l'itemgroup respecte bien le format défini dans les metadata
-@param string $MetaDataVersion version des MetaDatas à utiliser
-@param string $ItemGroupOID ItemGroupOID de l'itemgroup
-@param string $ItemGroupRepeatKey ItemGroupRepeatKey permet l'extraction des données du formulaire
-@param array $formVars données recues en $_POST
-@return array tableau des erreurs rencontrées
-@author wlt 
-*/
+  /**
+  * Verify conformity of submitted values against associated metadata type
+  * @param string $MetaDataVersion
+  * @param string $ItemGroupOID
+  * @param string $ItemGroupRepeatKey
+  * @param array $formVars received POSTed vars
+  * @return array array of found errors
+  * @author wlt 
+  **/
   function checkItemGroupDataSanity($SubjectKey,$MetaDataVersion,$ItemGroupOID,$ItemGroupRepeatKey,$formVars)
   {
     $this->addLog("bocdiscoo->checkItemGroupDataSanity($SubjectKey,$MetaDataVersion,$ItemGroupOID,$ItemGroupRepeatKey,formVars)",INFO);
@@ -442,20 +442,19 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
     $Form = array();
     $errors = array();
 	
-    //on boucle sur les variables de notre formulaire soumis
+    //loop throught submited vars
     foreach($formVars as $key=>$value)
     {
-		  //Extraction de l'oid
+		  //get Item OID
       $varParts = explode("_",$key);
       $ItemOID = str_replace("@",".",$varParts[count($varParts)-2]);
-      //on ne garde que les variables ayant réellement une valeur, et pas les type dates que nous ajoutons plus loin, mais recomposées
+      //handle only vars having values. Date are processed below
       if($value!="" && !in_array($varParts[1],array('dd','mm','yy')) ){
         $Form["$ItemOID"] = $value;
       }
     }
 
-    //on se base sur le patient $SubjectKey pour utiliser les metadatas correspondantes,
-    //on requete ici les variables de notre FormOID
+    //Request metadata
     $query = "
     let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID='$MetaDataVersion']
     let \$ItemGroupDef := \$MetaDataVersion/odm:ItemGroupDef[@OID='$ItemGroupOID']
@@ -475,13 +474,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
     </ItemGroupDef>
     ";
 
-    try{
-      $results = $this->m_ctrl->socdiscoo()->query($query);
-    }catch(xmlexception $e){
-      $str= "Erreur de la requete : " . $e->getMessage() . " " . $query ." (". __METHOD__ .")";
-      $this->addLog($str,FATAL);
-      die($str);
-    }
+    $results = $this->m_ctrl->socdiscoo()->query($query);
 
     foreach($results as $ItemGroupDef)
     {
@@ -508,7 +501,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
             }
             
             break;
-          //Gestion particulière pour les type Date et PartialDate
+          //Handle of Date and PartialDate type
           case 'partialDate' :
             $isBadFormated = false;
             $dd = $formVars["text_dd_" . str_replace(".","@",$Item['ItemOID']) . "_$ItemGroupRepeatKey"];
@@ -516,21 +509,22 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
             $yy = $formVars["text_yy_" . str_replace(".","@",$Item['ItemOID']) . "_$ItemGroupRepeatKey"];
             
             if(!$isBadFormated){
-              //Le vrai premimer check, c'est que si quelquechose est saisi çà doit être un nombre !
+              //First, we need numeric values !
               if(($dd!="" && !is_numeric($dd)) || ($mm!="" && !is_numeric($mm)) || ($yy!="" && !is_numeric($yy))){
                 $isBadFormated = true;
               }
             }
             
             if(!$isBadFormated){
-              //Si le mois est saisi, l'année doit être saisie (et si le jour est saisi, le mois et l'année doivent être saisis)
+              //If month is filled, year must be filled
+              //If day is filled, month and year must be filled
               if(($mm!="" && $yy=="") || ($dd!="" && ($mm=="" || $yy==""))){
                 $isBadFormated = true;
               }
             }
             
             if(!$isBadFormated){
-              //Check obligatoire dans tous les cas : l'année (pour des histoires de mktime qui ne supporte pas des dates < 1901)
+              //In any case, check year. Note that the mktime fonction does not support year lower than 1901
               if($yy!=""){
                 if($yy<=1901 || $yy>date('Y')+5){
                   $isBadFormated = true;
@@ -541,19 +535,18 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
             }
             
             if(!$isBadFormated){
-              //Si on a les trois => vérification normale
+              //If we have all date parts, normal check 
               if($dd!="" && $mm!="" && $yy!=""){
-                //Construction de la date saisie
                 if(!@checkdate($mm,$dd,$yy)){
                   $isBadFormated = true;
                 }else{
                   $Form["{$Item['ItemOID']}"] = "$yy-$mm-$dd";
                 }
               }else{
-                //Seulement le mois et l'année
-                //Pour les dates, on fixe arbitrairement les bornes 1901 <=> année en cours + 5 ans
+                //Only year and month
+                //For date, sanity boundary are 1901 <=> current year + 10 year
                 if($mm!="" && $yy!=""){
-                  if($mm>12 || $yy<=1901 || $yy>date('Y')+5){
+                  if($mm>12 || $yy<=1901 || $yy>date('Y')+10){
                     $isBadFormated = true;
                   }else{
                     $Form["{$Item['ItemOID']}"] = "$yy-$mm";
@@ -576,21 +569,21 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
             $yy = $formVars["text_yy_" . str_replace(".","@",$Item['ItemOID']) . "_$ItemGroupRepeatKey"];
 
             if(!$isBadFormated){
-              //Le vrai premimer check, c'est que si quelquechose est saisi çà doit être un nombre !
+              //First, we need numeric values !
               if(($dd!="" && !is_numeric($dd)) || ($mm!="" && !is_numeric($mm)) || ($yy!="" && !is_numeric($yy))){
                 $isBadFormated = true;
               }
             }
             
             if(!$isBadFormated){
-              //Si l'un des paramètres est saisi, alors tous les paramètres doivent être saisis (date complète)
+              //If we have one parameters, we need all parameters
               if(($dd!="" || $mm!="" || $yy!="") && ($dd=="" || $mm=="" || $yy=="")){
                 $isBadFormated = true;
               }
             }
             
             if(!$isBadFormated){
-              //Check obligatoire dans tous les cas : l'année (pour des histoires de mktime qui ne supporte pas des dates < 1901)
+              //In any case, check year. Note that the mktime fonction does not support year lower than 1901
               if($yy!=""){
                 if($yy<=1901 || $yy>date('Y')+5){
                   $isBadFormated = true;
@@ -599,9 +592,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
             }
             
             if(!$isBadFormated){
-            //Si on a les trois => vérification normale
               if($dd!="" && $mm!="" && $yy!=""){
-                //Construction de la date saisie
                 if(!@checkdate($mm,$dd,$yy)){
                   $isBadFormated = true;
                 }else{
