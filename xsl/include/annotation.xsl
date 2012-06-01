@@ -48,27 +48,27 @@
       	  <!--Valeurs précédentes-->
         	<xsl:element name="input">
           	 <xsl:attribute name="type">hidden</xsl:attribute>
-          	 <xsl:attribute name="name">annotation_previousflag_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/></xsl:attribute>
+          	 <xsl:attribute name="name">annotation_previousflag_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/></xsl:attribute>
           	 <xsl:attribute name="value"><xsl:value-of select="$FlagValue"/></xsl:attribute>
           </xsl:element>
         	<xsl:element name="input">
           	 <xsl:attribute name="type">hidden</xsl:attribute>
-            <xsl:attribute name="name">annotation_previouscomment_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/></xsl:attribute>
+            <xsl:attribute name="name">annotation_previouscomment_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/></xsl:attribute>
           	 <xsl:attribute name="value"><xsl:if test="string-length($Comment)=0">&#160;</xsl:if><xsl:value-of select="$Comment"/></xsl:attribute>
           </xsl:element>
         	<!--Valeurs modifiables de recopie, car les autres sortes du dom du form avec le jquery dialog-->  
           <xsl:element name="input">
           	 <xsl:attribute name="type">hidden</xsl:attribute>
-          	 <xsl:attribute name="name">annotation_flag_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/></xsl:attribute>
+          	 <xsl:attribute name="name">annotation_flag_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/></xsl:attribute>
              <xsl:attribute name="value"><xsl:value-of select="$FlagValue"/></xsl:attribute>
           </xsl:element>
         	<xsl:element name="input">
           	 <xsl:attribute name="type">hidden</xsl:attribute>
-             <xsl:attribute name="name">annotation_comment_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/></xsl:attribute>
+             <xsl:attribute name="name">annotation_comment_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/></xsl:attribute>
              <xsl:attribute name="value"><xsl:if test="string-length($Comment)=0">&#160;</xsl:if><xsl:value-of select="$Comment"/></xsl:attribute>            
           </xsl:element>
       	  <!--Valeurs modifiables-->          
-    	    <xsl:variable name="DivId" select="concat('annotation_div_',$ItemOID,'_',$CurrentItemGroupRepeatKey)"/>
+    	    <xsl:variable name="DivId" select="concat('annotation_div_',$ItemOID,'_',$CurrentItemGroupOID,'_',$CurrentItemGroupRepeatKey)"/>
           <xsl:if test="$ShowFlag">
             <xsl:element name='span'>
             	<xsl:attribute name="id"><xsl:value-of select="concat($DivId,'_flagvalue')"/></xsl:attribute>
@@ -80,7 +80,7 @@
               <xsl:attribute name='id'><xsl:value-of select="concat($DivId,'_picture')"/></xsl:attribute>
               <xsl:attribute name='class'>imageOnly image16</xsl:attribute>
               <xsl:attribute name="style">background-image: url('<xsl:value-of select="$CurrentApp" />/templates/default/images/post_note<xsl:if test="string-length($Comment)=0 or $Comment='&#160;'">_empty</xsl:if>.gif');</xsl:attribute>
-              <xsl:attribute name="onclick">toggleAnnotation('<xsl:value-of select="$CurrentApp"/>', '<xsl:value-of select="$ItemOID"/>','<xsl:value-of select="$CurrentItemGroupRepeatKey"/>', 'annotation_comment_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/>','<xsl:value-of select="concat($DivId,'_picture')"/>');</xsl:attribute>
+              <xsl:attribute name="onclick">toggleAnnotation('<xsl:value-of select="$CurrentApp"/>', '<xsl:value-of select="$ItemOID"/>','<xsl:value-of select="$CurrentItemGroupOID"/>','<xsl:value-of select="$CurrentItemGroupRepeatKey"/>', 'annotation_comment_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/>','<xsl:value-of select="concat($DivId,'_picture')"/>');</xsl:attribute>
               <xsl:attribute name="altbox">Add an annotation on this item</xsl:attribute>
               &#0160;
             </xsl:element>
@@ -90,7 +90,7 @@
             <xsl:element name='img'>
               <xsl:attribute name='id'><xsl:value-of select="concat($DivId,'_picture')"/></xsl:attribute>
               <xsl:attribute name="src"><xsl:value-of select="$CurrentApp"/>/templates/default/images/post_note<xsl:if test="string-length($Comment)=0 or $Comment='&#160;'">_empty</xsl:if>.gif</xsl:attribute>
-              <xsl:attribute name="onClick">updateAnnotPict('<xsl:value-of select="$CurrentApp"/>', 'annotation_comment_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/>','<xsl:value-of select="concat($DivId,'_picture')"/>');toggleAnnotation('<xsl:value-of select="$DivId"/>');</xsl:attribute>
+              <xsl:attribute name="onClick">updateAnnotPict('<xsl:value-of select="$CurrentApp"/>', 'annotation_comment_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupOID"/>'_<xsl:value-of select="$CurrentItemGroupRepeatKey"/>','<xsl:value-of select="concat($DivId,'_picture')"/>');toggleAnnotation('<xsl:value-of select="$DivId"/>');</xsl:attribute>
               <xsl:attribute name="altbox">Add an annotation on this item</xsl:attribute>
             </xsl:element>
           </a-->
@@ -136,7 +136,7 @@
               <!-- Le textarea ne sort pas du DOM du form
               <xsl:attribute name="name">annotation_comment_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/></xsl:attribute>
               -->
-              <xsl:attribute name="onChange">$("input:[name='annotation_comment_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/>']").val(this.value);</xsl:attribute>              	              <xsl:if test="string-length($Comment)=0">&#160;</xsl:if>
+              <xsl:attribute name="onChange">$("input:[name='annotation_comment_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/>']").val(this.value);</xsl:attribute>              	              <xsl:if test="string-length($Comment)=0">&#160;</xsl:if>
               <xsl:value-of select="$Comment"/>
             </xsl:element>
           </div>

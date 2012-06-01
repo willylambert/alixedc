@@ -37,7 +37,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
 @return array array of ItemDatas to be inserted into ItemGroupData, empty string if no modification 
 @author wlt
 */
-  private function addItemData($SubjectKey,$ItemGroupRepeatKey,$ItemGroupRef,$formVars,&$tblFilledVar,$subj,$AuditRecordID,$bEraseNotFoundItem=true,$nbAnnotations)
+  private function addItemData($SubjectKey,$ItemGroupOID,$ItemGroupRepeatKey,$ItemGroupRef,$formVars,&$tblFilledVar,$subj,$AuditRecordID,$bEraseNotFoundItem=true,$nbAnnotations)
   {
     $this->addLog("bocdiscoo->addItemData() : tblFilledVar = " . $this->dumpRet($tblFilledVar),TRACE);
     $tblRet = array();
@@ -48,10 +48,10 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
       //Annotations management : RAS/ND/NSP + comment
       $AnnotationID = "";
       $bAnnotationModif = false;
-      $flag = $formVars["annotation_flag_" . str_replace(".","-",$Item['ItemOID']) . "_$ItemGroupRepeatKey"];
-      $previousflag = $formVars["annotation_previousflag_" . str_replace(".","-",$Item['ItemOID']) . "_$ItemGroupRepeatKey"];
-      $comment = $formVars["annotation_comment_" . str_replace(".","-",$Item['ItemOID']) . "_$ItemGroupRepeatKey"];
-      $previouscomment = $formVars["annotation_previouscomment_" . str_replace(".","-",$Item['ItemOID']) . "_$ItemGroupRepeatKey"];
+      $flag = $formVars["annotation_flag_" . str_replace(".","-",$Item['ItemOID']) . "_$ItemGroupOID" . "_$ItemGroupRepeatKey"];
+      $previousflag = $formVars["annotation_previousflag_" . str_replace(".","-",$Item['ItemOID']) . "_$ItemGroupOID" . "_$ItemGroupRepeatKey"];
+      $comment = $formVars["annotation_comment_" . str_replace(".","-",$Item['ItemOID']) . "_$ItemGroupOID" . "_$ItemGroupRepeatKey"];
+      $previouscomment = $formVars["annotation_previouscomment_" . str_replace(".","-",$Item['ItemOID']) . "_$ItemGroupOID" . "_$ItemGroupRepeatKey"];
       
       if($flag != $previousflag || $comment != $previouscomment)
       {
@@ -1925,7 +1925,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
 
     $ItemGroupRef = $this->m_ctrl->socdiscoo()->query($query);
 
-    $tblItemDatas = $this->addItemData($SubjectKey,$ItemGroupRepeatKey,$ItemGroupRef[0],$formVars,$tblFilledVar,$subj,$AuditRecordID,!$bFormVarsIsAlreadyDecoded,$nbAnnotations);
+    $tblItemDatas = $this->addItemData($SubjectKey,$ItemGroupOID,$ItemGroupRepeatKey,$ItemGroupRef[0],$formVars,$tblFilledVar,$subj,$AuditRecordID,!$bFormVarsIsAlreadyDecoded,$nbAnnotations);
     $strItemDatas = implode(',',$tblItemDatas);      
     //Update XML DB only if needed
     if($strItemDatas!="")

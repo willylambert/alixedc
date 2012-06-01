@@ -114,6 +114,7 @@ class uidbadmin extends CommonFunctions{
         case 'importDoc' :
               if($this->m_ctrl->boacl()->checkModuleAccess("importDoc")){
                 $htmlRet = $this->importDoc();
+                $htmlRet .= $this->getImportInterface();
               }else{
                 $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
               }
@@ -564,6 +565,11 @@ class uidbadmin extends CommonFunctions{
   private function importDoc(){
     $html = "";
     
+    $html .= "<div class='ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix'>
+                <span class='ui-dialog-title'>Importing document</span>
+              </div>
+              <br/>";
+    
 	  $uploaddir = $this->m_tblConfig['CDISCOO_PATH'] . "/import/";
     $uploadfile = $uploaddir . basename($_FILES['uploadedDoc']['name']);
         
@@ -585,7 +591,7 @@ class uidbadmin extends CommonFunctions{
       $html .= "<a href='".$GLOBALS['egw']->link('/index.php', array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
   				                                                                        'container' => $containerName,
                                                                                   'action' => 'viewDocs')) ."'>See $containerName</a><br/>";
-      $html .= "</div>";
+      $html .= "</div><br />";
       
       //Update the subject in the SubjectsList
       if(is_numeric($fileOID)){
