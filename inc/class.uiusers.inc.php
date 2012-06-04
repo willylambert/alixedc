@@ -57,15 +57,22 @@ class uiusers extends CommonFunctions
     }else{
       if($_GET['action']=='addProfile'){
         if($this->m_ctrl->boacl()->checkModuleAccess("ManageUsers")){
-          $htmlRet = $this->getInterfaceProfil(); 
+          $htmlRet = $this->getInterfaceProfil();
+        }else{
+          $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
+        }
+      }
+      if($_GET['action']=='addUser'){
+        if($this->m_ctrl->boacl()->checkModuleAccess("ManageUsers")){
+          $htmlRet = $this->getInterfaceProfil();
         }else{
           $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
         }
       }
       if($_GET['action']=='viewUser'){
         if($this->m_ctrl->boacl()->checkModuleAccess("ManageUsers") ||
-           $_GET['login']==$this->getUserId()){
-          $htmlRet = $this->getInterfaceProfil(); 
+          $_GET['login']==$this->getUserId()){
+          $htmlRet = $this->getInterfaceProfil();
         }else{
           $this->addLog("Unauthorized Access {$_GET['action']} - Administrator has been notified",FATAL);
         }
@@ -79,90 +86,113 @@ class uiusers extends CommonFunctions
 @author wlt
 */ 
   private function getInterfaceUserList(){
-      if(isset($_GET['sort'])){
-        $sort = $_GET['sort'];
-      }else{
-        $sort = "ASC";
-      } 
+    if(isset($_GET['sort'])){
+      $sort = $_GET['sort'];
+    }else{
+      $sort = "ASC";
+    } 
 
-      if(isset($_GET['order'])){
-        $order = $_GET['order'];
-      }else{
-        $order = "account_lid";
-      } 
+    if(isset($_GET['order'])){
+      $order = $_GET['order'];
+    }else{
+      $order = "account_lid";
+    } 
 
-      if(isset($_GET['start'])){
-        $start = $_GET['start'];
-      }else{
-        $start = 0;
-      } 
-      
-      //Recuperation de la liste des utilisateurs - cf egroupware/admin/inc/class.uiaccounts.inc.php - list_users
-			$search_param = array(
-				'type' => 'accounts',
-				'start' => $start,
-				'sort' => $sort,
-				'order' => $order,
-			);
-      $account_info = $GLOBALS['egw']->accounts->search($search_param);
-      $total = $GLOBALS['egw']->accounts->total;
-      
-      if($sort=="ASC"){
-        $nextSort = "DESC";
-      }else{
-        $nextSort = "ASC";
-      }
-      
-      $nextStart = $start + count($account_info);
-      $prevStart = $start - count($account_info);
-      if($prevStart<0){$prevStart = 0;}
-      
-      //Construction de la liste des utilisateurs
-      $htmlUsers = "
-      <div class='ui-grid ui-widget ui-widget-content ui-corner-all'>
-		    <div class='ui-grid-header ui-widget-header ui-corner-top'>Users list</div>
-        <table id='tblUsers' class='ui-grid-content ui-widget-content'>
-  			<thead>
-  				<tr>
-  					<th class='ui-state-default'>
-              <a href='?menuaction=".$this->getCurrentApp(false).".uietude.usersInterface&order=account_lid&sort=$nextSort'><span class='ui-icon ui-icon-triangle-1-s' title='sort ascending'></span> Login</a>
-            </th>
-  					<th class='ui-state-default'>
-              <a href='?menuaction=".$this->getCurrentApp(false).".uietude.usersInterface&order=account_firstname&sort=$nextSort'><span class='ui-icon ui-icon-triangle-1-s' title='sort ascending'></span> Firstname</a>
-            </th>
-  					<th class='ui-state-default'>
-              <a href='?menuaction=".$this->getCurrentApp(false).".uietude.usersInterface&order=account_lastname&sort=$nextSort'><span class='ui-icon ui-icon-triangle-1-s' title='sort ascending'></span> Lastname</a>
-            </th>
-  					<th class='ui-state-default'>
-              <a href='?menuaction=".$this->getCurrentApp(false).".uietude.usersInterface&order=account_email&sort=$nextSort'><span class='ui-icon ui-icon-triangle-1-s' title='sort ascending'></span> e-mail address</a></th>
-  				</tr>
-  			</thead>
-        <tbody>";
-			
-      foreach($account_info as $account)
-			{
-			   $htmlUsers .= "<tr id='".$account['account_lid']."'>
-                					<td class='ui-widget-content'>".$account['account_lid']."</td>
-                					<td class='ui-widget-content'>".$account['account_firstname']."</td>
-                					<td class='ui-widget-content'>".$account['account_lastname']."</td>
-                					<td class='ui-widget-content'>".$account['account_email']."</td>
-                				</tr>";
+    if(isset($_GET['start'])){
+      $start = $_GET['start'];
+    }else{
+      $start = 0;
+    } 
+    
+    //Recuperation de la liste des utilisateurs - cf egroupware/admin/inc/class.uiaccounts.inc.php - list_users
+		$search_param = array(
+			'type' => 'accounts',
+			'start' => $start,
+			'sort' => $sort,
+			'order' => $order,
+		);
+    $account_info = $GLOBALS['egw']->accounts->search($search_param);
+    $total = $GLOBALS['egw']->accounts->total;
+    
+    if($sort=="ASC"){
+      $nextSort = "DESC";
+    }else{
+      $nextSort = "ASC";
+    }
+    
+    $nextStart = $start + count($account_info);
+    $prevStart = $start - count($account_info);
+    if($prevStart<0){$prevStart = 0;}
+    
+    //Construction de la liste des utilisateurs
+    $htmlUsers = "
+    <div class='ui-grid ui-widget ui-widget-content ui-corner-all'>
+	    <div class='ui-grid-header ui-widget-header ui-corner-top'>Users list</div>
+      <table id='tblUsers' class='ui-grid-content ui-widget-content'>
+			<thead>
+				<tr>
+					<th class='ui-state-default'>
+            <a href='?menuaction=".$this->getCurrentApp(false).".uietude.usersInterface&order=account_lid&sort=$nextSort'><span class='ui-icon ui-icon-triangle-1-s' title='sort ascending'></span> Login</a>
+          </th>
+					<th class='ui-state-default'>
+            <a href='?menuaction=".$this->getCurrentApp(false).".uietude.usersInterface&order=account_firstname&sort=$nextSort'><span class='ui-icon ui-icon-triangle-1-s' title='sort ascending'></span> Firstname</a>
+          </th>
+					<th class='ui-state-default'>
+            <a href='?menuaction=".$this->getCurrentApp(false).".uietude.usersInterface&order=account_lastname&sort=$nextSort'><span class='ui-icon ui-icon-triangle-1-s' title='sort ascending'></span> Lastname</a>
+          </th>
+					<th class='ui-state-default'>
+            <a href='?menuaction=".$this->getCurrentApp(false).".uietude.usersInterface&order=account_email&sort=$nextSort'><span class='ui-icon ui-icon-triangle-1-s' title='sort ascending'></span> e-mail address</a></th>
+				</tr>
+			</thead>
+      <tbody>";
+		
+    foreach($account_info as $account)
+		{
+		   $htmlUsers .= "<tr id='".$account['account_lid']."'>
+              					<td class='ui-widget-content'>".$account['account_lid']."</td>
+              					<td class='ui-widget-content'>".$account['account_firstname']."</td>
+              					<td class='ui-widget-content'>".$account['account_lastname']."</td>
+              					<td class='ui-widget-content'>".$account['account_email']."</td>
+              				</tr>";
 
-			}
-			$htmlUsers .= "<tbody></table>
-                  		<div class='ui-grid-footer ui-widget-header ui-corner-bottom ui-helper-clearfix'>
-                  			<div class='ui-grid-paging ui-helper-clearfix'>
-                  				<a href='?menuaction=".$this->getCurrentApp(false).".uietude.usersInterface&start=$prevStart' class='ui-grid-paging-prev ui-state-default ui-corner-left'>
-                            <span class='ui-icon ui-icon-triangle-1-w' title='previous set of results'></span></a>
-                  				<a href='?menuaction=".$this->getCurrentApp(false).".uietude.usersInterface&start=$nextStart' class='ui-grid-paging-next ui-state-default ui-corner-right'>
-                            <span class='ui-icon ui-icon-triangle-1-e' title='next set of results'></span></a>
-                   			</div>
-                  			<div class='ui-grid-results'>Showing results $start-$nextStart / $total</div>
-                  		</div>
-                  	</div>";
-
+		}
+		$htmlUsers .= "<tbody></table>
+                		<div class='ui-grid-footer ui-widget-header ui-corner-bottom ui-helper-clearfix'>
+                			<div class='ui-grid-paging ui-helper-clearfix'>
+                				<a href='?menuaction=".$this->getCurrentApp(false).".uietude.usersInterface&start=$prevStart' class='ui-grid-paging-prev ui-state-default ui-corner-left'>
+                          <span class='ui-icon ui-icon-triangle-1-w' title='previous set of results'></span></a>
+                				<a href='?menuaction=".$this->getCurrentApp(false).".uietude.usersInterface&start=$nextStart' class='ui-grid-paging-next ui-state-default ui-corner-right'>
+                          <span class='ui-icon ui-icon-triangle-1-e' title='next set of results'></span></a>
+                 			</div>
+                			<div class='ui-grid-results'>Showing results $start-$nextStart / $total</div>
+                		</div>
+                	</div>";
+    
+    $htmlUsers .= "<div id='dialog-form' title='Add user'>
+                  	<p class='validateTips'>All form fields are required.</p>
+              
+                  	<form id='addUser' action='index.php?menuaction=".$this->getCurrentApp(false).".uietude.usersInterface&action=addUser' method='post'>
+                      <fieldset>
+                    		<label for='user-login'>Login</label>  
+                    		<input id='user-login' name='user-login' type='text' value='' />
+                    		<label for='user-firstname'>First name</label>  
+                    		<input id='user-firstname' name='user-firstname' type='text' value='' />
+                    		<label for='user-lastname'>Last name</label>  
+                    		<input id='user-lastname' name='user-lastname' type='text' value='' />
+                    		<label for='user-password'>Password</label>  
+                    		<input id='user-password' name='user-password' type='password' value='' />
+                    		<label for='user-email'>Email</label>  
+                    		<input id='user-email' name='user-email' type='email' value='' />
+                    		
+                        <input type='submit' id='submitButton' style='display: none' />
+                      </fieldset>
+                  	</form>
+                  
+                  </div>
+                  <button id='create-user' class='ui-state-default ui-corner-all'>Add a user</button>";
+    
     $menu = $this->m_ctrl->etudemenu()->getMenu();
-
+    
     $htmlRet = "<SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/alixcrf.users.js') . "'></SCRIPT>
 
                 $menu
@@ -174,9 +204,10 @@ class uiusers extends CommonFunctions
                   <div class='ui-grid-users ui-dialog-content ui-widget-content'>
                     $htmlUsers
                   </div>
-                </div>                  
+                </div>
                 
-                <script>loadAlixCRFusersJS('".$this->getCurrentApp(false)."');</script>";  
+                <script>loadAlixCRFusersJS('".$this->getCurrentApp(false)."');</script>";
+                
     return $htmlRet;
   }
 
@@ -185,15 +216,22 @@ class uiusers extends CommonFunctions
 @author wlt
 */  
   private function getInterfaceProfil(){
-
-      $userId = $_GET["userId"];
+      
+      $userId = "";
+      if(isset($_GET["userId"])) $userId = $_GET["userId"];
  
-      //Demande de creation d'un profile
+      //Request for creation of a profile
       if(isset($_GET['action']) && $_GET['action']=='addProfile'){
         $bDefault = false;
         if(isset($_POST['default']) && $_POST['default']=="Y") $bDefault = true;
         $this->m_ctrl->boacl()->addProfile($_POST['userId'],$_POST['siteId'],$_POST['profileId'],$bDefault);
         $userId = $_POST['userId'];
+      } 
+ 
+      //Request for creation of a user
+      if(isset($_GET['action']) && $_GET['action']=='addUser'){
+        $this->m_ctrl->bousers()->addUser($_POST['user-login'],$_POST['user-password'],$_POST['user-firstname'],$_POST['user-lastname'],$_POST['user-email']);
+        $userId = $_POST['user-login'];
       } 
                 
       $tblSite = $this->m_ctrl->bosites()->getSites();
@@ -275,7 +313,7 @@ class uiusers extends CommonFunctions
                   	</form>
                   
                   </div>
-                  <button id='create-profile'>Add new profile to user $userId</button>
+                  <button id='create-profile' class='ui-state-default ui-corner-all'>Add new profile to user $userId</button>
 
                   <script>loadAlixCRFprofilesJS();</script>";
       }

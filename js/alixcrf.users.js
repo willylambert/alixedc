@@ -24,17 +24,60 @@
 @author wlt
 */
 function loadAlixCRFusersJS(CurrentApp)
-{                   
-  //Bind des buttons
+{
+  //Binding buttons
   $("#tblUsers tr").click(function(){
     newUrl = "index.php?menuaction="+CurrentApp+".uietude.usersInterface&action=viewUser&userId="+$(this).attr("id");
     $(location).attr('href',newUrl);  
   }); 
   
+	$('#create-user')
+			.button()
+			.click(function() {
+        $('#dialog-form').dialog('open');
+	});
+
+  var uLogin = $("#user-login"),
+      uFirstname = $("#user-firstname"),
+      uLastname = $("#user-lastname"),
+      uPassword = $("#user-password"),
+      uEmail = $("#user-email"),
+    	tips = $(".validateTips"),
+      allFields = $([]).add(uLogin).add(uFirstname).add(uLastname).add(uPassword).add(uEmail);
+	
+  //Form to add users
+  $("#dialog-form").dialog({
+  	autoOpen: false,
+  	height: 400,
+  	width: 450,
+  	modal: true,
+  	buttons: {
+  		'Save': function() {
+  			var bValid = true;
+  			allFields.removeClass('ui-state-error');
+  
+  			if(uLogin.val()=="" || uPassword.val()==""){
+          bValid = false;
+        }
+  			
+  			if(bValid){
+          //form submission
+          //$("form#addUser").submit();
+          $("form#addUser #submitButton").click();
+  			}
+  		},
+  		Cancel: function() {
+  			$(this).dialog('close');
+  		}
+  	},
+  	close: function() {
+  		allFields.val('').removeClass('ui-state-error');
+  	}
+  });
 }
 
 function loadAlixCRFprofilesJS(CurrentApp){
-  //Bind des buttons
+  //Binding buttons
 	$('#create-profile')
 			.button()
 			.click(function() {
@@ -42,7 +85,7 @@ function loadAlixCRFprofilesJS(CurrentApp){
 	});
 
   $("#tblProfiles tr").click(function(){
-    //Edition du profil
+    //Edit profile
     $("select[name='siteId']").val($(this).find("td[name='siteId']").text());
     $("select[name='profileId']").val($(this).find("td[name='profileId']").text());
     $("select[name='default']").val($(this).find("td[name='default']").text());
@@ -65,7 +108,7 @@ function loadAlixCRFprofilesJS(CurrentApp){
   	}, 500);
   }
    
-  //Formulaire d'ajout d'un profile
+  //Form to add a profile
   $("#dialog-form").dialog({
   	autoOpen: false,
   	height: 300,
@@ -81,7 +124,7 @@ function loadAlixCRFprofilesJS(CurrentApp){
         }
   			
   			if (bValid) {
-            //Soumission du formulaire
+            //form submission
             $("form#addProfile").submit();
   			}
   		},

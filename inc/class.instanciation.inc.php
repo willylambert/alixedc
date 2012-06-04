@@ -43,6 +43,7 @@ class instanciation extends CommonFunctions
   protected $m_boqueries;
   protected $m_bosubjects;
   protected $m_bosites;
+  protected $m_bousers;
 
   protected $m_boexport;
   protected $m_boimport;
@@ -209,6 +210,21 @@ class instanciation extends CommonFunctions
     }
     
     return $this->m_bosites;   
+  }
+
+  /*
+  @desc accesseur de l'instance de la classe bousers, permet de ne pas instancier inutilement la classe
+  @return retourne la référence de notre objet bousers
+  */
+  public function bousers()
+  {
+    require_once("class.bousers.inc.php");
+    if(!isset($this->m_bousers)){
+      $this->addLog("uietude->bousers() : instanciation de bousers",TRACE);
+      $this->m_bousers = new bousers($this->m_tblConfig,$this);
+    }
+    
+    return $this->m_bousers;   
   }
 
   /*
