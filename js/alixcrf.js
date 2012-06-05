@@ -1,6 +1,6 @@
     /**************************************************************************\
     * ALIX EDC SOLUTIONS                                                       *
-    * Copyright 2011 Business & Decision Life Sciences                         *
+    * Copyright 2012 Business & Decision Life Sciences                         *
     * http://www.alix-edc.com                                                  *
     * ------------------------------------------------------------------------ *
     * This file is part of ALIX.                                               *
@@ -19,18 +19,20 @@
     * along with ALIX.  If not, see <http://www.gnu.org/licenses/>.            *
     \**************************************************************************/
     
+//User profile
+var profileId = "";
 
-//Profil de l'utilisateur
-profileId = "";
+//Current alix module - several alix modules can be used in the same egroupware instance
+var currentApp = "";
 
-//Libellé de l'application egroupware
-currentApp = "";
-
-//Veille version de IE ?
+//Set to true if a version of IE < 9 is detected
 var isOldIE = false;
 
+//By default save is only done on modified ItemGroupData. Sometime, we need to force this behavior.
+var bForceSave = false;
+
 /*
-@desc point d'entrée - appelée pour initialiser le comportement AJAX
+Entry point - used to initialize AJAX behavior
 @author wlt
 */
 function loadAlixCRFjs(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey,ProfileId,FormStatus,bCheckFormData)
@@ -45,10 +47,10 @@ function loadAlixCRFjs(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepe
   //Bind des buttons
   $("#btnSave").click(function(){
     
-    //Dialog d'attente durant l'enregistrement
+    //Waiting dialog while saving
   	$("#dialog-modal-save").dialog("open");
     
-    //Code couleur sur le clique => confirmation rapide que le bouton a été cliqué (couleur doit ensuite passer au ver tà la fin de l'enregistrement)
+    //When user click, change color to confirm the button click action
     $("#btnSave").animate({opacity: 0.25}, 200, function(){
       saveAllItemGroup(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey,bCheckFormData);
     });
@@ -58,7 +60,7 @@ function loadAlixCRFjs(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepe
     location.reload(); 
   });
 
-  //Bouton de suppression d'un ItemGroup
+  //Button to remove an ItemGroupData
   $("button[name='btnRemoveItemGroup']").each(
     function(intIndex){
       $(this).click(function(){
@@ -72,7 +74,7 @@ function loadAlixCRFjs(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepe
     }
   );
 
-  //Bouton de suppression d'un FormData
+  //Button to remove current FormData
   $("button[name='btnRemoveFormData']").each(
     function(intIndex){
       $(this).click(function(){
@@ -86,7 +88,7 @@ function loadAlixCRFjs(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepe
     }
   );
 
-  //Effet hover sur le bouton save
+  //Save button, hover effect
   $("button").hover(
   	function(){ 
   		$(this).addClass("ui-state-hover"); 
@@ -96,12 +98,12 @@ function loadAlixCRFjs(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepe
   	}
   );
 
-  //Bouton d'ajout d'un ItemGroup
+  //Button to add ItemGroupData 
   $("#btnAddItemGroup").click(function(){
     ItemGroupOID = $(this).attr("itemgroupoid");
     newIGRK = 0;
     
-    //Recherche du nouveau ItemGroupRepeatKey
+    //Get the new ItemGroupRepeatKey
     newIGRK = $("form[name='"+ItemGroupOID+"']").first().find("input[name='NewItemGroupRepeatKey']").val();
     //fix a bug with clone with IE7
     if(isOldIE){
@@ -114,13 +116,14 @@ function loadAlixCRFjs(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepe
     newForm.attr('style','');
     newForm.find("table.ItemGroup").show();
     
-    //On masque le bouton d'ajout
+    //Hide add button
     $(this).hide();
-    //on sort le formulaire du tableau
+
+    //Get the new form out of the source table
     newForm.find("div.itemGroupHeadLine").detach();
     newForm.find("div.itemGroupLine").detach();
 
-    //Pour les input
+    //handle form inputs
     newForm.find(":input").each(function(index){
                                                   inputName = new String($(this).attr("name"));
                                                   $(this).attr("name",inputName.replace("_"+sourceIGRK,"_"+newIGRK));
@@ -156,7 +159,6 @@ function loadAlixCRFjs(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepe
                                                         }
                                                         
                                                         $(this).replaceWith(newInput);
-                                                        //helper.showPrompt($("<div />").text($('<div>').append(newForm).html()).html());
                                                       }
                                                     }catch(err){
                                                       helper.showPrompt(err.message);
@@ -173,7 +175,7 @@ function loadAlixCRFjs(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepe
                                                 }); 
     
     newForm.find("td.ItemDataAnnot").each(function(index){
-                                                  //On clone les boites annotations
+                                                  //Annotations dialogs are cloned too
                                                   tdName = new String($(this).attr("name"));
                                                   newAnnot = $("#annotation_div_"+tdName.replace(".","-")+"_"+sourceIGRK).clone();
                                                   
@@ -195,41 +197,40 @@ function loadAlixCRFjs(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepe
                                                     }                                                    
                                                   });
                                                   
-                                                  //alert("#annotation_div_"+tdName.replace(".","-")+"_"+sourceIGRK+"_flagvalue");
                                                   $(this).find("#annotation_div_"+tdName.replace(".","-")+"_"+sourceIGRK+"_flagvalue").text(" ");
                                                   $(this).find("#annotation_div_"+tdName.replace(".","-")+"_"+sourceIGRK+"_flagvalue").attr("id","annotation_div_"+tdName.replace(".","-")+"_"+newIGRK+"_flagvalue");
                                                   
                                                   $("body").append(newAnnot);                                                  
                                                 }); 
-          
-    //Pour les TR
+      
+    //Handle tr - one TR = one Item
     newForm.find("tr").each(function(index){
                               trId = new String($(this).attr("id"));
                               $(this).attr("id",trId.replace("_"+sourceIGRK,"_"+newIGRK));
                             });
                               
-    //Reset des styles
+    //Reset styles
     newForm.find("td").removeClass("ui-state-error ui-priority-secondary");
     newForm.find("td").removeClass("ui-state-highlight ui-priority-secondary");
     newForm.find("table").removeClass("TransactionTypeRemove");
     
-    //On ne garde qu'un seul bouton d'ajout
+    //Keep only one add button
     newForm.find("button").detach();
       
     $("form[name='"+ItemGroupOID+"']").last().after("<form id='newForm' name="+ItemGroupOID+">"+newForm.html()+"</form>");
 
     newInsertedForm = $("#newForm");
 
-    //Reset of inputs
+    //Reset inputs
     clearForm($("#newForm"));
     
-    //Dynamism handle
+    //Handle form dynamism
     initDyn(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey,ProfileId,newInsertedForm);
                    
-    return false; //Le bouton est dans un Form - false pour ne pas le soumettre   
+    return false; //False prevent the form to be submitted, as we use ajax to submit form   
   });
   
-  //Initialisation des boites de dialogue
+  //Initialise Dialog boxes
   $("#dialog-modal-save").dialog({ height: 140, autoOpen: false, modal: false });
   
   $( "#dialog-modal-info" ).dialog({
@@ -241,26 +242,27 @@ function loadAlixCRFjs(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepe
       				}
       			}
       		});
-  //Animation du menu
+  
+  //Animate menu - Study Workflow
   $("#subjectMenu h3").click(function() {
 		$(this).next().toggle('slow');
 		return false;
 	}).next().hide();
 	
-	//Highligth de la visite et du formulaire en cours
+	//Highligth current form
   $("#visit_"+StudyEventOID+"_"+StudyEventRepeatKey).addClass("ui-state-highlight").next().show();
-	//note FormOID : Car nous avons un id avec "." - il faut le gérer avec un \\ pour jquery
   $("#visit_"+StudyEventOID+"_"+StudyEventRepeatKey+"_form_"+FormOID.replace(".","\\.")+"_"+FormRepeatKey).addClass("ui-state-highlight");
 
-  //Affichage des queries
+  //Display queries
   showQueries(CurrentApp,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey,ProfileId);
   
-  //Affichage des deviations
+  //Display deviations
   showDeviations(CurrentApp,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey,ProfileId);
   
-  //Initialisation des Post-it
+  //Post-it initialisation
   initPostIt(SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey);
  
+  //Handle form dynamism
   initDyn(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey,ProfileId);
  
   //Handle of "Quit without saving"
@@ -300,7 +302,7 @@ function loadAlixCRFjs(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepe
     });
   }
   
-  //Seuls les investigateurs peuvent modifier les valeurs du CRF
+  //Only investigators can update CRFs values
   if(ProfileId!='INV' || FormStatus=='FROZEN'){
     $("td.ItemDataInput input[type=text]").attr("readonly","readonly");
     $("td.ItemDataInput input[type=radio]").attr("disabled","disabled");
@@ -311,7 +313,7 @@ function loadAlixCRFjs(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepe
     $("div[id^=annotation] textarea").attr("readonly","readonly");
   }
   
-  //les ARC peuvent modifier les valeurs des post-it
+  //CRA can modify post-it values
   if(ProfileId=='CRA'){
     $("div.PostIt textarea").removeAttr("readonly");
   } 
@@ -338,7 +340,6 @@ function initDyn(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,
     tblElem = $("div#Form").find(":input[type!='hidden']");
   }
   
-  //Gestion du dynamisme des écrans
   tblElem.each(function(index){
                   if($(this).attr('itemoid'))
                   {
@@ -373,11 +374,11 @@ function initDyn(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,
 }
 
 /*
-*@desc Appel ajax pour faire tourner les controles de cohérences
+*@desc Ajax call to run consistency checks
 *@author wlt
 */
 function checkFormData(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey){
-  //Dialog d'attente durant le check
+  //Waiting dialog
 	$("#dialog-modal-save").dialog("open");
   
   dataString = "SubjectKey="+SubjectKey+"&StudyEventOID="+StudyEventOID+"&StudyEventRepeatKey="+StudyEventRepeatKey+"&FormOID="+FormOID+"&FormRepeatKey="+FormRepeatKey;
@@ -398,11 +399,11 @@ function checkFormData(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepe
 }
 
 /*
-@desc supprime l'ItemGroupData
+@desc remove ItemGroupData
 @author wlt
 */
 function removeItemGroup(CurrentApp,dataString){
-  //Dialog d'attente durant la suppression
+  //Waiting dialog while removing
 	$("#dialog-modal-save").dialog("open");
 
   $.ajax({
@@ -419,16 +420,16 @@ function removeItemGroup(CurrentApp,dataString){
     }
    });
    
-  //le bouton est dans un form - il ne faut pas le soumettre
+  //Return false to not submit form
   return false; 		
 }
 
 /*
-@desc supprime un FormData
+@desc remove FormData
 @author wlt
 */
 function removeFormData(CurrentApp,dataString){
-  //Dialog d'attente durant la suppression
+  //Popup waiting dialog
 	$("#dialog-modal-save").dialog("open");
 
   $.ajax({
@@ -445,13 +446,13 @@ function removeFormData(CurrentApp,dataString){
     }
    });
    
-  //le bouton est dans un form - il ne faut pas le soumettre
+  //Return false to not submit form
   return false; 		
 }
 
 
 /*
-*@desc Loop through ItemGroupData, and submit them individually
+*@desc Loop through ItemGroupData, and submit them one by one
 *@author wlt, tpi
 */
 function saveAllItemGroup(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey,bCheckFormData){
@@ -463,7 +464,7 @@ function saveAllItemGroup(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventR
   $("form").each( 
     function(index){
       dataString = $(this).serialize();
-      if(dataString!=$(this).data('initials_values'))
+      if(dataString!=$(this).data('initials_values') || bForceSave==true || index==$("form").length-1 )
       {
         //Form is modified - we submit it
         $.ajax({
@@ -501,7 +502,6 @@ function saveAllItemGroup(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventR
               
               if(index==$("form").length-1){
                 if(bSanityErrors!=false){
-                  //alert("Data NOT SAVED - Please input sane data");
                   regexp = new RegExp("(<b>)|(</b>)","gi");
                   Description = Description.replace(regexp,"");
                   alert(Description);        
@@ -514,14 +514,14 @@ function saveAllItemGroup(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventR
     }
   );
   
-  //Si la sauvegarde a conduit à l'enregistrement d'un nouveau patient, on recharge la page
+  //If while saving a new subject is created, page is reloaded
   if(typeof(newSubjectKey)!='undefined' && newSubjectKey!=""){
     SubjectKey = newSubjectKey;
     newUrl = "index.php?menuaction="+CurrentApp+".uietude.subjectInterface&action=view&SubjectKey="+SubjectKey+"&StudyEventOID="+StudyEventOID+"&StudyEventRepeatKey="+StudyEventRepeatKey+"&FormOID="+FormOID+"&FormRepeatKey="+FormRepeatKey;
     $(location).attr('href',newUrl);
   }else{
-    //Mise à jour des queries
-    if(bCheckFormData!==false && $("div[class='pagination']").length==0){ //uniquement si le check à l'enregistrement n'est pas désactivé dans la configuration du centre
+    //Queries update
+    if(bCheckFormData!==false && $("div[class='pagination']").length==0){ // only if check on save is not disabled for this site
       checkFormData(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey);                        
       location.replace(location.href + "&donotcheck");
     }else{

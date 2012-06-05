@@ -110,11 +110,18 @@
    <xsl:copy>
        <xsl:copy-of select="@*"/>
        <xsl:attribute name="readonly">readonly</xsl:attribute>
-       <xsl:if test="$SubjectKey!='' and $SubjectKey!='BLANK'">
+       <xsl:if test="$SubjectKey!='' and $SubjectKey!='BLANK' and not(@value)">
         <xsl:attribute name="value"><xsl:value-of select="$SubjectKey"/></xsl:attribute>
        </xsl:if>
        <xsl:apply-templates/>
    </xsl:copy>
+   <xsl:if test="$SubjectKey!='' and $SubjectKey!='BLANK' and not(@value)">
+    <script>
+    $(document).ready(function(){                    
+      setTimeout("bForceSave=true;$('#btnSave').click();",1000);
+    });
+    </script>
+   </xsl:if> 
 </xsl:template>
 
 <!-- Set site name -->
