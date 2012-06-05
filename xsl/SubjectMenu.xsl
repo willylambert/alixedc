@@ -2,7 +2,7 @@
 <!--
     /**************************************************************************\
     * ALIX EDC SOLUTIONS                                                       *
-    * Copyright 2011 Business & Decision Life Sciences                         *
+    * Copyright 2012 Business & Decision Life Sciences                         *
     * http://www.alix-edc.com                                                  *
     *                                                                          *
     * This file is part of ALIX.                                               *
@@ -31,7 +31,6 @@
 <xsl:template match="StudyEventData">
   <xsl:variable name="visitId">visit_<xsl:value-of select="@StudyEventOID"/>_<xsl:value-of select="@StudyEventRepeatKey"/></xsl:variable>
   <h3 id="{$visitId}" class="ui-accordion-header ui-helper-reset ui-state-default ui-corner-all">
-    <!--span class="ui-icon ui-icon-triangle-1-e">&#160;</span-->
     <span class="StudyEventStatus StudyEventStatus{@Status}">&#160;</span>
     <xsl:if test="@Title!=''">
       <a href="#">
@@ -61,7 +60,7 @@
       <xsl:if test="@Status='FILLED' or @Status='FROZEN'">
         <xsl:if test="$AllowLock='true'">
           <xsl:variable name="urlLock">index.php?menuaction=<xsl:value-of select="$CurrentApp"/>.uietude.lockInterface&amp;action=view&amp;SubjectKey=<xsl:value-of select="$SubjectKey"/>&amp;StudyEventOID=<xsl:value-of select="./../@StudyEventOID"/>&amp;StudyEventRepeatKey=<xsl:value-of select="../@StudyEventRepeatKey"/>&amp;FormOID=<xsl:value-of select="@FormOID"/>&amp;FormRepeatKey=<xsl:value-of select="@FormRepeatKey"/>&amp;FormStatus=<xsl:value-of select="@Status"/></xsl:variable>
-          <xsl:attribute name="onClick">changeLockStatus("<xsl:value-of select="$urlLock"/>","<xsl:value-of select="@Title"/>","<xsl:value-of select="./status"/>");</xsl:attribute>
+          <xsl:attribute name="onClick">changeLockStatus("<xsl:value-of select="$urlLock"/>","<xsl:value-of select="@Title"/>","<xsl:value-of select="@Status"/>");</xsl:attribute>
         </xsl:if>
       </xsl:if>&#160;
     </div>
