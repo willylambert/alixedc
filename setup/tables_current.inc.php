@@ -180,6 +180,7 @@
 		'fd' => array(
 			'SITEID' => array('type' => 'varchar','precision' => '10','nullable' => False),
 			'SITENAME' => array('type' => 'varchar','precision' => '50','nullable' => False),
+			'SITEPROFILEID' => array('type' => 'varchar','precision' => '10','nullable' => False),
       'CURRENTAPP' => array('type' => 'varchar','precision' => '15','nullable' => False),
       'COUNTRY' => array('type' => 'varchar','precision' => '100','nullable' => False),
 		),
