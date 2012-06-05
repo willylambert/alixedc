@@ -1,9 +1,9 @@
 <?php
     /**************************************************************************\
     * ALIX EDC SOLUTIONS                                                       *
-    * Copyright 2011 Business & Decision Life Sciences                         *
+    * Copyright 2012 Business & Decision Life Sciences                         *
     * http://www.alix-edc.com                                                  *
-    * ------------------------------------------------------------------------ *                                                                       *
+    * ------------------------------------------------------------------------ *
     * This file is part of ALIX.                                               *
     *                                                                          *
     * ALIX is free software: you can redistribute it and/or modify             *
@@ -60,33 +60,27 @@ class uidashboard extends CommonFunctions
     $htmlRet .= $dashboardMenu;
     
     switch($action){
+    
       case "curve":
         $TITLE = "Inclusions curve";
         $CONTENT = $this->getCurve();
         break;
+        
       case "inclusions":
         $TITLE = "Inclusions";
         $CONTENT = $this->getInclusions();
         break;
-      case "ageDistribution":
-        $TITLE = "Age distribution";
-        $CONTENT = $this->getAgeDistribution();
-        break;
-      case "weightDistribution":
-        $TITLE = "Weight distribution";
-        $CONTENT = $this->getWeightDistribution();
-        break;              
-      case "keys":
-        $TITLE = "Key figures";
-        $CONTENT = $this->getKeyFigures();
-        break;
-      case "saeList":
-        $TITLE = "List of Serious Adverse Event";
-        $CONTENT = $this->getSAEList();
-        break;
+        
       default:
-        $TITLE = "";
-        $CONTENT = "";
+        //custom boards
+        if(substr($action, 0, 7)=="custom-"){
+          $id = substr($action, strpos($action, "-") + 1);
+          //HOOK => uidashboard_getInterface_boardContent
+          $this->callHook(__FUNCTION__,"boardContent",array($id,&$TITLE,&$CONTENT,$this));
+        }
+        else{
+          //unknown action
+        }
     }
     
     
@@ -109,46 +103,20 @@ class uidashboard extends CommonFunctions
     $htmlRet .= "<div id='dashboardMenu' class='ui-dialog ui-widget ui-widget-content ui-corner-all'>
                   <div class='ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix'>
                     <span class='ui-dialog-title'>Dashboard</span>
-                  </div>
-                  <div class='ui-dialog-content ui-widget-content'>
-                    <div>
-                      <a icon='ui-icon-clock'
-                          href='".$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.dashboardInterface',
-                                                                           'action' => 'curve'))."'
-                      >Inclusions curve</a>
-                    </div>
-                    <div>
-                      <a icon='ui-icon-person'
-                          href='".$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.dashboardInterface',
-                                                                           'action' => 'inclusions'))."'
-                      >Inclusions</a>
-                    </div>
-                    <div>
-                      <a icon='ui-icon-person'
-                          href='".$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.dashboardInterface',
-                                                                           'action' => 'weightDistribution'))."'
-                      >Weight distribution</a>
-                    </div>
-                    <div>
-                      <a icon='ui-icon-person'
-                          href='".$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.dashboardInterface',
-                                                                           'action' => 'ageDistribution'))."'
-                      >Age distribution</a>
-                    </div>
-                    <div>
-                      <a icon='ui-icon-key'
-                          href='".$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.dashboardInterface',
-                                                                           'action' => 'keys'))."'
-                      >Key figures</a>
-                    </div>
-                    <div>
-                      <a icon='ui-icon-person'
-                          href='".$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.dashboardInterface',
-                                                                           'action' => 'saeList'))."'
-                      >List of SAE</a>
-                    </div>
-                  </div>                
-                </div>";
+                  </div>";
+    
+    //Default board items
+    $htmlRet .= $this->getMenuItem("curve", "Inclusions curve", "clock");
+    $htmlRet .= $this->getMenuItem("inclusions", "Inclusions", "person");
+    
+    //Custom board items
+    //HOOK => uidashboard_getMenu_boardMenu
+    $customBoards = $this->callHook(__FUNCTION__,"boardMenu",array($this));
+    foreach($customBoards as $board){
+      $htmlRet .= $this->getMenuItem("custom-".$board["id"], $board["title"]);
+    }
+                
+    $htmlRet .= "</div>";
     	         
     $htmlRet .= '<script>
 	               /*Mise en place des icones sur les boutons*/
@@ -166,294 +134,13 @@ class uidashboard extends CommonFunctions
     return $htmlRet;
   }
   
-  private function getKeyFigures(){
-    $htmlRet = "";
-  
-    $stats = array(
-                    array(
-                          "label" => "Total number of screened subjects",
-                          "query" =>" let \$value := count(\$SubjCol/subjects/subject)
-                                      return <result value='{\$value}' />"
-                          ),
-                    array(
-                          "label" => "Total number of screening failure",
-                          "query" =>" let \$value := count(\$SubjCol/subjects/subject[SUBJECTSTATUS='Screening Failure'])
-                                      return <result value='{\$value}' />"
-                          ),
-                    array(
-                          "label" => "Total number of enrolled subjects",
-                          "query" =>" let \$value := count(\$SubjCol/subjects/subject[colRDNUM/string()!=''])
-                                      return <result value='{\$value}' />"
-                          ),
-                    array(                                          
-                          "label" => "Subjects out of study",
-                          "query" =>" let \$value := count(\$SubjCol/subjects/subject[SUBJECTSTATUS='Withdrawal'])
-                                      return <result value='{\$value}' />"
-                          ),
-                    array(
-                          "label" => "Subjects who completed the study",
-                          "query" =>" let \$value := count(\$SubjCol/subjects/subject[SUBJECTSTATUS='Completed'])
-                          return <result value='{\$value}' />"
-                          ),
-                    array(
-                          "label" => "SAE",
-                          "query" =>" let \$value := sum(\$SubjCol/subjects/subject/colNBSAE)
-                                      return <result value='{\$value}' />"
-                          ),
-                    );
-    
-    $htmlRet .= " <div class='ui-grid ui-widget ui-widget-content ui-corner-all'>
-                    <table class='ui-grid-content ui-widget-content'>
-                			<thead>
-                				<tr>
-                					<th></th>
-                					<th class='ui-state-default'> Number</th>
-                				</tr>
-                			</thead>
-                      <tbody>";
-    
-    foreach($stats as $stat){
-      $query = "let \$SubjCol := doc('SubjectsList')";
-      $query .= $stat['query'];
-
-
-      try{
-        $res = $this->m_ctrl->socdiscoo()->query($query);
-      }catch(xmlexception $e){
-        $str = __METHOD__." Erreur de la requete : " . $e->getMessage() . " " . $query ." (". __METHOD__ .")";
-        $this->addLog($str,FATAL);
-        die($str);
-      }
-
-      $res = (string)$res[0]['value'];
-      
-      $class = ($class=="row_off"?"row_on":"row_off");
-      $htmlRet .= "
-                      <tr class='". $class ."'>
-                        <td class='ui-widget-content'>". $stat['label'] ."</td>
-                        <td class='ui-widget-content'>". $res ."</td>
-                      </tr>";
-    }
-    
-    $htmlRet .= "
-                      </tbody>
-                    </table>
-                  </div>";
-                  
-    return $htmlRet;
-  }
-  
-  private function getSAEList(){
-    $htmlRet = "";    
-    
-    $htmlRet .= " <div class='ui-grid ui-widget ui-widget-content ui-corner-all'>
-                    <table class='ui-grid-content ui-widget-content'>
-                			<thead>
-                				<tr>
-                					<th class='ui-state-default'> Site Id</th>
-                					<th class='ui-state-default'> Site Name</th>
-                          <th class='ui-state-default'> Subject identifiant</th>
-                					<th class='ui-state-default'> Diagnosis</th>
-                					<th class='ui-state-default'> Action taken</th>
-                					<th class='ui-state-default'> Outcome</th>
-                					<th class='ui-state-default'> Causal relationship</th>
-                				</tr>
-                			</thead>
-                      <tbody>";  
-    
-    $saes = $this->m_ctrl->bostats()->getSAElist();
-    
-    $nbSAE = 0;
-    $class = "";
-    foreach($saes[0] as $sae)
-    { 
-        $nbSAE++;
-        $class = ($class=="row_off"?"row_on":"row_off");
-        $htmlRet .= "
-                        <tr class='". $class ."'>
-                          <td class='ui-widget-content'>". $sae['siteId'] ."</td>
-                          <td class='ui-widget-content'>". $sae['siteName'] ."</td>
-                          <td class='ui-widget-content'>". $sae['subjId'] ."</td>
-                          <td class='ui-widget-content'>". $sae['diag'] ."</td>
-                          <td class='ui-widget-content'>". $sae['actionDecode'] ."</td>
-                          <td class='ui-widget-content'>". $sae['outcomeDecode'] ."</td>
-                          <td class='ui-widget-content'>". $sae['relationDecode'] ."</td>
-                        </tr>";
-    }
-    
-    if($nbSAE==0){
-      $htmlRet .= "<tr><td class='ui-widget-content'>No SAE.</td></tr>";
-    }
-    
-    $htmlRet .= "
-                      </tbody>
-                    </table>
-                  </div>";
-        
-    return $htmlRet;
-  }
-  
-  private function getAgeDistribution(){
-    $htmlRet = "";
-    
-    $query = "let \$SubjectsCol := doc('SubjectsList')
-              for \$SubjectData in \$SubjectsCol/subjects/subject
-              let \$siteId := \$SubjectData/colSITEID
-              let \$age := \$SubjectData/colDMAGE
-              return <subj siteId='{\$siteId}' age='{\$age}'/>"; 
-
-    try{
-      $res = $this->m_ctrl->socdiscoo()->query($query);
-    }catch(xmlexception $e){
-      $str = __METHOD__." Erreur de la requete : " . $e->getMessage() . " " . $query ." (". __METHOD__ .")";
-      $this->addLog($str,FATAL);
-      die($str);
-    }
-
-    $nb3_7 = 0;
-    $nb7_11 = 0;
-    $nb11_18 = 0;
-    $nb18_25 = 0;
-        
-    foreach($res as $subj)
-    {        
-      $age = (int)($subj['age']);
-      if($age>0){
-        if($age <= 7){
-          $nb3_7++;
-        }else{
-          if($age <= 11){
-            $nb7_11++;
-          }else{
-            if($age <= 18){
-              $nb11_18++;  
-            }else{
-              $nb18_25++;  
-            }
-          }
-        }  
-      }else{
-        $nbNoAge++;
-      }
-    }    
-
-    $htmlRet .= "
-    <div class='ui-grid ui-widget ui-widget-content ui-corner-all'>
-      <table id='tblUsers' class='ui-grid-content ui-widget-content'>
-			<thead>
-				<tr>
-					<th class='ui-state-default'> Age class</th>
-					<th class='ui-state-default'> Number of subjects</th>
-				</tr>
-			</thead>
-      <tbody>
-      <tr>
-				<td class='ui-widget-content'>3-7 years</td>
-				<td class='ui-widget-content'>$nb3_7</td>
-			</tr>
-      <tr>
-				<td class='ui-widget-content'>7-11 years</td>
-				<td class='ui-widget-content'>$nb7_11</td>
-			</tr>
-      <tr>
-				<td class='ui-widget-content'>11-18 years</td>
-				<td class='ui-widget-content'>$nb11_18</td>
-			</tr>
-      <tr>
-				<td class='ui-widget-content'>18+ years</td>
-				<td class='ui-widget-content'>$nb18_25</td>
-			</tr>
-      <tr>
-				<td class='ui-widget-content'>Unfilled DOB</td>
-				<td class='ui-widget-content'>$nbNoAge</td>
-			</tr>
-      </table>
-    </div>";
-    return $htmlRet;
-  }
-
-  private function getWeightDistribution(){
-    $htmlRet = "";
-    
-    $query = "let \$SubjectsCol := doc('SubjectsList')
-              for \$SubjectData in \$SubjectsCol/subjects/subject
-              let \$siteId := \$SubjectData/colSITEID
-              let \$weight := \$SubjectData/colWEIGHT
-              return <subj siteId='{\$siteId}' weight='{\$weight}'/>";
-    try{
-      $res = $this->m_ctrl->socdiscoo()->query($query);
-    }catch(xmlexception $e){
-      $str = __METHOD__." Erreur de la requete : " . $e->getMessage() . " " . $query ." (". __METHOD__ .")";
-      $this->addLog($str,FATAL);
-      die($str);
-    }
-
-    $nb10_22 = 0;
-    $nb22_45 = 0;
-    $nb45_67 = 0;
-    $nb67_90 = 0;
-    $nb90_112 = 0;
-    $nbNoWeight = 0;
-        
-    foreach($res as $subj)
-    {        
-      $weight = (double)($subj['weight']);
-      if($weight>0){
-        if($weight <= 22.5){
-          $nb10_22++;
-        }else{
-          if($weight <= 45){
-            $nb22_45++;
-          }else{
-            if($weight <= 67.5){
-              $nb45_67++;  
-            }else{
-              if($weight <= 90){
-                $nb67_90++;  
-              }else{
-                $nb90_112++;
-              }
-            }
-          }
-        }  
-      }else{
-        $nbNoWeight++;
-      }
-    }    
-
-    $htmlRet .= "
-    <div class='ui-grid ui-widget ui-widget-content ui-corner-all'>
-      <table id='tblUsers' class='ui-grid-content ui-widget-content'>
-			<thead>
-				<tr>
-					<th class='ui-state-default'> Weight class</th>
-					<th class='ui-state-default'> Number of subjects</th>
-				</tr>
-			</thead>
-      <tbody>
-      <tr>
-				<td class='ui-widget-content'>0-22.5 Kg</td>
-				<td class='ui-widget-content'>$nb10_22</td>
-			</tr>
-      <tr>
-				<td class='ui-widget-content'>22.5-45 Kg</td>
-				<td class='ui-widget-content'>$nb22_45</td>
-			</tr>
-      <tr>
-				<td class='ui-widget-content'>45-67.5 Kg</td>
-				<td class='ui-widget-content'>$nb45_67</td>
-			</tr>
-      <tr>
-				<td class='ui-widget-content'>67.5-90 Kg</td>
-				<td class='ui-widget-content'>$nb67_90</td>
-			</tr>
-      <tr>
-				<td class='ui-widget-content'>Unfilled Weight</td>
-				<td class='ui-widget-content'>$nbNoWeight</td>
-			</tr>
-      </table>
-    </div>";
-    return $htmlRet;
+  private function getMenuItem($action, $label, $icon="key"){
+    return "<div>
+              <a icon='ui-icon-$icon'
+                  href='".$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.dashboardInterface',
+                                                                   'action' => $action))."'
+              >$label</a>
+            </div>";
   }
   
   private function getInclusions(){
@@ -462,52 +149,33 @@ class uidashboard extends CommonFunctions
     //Construction de la liste des centres
     $htmlRet .= "
     <div class='ui-grid ui-widget ui-widget-content ui-corner-all'>
-      <table id='tblUsers' class='ui-grid-content ui-widget-content'>
+      <table class='ui-grid-content ui-widget-content'>
 			<thead>
 				<tr>
 					<th class='ui-state-default'> Site Id</th>
 					<th class='ui-state-default'> Site name</th>
 					<th class='ui-state-default'> Number of screened subjects</th>
-					<th class='ui-state-default'> Number of enrolled subjects</th>
-					<th class='ui-state-default'> SMA Type 2</th>
-					<th class='ui-state-default'> SMA Type 3</th>
-					<th class='ui-state-default'> Number of SAE</th>
 				</tr>
 			</thead>
       <tbody>";
 		
 		$tblSite = $this->m_ctrl->bosites()->getSites();
 
-    $query = "let \$SubjectsCol := doc('SubjectsList')
-              for \$SubjectData in \$SubjectsCol/subjects/subject
-              let \$siteId := \$SubjectData/colSITEID
-              let \$numRando := \$SubjectData/colRDNUM
-              let \$nbSAE := \$SubjectData/colNBSAE
-              let \$typeSMA := \$SubjectData/colTYPESMA
-              return <subj subjectKey='{\$SubjectData/@SubjectKey}' siteId='{\$siteId}' numRando='{\$numRando}' nbSAE='{\$nbSAE}' typeSMA='{\$typeSMA}'/>";
+    $query = "let \$SubjectsCol := collection('ClinicalData')/odm:ODM/odm:ClinicalData/odm:SubjectData
+              for \$SubjectData in \$SubjectsCol
+              let \$siteId := \$SubjectData/odm:SiteRef/@LocationOID
+              return <subj subjectKey='{\$SubjectData/@SubjectKey}' siteId='{\$siteId}' />";
     try{
       $res = $this->m_ctrl->socdiscoo()->query($query);
     }catch(xmlexception $e){
       $str = __METHOD__." Erreur de la requete : " . $e->getMessage() . " " . $query ." (". __METHOD__ .")";
       $this->addLog($str,FATAL);
-      die($str);
     }
 
     foreach($res as $subj){
      if(isset($tblSite["site{$subj['siteId']}"])){
        if($subj['siteId']!=""){
         $tblSite["site{$subj['siteId']}"]['screened'] ++; 
-       } 
-       if($subj['numRando']!=""){
-        $tblSite["site{$subj['siteId']}"]['enrolled'] ++; 
-       }    
-       $tblSite["site"]['nbsae'] += $subj['nbSAE']; 
-       if($subj['typeSMA']=="2"){
-        $tblSite["site{$subj['siteId']}"]['nbsma2'] ++; 
-       }else{
-         if($subj['typeSMA']=="3"){
-          $tblSite["site{$subj['siteId']}"]['nbsma3'] ++; 
-         }
        }
      }
     }
@@ -518,10 +186,6 @@ class uidashboard extends CommonFunctions
               					<td class='ui-widget-content'>".$site['siteId']."</td>
               					<td class='ui-widget-content'>".$site['siteName']."</td>
               					<td class='ui-widget-content'>".$site['screened']."</td>
-              					<td class='ui-widget-content'>".$site['enrolled']."</td>
-              					<td class='ui-widget-content'>".$site['nbsma2']."</td>
-              					<td class='ui-widget-content'>".$site['nbsma3']."</td>
-              					<td class='ui-widget-content'>".$site['nbsae']."</td>
               				</tr>";
 
 		}
@@ -581,7 +245,7 @@ class uidashboard extends CommonFunctions
                   let \$INCLUSIONDATE := \$SubjectData/odm:StudyEventData[@StudyEventOID='{$this->m_tblConfig['SUBJECT_LIST']['COLS']['INCLUSIONDATE']['Value']['SEOID']}' and @StudyEventRepeatKey='{$this->m_tblConfig['SUBJECT_LIST']['COLS']['INCLUSIONDATE']['Value']['SERK']}']/
                                                 odm:FormData[@FormOID='{$this->m_tblConfig['SUBJECT_LIST']['COLS']['INCLUSIONDATE']['Value']['FRMOID']}' and @FormRepeatKey='{$this->m_tblConfig['SUBJECT_LIST']['COLS']['INCLUSIONDATE']['Value']['FRMRK']}']/
                                                 odm:ItemGroupData[@ItemGroupOID='{$this->m_tblConfig['SUBJECT_LIST']['COLS']['INCLUSIONDATE']['Value']['IGOID']}' and @ItemGroupRepeatKey='{$this->m_tblConfig['SUBJECT_LIST']['COLS']['INCLUSIONDATE']['Value']['IGRK']}']/
-                                                odm:*[@ItemOID='{$this->m_tblConfig['SUBJECT_LIST']['COLS']['INCLUSIONDATE']['Value']['ITEMOID']}'][1]
+                                                odm:*[@ItemOID='{$this->m_tblConfig['SUBJECT_LIST']['COLS']['INCLUSIONDATE']['Value']['ITEMOID']}'][last()]
                   where \$INCLUSIONDATE!='' and \$INCLUSIONDATE lt '$toDate'
                   return
                   <Subject     

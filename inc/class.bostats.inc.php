@@ -1,7 +1,7 @@
 <?php
     /**************************************************************************\
     * ALIX EDC SOLUTIONS                                                       *
-    * Copyright 2011 Business & Decision Life Sciences                         *
+    * Copyright 2012 Business & Decision Life Sciences                         *
     * http://www.alix-edc.com                                                  *
     * ------------------------------------------------------------------------ *                                                                       *
     * This file is part of ALIX.                                               *
@@ -121,9 +121,8 @@ class bostats extends CommonFunctions
     try{
       $doc = $this->m_ctrl->socdiscoo()->query($query);
     }catch(xmlexception $e){
-      $str = "Erreur de la requete : " . $e->getMessage() . "<br/><br/>" . $query . "</html>";
+      $str = "xQuery error : " . $e->getMessage() ." (".__METHOD__.")";
       $this->addLog($str,FATAL);
-      die($str);
     }
     return $doc;                
   }

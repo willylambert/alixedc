@@ -206,3 +206,140 @@ function boqueries_updateQueries_form($FormOID, $FormRepeatKey, $queryType, $que
     $queries = array();
   }
 }
+
+  /**
+  * @desc List of custom dashboards, will be used to create the menu in the left on the dashboard
+  * @param uidashboard $uidashboard
+  * @return array $boardItems
+  * @author TPI
+  **/  
+function uidashboard_getMenu_boardMenu($uidashboard){
+  $boardItems = array();
+  $boardItems[] = array("id" => "saeList", "title" => "List of SAE"); //an id and a label
+  //$boardItems[] = array("","");
+  //$boardItems[] = array("","");
+  return $boardItems;
+}
+
+  /**
+  * @desc The content of the custom dashboards
+  * @param string $id : the id of the specified custom dashboard (defined in uidashboard_getMenu_boardMenu)
+  * @param string &$TITLE : the top title of the dashboard
+  * @param string &$CONTENT : the html content of the dashboard
+  * @param uidashboard $uidashboard
+  * @author TPI
+  **/  
+function uidashboard_getInterface_boardContent($id,$TITLE,$CONTENT,$uidashboard){
+  switch($id){
+  
+    case "saeList":
+        $TITLE = "List of Serious Adverse Event";
+        $CONTENT = "<div class='ui-grid ui-widget ui-widget-content ui-corner-all'>
+                      <table class='ui-grid-content ui-widget-content'>
+                  			<thead>
+                  				<tr>
+                  					<th class='ui-state-default'> Site Id</th>
+                  					<th class='ui-state-default'> Site Name</th>
+                            <th class='ui-state-default'> Subject identifiant</th>
+                  					<th class='ui-state-default'> Diagnosis</th>
+                  					<th class='ui-state-default'> Action taken</th>
+                  					<th class='ui-state-default'> Outcome</th>
+                  					<th class='ui-state-default'> Causal relationship</th>
+                  				</tr>
+                  			</thead>
+                        <tbody>";
+        
+        $query = "
+              <aes>
+              { 
+                let \$SubjCol := collection('ClinicalData')
+                for \$ItemGroupDataAE in \$SubjCol/odm:ODM/odm:ClinicalData/odm:SubjectData/odm:StudyEventData[@StudyEventOID='AE']/odm:FormData[@FormOID='FORM.AE']/odm:ItemGroupData[@ItemGroupOID='AE' and @TransactionType!='Remove']
+                let \$SubjectData := \$ItemGroupDataAE/../../../../odm:SubjectData
+                let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
+                let \$ItemGroupDataENROL := \$SubjectData/odm:StudyEventData[@StudyEventOID='1']/odm:FormData[@FormOID='FORM.ENROL']/odm:ItemGroupData[@ItemGroupOID='ENROL']
+                
+                let \$SiteId := \$ItemGroupDataENROL/odm:ItemDataString[@ItemOID='ENROL.SITEID'][last()]
+                let \$SiteName := \$ItemGroupDataENROL/odm:ItemDataString[@ItemOID='ENROL.SITENAME'][last()]
+                let \$SubjId := \$ItemGroupDataENROL/odm:ItemDataString[@ItemOID='ENROL.SUBJID'][last()]
+  							
+                let \$Serious := \$ItemGroupDataAE/odm:*[@ItemOID='AE.AESER'][last()]
+                
+                let \$Diag := \$ItemGroupDataAE/odm:*[@ItemOID='AE.AETERM'][last()]
+                let \$Action := \$ItemGroupDataAE/odm:*[@ItemOID='AE.AEACN'][last()]
+                let \$Outcome :=  \$ItemGroupDataAE/odm:*[@ItemOID='AE.AEOUT'][last()]
+                let \$Relation :=  \$ItemGroupDataAE/odm:*[@ItemOID='AE.AEREL'][last()]
+  							
+                let \$ActionDecode := \$MetaDataVersion/odm:CodeList[@OID='CL.\$AEACN']/odm:CodeListItem[@CodedValue=\$Action]/odm:Decode/odm:TranslatedText[@xml:lang='en']/string()                
+  							let \$OutcomeDecode := \$MetaDataVersion/odm:CodeList[@OID='CL.\$OUT']/odm:CodeListItem[@CodedValue=\$Outcome]/odm:Decode/odm:TranslatedText[@xml:lang='en']/string()
+                let \$RelationDecode := \$MetaDataVersion/odm:CodeList[@OID='CL.\$REL']/odm:CodeListItem[@CodedValue=\$Relation]/odm:Decode/odm:TranslatedText[@xml:lang='en']/string()
+ 								
+ 							  where \$Serious='1'
+                return
+                  <ae   siteId='{\$SiteId}'
+                        siteName='{\$SiteName}'
+                        subjId='{\$SubjId}'
+                        subjectKey='{\$SubjectData/@SubjectKey}'
+                        diag='{\$Diag}'
+                        action='{\$Action}'
+                        outcome='{\$Outcome}'
+                        relation='{\$Relation}'
+                        actionDecode='{\$ActionDecode}'
+                        outcomeDecode='{\$OutcomeDecode}'
+                        relationDecode='{\$RelationDecode}'
+                        />
+              }
+              </aes>
+              "; 
+    
+        try{
+          $saes = $uidashboard->m_ctrl->socdiscoo()->query($query);
+        }catch(xmlexception $e){
+          $str = "xQuery error : " . $e->getMessage() ." (".__METHOD__.")";
+          $this->addLog($str,FATAL);
+        }
+        
+        $nbSAE = 0;
+        $class = "";
+        foreach($saes[0] as $sae)
+        { 
+            $nbSAE++;
+            $class = ($class=="row_off"?"row_on":"row_off");
+            $CONTENT .= "
+                            <tr class='". $class ."'>
+                              <td class='ui-widget-content'>". $sae['siteId'] ."</td>
+                              <td class='ui-widget-content'>". $sae['siteName'] ."</td>
+                              <td class='ui-widget-content'>". $sae['subjId'] ."</td>
+                              <td class='ui-widget-content'>". $sae['diag'] ."</td>
+                              <td class='ui-widget-content'>". $sae['actionDecode'] ."</td>
+                              <td class='ui-widget-content'>". $sae['outcomeDecode'] ."</td>
+                              <td class='ui-widget-content'>". $sae['relationDecode'] ."</td>
+                            </tr>";
+        }
+        
+        if($nbSAE==0){
+          $CONTENT .= "<tr><td class='ui-widget-content'>No SAE.</td></tr>";
+        }
+        
+        $CONTENT .= "
+                          </tbody>
+                        </table>
+                      </div>";
+      break;
+      
+  /*
+    case "":
+        $TITLE = "";
+        $CONTENT = "";
+      break;
+  
+    case "":
+        $TITLE = "";
+        $CONTENT = "";
+      break;
+  */
+  
+    default:
+      $TITLE = "[$id]";
+      $CONTENT = "Unknow dashboard Id '$id'.<br />Maybe you just forgot to create its content in hookFunctions.php";
+  }
+}

@@ -1,7 +1,7 @@
 <?php
     /**************************************************************************\
     * ALIX EDC SOLUTIONS                                                       *
-    * Copyright 2011 Business & Decision Life Sciences                         *
+    * Copyright 2012 Business & Decision Life Sciences                         *
     * http://www.alix-edc.com                                                  *
     * ------------------------------------------------------------------------ *                                                                       *
     * This file is part of ALIX.                                               *
@@ -83,16 +83,26 @@
   $configEtude['ENROL_FORMOID'] = "FORM.ENROL";
   $configEtude['ENROL_FORMRK'] = "0";
     
-  //SITEID, INCLUSIONDATE = mandatory column
-  $configEtude['SUBJECT_LIST']['COLS']['COUNTRY'] = array('Visible' => true,
-                                                 'Title'=>'Country',
-                                                 'Width'=>60,
-                                                 'Value'=>array('SEOID'=>'1','SERK'=>'0','FRMOID'=>'FORM.ENROL','FRMRK'=>'0','IGOID'=>'ENROL','IGRK'=>'0','ITEMOID'=>'ENROL.COUNTID')); 
+  //SUBJID, INCLUSIONDATE = mandatory column 
   //SITEID = mandatory column
   $configEtude['SUBJECT_LIST']['COLS']['SITEID'] = array('Visible' => true,
                                                  'Title'=>'Site<br/>N°',
                                                  'Width'=>35,
                                                  'Value'=>array('SEOID'=>'1','SERK'=>'0','FRMOID'=>'FORM.ENROL','FRMRK'=>'0','IGOID'=>'ENROL','IGRK'=>'0','ITEMOID'=>'ENROL.SITEID'));
+  //SUBJID = mandatory column
+  $configEtude['SUBJECT_LIST']['COLS']['SUBJID'] = array('Visible' => true,
+                                                 'Title'=>'Patient<br/>Number',
+                                                 'Width'=>60,
+                                                 'Value'=>array('SEOID'=>'1','SERK'=>'0','FRMOID'=>'FORM.ENROL','FRMRK'=>'0','IGOID'=>'ENROL','IGRK'=>'0','ITEMOID'=>'ENROL.SUBJID'));
+  //INCLUSIONDATE = mandatory column
+  $configEtude['SUBJECT_LIST']['COLS']['INCLUSIONDATE'] = array('Visible' => false,
+                                                 'Title'=>'Inclusion Date',
+                                                 'Width'=>0,
+                                                 'Value'=>array('SEOID'=>'2','SERK'=>'0','FRMOID'=>'FORM.SV','FRMRK'=>'0','IGOID'=>'SV','IGRK'=>'0','ITEMOID'=>'SV.SVSTDTC'));
+  $configEtude['SUBJECT_LIST']['COLS']['COUNTRY'] = array('Visible' => true,
+                                                 'Title'=>'Country',
+                                                 'Width'=>60,
+                                                 'Value'=>array('SEOID'=>'1','SERK'=>'0','FRMOID'=>'FORM.ENROL','FRMRK'=>'0','IGOID'=>'ENROL','IGRK'=>'0','ITEMOID'=>'ENROL.COUNTID'));
   $configEtude['SUBJECT_LIST']['COLS']['SITENAME'] = array('Visible' => true,
                                                  'Title'=>'Site name',
                                                  'Width'=>110,
@@ -101,14 +111,6 @@
                                                  'Title'=>'Initials',
                                                  'Width'=>55,
                                                  'Value'=>array('SEOID'=>'1','SERK'=>'0','FRMOID'=>'FORM.ENROL','FRMRK'=>'0','IGOID'=>'ENROL','IGRK'=>'0','ITEMOID'=>'ENROL.SUBJINIT'));
-  $configEtude['SUBJECT_LIST']['COLS']['SUBJID'] = array('Visible' => true,
-                                                 'Title'=>'Patient<br/>Number',
-                                                 'Width'=>60,
-                                                 'Value'=>array('SEOID'=>'1','SERK'=>'0','FRMOID'=>'FORM.ENROL','FRMRK'=>'0','IGOID'=>'ENROL','IGRK'=>'0','ITEMOID'=>'ENROL.SUBJID'));
-  $configEtude['SUBJECT_LIST']['COLS']['INCLUSIONDATE'] = array('Visible' => false,
-                                                 'Title'=>'Inclusion Date',
-                                                 'Width'=>0,
-                                                 'Value'=>array('SEOID'=>'2','SERK'=>'0','FRMOID'=>'FORM.SV','FRMRK'=>'0','IGOID'=>'SV','IGRK'=>'0','ITEMOID'=>'SV.SVSTDTC'));
   $configEtude['SUBJECT_LIST']['COLS']['SCREENINGSTATUS'] = array('Visible' => true,
                                                  'Title'=>'Screening visit',
                                                  'ShortTitle' => 'SC',
