@@ -1493,7 +1493,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
   }
 
   /**
-   * @desc Get all subject(s) forms and visits, with status for each form (EMPTY, PARTIAL, INCONSISTENT, FROZEN)
+   * Get all subject(s) forms and visits, with status for each form (EMPTY, PARTIAL, INCONSISTENT, FROZEN)
    * @return DOMDocument
    * @author wlt, tpi
    **/  
@@ -1857,9 +1857,15 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
       if($igdata->length!=1){
         $str = "Error : duplicate entries for ItemGroupData=$ItemGroupOID RepeatKey=$ItemGroupRepeatKey (".__METHOD__.")";
         $this->addLog($str,FATAL);
+      }else{
+        //Update the ItemGroupData Status if needed
+        $FlagValue = $igdata->item(0)->getElementsByTagName("FlagValue");
+        if($FlagValue->item(0)->nodeValue == "EMPTY"){
+          $this->setItemGroupStatus($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,"FILLED");    
+        }
       }
     }
-    
+        
     //Extraction from POSTed data
     if($bFormVarsIsAlreadyDecoded){
       $tblFilledVar = $formVars;  

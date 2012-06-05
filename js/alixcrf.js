@@ -521,7 +521,8 @@ function saveAllItemGroup(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventR
     $(location).attr('href',newUrl);
   }else{
     //Queries update
-    if(bCheckFormData!==false && $("div[class='pagination']").length==0){ // only if check on save is not disabled for this site
+    if(bCheckFormData!==false && $("div[class='pagination']").length==0){ 
+      //only if check on save is not disabled for this site
       checkFormData(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey);                        
       location.replace(location.href + "&donotcheck");
     }else{
