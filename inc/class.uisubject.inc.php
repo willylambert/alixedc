@@ -1,7 +1,7 @@
 <?php
     /**************************************************************************\
     * ALIX EDC SOLUTIONS                                                       *
-    * Copyright 2011 Business & Decision Life Sciences                         *
+    * Copyright 2012 Business & Decision Life Sciences                         *
     * http://www.alix-edc.com                                                  *
     * ------------------------------------------------------------------------ *                                                                       *
     * This file is part of ALIX.                                               *
@@ -20,10 +20,6 @@
     * along with ALIX.  If not, see <http://www.gnu.org/licenses/>.            *
     \**************************************************************************/
     
-/**
-* @desc Class d'UI dédié à l'edition du CRF
-* @author WLT
-**/ 
 class uisubject extends CommonFunctions
 {
   /**
@@ -31,7 +27,6 @@ class uisubject extends CommonFunctions
   * @param array $configStudy array of configuration values    
   * @param uietude $ctrlRef reference to instance of the instanciation class, used to delegate instanciation of all objects ( call syntax : $this->m_ctrl->bocdiscoo()->my_method_name ) 
   * @author WLT
-  * 
   **/ 
   function uisubject($configEtude,$ctrlRef)
   {	

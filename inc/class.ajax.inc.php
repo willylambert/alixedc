@@ -185,11 +185,20 @@ public function checkFormData(){
       
       $this->addlog(__METHOD__ ." before save subject '$SubjectKey'",INFO);
       
-      //Saving data
-      $this->m_ctrl->bocdiscoo()->saveItemGroupData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$_POST,$who,$where,$why,$fillst="");
-
-      //HOOK => ajax_saveItemGroupData_afterSave
-      $this->callHook(__FUNCTION__,"afterSave",array($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$this));      
+      $siteId = $this->m_ctrl->bosubjects()->getSubjectColValue($SubjectKey,"SITEID");
+      
+      //Access right check      
+      $profile = $this->m_ctrl->boacl()->getUserProfile("",$siteId);
+      
+      if($profile['profileId']=="INV"){
+        //Saving data
+        $this->m_ctrl->bocdiscoo()->saveItemGroupData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$_POST,$who,$where,$why,$fillst="");
+  
+        //HOOK => ajax_saveItemGroupData_afterSave
+        $this->callHook(__FUNCTION__,"afterSave",array($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$this));      
+      }else{
+        $this->addLog("Unauthorized access to saveItemGroupData function. Administrator have been notified.",FATAL);
+      }
     }
     
     echo json_encode($tblRet);   
