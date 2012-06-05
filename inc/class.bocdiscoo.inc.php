@@ -1445,7 +1445,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
                               for \$ItemOID in distinct-values(\$ItemGroupData/odm:*/@ItemOID)
                               let \$ItemDatas := \$ItemGroupData/odm:*[@ItemOID=\$ItemOID]
                               let \$ItemData := \$ItemDatas[last()]
-                              let \$ItemDataDecode := alix:getDecode(\$ItemData,\$SubjectData,\$MetaDataVersion)
+                              let \$ItemDataDecode := alix:getDecode(\$ItemData,\$MetaDataVersion)
                               let \$Annotation := \$SubjectData/../odm:Annotations/odm:Annotation[@ID=\$ItemData/@AnnotationID]
                               let \$ItemDef := \$MetaDataVersion/odm:ItemDef[@OID=\$ItemOID]
                               return

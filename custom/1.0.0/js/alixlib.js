@@ -1,6 +1,6 @@
     /**************************************************************************\
     * ALIX EDC SOLUTIONS                                                       *
-    * Copyright 2011 Business & Decision Life Sciences                         *
+    * Copyright 2012 Business & Decision Life Sciences                         *
     * http://www.alix-edc.com                                                  *
     * ------------------------------------------------------------------------ *                                                                       *
     * This file is part of ALIX.                                               *
@@ -41,10 +41,10 @@ function compactItemGroup(FormOID){
 
   $(document).ready(function(){
    
-    //Ligne d'entete
+    //Head line
     $("form[name='"+FormOID+"'] table.ItemGroup").first().before(function(){
-      //Création de la ligne d'entete
-      //Boucle sur les ItemDataLabel
+      //Creation headline
+      //Loop through ItemDataLabel
       width = $(this).find("tr:visible td.ItemDataLabel").size() * 105;
       htmlRet = "<div style='min-width:"+width+"px;'>";
       $(this).find("td.ItemDataLabel").each(function(){
@@ -56,12 +56,12 @@ function compactItemGroup(FormOID){
       return htmlRet;
     }).prev().addClass("itemGroupHeadLine").addClass("ui-state-default");
   
-    //Ligne itemgroupdata
+    //Itemgroupdata line
     $("form[name='"+FormOID+"'] table.ItemGroup").before(function(){
 
       width = $(this).find("tr:visible td[class='ItemDataInput']").size() * 105;
       htmlRet = "<div style='min-width:"+width+"px;'>";
-      //Boucle sur les itemDataInput
+      //Loop through itemDataInput
       $(this).find("td[class='ItemDataInput']").each(function(){
         if($(this).parent().is(':visible')){
           value = $(this).attr("lastvalue");
@@ -80,15 +80,15 @@ function compactItemGroup(FormOID){
       
     }).hide().prev().addClass("itemGroupLine").addClass("ui-widget-content ui-row-ltr").click(function(){$(this).next().slideToggle()});
    
-    //Gestion du TransactionType 
+    //Handle TransactionType 
     $(".itemGroupLine").each(function(){
       $(this).addClass($(this).next().attr('class'));
     });
     
-    //Si TransactionType = remove, pas de slide
+    //If TransactionType = remove, no slide
     $(".itemGroupLine.TransactionTypeRemove").unbind('click');
     
-    //Suppression des H3 superflus
+    //remove unneeded H3
     $("form[name='"+FormOID+"'] h3").detach();    
   });
       
