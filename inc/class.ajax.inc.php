@@ -190,14 +190,14 @@ public function checkFormData(){
       //Access right check      
       $profile = $this->m_ctrl->boacl()->getUserProfile("",$siteId);
       
-      if($profile['profileId']=="INV"){
+      if($profile['profileId']=="INV" || $siteId=="BLANK"){
         //Saving data
         $this->m_ctrl->bocdiscoo()->saveItemGroupData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$_POST,$who,$where,$why,$fillst="");
   
         //HOOK => ajax_saveItemGroupData_afterSave
         $this->callHook(__FUNCTION__,"afterSave",array($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$this));      
       }else{
-        $this->addLog("Unauthorized access to saveItemGroupData function. Administrator have been notified.",FATAL);
+        $this->addLog("Unauthorized access to saveItemGroupData function. Administrator have been notified.$SubjectKey / $siteId / {$profile['profileId']}",FATAL);
       }
     }
     

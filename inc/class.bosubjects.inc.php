@@ -179,7 +179,7 @@ class bosubjects extends CommonFunctions
     if(!$key) throw new Exception("Error: Requested Key is not specified (". __METHOD__ .")");
     if(!isset($this->m_tblConfig['SUBJECT_LIST']['COLS'][$key])) throw new Exception("Error: Requested Key is not defined in config.inc.php (". __METHOD__ .")");
     
-    if(!$useCache || !isset(self::$m_subjectCols[$SubjectKey][$key])){ //get the value in the database (if asked to, or if the cache doesn't contain the value)
+    if(!$useCache || !isset(self::$m_subjectCols["$SubjectKey"][$key])){ //get the value in the database (if asked to, or if the cache doesn't contain the value)
       //We will find the Key in the CRF
       $col = $this->m_tblConfig['SUBJECT_LIST']['COLS'][$key];
       
@@ -212,10 +212,10 @@ class bosubjects extends CommonFunctions
       $doc = $this->m_ctrl->socdiscoo()->query($query);
       
       //we update the cache self::$m_subjectCols
-      self::$m_subjectCols[$SubjectKey][$key] = (string)$doc[0]->subj["col$key"];
+      self::$m_subjectCols["$SubjectKey"][$key] = (string)$doc[0]->subj["col$key"];
     }
     
-    $value = self::$m_subjectCols[$SubjectKey][$key];
+    $value = self::$m_subjectCols["$SubjectKey"][$key];
     
     //HOOK => bosubjects_getSubjectColValue_customValue
     $this->callHook(__FUNCTION__,"customValue",array($SubjectKey,$key,&$value,$this));
