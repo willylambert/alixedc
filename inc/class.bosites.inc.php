@@ -36,12 +36,12 @@ class bosites extends CommonFunctions
 
 /**************************************************** Accesseurs Site ****************************************************/
 
-/*
-@desc return the name of a site
-@param $siteId site id
-@return string siteName or false
-@author wlt
-*/ 
+  /*
+  @desc return the name of a site
+  @param $siteId site id
+  @return string siteName or false
+  @author wlt
+  */ 
   public function getSiteName($siteId){
     $siteName = "";
     
@@ -61,15 +61,40 @@ class bosites extends CommonFunctions
     return $siteName;
   }
   
-/*
-@desc retourne la liste de tous les centres (de l'application en cours)
-@return array(siteId,sitename)
-@author wlt
-*/ 
+  /*
+  @desc return the profileId of a site
+  @param $siteId site id
+  @return string profileId or false
+  @author tpi
+  */ 
+  public function getSiteProfileId($siteId){
+    $siteProfileId = "";
+    
+    //Request MySQL for the Site
+    $sql = "SELECT SITEPROFILEID
+            FROM egw_alix_sites
+            WHERE CURRENTAPP='".$this->getCurrentApp(false)."'
+            AND SITEID='".$siteId."'";
+    
+    $GLOBALS['egw']->db->query($sql); 
+    if($GLOBALS['egw']->db->next_record()){
+      $siteProfileId = (string)$GLOBALS['egw']->db->f('SITEPROFILEID');
+    }else{
+      return false;
+    }
+    
+    return $siteProfileId;
+  }
+  
+  /*
+  @desc retourne la liste de tous les centres (de l'application en cours)
+  @return array(siteId,sitename)
+  @author wlt
+  */ 
   public function getSites(){
     $tblRet = array();
     //Recuperation de la liste des centres
-    $sql = "SELECT SITEID,SITENAME,COUNTRY,CHECKONSAVE
+    $sql = "SELECT SITEID,SITENAME,SITEPROFILEID,COUNTRY,CHECKONSAVE
             FROM egw_alix_sites
             WHERE CURRENTAPP='".$this->getCurrentApp(false)."'
             ORDER BY SITEID";
@@ -79,6 +104,7 @@ class bosites extends CommonFunctions
       $siteId = (string)$GLOBALS['egw']->db->f('SITEID');
       $tblRet["site$siteId"] = array('siteId'=>$siteId,
                         'siteName'=>$GLOBALS['egw']->db->f('SITENAME'),
+                        'siteProfileId'=>$GLOBALS['egw']->db->f('SITEPROFILEID'),
                         'siteCountry'=>$GLOBALS['egw']->db->f('COUNTRY'),
                         'checkOnSave'=>$GLOBALS['egw']->db->f('CHECKONSAVE'));
     }
@@ -88,9 +114,9 @@ class bosites extends CommonFunctions
 
 /**************************************************** Modificateurs Site ****************************************************/
   
-  public function addSite($siteId,$siteName,$siteCountry,$checkOnSave){
-    $sql = "INSERT INTO egw_alix_sites(CURRENTAPP,SITEID,SITENAME,COUNTRY,CHECKONSAVE) 
-          VALUES('".$this->getCurrentApp(false)."','$siteId','$siteName','$siteCountry','$checkOnSave');";
+  public function addSite($siteId,$siteName,$siteProfileId,$siteCountry,$checkOnSave){
+    $sql = "INSERT INTO egw_alix_sites(CURRENTAPP,SITEID,SITENAME,SITEPROFILEID,COUNTRY,CHECKONSAVE) 
+          VALUES('".$this->getCurrentApp(false)."','$siteId','$siteName','$siteProfileId','$siteCountry','$checkOnSave');";
     $GLOBALS['egw']->db->query($sql); 
   }
 }

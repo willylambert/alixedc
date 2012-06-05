@@ -286,12 +286,24 @@ class uietude extends CommonFunctions
    {
         global $configEtude;
         
-        //On gère ici la demande d'activation / désactivation du mode test
+        //Management of activation and disactivation of the test mode
         $testMode = false;
-        if(isset($_GET['testmode']) && $_GET['testmode']=='true'){
-          $testmode = true;
-        }
+        //In some cases the user can only use the test mode
+        $forceTestMode = false;
+    		//These cases are when the user profile is not the same as the site profile
+    		$userProfile = $this->m_ctrl->boacl()->getUserProfile();
+    		if($userProfile['profileId'] != $this->m_ctrl->bosites()->getSiteProfileId($userProfile['siteId'])){
+    		  $forceTestMode = true;
+    		  $testmode = true;
+    		}else{
+    		  //Did the user asked for activation of the test mode ?
+          if(isset($_GET['testmode']) && $_GET['testmode']=='true'){
+            $testmode = true;
+          }
+    		}
         $_SESSION[$this->getCurrentApp(false)]['testmode'] = $testmode;
+    		$_SESSION[$this->getCurrentApp(false)]['forcetestmode'] = $forceTestMode;
+    		
         require_once('class.uipassword.inc.php');
         $uiPassword = new uipassword($configEtude,$this->m_ctrl);
         if($uiPassword->passwordNeedChange()){

@@ -64,6 +64,16 @@ class etudemenu extends CommonFunctions
       $queries = '<a href="#"><li class="ui-state-default" class="inactiveButton"><img src="'. $this->getCurrentApp(false).'/templates/default/images/file_notification_warning.png" alt=""/><div><p>Queries</p></div></li></a>';
     }
     
+    //Test mode
+    $testmode = "";
+    if(!$_SESSION[$this->getCurrentApp(false)]['forcetestmode']){
+      if($_SESSION[$this->getCurrentApp(false)]['testmode']){
+        $testmode = '<a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.startupInterface','testmode'=>'false')).'"><li class="ui-state-default" id="testModeMenu" ><img src="'. $this->getCurrentApp(false).'/templates/default/images/application_warning.png" alt="" /><div><p>Exit test mode</p></div></li></a>';
+      }else{
+        $testmode = '<a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.startupInterface','testmode'=>'true')) .'"><li class="ui-state-default" id="testModeMenu" ><img src="'. $this->getCurrentApp(false).'/templates/default/images/application_warning.png" alt="" /><div><p>Test Mode</p></div></li></a>';
+      }
+    }
+    
     //Deviations
     if($this->m_ctrl->boacl()->existUserProfileId(array("CRA","DM","SPO"))){
       $deviations = '<a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.deviationsInterface')).'"><li class="ui-state-default" style="'.$jqabStyle.'" ><img src="'. $this->getCurrentApp(false).'/templates/default/images/file_warning.png" alt="" /><div><p>Deviations</p></div></li></a>';
@@ -75,8 +85,6 @@ class etudemenu extends CommonFunctions
     if($this->m_ctrl->boacl()->existUserProfileId(array("CRA","DM","SPO"))){
       $auditTrail = '<a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.auditTrailInterface')).'"><li class="ui-state-default" style="'.$jqabStyle.'" ><img src="'. $this->getCurrentApp(false).'/templates/default/images/file_notification_warning.png" alt="" /><div><p>Audit Trail</p></div></li></a>';
     }
-    
-    $testmode = $_SESSION[$this->getCurrentApp(false)]['testmode'];
   
     $menu = '<div id="mysite" class="divSideboxHeader" align="center"><span>ALIX EDC Demo</span></div>
              <div id="toolbar_ico">         
@@ -85,9 +93,7 @@ class etudemenu extends CommonFunctions
                 <a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.subjectListInterface')).'"><li class="ui-state-default"><img src="'. $GLOBALS['egw_info']['flags']['currentapp'].'/templates/default/images/user_manage.png" alt="" /><div><p>Subjects list</p></div></li></a>
                 '.$dashboard.'
                 <a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.documentsInterface')).'"><li class="ui-state-default"><img src="'. $GLOBALS['egw_info']['flags']['currentapp'].'/templates/default/images/folder.png" alt="" /><div><p>Documents</p></div></li></a>
-                <a href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.startupInterface','testmode'=>($testmode?'false':'true'))).'"><li class="ui-state-default" id="testModeMenu" ><img src="'. $this->getCurrentApp(false).'/templates/default/images/application_warning.png" alt="" /><div><p>
-                  '. ($testmode?'Exit test mode':'Test Mode') .'
-                  </p></div></li></a>
+                '.$testmode.'
                 '.$queries.'
                 '.$deviations.'
                 '.$auditTrail.'

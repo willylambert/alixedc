@@ -50,7 +50,7 @@ class uisites extends CommonFunctions
       
       //Demande de creation d'un centre
       if(isset($_GET['action']) && $_GET['action']=='createSite'){
-        $this->m_ctrl->bosites()->addSite($_POST['siteId'],$_POST['siteName'],$_POST['siteCountry'],$_POST['checkOnSave']);
+        $this->m_ctrl->bosites()->addSite($_POST['siteId'],$_POST['siteName'],$_POST['siteProfileId'],$_POST['siteCountry'],$_POST['checkOnSave']);
       }
     
       //Construction de la liste des centres
@@ -62,6 +62,7 @@ class uisites extends CommonFunctions
   				<tr>
   					<th class='ui-state-default'> Site Id</th>
   					<th class='ui-state-default'> Site name</th>
+  					<th class='ui-state-default'> Site profile Id</th>
   					<th class='ui-state-default'> Country</th>
   					<th class='ui-state-default'> Check On Save</th>
   				</tr>
@@ -74,6 +75,7 @@ class uisites extends CommonFunctions
 			   $htmlSites .= "<tr id='".$site['siteId']."'>
                 					<td class='ui-widget-content'>".$site['siteId']."</td>
                 					<td class='ui-widget-content'>".$site['siteName']."</td>
+                					<td class='ui-widget-content'>".$site['siteProfileId']."</td>
                 					<td class='ui-widget-content'>".$site['siteCountry']."</td>
                 					<td class='ui-widget-content'>".$site['checkOnSave']."</td>
                 				</tr>";
@@ -106,6 +108,13 @@ class uisites extends CommonFunctions
                     		<input type='text' name='siteId' id='siteId' class='text ui-widget-content ui-corner-all' />
                     		<label for='siteName'>Site name</label>
                     		<input type='text' name='siteName' id='siteName' class='text ui-widget-content ui-corner-all' />
+                    		<label for='siteProfileId'>Site profile Id</label>
+                    		<select name='siteProfileId'>
+                    		  <option value='INV'>Investigator</option>
+                    		  <option value='CRA'>CRA</option>
+                    		  <option value='DM'>Data Manager</option>
+                          <option value='SPO'>Sponsor</option>
+                        </select> 
                     		<label for='siteCountry'>Country</label>
                     		<select name='siteCountry' class='ui-widget-content ui-corner-all'>
                           <option value=''>...</option>
@@ -117,13 +126,13 @@ class uisites extends CommonFunctions
                           <option value='POL'>Poland</option>
                           <option value='NDL'>Netherlands</option>
                           <option value='BEL'>Belgium</option>
-                        </select>  
+                        </select>
                     		<label for='checkOnSave'>Check On Save</label>
                     		<select name='checkOnSave' class='ui-widget-content ui-corner-all'>
                           <option value=''>...</option>
                           <option value='1'>Yes</option>
                           <option value='2'>No</option>
-                        </select>                    		
+                        </select>
                       </fieldset>
                   	</form>
                   
