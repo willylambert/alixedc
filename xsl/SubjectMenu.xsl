@@ -57,11 +57,17 @@
     </a>
     <div>
       <xsl:attribute name="class">FormLock FormLock<xsl:value-of select="@Status"/></xsl:attribute>
-      <xsl:if test="@Status='FILLED' or @Status='FROZEN'">
-        <xsl:if test="$AllowLock='true'">
+      <xsl:if test="$AllowLock='true'">
+        <xsl:if test="@Status='FILLED' or @Status='FROZEN'">
           <xsl:variable name="urlLock">index.php?menuaction=<xsl:value-of select="$CurrentApp"/>.uietude.lockInterface&amp;action=view&amp;SubjectKey=<xsl:value-of select="$SubjectKey"/>&amp;StudyEventOID=<xsl:value-of select="./../@StudyEventOID"/>&amp;StudyEventRepeatKey=<xsl:value-of select="../@StudyEventRepeatKey"/>&amp;FormOID=<xsl:value-of select="@FormOID"/>&amp;FormRepeatKey=<xsl:value-of select="@FormRepeatKey"/>&amp;FormStatus=<xsl:value-of select="@Status"/></xsl:variable>
           <xsl:attribute name="onClick">changeLockStatus("<xsl:value-of select="$urlLock"/>","<xsl:value-of select="@Title"/>","<xsl:value-of select="@Status"/>");</xsl:attribute>
         </xsl:if>
+        <xsl:if test="@Status!='FILLED' and @Status!='FROZEN'">
+          <xsl:attribute name="onClick">alert("Only filled (Green) form can be locked");</xsl:attribute>        
+        </xsl:if>
+      </xsl:if>
+      <xsl:if test="$AllowLock='false'">
+        <xsl:attribute name="onClick">alert("Only CRA can lock form");</xsl:attribute>        
       </xsl:if>&#160;
     </div>
     <span class="FormPostIt">&#160;</span>
