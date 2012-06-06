@@ -1469,7 +1469,6 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
               ";
 
     $doc = $this->m_ctrl->socdiscoo()->query($query,false);
-    $this->addLog("bocdiscoo->getStudyEventForms() ended",INFO);
     return $doc;
   }
   

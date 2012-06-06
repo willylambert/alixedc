@@ -37,7 +37,7 @@ function removeAccent(s){
 }
 
 
-function compactItemGroup(FormOID){
+function compactItemGroup(FormOID,tblCol){
 
   $(document).ready(function(){
    
@@ -45,13 +45,19 @@ function compactItemGroup(FormOID){
     $("form[name='"+FormOID+"'] table.ItemGroup").first().before(function(){
       //Creation headline
       //Loop through ItemDataLabel
-      width = $(this).find("tr:visible td.ItemDataLabel").size() * 105;
-      htmlRet = "<div style='min-width:"+width+"px;'>";
+      //width = $(this).find("tr:visible td.ItemDataLabel").size() * 105;
+      width = 0;
+      linesRet = "";
       $(this).find("td.ItemDataLabel").each(function(){
-        if($(this).parent().is(':visible')){
-          htmlRet += "<div>"+$(this).text()+"</div>";
-        }      
+        if(typeof(tblCol)=="undefined" || typeof(tblCol)!="undefined" && tblCol[$(this).parent().attr('name')]==true){        
+          if($(this).parent().is(':visible')){
+            linesRet += "<div>"+$(this).text()+"</div>";
+            width += 105;
+          }      
+        }
       });
+      htmlRet = "<div style='min-width:"+width+"px;'>";
+      htmlRet += linesRet;
       htmlRet += "</div>";
       return htmlRet;
     }).prev().addClass("itemGroupHeadLine").addClass("ui-state-default");
@@ -59,21 +65,23 @@ function compactItemGroup(FormOID){
     //Itemgroupdata line
     $("form[name='"+FormOID+"'] table.ItemGroup").before(function(){
 
-      width = $(this).find("tr:visible td[class='ItemDataInput']").size() * 105;
+      //width = $(this).find("tr:visible td[class='ItemDataInput']").size() * 105;
       htmlRet = "<div style='min-width:"+width+"px;'>";
       //Loop through itemDataInput
       $(this).find("td[class='ItemDataInput']").each(function(){
-        if($(this).parent().is(':visible')){
-          value = $(this).attr("lastvalue");
-          if(value==""){
-            value = " ";
-          }
-          if($.browser.msie * jQuery.browser.version.substr(0, 1)<="7"){
-            htmlRet += "<span>&#160;"+value+"</span>";
-          }else{
-            htmlRet += "<div>&#160;"+value+"</div>";
-          }
-        }          
+        if(typeof(tblCol)=="undefined" || typeof(tblCol)!="undefined" && tblCol[$(this).parent().attr('name')]==true){        
+          if($(this).parent().is(':visible')){
+            value = $(this).attr("lastvalue");
+            if(value==""){
+              value = " ";
+            }
+            if($.browser.msie * jQuery.browser.version.substr(0, 1)<="7"){
+              htmlRet += "<span>&#160;"+value+"</span>";
+            }else{
+              htmlRet += "<div>&#160;"+value+"</div>";
+            }
+          }          
+        }
       });
       htmlRet += "</div>";
       return htmlRet;

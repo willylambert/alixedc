@@ -196,7 +196,7 @@ declare function alix:getDecode($ItemData as node()*,$MetaDataVersion as node())
   let $CodeListOID := $MetaDataVersion/odm:ItemDef[@OID=$ItemData/@ItemOID]/odm:CodeListRef/@CodeListOID
   return
     if($CodeListOID)
-    then $MetaDataVersion/odm:CodeList[@OID=$CodeListOID]/odm:CodeListItem[@CodedValue=$value]/odm:Decode/odm:TranslatedText[@xml:lang='".$this->m_lang."']/string()
+    then $MetaDataVersion/odm:CodeList[@OID=$CodeListOID]/odm:CodeListItem[@CodedValue=$value]/odm:Decode/odm:TranslatedText[@xml:lang='en']/string()
     else $value
 };
 
