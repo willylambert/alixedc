@@ -2,7 +2,7 @@
 <!--
     /**************************************************************************\
     * ALIX EDC SOLUTIONS                                                       *
-    * Copyright 2011 Business & Decision Life Sciences                         *
+    * Copyright 2012 Business & Decision Life Sciences                         *
     * http://www.alix-edc.com                                                  *
     *                                                                          *
     * This file is part of ALIX.                                               *
@@ -141,8 +141,15 @@
 					}												
         }
 $(document).ready(function(){ 
-  /// Create table to compact        
-  compactItemGroup('MH');
+  // Create table to compact        
+  tblCol = new Array();
+  tblCol["MH.MHSEQ"] = true;
+  tblCol["MH.MHTERM"] = true;
+  tblCol["MH.MHCONTRT"] = true;
+  tblCol["MH.MHSTDTC"] = true;
+  tblCol["MH.MHONGO"] = true;
+  tblCol["MH.MHENDTC"] = true;
+  compactItemGroup('MH',tblCol);
 });        
 				</script>
 	    </div>  
