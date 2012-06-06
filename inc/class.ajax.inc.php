@@ -1354,8 +1354,10 @@ public function checkFormData(){
         $see = "<div class='imageFindIn imageOnly image16 pointer' onClick=\"location.href='index.php?menuaction=". $this->getCurrentApp(false) .".uietude.subjectInterface&action=view&SubjectKey=". $subj["SubjectKey"] ."&StudyEventOID=". $this->m_tblConfig['ENROL_SEOID'] ."&StudyEventRepeatKey=". $this->m_tblConfig['ENROL_SERK'] ."&FormOID=". $this->m_tblConfig['ENROL_FORMOID'] ."&FormRepeatKey=". $this->m_tblConfig['ENROL_FORMRK'] ."'\" altbox='Go to CRF'></div>";
         if($this->m_ctrl->boacl()->existUserProfileId(array("DM","CRA","INV"),"",$subj['colSITEID'])){
           $pdf = "<button class='ui-state-default ui-corner-all' onClick=\"if(window.event){ var e = window.event; e.cancelBubble = true; if(e && e.stopPropagation){ e.stopPropagation();};}else{event.stopPropagation();}; window.location='index.php?menuaction=". $GLOBALS['egw_info']['flags']['currentapp'] .".uietude.subjectPDF&SubjectKey=". $subj["SubjectKey"] ."';\">PDF</button>";
+          $profile = "<button class='ui-state-default ui-corner-all' onClick=\"if(window.event){ var e = window.event; e.cancelBubble = true; if(e && e.stopPropagation){ e.stopPropagation();};}else{event.stopPropagation();}; window.location='index.php?menuaction=". $GLOBALS['egw_info']['flags']['currentapp'] .".uietude.subjectProfile&SubjectKey=". $subj["SubjectKey"] ."';\">Profile</button>";
         }else{
           $pdf = "";
+          $profile = "";
         }
         
         $response->rows[$j]['id'] = "subject_". $subj["SubjectKey"];
@@ -1385,6 +1387,7 @@ public function checkFormData(){
         $response->rows[$j]['cell'][] = $this->m_ctrl->bosubjects()->getSubjectStatus($subj);
         $response->rows[$j]['cell'][] = $this->m_ctrl->boqueries()->getQueriesCount($subj["SubjectKey"],"","","","","","","","","","Y","QUERYSTATUS<>'C'");
         $response->rows[$j]['cell'][] = $pdf;
+        $response->rows[$j]['cell'][] = $profile;
         $j++;
       }
       $i++;

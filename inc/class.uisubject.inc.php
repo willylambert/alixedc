@@ -508,4 +508,59 @@ return a context menu, can be used with a right click on inputs
     return $pdf;
   }
   
+  /**
+  *return patient profile into PDF format (binary data)
+  *@param $SubjectKey patient id
+  *@return PDF data - binary content
+  **/
+  public function getProfile($SubjectKey){
+    $htmlContent = "";
+    
+    //HOOK => uisubject_getPDF_profileContent
+    $this->callHook(__FUNCTION__,"profileContent",array($SubjectKey,&$htmlContent,$this));
+    
+    //Default template
+    if($htmlContent == ""){
+      //values
+      $siteId = $this->m_ctrl->bosubjects()->getSubjectColValue($SubjectKey,"SITEID");
+      $siteName = $this->m_ctrl->bosites()->getSiteName($siteId);
+      $inclusionDate = $this->formatDate($this->m_ctrl->bosubjects()->getSubjectColValue($SubjectKey,"INCLUSIONDATE"));
+      
+      $htmlContent = '<html><head><meta http-equiv=Content-Type content="text/html; charset=iso8859-2"></head><body> <font face="Arial"><center><table border="1" width="500" cellpadding="5" rules="rows"><tr> <td width="500" bgcolor="#000000"><font color="#ffffff"><b>Escort-HU STUDY</b></font></td></tr><tr> <td colspan="1">Patient '.$SubjectKey.'</td></tr><tr> <td colspan="1"><b>Patient profile</b></td></tr></table> <br><table border="1" width="500" cellpadding="5" rules="rows"><tr> <td colspan="2" bgcolor="#000000"><font color="#ffffff"><b>Patient profile</b></font></td></tr><tr> <td width="350"><b>Subject identifier </b></td> <td width="150">'.$SubjectKey.'</td></tr><tr> <td width="350"><b>Site Id </b></td> <td width="150">'.$siteId.'</td></tr><tr> <td width="350"><b>Site Name </b></td> <td width="150">'.$siteName.'</td></tr><tr> <td width="350"><b>Inclusion date </b></td> <td width="150">'.$inclusionDate.'</td></tr></table></center></font></body></html>';
+      
+      /*
+      //template file
+      $template = dirname(__FILE__)."/templates/profile.htm";
+      if(!file_exists($template)){
+        $str = "Template not found '$template'.";
+        $this->m_ctrl->addLog($str,ERROR);
+      }
+      $handle = fopen($template, "r");
+      $htmlContent = fread($handle, filesize($template));
+      fclose($handle);
+      
+      $code = array("SUBJECTKEY", "SITEID", "SITENAME", "INCLUSIONDATE");
+      $value = array($SubjectKey, $siteId, $siteName, $inclusionDate);
+      $htmlContent = str_replace(preg_replace("(.*)","{\${0}}",$code, 1), $value, $htmlContent);
+      */
+    }
+    
+    $htmlTemp = tempnam("/tmp","htmlDocGfpc");
+    $tmpHandle = fopen($htmlTemp,"w");
+    fwrite($tmpHandle,$htmlContent);
+    fclose($tmpHandle);
+    
+    # Tell HTMLDOC not to run in CGI mode...
+    putenv("HTMLDOC_NOCGI=1");
+    //Generation and output
+    $cmd = "htmldoc -t pdf --quiet --color --webpage --jpeg  --left 10 --top 20 --bottom 20 --right 10 --footer c.: --fontsize 10 --textfont {helvetica}";
+    ob_start();
+    $err = passthru("$cmd '$htmlTemp'");
+    $pdf = ob_get_contents();
+    ob_end_clean();
+    unlink($htmlTemp);
+    
+    return $pdf;
+  }
+  
 }

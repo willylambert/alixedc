@@ -165,6 +165,24 @@ class CommonFunctions{
     }
  
   }
+
+  /**
+  * @desc Retourne la date au format local
+  * @param string datetime
+  * @param boolean clean : return an empty string if no values are provided
+  * @return string datetime
+  * @author TPI
+  **/   
+  public function formatDate($datetime,$clean=false){
+    if($clean && $datetime=="") return "";
+    switch($this->m_tblConfig["lang"]){
+      case "fr":
+        return substr($datetime,8,2) ."/".substr($datetime,5,2) ."/".substr($datetime,0,4) ." ". substr($datetime,11,8);
+        break;
+      default:
+        return substr($datetime,5,2) ."/".substr($datetime,8,2) ."/".substr($datetime,0,4) ." ". substr($datetime,11,8);
+    }
+  }
   
   public function dumpPre($mixed = null, $expandable=false)
   {

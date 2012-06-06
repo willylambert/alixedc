@@ -23,14 +23,14 @@
 * Entry point - called to initialize AJAX behavior for displaying subjects list
 * @author tpi
 **/
-function loadAlixCRFSubjectsJS(CurrentApp, jsonConfig, bShowPDF)
+function loadAlixCRFSubjectsJS(CurrentApp, jsonConfig, bShowPDF, bShowProfile)
 {
   var config = eval('(' + jsonConfig + ')');
   
-  loadSubjectsGrid(CurrentApp, config, bShowPDF);
+  loadSubjectsGrid(CurrentApp, config, bShowPDF, bShowProfile);
 }
 
-function loadSubjectsGrid(CurrentApp, config, bShowPDF)
+function loadSubjectsGrid(CurrentApp, config, bShowPDF, bShowProfile)
 {
   $(document).ready(function(){
     var colNames = new Array();
@@ -141,6 +141,18 @@ function loadSubjectsGrid(CurrentApp, config, bShowPDF)
         name: "PDF",
         index: "PDF",
         width: 35,
+        align:'center',
+        search: false
+      });
+    }
+    
+    //Patient profile
+    if(bShowProfile){
+      colNames.push(" ");
+      colModel.push({
+        name: "PROFILE",
+        index: "PROFILE",
+        width: 50,
         align:'center',
         search: false
       });

@@ -44,9 +44,10 @@ class uietude extends CommonFunctions
 		'queriesInterface' => True,
     'sitesInterface' => True,
 		'startupInterface'	=> True,
-		'subjectPDF' => True,
 		'subjectInterface' => True,
 		'subjectListInterface' => True,
+		'subjectPDF' => True,
+		'subjectProfile' => True,
 		'usersInterface' => True
 		);
 
@@ -362,6 +363,36 @@ class uietude extends CommonFunctions
         $filename = $this->m_tblConfig["APP_NAME"] ."_Site_". $siteId ."_Patient_". $subjId .".pdf";
         
         $pdf = $ui->getPDF($SubjectKey);
+        
+        if(!$pdf) $this->m_ctrl->addLog($pdf,FATAL);
+        
+        header("Content-Disposition: attachment; filename=\"$filename\"");
+        header("Expires: 0");
+        header("Pragma: public"); 
+        header("Cache-Control: private, must-revalidate");
+        header("Content-Type: application/pdf");
+        
+        echo $pdf;
+        
+        exit(0);  
+   }
+   
+   public function subjectProfile()
+   {
+        require_once('class.uisubject.inc.php');
+        global $configEtude;
+        $ui = new uisubject($configEtude,$this->m_ctrl);
+        
+        $content = ob_get_contents();
+        ob_end_clean();
+        
+        $SubjectKey = $_GET['SubjectKey'];
+        
+        $siteId = $ui->m_ctrl->bosubjects()->getSubjectColValue($SubjectKey,"SITEID");
+        $subjId = sprintf($this->m_tblConfig["SUBJID_FORMAT"],$SubjectKey);
+        $filename = $this->m_tblConfig["APP_NAME"] ."_Site_". $siteId ."_Patient_". $subjId .".pdf";
+        
+        $pdf = $ui->getProfile($SubjectKey);
         
         if(!$pdf) $this->m_ctrl->addLog($pdf,FATAL);
         

@@ -68,9 +68,11 @@ class uisubjectlist extends CommonFunctions
     }
     
     //INV, ARC and DM can download PDF
-    $bShowChecks = false;
+    $bShowPDF = false;
+    $bShowProfile = false;
     if($this->m_ctrl->boacl()->existUserProfileId(array("DM","CRA","INV"))){
       $bShowPDF = true;
+      $bShowProfile = true;
     }
     
     //variable added to URLs, to force browser files reload 
@@ -88,7 +90,7 @@ class uisubjectlist extends CommonFunctions
               
               <script>
                 //<![CDATA[
-                  loadAlixCRFSubjectsJS('".$this->getCurrentApp(false)."','".json_encode($cols)."', ".($bShowPDF?'true':'false').");
+                  loadAlixCRFSubjectsJS('".$this->getCurrentApp(false)."','".json_encode($cols)."', ".($bShowPDF?'true':'false').", ".($bShowProfile?'true':'false').");
                 //]]>
               </script>";
     
