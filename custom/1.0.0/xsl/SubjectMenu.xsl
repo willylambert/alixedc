@@ -58,7 +58,7 @@
 
 <xsl:template match="div[@FormOID='FORM.AE']/a/text()">
   <xsl:variable name="pos" select="count(../../preceding-sibling::*) + 1"/>
-  <xsl:value-of select="concat(string(.),' ',$pos)"/>
+  <xsl:value-of select="concat(string(.),' ',../../@FormRepeatKey)"/>
 </xsl:template>
 
 <xsl:template match="div[@id='subjectMenu']">
