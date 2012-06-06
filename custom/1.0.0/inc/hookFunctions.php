@@ -216,8 +216,9 @@ function boqueries_updateQueries_form($FormOID, $FormRepeatKey, $queryType, $que
 function uidashboard_getMenu_boardMenu($uidashboard){
   $boardItems = array();
   $boardItems[] = array("id" => "saeList", "title" => "List of SAE"); //an id and a label
-  //$boardItems[] = array("","");
-  //$boardItems[] = array("","");
+  $boardItems[] = array("id" => "keyFigures", "title" => "Key figures");
+  //$boardItems[] = array("id" => "", "title" => "");
+  //$boardItems[] = array("id" => "", "title" => "");
   return $boardItems;
 }
 
@@ -326,6 +327,81 @@ function uidashboard_getInterface_boardContent($id,$TITLE,$CONTENT,$uidashboard)
                       </div>";
       break;
       
+    case "keyFigures":
+        $TITLE = "Key figures";
+        $stats = array(
+                        array(
+                              "label" => "Total number of screened subjects",
+                              "query" =>" let \$value := count(\$SubjCol/odm:StudyEventData[@StudyEventOID='2' and @StudyEventRepeatKey='0']/
+                                                                        odm:FormData[@FormOID='FORM.SV' and @FormRepeatKey='0']/
+                                                                        odm:ItemGroupData[@ItemGroupOID='SV' and @ItemGroupRepeatKey='0']/
+                                                                        odm:*[@ItemOID='SV.SVSTDTC'][last()][string() != ''])
+                                          return <result value='{\$value}' />"
+                              ),
+                        array(                                          
+                              "label" => "Subjects out of study",
+                              "query" =>" let \$value := count(\$SubjCol/odm:StudyEventData[@StudyEventOID='5' and @StudyEventRepeatKey='0']/
+                                                                        odm:FormData[@FormOID='FORM.SS' and @FormRepeatKey='0']/
+                                                                        odm:ItemGroupData[@ItemGroupOID='DSSS' and @ItemGroupRepeatKey='0']/
+                                                                        odm:*[@ItemOID='DS.DSCONT'][last()][string() = '0'])
+                                          return <result value='{\$value}' />"
+                              ),
+                        array(
+                              "label" => "Subjects who completed the study",
+                              "query" =>" let \$value := count(\$SubjCol/odm:StudyEventData[@StudyEventOID='5' and @StudyEventRepeatKey='0']/
+                                                                        odm:FormData[@FormOID='FORM.SS' and @FormRepeatKey='0']/
+                                                                        odm:ItemGroupData[@ItemGroupOID='DSSS' and @ItemGroupRepeatKey='0']/
+                                                                        odm:*[@ItemOID='DS.DSCONT'][last()][string() = '1'])
+                                          return <result value='{\$value}' />"
+                              ),
+                        array(
+                              "label" => "SAE",
+                              "query" =>" let \$value := count(\$SubjCol/odm:StudyEventData[@StudyEventOID='AE' and @StudyEventRepeatKey='0']/
+                                                                        odm:FormData[@FormOID='FORM.AE']/
+                                                                        odm:ItemGroupData[@ItemGroupOID='AE' and @TransactionType!='Remove']/
+                                                                        odm:*[@ItemOID='AE.AESER'][last()][string() = '1'])
+                                          return <result value='{\$value}' />"
+                              ),
+                        );
+        
+        $CONTENT .= " <div class='ui-grid ui-widget ui-widget-content ui-corner-all'>
+                        <table class='ui-grid-content ui-widget-content'>
+                    			<thead>
+                    				<tr>
+                    					<th></th>
+                    					<th class='ui-state-default'> Number</th>
+                    				</tr>
+                    			</thead>
+                          <tbody>";
+        
+        foreach($stats as $stat){
+          $query = "let \$SubjCol := collection('ClinicalData')/odm:ODM/odm:ClinicalData/odm:SubjectData";
+          $query .= $stat['query'];
+    
+    
+          try{
+            $res = $uidashboard->m_ctrl->socdiscoo()->query($query);
+          }catch(xmlexception $e){
+            $str = "xQuery error : " . $e->getMessage() ." (".__METHOD__.")";
+            $uidashboard->addLog($str,FATAL);
+          }
+    
+          $res = (string)$res[0]['value'];
+          
+          $class = ($class=="row_off"?"row_on":"row_off");
+          $CONTENT .= "
+                          <tr class='". $class ."'>
+                            <td class='ui-widget-content'>". $stat['label'] ."</td>
+                            <td class='ui-widget-content'>". $res ."</td>
+                          </tr>";
+        }
+        
+        $CONTENT .= "
+                          </tbody>
+                        </table>
+                      </div>";
+      break;
+  
   /*
     case "":
         $TITLE = "";

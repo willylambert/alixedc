@@ -72,7 +72,7 @@
   //Formulaire d'ajout d'un centre
   $("#dialog-form").dialog({
   	autoOpen: false,
-  	height: 350,
+  	height: 400,
   	width: 350,
   	modal: true,
   	buttons: {
@@ -84,7 +84,7 @@
   			bValid = bValid && checkLength(siteName,"siteName",3,50);
   
   			bValid = bValid && checkRegexp(siteId,/^([0-9])+$/i,"Site Id must be a number");
-  			bValid = bValid && checkRegexp(siteName,/^[a-z]([0-9a-z_])+$/i,"Site name may consist of a-z, 0-9, underscores, begin with a letter.");");
+  			bValid = bValid && checkRegexp(siteName,/^[a-z]([0-9a-z_])+$/i,"Site name may consist of a-z, 0-9, underscores, begin with a letter.");
   			
   			if (bValid) {
             //Soumission du formulaire
