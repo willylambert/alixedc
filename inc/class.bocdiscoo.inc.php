@@ -1931,6 +1931,32 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
     $xPath->registerNamespace("odm", ODM_NAMESPACE);
 
     //Note : StudyEventData, AuditRecords and Annotations elements must be declared into the blank subject 
+
+    //Add StudyEventData if needed
+    $result = $xPath->query("/odm:ODM/odm:ClinicalData/odm:SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']");
+    if($result->length==0){
+      //Get where to insert StudyEventData
+      $query = "let \$SubjectData := index-scan('SubjectData','$SubjectKey','EQ')
+                let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
+                let \$StudyEventRef := \$MetaDataVersion/odm:Protocol/odm:StudyEventRef[@StudyEventOID='$StudyEventOID']
+                return \$StudyEventRef/following-sibling::*[1]";
+      $studyEventRef = $this->m_ctrl->socdiscoo()->query($query);
+      
+      $nextStudyEventOID = (string)$studyEventRef[0]['StudyEventOID'];
+      
+      $query = "declare default element namespace '".$this->m_tblConfig['SEDNA_NAMESPACE_ODM']."';
+                UPDATE
+                insert <StudyEventData StudyEventOID='$StudyEventOID' StudyEventRepeatKey='$StudyEventRepeatKey' TransactionType='Insert'/>
+                preceding index-scan('SubjectData','$SubjectKey','EQ')/odm:StudyEventData[@StudyEventOID='$nextStudyEventOID']";
+      $this->m_ctrl->socdiscoo()->query($query);
+      $this->addLog("bocdiscoo()->saveItemGroupData() Adding StudyEventOID=$StudyEventOID StudyEventRepeatKey=$StudyEventRepeatKey preceding$nextStudyEventOID",INFO);
+      
+    }else{
+      if($result->length!=1){
+        $str = "Error duplicate entry StudyEventData[@StudyEventOID='$StudyEventOID' @StudyEventRepeatKey='$StudyEventRepeatKey] (". __METHOD__ .")";
+        $this->addLog($str,FATAL);
+      }
+    }
     
     //Add FormData if needed
     $result = $xPath->query("/odm:ODM/odm:ClinicalData/odm:SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']/odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']");

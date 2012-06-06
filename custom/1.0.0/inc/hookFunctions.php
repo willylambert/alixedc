@@ -21,7 +21,7 @@
     \**************************************************************************/
   
   /**
-  * @desc Hook called befor the HTML restitution of a form
+  * @desc Hook called before the HTML restitution of a form
   * @param $FormOID OID of the form
   * @param $uisubject instance of uisubject
   * @return nothing
@@ -29,7 +29,6 @@
   **/  
 function uisubject_getInterface_start($FormOID,$uisubject){  
 }
-
   /**
   * @desc Define parameters passed to the XSL create the form final display
   * @param string $FormOID
@@ -167,16 +166,8 @@ function bocdiscoo_getNewPatientID_customSubjId($bocdiscoo){
   $query = "let \$SubjectsCol := collection('ClinicalData')
             let \$maxSubjId := max(\$SubjectsCol/odm:ODM/odm:ClinicalData/odm:SubjectData[@SubjectKey!='BLANK' and odm:StudyEventData[@StudyEventOID='1']/odm:FormData[@FormOID='FORM.ENROL']/odm:ItemGroupData[@ItemGroupOID='ENROL']/odm:ItemDataString[@ItemOID='ENROL.SITEID']='$siteId']/@SubjectKey)   
             return <MaxSubjId>{\$maxSubjId}</MaxSubjId>";  
-  try
-  {
-    $Result = $bocdiscoo->m_ctrl->socdiscoo()->query($query);
-  }
-  catch(xmlexception $e)
-  {
-    $str = "Query error : " . $e->getMessage() . " : " . $query . " (". __METHOD__ .")";
-    $bocdiscoo->addLog("bocdiscoo->getNewPatientID() Error : $str",FATAL);
-    die($str);
-  }
+
+  $Result = $bocdiscoo->m_ctrl->socdiscoo()->query($query);
   
   if((string)$Result[0]!="")
   {
@@ -377,14 +368,8 @@ function uidashboard_getInterface_boardContent($id,$TITLE,$CONTENT,$uidashboard)
         foreach($stats as $stat){
           $query = "let \$SubjCol := collection('ClinicalData')/odm:ODM/odm:ClinicalData/odm:SubjectData";
           $query .= $stat['query'];
-    
-    
-          try{
-            $res = $uidashboard->m_ctrl->socdiscoo()->query($query);
-          }catch(xmlexception $e){
-            $str = "xQuery error : " . $e->getMessage() ." (".__METHOD__.")";
-            $uidashboard->addLog($str,FATAL);
-          }
+
+          $res = $uidashboard->m_ctrl->socdiscoo()->query($query);
     
           $res = (string)$res[0]['value'];
           

@@ -30,7 +30,7 @@
 
 <xsl:template match="StudyEventData">
   <xsl:variable name="visitId">visit_<xsl:value-of select="@StudyEventOID"/>_<xsl:value-of select="@StudyEventRepeatKey"/></xsl:variable>
-  <h3 id="{$visitId}" class="ui-accordion-header ui-helper-reset ui-state-default ui-corner-all">
+  <h3 id="{$visitId}" StudyEventOID="{@StudyEventOID}"  StudyEventRepeatKey="{@StudyEventRepeatKey}" class="ui-accordion-header ui-helper-reset ui-state-default ui-corner-all">
     <span class="StudyEventStatus StudyEventStatus{@Status}">&#160;</span>
     <xsl:if test="@Title!=''">
       <a href="#">

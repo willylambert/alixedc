@@ -1,5 +1,5 @@
 
-/*********************************** Liste des patients ***********************************/
+/*********************************** Subject list ***********************************/
 #SubjectsList table{
   border: 1px solid #326c6f;
   border-top-width: 0px;
@@ -61,7 +61,7 @@ div.itemGroupHeadLine div{
   padding: 2px;
 }
 
-/*********************************** Menu : Formulaires ***********************************/
+/*********************************** Menu : Forms ***********************************/
 
 .FormTitle{
   position: relative;
@@ -81,7 +81,7 @@ div.itemGroupHeadLine div{
 .FormTitle a:hover{
   color: white;
 }
-/*Hack IE6 : car le background-color reste blanc (comme le texte)*/
+/*Hack IE6 : background-color stay white (as text)*/
 * html .FormTitle a:hover{
   color: #00f;
 }
@@ -97,10 +97,17 @@ div.ui-state-highlight .FormStatus{
   margin-left: -11px;
 }
 
-/*********************************** Menu : Visites ***********************************/
-/*Titre*/
+/*********************************** Menu : Visits ***********************************/
+/*Title*/
 div#subjectMenu h3 a{
   font-size: 10px;
   font-weight: bold;
   margin-left: 5px;
+}
+
+/*********************************** Menu : Add FollowUp button***********************/
+#btnAddFollowUp{
+  margin-top: 15px;
+  text-align: center;
+  font-weight: bold;
 }

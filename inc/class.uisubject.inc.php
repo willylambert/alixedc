@@ -28,9 +28,9 @@ class uisubject extends CommonFunctions
   * @param uietude $ctrlRef reference to instance of the instanciation class, used to delegate instanciation of all objects ( call syntax : $this->m_ctrl->bocdiscoo()->my_method_name ) 
   * @author WLT
   **/ 
-  function uisubject($configEtude,$ctrlRef)
+  function uisubject($configStudy,$ctrlRef)
   {	
-    CommonFunctions::__construct($configEtude,$ctrlRef);
+    CommonFunctions::__construct($configStudy,$ctrlRef);
   }
 
   /**
