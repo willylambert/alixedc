@@ -1,7 +1,7 @@
 <?php
     /**************************************************************************\
     * ALIX EDC SOLUTIONS                                                       *
-    * Copyright 2011 Business & Decision Life Sciences                         *
+    * Copyright 2012 Business & Decision Life Sciences                         *
     * http://www.alix-edc.com                                                  *
     * ------------------------------------------------------------------------ *                                                                       *
     * This file is part of ALIX.                                               *
@@ -352,62 +352,115 @@ class socdiscoo extends CommonFunctions
     return $res;
   }
   
-  public function initDB(){
+  /*
+  * @desc Database initialiation
+  * @param optional boolean $reloadCollections : reload eventualy existing collections (unused for the moment)
+  * @param optional boolean $reloadIndices : reload eventualy existing indices
+  * @param optional boolean $reloadXQLib : reload eventualy existing modules
+  * @return array of string $results : trace of what happened
+  * @author TPI, WLT
+  */    
+  public function initDB($reloadCollections=false, $reloadIndices=false, $reloadXQLib=false){
+    $results = array();
+    
     //Create collections
     foreach($this->collections as $col){
       if(!sedna_execute("CREATE COLLECTION '$col'")){
         if(sedna_ercls() != "SE2002"){ //Collection with the same name already exists.
           $str = "Could create collection '$col': " . sedna_error() ." (". __METHOD__ .")";
           $this->addLog($str,FATAL);
+        }else{
+          $results[] = "collection '$col' already created";
+        }
+      }
+      else{
+        $results[] = "collection '$col' created";
+      }
+    }
+    
+    $results = array_merge($results, $this->setIndices($reloadIndices));
+    $results = array_merge($results, $this->setXQLib($reloadXQLib));
+    
+    return $results;
+  }
+  
+  /*
+  * @desc Indices initialiation
+  * @param optional boolean $reload : reload eventualy existing indices
+  * @return array of string $results : trace of what happened
+  * @author TPI, WLT
+  */    
+  private function setIndices($reload=false){
+    $results = array();
+    
+    //indices definitions
+    $indices = array(
+      "SubjectData" => "collection('ClinicalData')/odm:ODM/odm:ClinicalData/odm:SubjectData BY @SubjectKey AS xs:string",
+      "SiteRef" => "collection('ClinicalData')/odm:ODM/odm:ClinicalData/odm:SubjectData BY odm:SiteRef/@LocationOID AS xs:string"
+    );
+    
+    //dropping previous indices definitions
+    if($reload){
+      foreach($indices as $index => $definition){
+        $query = "DROP INDEX \"$index\" ";
+        if(sedna_execute($query)){ //dropping existing index definition
+          $results[] = "index $index dropped";
         }
       }
     }
     
-    $this->setIndexes();
-    $this->SetXQLib();
-  }
-  
-  private function setIndexes(){
-    //SubjectData  / @SubjectKey
-    $query = $this->odm_declaration . " 
-        CREATE INDEX \"SubjectData\"
-        ON collection('ClinicalData')/odm:ODM/odm:ClinicalData/odm:SubjectData BY @SubjectKey
-        AS xs:string";
-    if(!sedna_execute($query)){
-      if(sedna_ercls() != "SE2033"){ //Index with the same name already exists.
-        $str = "Could create index '$query': " . sedna_error() ." (". __METHOD__ .")";
-        $this->addLog($str,FATAL);
+    //creating indices
+    foreach($indices as $index => $definition){
+      $query = $this->odm_declaration . " 
+          CREATE INDEX \"$index\"
+          ON ". $definition;
+      if(!sedna_execute($query)){
+        if(sedna_ercls() != "SE2033"){ //Index with the same name already exists.
+          $str = "Couldn't create index '$query': " . sedna_error() ." (". __METHOD__ .")";
+          $this->addLog($str,FATAL);
+        }else{
+          $results[] = "index $index already created";
+        }
       }else{
-        echo "index SubjectData already created<br/>";
+        $results[] = "index $index created";
       }
     }
     
-    //SubjectData / SiteRef
-    $query = $this->odm_declaration . " 
-        CREATE INDEX \"SiteRef\"
-        ON collection('ClinicalData')/odm:ODM/odm:ClinicalData/odm:SubjectData BY odm:SiteRef/@LocationOID
-        AS xs:string";
-    if(!sedna_execute($query)){
-      if(sedna_ercls() != "SE2033"){ //Index with the same name already exists.
-        $str = "Could create index '$query': " . sedna_error() ." (". __METHOD__ .")";
-        $this->addLog($str,FATAL);
-      }else{
-        echo "index SiteRef already created<br/>";
-      }
-    }
+    return $results;
   }
   
-  private function SetXQLib(){
+  /*
+  * @desc Modules initialiation
+  * @param optional boolean $reload : reload eventualy existing modules
+  * @return array of string $results : trace of what happened
+  * @author TPI, WLT
+  */    
+  private function setXQLib($reload=false){
+    $results = array();
+    
     $strLib = implode("','",$this->m_tblConfig['XQUERY_LIB']);
-    $query = "
-        LOAD MODULE '$strLib'";
+    
+    //unloading module
+    if($reload){
+      $query = "DROP MODULE 'http://www.alix-edc.com/alix'";
+      if(sedna_execute($query)){ //dropping existing module definition
+        $results[] = "xquery module $strLib dropped";
+      }
+    }
+    
+    //loading module
+    $query = "LOAD MODULE '$strLib'";
     if(!sedna_execute($query)){
       if(sedna_ercls() != "SE1073"){ //Module with the same name already exists.
         $str = "Could create module '$query': " . sedna_error() ." (". __METHOD__ .")";
         $this->addLog($str,FATAL);
       }else{
-        echo "xquery module $strLib already loaded<br/>";
+        echo "xquery module $strLib already loaded";
       }
-    }    
+    }else{
+      $results[] = "xquery module $strLib loaded";
+    }
+    
+    return $results;
   }
 }

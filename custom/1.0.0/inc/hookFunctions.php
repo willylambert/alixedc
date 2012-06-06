@@ -419,3 +419,349 @@ function uidashboard_getInterface_boardContent($id,$TITLE,$CONTENT,$uidashboard)
       $CONTENT = "Unknow dashboard Id '$id'.<br />Maybe you just forgot to create its content in hookFunctions.php";
   }
 }
+
+
+
+/**
+* Hook called just before the creation of the profile page (html)
+* @param $SubjectKey
+* @param $html HTML generated 
+* @param $uisubject
+* @return nothing
+* @author TPI
+**/  
+function uisubject_getProfile_profileContent($SubjectKey,$htmlContent,$uisubject){
+  $htmlContent = "";
+  
+  //Template
+  $template = dirname(__FILE__)."/templates/profile.htm";
+  if(!file_exists($template)){
+    $str = "Template not found '$template'.";
+    $uisubject->addLog($str,ERROR);
+  }
+  $handle = fopen($template, "r");
+  $htmlContent = fread($handle, filesize($template));
+  fclose($handle);
+  
+  //Values
+  $values = $uisubject->m_ctrl->bocdiscoo()->getValues($SubjectKey,"1","0","FORM.ENROL","0","ENROL","0");
+  $values += $uisubject->m_ctrl->bocdiscoo()->getValues($SubjectKey,"1","0","FORM.IC","0","DM","0");
+  $values += $uisubject->m_ctrl->bocdiscoo()->getValues($SubjectKey,"1","0","FORM.IC","0","DS","0");
+  $values += $uisubject->m_ctrl->bocdiscoo()->getValues($SubjectKey,"1","0","FORM.MH2","0","DC","0");
+  $values += $uisubject->m_ctrl->bocdiscoo()->getDecodedValues($SubjectKey,"1","0","FORM.PTT","0","PTT","0");
+  $values += $uisubject->m_ctrl->bocdiscoo()->getDecodedValues($SubjectKey,"APPENDICES","0","FORM.TRT","0","TTI","0");
+  
+  //History (relevant)
+  $HISTORY_values = array();
+  $HISTORY = "";
+  //Medical history
+  $HValues = $uisubject->m_ctrl->bocdiscoo()->getValues($SubjectKey,"1","0","FORM.DC","0","DC2","0");
+  if($HValues['DC2.GROWTHDE']=="Y"){
+    $HISTORY_values[] = "Growth delay";
+  }
+  if($HValues['CMD.RENAIMP']=="Y"){
+    $HISTORY_values[] = "Renal impairment";
+  }
+  if($HValues['CMD.HEPAIMP']=="Y"){
+    $HISTORY_values[] = "Hepatic impairment";
+  }
+  if($HValues['CMD.HEARTINS']=="Y"){
+    $HISTORY_values[] = "Cardiac impairment";
+  }
+  if($HValues['MH2.MALARIA']=="Y"){
+    $HISTORY_values[] = "Malaria";
+  }
+  if($HValues['MH2.TUBERCUL']=="Y"){
+    $HISTORY_values[] = "Tuberculosis";
+  }
+  if($HValues['MH2.G6PD']=="Y"){
+    $HISTORY_values[] = "G6PD deficiency ";
+  }
+  if($HValues['MH2.GENDIS']=="Y"){
+    $HISTORY_values[] = utf8_decode($HValues['MH2.GENDIOTH']);
+  }
+  //Malignancies
+  $DCMIGs = $uisubject->m_ctrl->bocdiscoo()->getItemGroupDatas($SubjectKey,"1","0","FORM.DC","0","DCM");
+  foreach($DCMIGs as $DCMIG){
+    if($DCMIG['ItemGroupRepeatKey']=="0") continue;
+    $HValues = $uisubject->m_ctrl->bocdiscoo()->getValues($SubjectKey,"1","0","FORM.DC","0","DCM",$DCMIG['ItemGroupRepeatKey']);
+    $HISTORY_values[] = utf8_decode($HValues['DCM.DESC']);
+  }
+  //Other relevant diseases
+  $CMOIGs = $uisubject->m_ctrl->bocdiscoo()->getItemGroupDatas($SubjectKey,"1","0","FORM.DC","0","CMO");
+  foreach($CMOIGs as $CMOIG){
+    if($CMOIG['ItemGroupRepeatKey']=="0") continue;
+    $HValues = $uisubject->m_ctrl->bocdiscoo()->getValues($SubjectKey,"1","0","FORM.DC","0","CMO",$CMOIG['ItemGroupRepeatKey']);
+    $HISTORY_values[] = utf8_decode($HValues['CMO.DISDESC']);
+  }
+  //Final string
+  $HISTORY .= ($HISTORY_values?"- ":"") . implode("<br />- ", $HISTORY_values);
+  
+  //Reasons for initiation
+  $PREREAS = $values['TRT.PREREAS'];
+  if($PREREAS=="Other") $PREREAS = utf8_decode($values['TRT.PRESOTH']);
+  
+  //Siklos® treatment
+  $TRT = "";
+  $TRTIGs = $uisubject->m_ctrl->bocdiscoo()->getItemGroupDatas($SubjectKey,"APPENDICES","0","FORM.TRT","0");
+  $previousTRT_ACTION = "";
+  foreach($TRTIGs as $TRTIG){
+    if($TRTIG['ItemGroupRepeatKey']=="0") continue;
+    $TRTvalues = $uisubject->m_ctrl->bocdiscoo()->getDecodedValues($SubjectKey,"APPENDICES","0","FORM.TRT","0","TRT",$TRTIG['ItemGroupRepeatKey']);
+    if($TRTvalues['TRT.ACTION']=="Modification"){
+      if($TRTvalues['TRT.ACTION']!=$previousTRT_ACTION){
+        $TRT .= "
+            <tr>
+              <td><b>Action</b>
+              </td>
+              <td><b>Date of modification</b>
+              </td>
+              <td><b>New dosage of treatment</b>
+              </td>
+              <td><b>Reason for modification</b>
+              </td>
+            </tr>
+        ";
+      }
+      $TRT_DATE = $uisubject->formatDate($TRTvalues['TRT.NEWSTDT'], true);
+      $TRT_DOSE = $TRTvalues['TRT.NEWDOSE'] ." ". ($TRTvalues['TRT.NEWDOSE']!=""?"mg/kg/day":"");
+      $TRT_REAS = $TRTvalues['TRT.NEWREAS'];
+      if($TRT_REAS=="Other") $TRT_REAS = utf8_decode($TRTvalues['TRT.OTHREAS']);
+      $previousTRT_ACTION = $TRTvalues['TRT.ACTION'];
+    }else{
+      if($TRTvalues['TRT.ACTION']!=$previousTRT_ACTION){
+        $TRT .= "
+            <tr>
+              <td><b>Action</b>
+              </td>
+              <td><b>Date treatment stopped</b>
+              </td>
+              <td><b>Dosage at stopping treatment</b>
+              </td>
+              <td><b>Reason for stopping treatment </b>
+              </td>
+            </tr>
+        ";
+      }
+      $TRT_DATE = $uisubject->formatDate($TRTvalues['TRT.STOPDT'], true);
+      $TRT_DOSE = $TRTvalues['TRT.STDOSE'] ." ". ($TRTvalues['TRT.STDOSE']!=""?"mg/kg/day":"");
+      $TRT_REAS = $TRTvalues['TRT.STOPREAS'];
+      if($TRT_REAS=="Other") $TRT_REAS = utf8_decode($TRTvalues['TRT.STOTHREA']);
+      $previousTRT_ACTION = $TRTvalues['TRT.ACTION'];
+    }
+    $TRT .= "
+        <tr>
+          <td>". $TRTvalues['TRT.ACTION'] ."&nbsp;
+          </td>
+          <td>". $TRT_DATE ."&nbsp;
+          </td>
+          <td>". $TRT_DOSE ."&nbsp;
+          </td>
+          <td>". $TRT_REAS ."&nbsp;
+          </td>
+        </tr>
+    ";
+  }
+  
+  //Concomitants treatments
+  $CTT = "";
+  $CTTIGs = $uisubject->m_ctrl->bocdiscoo()->getItemGroupDatas($SubjectKey,"APPENDICES","0","FORM.CTT","0");
+  foreach($CTTIGs as $CTTIG){
+    $CTTvalues = $uisubject->m_ctrl->bocdiscoo()->getDecodedValues($SubjectKey,"APPENDICES","0","FORM.CTT","0","CTT",$CTTIG['ItemGroupRepeatKey']);
+    $CTT .= "
+        <tr>
+          <td>". $CTTvalues['CTT.TRTTYPE'] ."&nbsp;
+          </td>
+          <td>". $uisubject->formatDate($CTTvalues['CTT.STDT'], true) ."&nbsp;
+          </td>
+          <td>". $CTTvalues['CTT.ONGO'] ."&nbsp;
+          </td>
+          <td>". $uisubject->formatDate($CTTvalues['CTT.ENDT'], true) ."&nbsp;
+          </td>
+          <td>". utf8_decode($CTTvalues['CTT.INDIC']) ."&nbsp;
+          </td>
+        </tr>
+    ";
+  }
+  
+  //Sickle cell event
+  $AESCD = "";
+  //Events since last visit
+  $SEs = $uisubject->m_ctrl->bocdiscoo()->getStudyEventDatas($SubjectKey);
+  foreach($SEs as $SE){
+    if($SE['StudyEventOID']!="FOLLOWUP") continue;
+    $VISITDT = $uisubject->m_ctrl->bocdiscoo()->getValue($SubjectKey,$SE['StudyEventOID'],$SE['StudyEventRepeatKey'],"FORM.VDT","0","VDT","0","VDT.VISITDT");
+    $Fs = $uisubject->m_ctrl->bocdiscoo()->getFormDatas($SubjectKey,$SE['StudyEventOID'],$SE['StudyEventRepeatKey']);
+    foreach($Fs as $F){
+      if($F['FormOID']!="FORM.EVT") continue;
+      $AESCDIGs = $uisubject->m_ctrl->bocdiscoo()->getItemGroupDatas($SubjectKey,$SE['StudyEventOID'],$SE['StudyEventRepeatKey'],"FORM.EVT",$F['FormRepeatKey']);
+      foreach($AESCDIGs as $AESCDIG){
+        $AESCDIGvalues = $uisubject->m_ctrl->bocdiscoo()->getDecodedValues($SubjectKey,$SE['StudyEventOID'],$SE['StudyEventRepeatKey'],"FORM.EVT",$F['FormRepeatKey'],$AESCDIG['ItemGroupOID'],$AESCDIG['ItemGroupRepeatKey']);
+        if($AESCDIG['ItemGroupOID']=="MH2"){ //Events since last visit
+          //Painful crisis > 48h
+          if($AESCDIGvalues['MH2.VOCRISE']=="Yes"){
+            $AESCD .= "
+                <tr>
+                  <td>". "Painful crisis > 48h" ."&nbsp;
+                  </td>
+                  <td>Number of crisis: ". $AESCDIGvalues['MH2.VOCRINUM'] ."&nbsp;
+                  </td>
+                  <td>". $uisubject->formatDate($VISITDT, true) ."&nbsp;
+                  </td>
+                  <td>". "" ."&nbsp;
+                  </td>
+                  <td>". $AESCDIGvalues['MH2.VOTRTCON'] ."&nbsp;
+                  </td>
+                </tr>
+            ";
+          }
+          //Acute chest syndrome
+          if($AESCDIGvalues['MH2.ACHEST']=="Yes"){
+            $AESCD .= "
+                <tr>
+                  <td>". "Acute chest syndrome" ."&nbsp;
+                  </td>
+                  <td>Number of crisis: ". $AESCDIGvalues['MH2.ACHESNUM'] ."&nbsp;
+                  </td>
+                  <td>". $uisubject->formatDate($VISITDT, true) ."&nbsp;
+                  </td>
+                  <td>". "" ."&nbsp;
+                  </td>
+                  <td>". $AESCDIGvalues['MH2.ACTRTCON'] ."&nbsp;
+                  </td>
+                </tr>
+            ";
+          }
+          //Hospitalisations related to SCD
+          if($AESCDIGvalues['MH2.HOSP']=="Yes"){
+            $AESCD .= "
+                <tr>
+                  <td>". "Hospitalisations related to SCD" ."&nbsp;
+                  </td>
+                  <td>Number of hospitalisations: ". $AESCDIGvalues['MH2.HOSPNB'] ."<br>Total number of days of hospitalisation: ". $AESCDIGvalues['MH2.HOSPNBDY'] ."
+                  </td>
+                  <td>". $uisubject->formatDate($VISITDT, true) ."&nbsp;
+                  </td>
+                  <td>". "" ."&nbsp;
+                  </td>
+                  <td>". $AESCDIGvalues['MH2.HOSTRTCO'] ."&nbsp;
+                  </td>
+                </tr>
+            ";
+          }
+        }elseif($AESCDIG['ItemGroupOID']=="AESCD"){ //Other sickle cell event
+          $TYPE = $AESCDIGvalues['AESCD.TYPE'];
+          if($TYPE=="Other") $TYPE = utf8_decode($AESCDIGvalues['AE.OTHER']);
+          $AESCD .= "
+              <tr>
+                <td>". $TYPE ."&nbsp;
+                </td>
+                <td>Outcome: ". $AESCDIGvalues['AE.EVOL'] ."&nbsp;
+                </td>
+                <td>". $uisubject->formatDate($VISITDT, true) ."&nbsp;
+                </td>
+                <td>". $AESCDIGvalues['AE.SEVERE'] ."&nbsp;
+                </td>
+                <td>". "" ."&nbsp;
+                </td>
+              </tr>
+          ";
+        }
+      }
+    }
+  }
+  
+  //Concomitants treatments
+  $AENOSCD = "";
+  $AENOSCDIGs = $uisubject->m_ctrl->bocdiscoo()->getItemGroupDatas($SubjectKey,"APPENDICES","0","FORM.AENOSCD","0");
+  foreach($AENOSCDIGs as $AENOSCDIG){
+    $AENOSCDvalues = $uisubject->m_ctrl->bocdiscoo()->getDecodedValues($SubjectKey,"APPENDICES","0","FORM.AENOSCD","0","AENOSCD",$AENOSCDIG['ItemGroupRepeatKey']);
+    $TYPE = $AENOSCDvalues['AENOSCD.TYPE'];
+    if($TYPE=="Other") $TYPE = utf8_decode($AENOSCDvalues['AE.OTHER']);
+    $SERIOUS = $AENOSCDvalues['AE.SERIOUS'];
+    if($SERIOUS=="Yes") $SERIOUS = $AENOSCDvalues['AE.SECR'];
+    $AENOSCD .= "
+        <tr>
+          <td>". $TYPE ."&nbsp;
+          </td>
+          <td>". utf8_decode($AENOSCDvalues['AE.DESC']) ."&nbsp;
+          </td>
+          <td>". $uisubject->formatDate($AENOSCDvalues['AE.STDT'], true) ."&nbsp;
+          </td>
+          <td>". $AENOSCDvalues['AE.ONGO'] ."&nbsp;
+          </td>
+          <td>". $uisubject->formatDate($AENOSCDvalues['AE.ENDT'], true) ."&nbsp;
+          </td>
+          <td>". $AENOSCDvalues['AE.SEVERE'] ."&nbsp;
+          </td>
+          <td>". $AENOSCDvalues['AE.SIKLREL'] ."&nbsp;
+          </td>
+          <td>". $SERIOUS ."&nbsp;
+          </td>
+        </tr>
+    ";
+  }
+  
+  //Weight and Height the more recent (at the last visit where they have been entered)
+  $WEIGHT = "";
+  $HEIGHT = "";
+  $DATEWEIGHT = "";
+  $DATEHEIGHT = "";
+  $LASTVISITDATE = "";
+  $LASTVISITNAME = "";
+  $nbSE = "".count($SEs);
+  for($i=($nbSE-1); $i>=0; $i--){
+    $SE = $SEs[$i];
+    $WEIGHT = $uisubject->m_ctrl->bocdiscoo()->getValue($SubjectKey,$SE['StudyEventOID'],$SE['StudyEventRepeatKey'],($SE['StudyEventOID']=="FOLLOWUP"?"FORM.CCC":"FORM.BOB"),"0","CCC","0","DM.WEIGHT");
+    if($WEIGHT!=""){
+      $DATEWEIGHT = $uisubject->m_ctrl->bocdiscoo()->getValue($SubjectKey,$SE['StudyEventOID'],$SE['StudyEventRepeatKey'],"FORM.VDT","0","VDT","0","VDT.VISITDT");
+      break;
+    }
+  }
+  for($i=($nbSE-1); $i>=0; $i--){
+    $SE = $SEs[$i];
+    $HEIGHT = $uisubject->m_ctrl->bocdiscoo()->getValue($SubjectKey,$SE['StudyEventOID'],$SE['StudyEventRepeatKey'],($SE['StudyEventOID']=="FOLLOWUP"?"FORM.CCC":"FORM.BOB"),"0","CCC","0","DM.HEIGHT");
+    if($HEIGHT!=""){
+      $DATEHEIGHT = $uisubject->m_ctrl->bocdiscoo()->getValue($SubjectKey,$SE['StudyEventOID'],$SE['StudyEventRepeatKey'],"FORM.VDT","0","VDT","0","VDT.VISITDT");
+      break;
+    }
+  }
+  $MetaDescriptions = $uisubject->m_ctrl->bocdiscoo()->getDescriptions("1.0.0");
+  for($i=($nbSE-1); $i>=0; $i--){
+    $SE = $SEs[$i];
+    $LASTVISITDATE = $uisubject->m_ctrl->bocdiscoo()->getValue($SubjectKey,$SE['StudyEventOID'],$SE['StudyEventRepeatKey'],"FORM.SV","0","SV","0","SV.SVSTDTC");
+    if($LASTVISITDATE!=""){
+      $LASTVISITNAME = $MetaDescriptions["1.0.0"]["StudyEventDef"]["{$SE['StudyEventOID']}"];
+    }
+  }
+  
+  //Remplacement dans le fichier html
+  $code = array("SUBJID", "INITIALS", "SITEID", "SITENAME", "LASTVISITDATE", "LASTVISITNAME", "SEX", "BRTHDT", "INCDT", "HISTORY", "SCDDIADT", "SCDSTDT", "HUTRT", "WEIGHT", "HEIGHT", "DATEWEIGHT", "DATEHEIGHT", "PRESTDT", "PREDOSE", "PREREAS", "TRT", "CTT", "AESCD", "AENOSCD");
+  $value = array($SubjectKey
+                ,$values['ENROL.SUBJINIT']
+                ,$values['ENROL.SITEID']
+                ,utf8_decode($values['ENROL.SITENAME'])
+                ,$uisubject->formatDate($LASTVISITDATE, true)
+                ,$LASTVISITNAME
+                ,$values['DM.SEX']
+                ,$uisubject->formatDate($values['DM.BRTHDTC'], true)
+                ,$uisubject->formatDate($values['DS.DSSTDTC'], true)
+                ,$HISTORY
+                ,$uisubject->formatDate($values['DC.SCDDIADT'], true)
+                ,$uisubject->formatDate($values['DC.SCDSTDT'], true)
+                ,$values['PTT.HUTRT']
+                ,$WEIGHT
+                ,$HEIGHT
+                ,$uisubject->formatDate($DATEWEIGHT, true)
+                ,$uisubject->formatDate($DATEHEIGHT, true)
+                ,$uisubject->formatDate($values['TRT.PRESTDT'], true)
+                ,$values['TRT.PREDOSE']
+                ,$PREREAS
+                ,$TRT
+                ,$CTT
+                ,$AESCD
+                ,$AENOSCD
+                );
+  
+  $htmlContent = str_replace(preg_replace("(.*)","{\${0}}",$code, 1), $value, $htmlContent);
+}

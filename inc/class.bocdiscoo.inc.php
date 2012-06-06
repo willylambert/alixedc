@@ -39,7 +39,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
 */
   private function addItemData($SubjectKey,$ItemGroupOID,$ItemGroupRepeatKey,$ItemGroupRef,$formVars,&$tblFilledVar,$subj,$AuditRecordID,$bEraseNotFoundItem=true,$nbAnnotations)
   {
-    $this->addLog("bocdiscoo->addItemData() : tblFilledVar = " . $this->dumpRet($tblFilledVar),TRACE);
+    $this->addLog(__METHOD__ ."() : tblFilledVar = " . $this->dumpRet($tblFilledVar),TRACE);
     $tblRet = array();
 
     //Loop through all ItemDef for current ItemGroup
@@ -226,7 +226,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
 
   private function checkFormConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey)
   {
-    $this->addLog("bocdiscoo->checkFormConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID)", INFO);
+    $this->addLog(__METHOD__ ."($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID)", INFO);
 
     //Loop through ItemDatas having Edit Checks (RangeCheck in ODM)
     $query = "
@@ -332,7 +332,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
   */
   public function RunXQuery($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemOID,$Value=false,$ErrorMessage,$FormalExpression,$FormalExpressionDecode,$SoftHard)
   {
-    $this->addLog("bocdiscoo->checkFormConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemOID,$Value,\$ErrorMessage,\$FormalExpression,\$FormalExpressionDecode,$SoftHard)", TRACE);
+    $this->addLog(__METHOD__ ."($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemOID,$Value,\$ErrorMessage,\$FormalExpression,\$FormalExpressionDecode,$SoftHard)", TRACE);
     
     $whereItemData = "";
     if($Value==false){
@@ -382,7 +382,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
         return $str;
       }
 
-      $this->addLog("bocdiscoo->checkFormConsistency() Control[{$StudyEventOID}][{$FormOID}][{$ctrl['ItemGroupOID']}][{$ctrl['ItemGroupRepeatKey']}]['{$ctrl['ItemOID'] }'] => Result=" . $ctrlResult[0]->Result, INFO);
+      $this->addLog(__METHOD__ ."() Control[{$StudyEventOID}][{$FormOID}][{$ctrl['ItemGroupOID']}][{$ctrl['ItemGroupRepeatKey']}]['{$ctrl['ItemOID'] }'] => Result=" . $ctrlResult[0]->Result, INFO);
       if($ctrlResult[0]->Result=='false'){
         if($ctrl['SoftHard']=="Hard"){
           $type = 'HC';
@@ -437,7 +437,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
   **/
   function checkItemGroupDataSanity($SubjectKey,$MetaDataVersion,$ItemGroupOID,$ItemGroupRepeatKey,$formVars)
   {
-    $this->addLog("bocdiscoo->checkItemGroupDataSanity($SubjectKey,$MetaDataVersion,$ItemGroupOID,$ItemGroupRepeatKey,formVars)",INFO);
+    $this->addLog(__METHOD__ ."($SubjectKey,$MetaDataVersion,$ItemGroupOID,$ItemGroupRepeatKey,formVars)",INFO);
 
     $Form = array();
     $errors = array();
@@ -645,7 +645,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
  **/
   function checkMandatoryData($SubjectKey, $StudyEventOID, $StudyEventRepeatKey, $FormOID, $FormRepeatKey)
   {
-    $this->addLog("bocdiscoo->checkMandatoryData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey)", INFO);
+    $this->addLog(__METHOD__ ."($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey)", INFO);
 
     $query = "
         let \$SubjectData := index-scan('SubjectData','$SubjectKey','EQ')
@@ -695,7 +695,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
     //Loop through errors to run CollectionConditionException
     $tblRet = array();
     foreach($errors[0] as $error){
-      $this->addLog("bocdiscoo->checkMandatoryData() : error=".$this->dumpRet($error),TRACE);
+      $this->addLog(__METHOD__ ."() : error=".$this->dumpRet($error),TRACE);
       
       //Position = 1 Because only one mandatory query can exist per Item
       //Type = M stand for Mandatory
@@ -731,11 +731,11 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
   								                  'itemOID' => $error['ItemOID']);
         }
   
-        $this->addLog("bocdiscoo->checkMandatoryData() Control[{$StudyEventOID}][{$FormOID}][{$error['ItemGroupOID']}][{$error['ItemGroupRepeatKey']}]['{$error['ItemOID'] }'] => Result=" . $ctrlResult[0]->Result, INFO);
+        $this->addLog(__METHOD__ ."() Control[{$StudyEventOID}][{$FormOID}][{$error['ItemGroupOID']}][{$error['ItemGroupRepeatKey']}]['{$error['ItemOID'] }'] => Result=" . $ctrlResult[0]->Result, INFO);
         
         if($ctrlResult[0]->Result=='true'){
           // CollectionConditionException return true - the Item is no more longer mandatory
-          $this->addLog("bocdiscoo->checkMandatoryData() : " . $error['ItemOID'] . " is no longer mandatory",INFO);
+          $this->addLog(__METHOD__ ."() : " . $error['ItemOID'] . " is no longer mandatory",INFO);
         }else{
           //Decode(s) extraction
           //We use an eval here to handle multiple decode, passed as parameters to function sprintf()
@@ -1147,7 +1147,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
  */
   public function getFormDatas($SubjectKey,$StudyEventOID="",$StudyEventRepeatKey="",$bNotEmpty=false)
   {
-    $this->addLog("bocdiscoo->getFormDatas($SubjectKey,$StudyEventOID,$StudyEventRepeatKey)",INFO);
+    $this->addLog(__METHOD__ ."($SubjectKey,$StudyEventOID,$StudyEventRepeatKey)",INFO);
     
     $whereStudy = "";
     if($StudyEventOID!=""){
@@ -1230,11 +1230,12 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
 @modification wlt le 02/03/2011 : passage de public a private
                                   paramètres StudyEventOID,StudyEventRepeatKey,FormOID et FormRepeatKey rendus optionnels
               wlt le 03/03/2011 : Ajout du Status dans les données retournées
+              tpi le 06/06/2012 : passage private à public pour utilisation dans hookFunctions.php
 @author tpi, wlt
 */
-  private function getItemGroupDatas($SubjectKey,$StudyEventOID="",$StudyEventRepeatKey="",$FormOID="",$FormRepeatKey="")
+  public function getItemGroupDatas($SubjectKey,$StudyEventOID="",$StudyEventRepeatKey="",$FormOID="",$FormRepeatKey="")
   {
-    $this->addLog("bocdiscoo->getItemGroupDatas($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey)",INFO);
+    $this->addLog(__METHOD__ ."($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey)",INFO);
     $query = "
               let \$SubjectData := index-scan('SubjectData','$SubjectKey','EQ')
               let \$FormData := \$SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey' or 
@@ -1255,7 +1256,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
   */
   public function getItemGroupDataCount($SubjectKey,$StudyEventOID="",$StudyEventRepeatKey="",$FormOID="",$FormRepeatKey="")
   {
-    $this->addLog("bocdiscoo->getItemGroupDataCount($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey)",TRACE);
+    $this->addLog(__METHOD__ ."($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey)",TRACE);
     $query = "
               let \$SubjectData := index-scan('SubjectData','$SubjectKey','EQ')
               let \$FormData := \$SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey' or 
@@ -1301,6 +1302,31 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
   }
 
   /**
+   * Return the list of StudyEvents for a subject.
+   * @author wlt         
+   **/  
+  public function getStudyEventDatas($SubjectKey)
+  {
+    $this->addLog(__METHOD__."($SubjectKey)",INFO);
+    $query = "
+              let \$SubjectData := index-scan('SubjectData','$SubjectKey','EQ')
+              for \$StudyEventData in \$SubjectData/odm:StudyEventData
+              return
+                <StudyEventData StudyEventOID='{\$StudyEventData/@StudyEventOID}'
+                               StudyEventRepeatKey='{\$StudyEventData/@StudyEventRepeatKey}'/>
+             ";
+
+    try{
+    $StudyEventData = $this->m_ctrl->socdiscoo($SubjectKey)->query($query);
+    }catch(xmlexception $e){
+      $str = "<html>Erreur de la requete : " . htmlentities($e->getMessage()) . "<br/><br/>" . htmlentities($query) . "</html> (". __METHOD__ .")";
+      $this->addLog("Erreur : getStudyEventDatas($SubjectKey) => $str",FATAL);
+      die($str);
+    }
+    return $StudyEventData;
+  }
+
+  /**
    * Return the requested form for a subject. 
    * First we build the metadata skeleton of form and itemgroup / item children,
    * then this skeleton is filled with values, codelists, units, translated element, ...
@@ -1308,7 +1334,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
    **/     
   function getStudyEventForms($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$includeAuditTrail=false,$paginateStart=0,$paginateEnd=0)
   {
-    $this->addLog("bocdiscoo->getStudyEventForms($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey)",INFO);
+    $this->addLog(__METHOD__."($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey)",INFO);
 
     //Depending of the form, additionnal item could be retrieved - see config.inc.php
     $customQueryLet = "";
@@ -1498,7 +1524,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
    **/  
   public function getSubjectsTblForm($SubjectKey)
   {
-    $this->addLog(__METHOD__ ."()",INFO);
+    $this->addLog(__METHOD__ ."($SubjectKey)",INFO);
     
     $query = "     
         let \$SubjectData := index-scan('SubjectData', '$SubjectKey', 'EQ')
@@ -1618,21 +1644,16 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
     if($exclude!==false){
       if(!is_array($exclude)) $exclude = array($exclude);
       foreach($exclude as $val){
-        $whereIGString .= " and local:getLastValue(./odm:*[@ItemOID='$ItemOID'])!=\"$val\"";
+        $whereIGString .= " and ./odm:*[@ItemOID='$ItemOID'][last()]/string()!=\"$val\"";
       }
     }
     
     $query = "
-      declare function local:getLastValue(\$ItemData as node()*) as xs:string?
-      {
-        let \$v := ''
-        return \$ItemData[last()]/string()
-      };
-      
       let \$SubjectData := index-scan('SubjectData','$SubjectKey','EQ')
-      let \$value := local:getLastValue(\$SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']
-                                                     /odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']
-                                                     /odm:ItemGroupData[@ItemGroupOID='$ItemGroupOID' and @ItemGroupRepeatKey='$ItemGroupRepeatKey' and @TransactionType!='Remove' $whereIGString]/odm:*[@ItemOID='$ItemOID'])
+      let \$value := \$SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']
+                                 /odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']
+                                 /odm:ItemGroupData[@ItemGroupOID='$ItemGroupOID' and @ItemGroupRepeatKey='$ItemGroupRepeatKey' and @TransactionType!='Remove' $whereIGString]
+                                 /odm:*[@ItemOID='$ItemOID'][last()]/string()
       return
         <result value='{\$value}' />
     ";
@@ -1640,6 +1661,119 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
     $doc = $this->m_ctrl->socdiscoo()->query($query);
 
     return (string)$doc[0]['value'];
+  }
+
+  /*
+  * @desc return decoded data for an ItemGroupData
+  * @author TPI
+  */  
+  public function getDecodedValues($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey)
+  {
+    $andStudyEventRepeatKey = "";
+    if($StudyEventRepeatKey!=""){
+      $andStudyEventRepeatKey = "and @StudyEventRepeatKey='$StudyEventRepeatKey'";
+    }
+    $andFormRepeatKey = "";
+    if($FormRepeatKey!=""){
+      $andFormRepeatKey = "and @FormRepeatKey='$FormRepeatKey'";
+    }
+    $andItemGroupRepeatKey = "";
+    if($ItemGroupRepeatKey!=""){
+      $andItemGroupRepeatKey = "and @ItemGroupRepeatKey='$ItemGroupRepeatKey'";
+    }
+    
+    //L'audit trail engendre plusieurs ItemData avec le même ItemOID, ce qui nous oblige
+    //pour chaque item à rechercher le dernier en regardant l'attribut AuditRecordID qui est le plus grand, et ce pour chaque item
+    $query = "
+      declare function local:getDecode(\$ItemData as node()*,\$SubjectData as node(),\$MetaDataVersion as node()) as xs:string?
+      {
+        let \$value := \$ItemData[last()]
+        let \$CodeListOID := \$MetaDataVersion/odm:ItemDef[@OID=\$ItemData/@ItemOID]/odm:CodeListRef/@CodeListOID
+        return
+          if(\$CodeListOID)
+          then \$MetaDataVersion/odm:CodeList[@OID=\$CodeListOID]/odm:CodeListItem[@CodedValue=\$value]/odm:Decode/odm:TranslatedText[@xml:lang='".$this->m_lang."']/string()
+          else \$value
+      };
+      
+      let \$SubjectData := index-scan('SubjectData','$SubjectKey','EQ')
+      let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
+      let \$ItemGroupData := \$SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' $andStudyEventRepeatKey]/odm:FormData[@FormOID='$FormOID' $andFormRepeatKey]/odm:ItemGroupData[@ItemGroupOID='$ItemGroupOID' $andItemGroupRepeatKey and (@TransactionType!='Remove' or not(@TransactionType))]
+      return
+        <results>
+        {
+          for \$ItemOID in distinct-values(\$ItemGroupData/odm:*/@ItemOID)
+          let \$ItemDatas := \$ItemGroupData/odm:*[@ItemOID=\$ItemOID]
+          let \$ItemData := \$ItemDatas[last()]
+          let \$ItemDataDecode := local:getDecode(\$ItemData,\$SubjectData,\$MetaDataVersion)
+          return
+            <result ItemOID='{\$ItemOID}' value='{\$ItemDataDecode}' />
+        }
+        </results>
+    ";
+    
+    try{
+      $doc = $this->m_ctrl->socdiscoo($SubjectKey)->query($query);
+    }catch(xmlexception $e){
+      $str = "Erreur de la requete : " . $e->getMessage() . "<br/><br/>" . $query . "</html> (". __METHOD__ .")";
+      $this->addLog($str,FATAL);
+      die($str);
+    }
+    $results = array();
+    foreach($doc[0] as $result){
+      $results[(string)$result[0]['ItemOID']] = (string)$result[0]['value'];
+    }
+    
+    return $results;
+  }
+
+  /*
+  * @desc return raw data for an ItemGroupData
+  * @author TPI
+  */    
+  public function getValues($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey)
+  {
+    $andStudyEventRepeatKey = "";
+    if($StudyEventRepeatKey!=""){
+      $andStudyEventRepeatKey = "and @StudyEventRepeatKey='$StudyEventRepeatKey'";
+    }
+    $andFormRepeatKey = "";
+    if($FormRepeatKey!=""){
+      $andFormRepeatKey = "and @FormRepeatKey='$FormRepeatKey'";
+    }
+    $andItemGroupRepeatKey = "";
+    if($ItemGroupRepeatKey!=""){
+      $andItemGroupRepeatKey = "and @ItemGroupRepeatKey='$ItemGroupRepeatKey'";
+    }
+    
+    //L'audit trail engendre plusieurs ItemData avec le même ItemOID, ce qui nous oblige
+    //pour chaque item à rechercher le dernier en regardant l'attribut AuditRecordID qui est le plus grand, et ce pour chaque item
+    $query = "
+      let \$SubjectData := index-scan('SubjectData','$SubjectKey','EQ')
+      let \$ItemGroupData := \$SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' $andStudyEventRepeatKey]/odm:FormData[@FormOID='$FormOID' $andFormRepeatKey]/odm:ItemGroupData[@ItemGroupOID='$ItemGroupOID' $andItemGroupRepeatKey and (@TransactionType!='Remove' or not(@TransactionType))]
+      return
+        <results>
+        {
+          for \$ItemOID in distinct-values(\$ItemGroupData/odm:*/@ItemOID)
+          let \$value := \$ItemGroupData/odm:*[@ItemOID=\$ItemOID][last()]/string()
+          return
+            <result ItemOID='{\$ItemOID}' value='{\$value}' />
+        }
+        </results>
+    ";
+    
+    try{
+      $doc = $this->m_ctrl->socdiscoo($SubjectKey)->query($query);
+    }catch(xmlexception $e){
+      $str = "Erreur de la requete : " . $e->getMessage() . "<br/><br/>" . $query . "</html> (". __METHOD__ .")";
+      $this->addLog($str,FATAL);
+      die($str);
+    }
+    $results = array();
+    foreach($doc[0] as $result){
+      $results[(string)$result[0]['ItemOID']] = (string)$result[0]['value'];
+    }
+    
+    return $results;
   }
   
   /**
@@ -1758,7 +1892,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
 
   public function removeFormData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey)
   {
-    $this->addLog("bocdiscoo->removeFormData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey)",INFO);
+    $this->addLog(__METHOD__ ."($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey)",INFO);
 
     $query = "UPDATE REPLACE \$x in index-scan('SubjectData','$SubjectKey','EQ')/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']/odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']/@TransactionType
               WITH attribute {'TransactionType'} {'Remove'}";
@@ -1783,7 +1917,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
   function saveItemGroupData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$formVars,$who,$where,$why,$fillst="",$bFormVarsIsAlreadyDecoded=false)
   {
     $hasModif = false;
-    $this->addLog("bocdiscoo->saveItemGroupData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$formVars,$who,$where,$why,$fillst,$bFormVarsIsAlreadyDecoded)",INFO);
+    $this->addLog(__METHOD__ ."($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$formVars,$who,$where,$why,$fillst,$bFormVarsIsAlreadyDecoded)",INFO);
         
     //DomDocument of Subject
     try{
@@ -1974,7 +2108,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
   **/
   protected function setItemGroupStatus($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$status)
   {
-    $this->addLog("bocdiscoo->setItemGroupStatus($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$status)",INFO);
+    $this->addLog(__METHOD__ ."($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$status)",INFO);
     
     $query = "UPDATE REPLACE \$x in index-scan('SubjectData','$SubjectKey','EQ')/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']
                                                                                 /odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']

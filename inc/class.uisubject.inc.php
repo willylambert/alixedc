@@ -516,7 +516,7 @@ return a context menu, can be used with a right click on inputs
   public function getProfile($SubjectKey){
     $htmlContent = "";
     
-    //HOOK => uisubject_getPDF_profileContent
+    //HOOK => uisubject_getProfile_profileContent
     $this->callHook(__FUNCTION__,"profileContent",array($SubjectKey,&$htmlContent,$this));
     
     //Default template
@@ -526,7 +526,7 @@ return a context menu, can be used with a right click on inputs
       $siteName = $this->m_ctrl->bosites()->getSiteName($siteId);
       $inclusionDate = $this->formatDate($this->m_ctrl->bosubjects()->getSubjectColValue($SubjectKey,"INCLUSIONDATE"));
       
-      $htmlContent = '<html><head><meta http-equiv=Content-Type content="text/html; charset=iso8859-2"></head><body> <font face="Arial"><center><table border="1" width="500" cellpadding="5" rules="rows"><tr> <td width="500" bgcolor="#000000"><font color="#ffffff"><b>Escort-HU STUDY</b></font></td></tr><tr> <td colspan="1">Patient '.$SubjectKey.'</td></tr><tr> <td colspan="1"><b>Patient profile</b></td></tr></table> <br><table border="1" width="500" cellpadding="5" rules="rows"><tr> <td colspan="2" bgcolor="#000000"><font color="#ffffff"><b>Patient profile</b></font></td></tr><tr> <td width="350"><b>Subject identifier </b></td> <td width="150">'.$SubjectKey.'</td></tr><tr> <td width="350"><b>Site Id </b></td> <td width="150">'.$siteId.'</td></tr><tr> <td width="350"><b>Site Name </b></td> <td width="150">'.$siteName.'</td></tr><tr> <td width="350"><b>Inclusion date </b></td> <td width="150">'.$inclusionDate.'</td></tr></table></center></font></body></html>';
+      $htmlContent = '<html><head><meta http-equiv=Content-Type content="text/html; charset=iso8859-2"></head><body> <font face="Arial"><center><table border="1" width="500" cellpadding="5" rules="rows"><tr> <td width="500" bgcolor="#000000"><font color="#ffffff"><b>'.$this->m_tblConfig['APP_NAME'].'</b></font></td></tr><tr> <td colspan="1">Patient '.$SubjectKey.'</td></tr><tr> <td colspan="1"><b>Patient profile</b></td></tr></table> <br><table border="1" width="500" cellpadding="5" rules="rows"><tr> <td colspan="2" bgcolor="#000000"><font color="#ffffff"><b>Patient profile</b></font></td></tr><tr> <td width="350"><b>Subject identifier </b></td> <td width="150">'.$SubjectKey.'</td></tr><tr> <td width="350"><b>Site Id </b></td> <td width="150">'.$siteId.'</td></tr><tr> <td width="350"><b>Site Name </b></td> <td width="150">'.$siteName.'</td></tr><tr> <td width="350"><b>Inclusion date </b></td> <td width="150">'.$inclusionDate.'</td></tr></table></center></font></body></html>';
       
       /*
       //template file
@@ -539,8 +539,8 @@ return a context menu, can be used with a right click on inputs
       $htmlContent = fread($handle, filesize($template));
       fclose($handle);
       
-      $code = array("SUBJECTKEY", "SITEID", "SITENAME", "INCLUSIONDATE");
-      $value = array($SubjectKey, $siteId, $siteName, $inclusionDate);
+      $code = array("STUDYNAME", "SUBJECTKEY", "SITEID", "SITENAME", "INCLUSIONDATE");
+      $value = array($this->m_tblConfig['APP_NAME'], $SubjectKey, $siteId, $siteName, $inclusionDate);
       $htmlContent = str_replace(preg_replace("(.*)","{\${0}}",$code, 1), $value, $htmlContent);
       */
     }

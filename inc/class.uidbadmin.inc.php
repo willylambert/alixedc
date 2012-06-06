@@ -518,7 +518,15 @@ class uidbadmin extends CommonFunctions{
  *@author wlt   
  **/   
   private function initDB(){
-    $this->m_ctrl->socdiscoo()->initDB();  
+    $htmlRet = "<div style='text-align: left'><ul>";
+    
+    $results = $this->m_ctrl->socdiscoo()->initDB(false, true,true);
+    foreach($results as $result){
+      $htmlRet .= "<li>$result</li>";
+    }
+    
+    $htmlRet .= "</ul></div>";
+    return $htmlRet;
   }
 
 /**
