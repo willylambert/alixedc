@@ -345,6 +345,13 @@ class idots_framework extends egw_framework
 		$tmpl->set_var('version',$GLOBALS['egw_info']['server']['versions']['phpgwapi']);
 		$tmpl->set_var('cd',check_logoutcode($_GET['cd']));
 		$tmpl->set_var('cookie',$last_loginid);
+		
+    //Notification : Optimized for IE9, Chrome, Firefox when <IE8
+		$information = "";
+    if(preg_match("/MSIE (\d+)\.(\d+);/", $_SERVER['HTTP_USER_AGENT'], $res)>0 && $res[1]<8){
+      $information = "<div style='width:100%;text-align:center;color:white;background-color:#5b7200;padding:3px;'><strong>For a better experience, please consider using <a class='discret_link' style='color:aqua' href='http://www.firefox.com'>Mozilla Firefox</a>, <a class='discret_link' style='color:aqua' href='http://www.google.com/chrome'>Google Chrome</a> or <a class='discret_link' style='color:aqua' href='http://windows.microsoft.com/en-GB/internet-explorer/downloads/ie'>Internet Explorer 9</a>.</strong></div>"; //<br />(You are using Internet Explorer ".$res[1].".".$res[2].")
+    }
+		$tmpl->set_var('information',$information);
 
 		$tmpl->set_var('lang_username',lang('username'));
 		$tmpl->set_var('lang_password',lang('password'));

@@ -82,10 +82,6 @@ class uietude extends CommonFunctions
   				                                                                              'testmode' => 'false', 
                                                                                            'title' => urlencode(lang('testmode')))).">Click here to exit test mode</a></div>";
     }
-    //Notification : Optimized for IE9, Chrome, Firefox when <IE9
-    if(preg_match("/MSIE (\d+)\.(\d+);/", $_SERVER['HTTP_USER_AGENT'], $res)>0 && $res[1]<9){
-      echo "<div style='width:100%;text-align:center;color:white;background-color:red;'><strong>Some important features may not work in this version of your browser. You should upgrade to a modern browser: <a class='discret_link' href='http://www.google.com/chrome'>Google Chrome</a> or <a class='discret_link' href='http://www.firefox.com'>Firefox</a>.</strong></div>"; //<br />(You are using Internet Explorer ".$res[1].".".$res[2].")
-    }
 	}
 	
 	/**
