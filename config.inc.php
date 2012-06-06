@@ -203,6 +203,18 @@
 
   //Forms for which a deviation can be entered
   //Example : $configEtude['FORM_DEVIATIONS'][] =  array('SEOID'=>'ENROL','SERK'=>'0','FRMOID'=>'FORM.VDT','FRMRK'=>'0');
+  $configEtude['FORM_DEVIATIONS'][] =  array('SEOID'=>'2','SERK'=>'0','FRMOID'=>'FORM.YNLV','FRMRK'=>'0');
+  $configEtude['FORM_DEVIATIONS'][] =  array('SEOID'=>'3','SERK'=>'0','FRMOID'=>'FORM.YNLV','FRMRK'=>'0');
+  $configEtude['FORM_DEVIATIONS'][] =  array('SEOID'=>'4','SERK'=>'0','FRMOID'=>'FORM.YNLV','FRMRK'=>'0');
+  $configEtude['FORM_DEVIATIONS'][] =  array('SEOID'=>'FW','SERK'=>'1','FRMOID'=>'FORM.YNLV','FRMRK'=>'0');
+  $configEtude['FORM_DEVIATIONS'][] =  array('SEOID'=>'FW','SERK'=>'2','FRMOID'=>'FORM.YNLV','FRMRK'=>'0');
+  $configEtude['FORM_DEVIATIONS'][] =  array('SEOID'=>'FW','SERK'=>'3','FRMOID'=>'FORM.YNLV','FRMRK'=>'0');
+  $configEtude['FORM_DEVIATIONS'][] =  array('SEOID'=>'FW','SERK'=>'4','FRMOID'=>'FORM.YNLV','FRMRK'=>'0');
+  $configEtude['FORM_DEVIATIONS'][] =  array('SEOID'=>'FW','SERK'=>'5','FRMOID'=>'FORM.YNLV','FRMRK'=>'0');
+  $configEtude['FORM_DEVIATIONS'][] =  array('SEOID'=>'FW','SERK'=>'6','FRMOID'=>'FORM.YNLV','FRMRK'=>'0');
+  $configEtude['FORM_DEVIATIONS'][] =  array('SEOID'=>'FW','SERK'=>'7','FRMOID'=>'FORM.YNLV','FRMRK'=>'0');
+  $configEtude['FORM_DEVIATIONS'][] =  array('SEOID'=>'FW','SERK'=>'8','FRMOID'=>'FORM.YNLV','FRMRK'=>'0');
+  $configEtude['FORM_DEVIATIONS'][] =  array('SEOID'=>'FW','SERK'=>'9','FRMOID'=>'FORM.YNLV','FRMRK'=>'0');
   
  //Security                                                
   $configEtude['PASSWORD']['MIN_LENGTH'] = 6;         
