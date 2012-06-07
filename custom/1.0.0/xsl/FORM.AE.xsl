@@ -59,7 +59,7 @@
 		
 			function updateUI(origin,loading,ItemGroupOID,ItemGroupRepeatKey)
 			{  
-	         //// Attribution de la clé AESEQ
+	        // AESEQ key
 					input_origin1 = 'text_text_AE@AETERM_0';
 
 					if(origin.name==input_origin1) 
@@ -70,6 +70,24 @@
 						$("input[name='text_integer_AE@AESEQ_0']").val(Cle);
 						$("input[name='text_integer_AE@AESEQ_0']").attr("readonly",true);
 					}
+
+          // disable AE.AEENDTC
+					input_destination = 'AE.AEENDTC'; /*ITEMOID=destination*/
+					input_origin = 'select_AE@AEOUT_0';
+			
+					if(origin.name==input_origin) 
+					{
+						action = $("select[name='select_AE@AEOUT_0']").val();
+  
+            if(typeof(action)=="undefined" || action==''  || !(action=='1' || action=='2' || action=='4'))
+						{
+							freezeFields(input_destination,ItemGroupOID,ItemGroupRepeatKey,true,false,false); 
+						}
+						else
+						{
+							freezeFields(input_destination,ItemGroupOID,ItemGroupRepeatKey,false,false,false);
+						}						
+					}					
 			}		
 	 </script>
   </div>  
