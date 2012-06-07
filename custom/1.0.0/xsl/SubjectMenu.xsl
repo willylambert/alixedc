@@ -30,6 +30,9 @@
 <xsl:param name="SelDT"/>
 <xsl:param name="IncDT"/>
 <xsl:param name="DMAGE"/>
+<xsl:param name="FwDrug1"/>
+<xsl:param name="FwDrug2"/>
+<xsl:param name="FwDrug3"/>
 
 <!--Catch all-->
 <xsl:template match="*">
@@ -69,13 +72,42 @@
        <!--Button to add Follow up visit--> 
        <h4 id="btnAddFollowUp" class="ui-accordion-header ui-helper-reset ui-state-default ui-corner-all ui-state-highlight">
          <xsl:variable name="newStudyEventRepeatKey"><xsl:value-of select="count(h3[@StudyEventOID='FW' and @StudyEventRepeatKey!='0'])+1"/></xsl:variable>
-         <xsl:variable name="url">index.php?menuaction=<xsl:value-of select="$CurrentApp"/>.uietude.subjectInterface&amp;action=addVisit&amp;SubjectKey=<xsl:value-of select="$SubjectKey"/>&amp;StudyEventOID=FW&amp;StudyEventRepeatKey=<xsl:value-of select="$newStudyEventRepeatKey"/>&amp;FormOID=FORM.SV&amp;FormRepeatKey=0</xsl:variable>
+         <xsl:variable name="url">index.php?menuaction=<xsl:value-of select="$CurrentApp"/>.uietude.subjectInterface&amp;action=addVisit&amp;SubjectKey=<xsl:value-of select="$SubjectKey"/>&amp;StudyEventOID=FW&amp;StudyEventRepeatKey=<xsl:value-of select="$newStudyEventRepeatKey"/>&amp;FormOID=FORM.SVFW&amp;FormRepeatKey=0</xsl:variable>
          <a href="{$url}">Add Follow Up Visit</a>
        </h4>
    </xsl:copy> 
   </xsl:if>
 </xsl:template>
-        
+
+<xsl:template match="div[@FormOID='FORM.ELIG']">
+  <xsl:choose>
+    <xsl:when test="@StudyEventRepeatKey='1'">
+      <xsl:if test="$FwDrug1='1'">
+        <xsl:copy>
+          <xsl:copy-of select="@*"/>
+          <xsl:apply-templates/>
+        </xsl:copy>
+      </xsl:if>
+    </xsl:when>
+    <xsl:when test="@StudyEventRepeatKey='2'">
+      <xsl:if test="$FwDrug2='1'">
+        <xsl:copy>
+          <xsl:copy-of select="@*"/>
+          <xsl:apply-templates/>
+        </xsl:copy>
+      </xsl:if>
+    </xsl:when>
+    <xsl:when test="@StudyEventRepeatKey='3'">
+      <xsl:if test="$FwDrug3='1'">
+        <xsl:copy>
+          <xsl:copy-of select="@*"/>
+          <xsl:apply-templates/>
+        </xsl:copy>
+      </xsl:if>
+    </xsl:when>
+  </xsl:choose>   
+</xsl:template>
+
 <!--Link to add AE-->
 <xsl:template match="div[preceding-sibling::h3[@id='visit_AE_0']][1]">
   <xsl:copy>

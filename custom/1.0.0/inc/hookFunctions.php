@@ -110,8 +110,62 @@ function uisubject_getInterface_xslParameters($FormOID,$xslProc,$uisubject){
   }
 }
 
-function ajax_saveItemGroupData_afterSave($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$ajax){
+function ajax_saveItemGroupData_afterSave($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$hasModif,$ajax){
+  //Send AE notification
+  $ajax->addLog(__FUNCTION__ . "($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,\$ajax)",INFO);
+  if($StudyEventOID=="AE" && $FormOID=="FORM.AE" && $hasModif ){
+    //Template
+    $template = dirname(__FILE__)."/templates/AE.htm";
+    if(!file_exists($template)){
+      $str = "Template not found '$template'.";
+      $uisubject->addLog($str,ERROR);
+    }
+    $handle = fopen($template, "r");
+    $htmlContent = fread($handle, filesize($template));
+    fclose($handle);
+    //Values
+    $values = $ajax->m_ctrl->bocdiscoo()->getDecodedValues($SubjectKey,"1","0","FORM.ENROL","0","ENROL","0");
+    $values += $ajax->m_ctrl->bocdiscoo()->getDecodedValues($SubjectKey,"1","0","FORM.IC","0","DS","0");    
+    $values += $ajax->m_ctrl->bocdiscoo()->getDecodedValues($SubjectKey,"1","0","FORM.IC","0","DM","0");    
+    $values += $ajax->m_ctrl->bocdiscoo()->getDecodedValues($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey);
 
+    $code = array("{SITENAME}", "{SITEID}", "{INVID}", "{SUBJID}", "{BRTHDT}", "{SEX}", "{AERK}", "{DIAG}", "{STDT}", "{AESEV}", "{AECONTR}", "{AEACN}", "{AEOUT}", "{AEENDTC}", "{AESER}", "{AECOM}");
+    $value = array($values['ENROL.SITENAME']
+                  ,$values['ENROL.SITEID']
+                  ,$values['DS.INVNAM']
+                  ,$SubjectKey
+                  ,$values['DM.BRTHDTC']
+                  ,$values['DM.SEX']
+                  ,$FormRepeatKey
+                  ,utf8_decode($values['AE.AETERM'])
+                  ,$values['AE.AESTDTC']
+                  ,$values['AE.AESEV']
+                  ,$values['AE.AECONTR']
+                  ,$values['AE.AEACN']
+                  ,$values['AE.AEOUT']
+                  ,$values['AE.AEENDTC']
+                  ,$values['AE.AESER']
+                  ,$values['AE.AECOM']);
+        
+    $htmlContent = str_replace($code, $value, $htmlContent);
+    
+    $filename = $ajax->m_tblConfig["APP_NAME"].'_Adverse_Event_-_Patient_'. $SubjectKey .'_Site_'.$values['ENROL.SITEID'].'.pdf';
+    
+    $mailSubject = $ajax->m_tblConfig["APP_NAME"].' - Adverse Event - Patient '. $SubjectKey .', Site '.$values['ENROL.SITEID'];
+    
+    $bodyMessage = "
+    Please find enclosed a notice of adverse event.
+    
+    The patient profile can be downloaded here: http://". $GLOBALS['egw']->accounts->config['hostname'] . $GLOBALS['egw']->accounts->config['webserver_url'] ."/index.php?menuaction=alixedc.uietude.subjectPDF&mode=profile&SubjectKey=". $SubjectKey ."";
+            
+    //Description qui figurera en en-tête de la page de notification
+    $description = "Adverse Event";
+    
+    $recipients = $ajax->m_ctrl->bocdiscoo()->getValue($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,"AE.PVEMAIL");
+
+    sendNotification($htmlContent, $mailSubject, $recipients, $filename, $bodyMessage,$ajax);
+
+  }
 }
 
 /**
@@ -131,9 +185,23 @@ function uisubject_getMenu_xslParameters($xslProc,$uisubject){
   $selDT = $uisubject->m_ctrl->bocdiscoo()->getValue($_GET['SubjectKey'],"1","0","FORM.SV","0","SV","0","SV.SVSTDTC");  
   $incDT =  $uisubject->m_ctrl->bocdiscoo()->getValue($_GET['SubjectKey'],"2","0","FORM.SV","0","SV","0","SV.SVSTDTC");
   $dmAge = $uisubject->m_ctrl->bocdiscoo()->getValue($_GET['SubjectKey'],"1","0","FORM.IC","0","DM","0","DM.AGE");
+
+  $fwDrug1 = $uisubject->m_ctrl->bocdiscoo()->getValue($_GET['SubjectKey'],"FW","1","FORM.SVFW","0","SVFW","0","SVFW.DRUGD");
+  $fwDrug2 = $uisubject->m_ctrl->bocdiscoo()->getValue($_GET['SubjectKey'],"FW","2","FORM.SVFW","0","SVFW","0","SVFW.DRUGD");
+  $fwDrug3 = $uisubject->m_ctrl->bocdiscoo()->getValue($_GET['SubjectKey'],"FW","3","FORM.SVFW","0","SVFW","0","SVFW.DRUGD");
+  $fwDrug4 = $uisubject->m_ctrl->bocdiscoo()->getValue($_GET['SubjectKey'],"FW","4","FORM.SVFW","0","SVFW","0","SVFW.DRUGD");
+  $fwDrug5 = $uisubject->m_ctrl->bocdiscoo()->getValue($_GET['SubjectKey'],"FW","5","FORM.SVFW","0","SVFW","0","SVFW.DRUGD");
+  $fwDrug6 = $uisubject->m_ctrl->bocdiscoo()->getValue($_GET['SubjectKey'],"FW","6","FORM.SVFW","0","SVFW","0","SVFW.DRUGD");
+  
   $xslProc->setParameter('','SelDT',$selDT);
   $xslProc->setParameter('','IncDT',$incDT);
   $xslProc->setParameter('','DMAGE',$dmAge);
+  $xslProc->setParameter('','FwDrug1',$fwDrug1);
+  $xslProc->setParameter('','FwDrug2',$fwDrug2);
+  $xslProc->setParameter('','FwDrug3',$fwDrug3);
+  $xslProc->setParameter('','FwDrug4',$fwDrug4);
+  $xslProc->setParameter('','FwDrug5',$fwDrug5);
+  $xslProc->setParameter('','FwDrug6',$fwDrug6);
 }
 
 /**
@@ -158,6 +226,7 @@ function bosubjects_getSubjectStatus_customSubjectStatus($subj,&$SubjectStatus,$
 }
 
 function uisubject_getMenu_beforeRendering($SubjectKey,&$tblForm,$uisubject){
+
 }
 
 function bocdiscoo_getNewPatientID_customSubjId($bocdiscoo){
@@ -526,3 +595,58 @@ function uisubject_getProfile_profileContent($SubjectKey,$htmlContent,$uisubject
   
   $htmlContent = str_replace(preg_replace("(.*)","{\${0}}",$code, 1), $value, $htmlContent);
 }
+
+  /**
+   *@desc Envoi de la notification
+   *@param 
+   *       $mailSubject : Objet de l'email
+   *       $toNumber : destinatires (email et numéro de fax séparés par des virgules)
+   *       $filename : nom du fichier à envoyer
+   *       $bodyMessage : corps du message email
+   *@author tpi
+   *@return      
+   *        boolean
+   *@comment           
+   */  
+  function sendNotification($htmlContent, $mailSubject, $recipients, $filename, $bodyMessage,$ajax)
+  {
+    $ajax->addLog("sendNotification(\$htmlContent, $mailSubject, $recipients, $filename, \$bodyMessage)",INFO);
+    require_once(dirname(__FILE__) ."/CMailFile.php3");
+    try
+    {
+      $htmlTemp = tempnam("/tmp","htmlDocGfpc");
+      $tmpHandle = fopen($htmlTemp,"w");
+      fwrite($tmpHandle,$htmlContent);
+      fclose($tmpHandle);
+      
+      # Tell HTMLDOC not to run in CGI mode...
+      putenv("HTMLDOC_NOCGI=1");
+      //Generation et affichage sur la sortie standard
+      //$cmd = "htmldoc -f $filename -t pdf --quiet --color --webpage --jpeg  --left 30 --top 20 --bottom 20 --right 20 --footer c.: --fontsize 10 --textfont {helvetica}";
+      $cmd = "htmldoc -t pdf --quiet --color --webpage --jpeg  --left 30 --top 20 --bottom 20 --right 20 --footer c.: --fontsize 10 --textfont {helvetica}";
+      ob_start();
+      $err = passthru("$cmd '$htmlTemp'");
+      $content = ob_get_contents();
+      ob_end_clean();
+      $tmpHandle = fopen(dirname(__FILE__)."/tmp/".$filename,"w");
+      fwrite($tmpHandle,$content);
+      fclose($tmpHandle);
+      unlink($htmlTemp);
+      
+      if($err!=0){
+        throw new Exception("HTMLDOC error with code '$err'.");
+      }
+      
+      $newmail = new CMailFile($mailSubject,$recipients,"svp.clinical@businessdecision.com",utf8_decode($bodyMessage),dirname(__FILE__)."/tmp/$filename","application/octet-stream",$filename);
+      $newmail->sendfile();
+      
+      $ajax->addLog("Notification sent : $mailSubject",INFO);
+      return true;
+    }
+    catch(Exception $e)
+    {
+      $str= "Error while sending a notification (".$filename.") : Line ". $e->getLine() ." - ". $e->getMessage() ." (". __METHOD__ .")";
+      $ajax->addLog($str,ERROR);
+      return false;
+    }
+  }

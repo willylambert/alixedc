@@ -1710,19 +1710,11 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
         }
         </results>
     ";
-    
-    try{
-      $doc = $this->m_ctrl->socdiscoo($SubjectKey)->query($query);
-    }catch(xmlexception $e){
-      $str = "Erreur de la requete : " . $e->getMessage() . "<br/><br/>" . $query . "</html> (". __METHOD__ .")";
-      $this->addLog($str,FATAL);
-      die($str);
-    }
+    $doc = $this->m_ctrl->socdiscoo($SubjectKey)->query($query);
     $results = array();
     foreach($doc[0] as $result){
       $results[(string)$result[0]['ItemOID']] = (string)$result[0]['value'];
-    }
-    
+    }    
     return $results;
   }
 

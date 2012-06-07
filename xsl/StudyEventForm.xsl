@@ -200,7 +200,9 @@
         <!--Un bouton permet de supprimer le FormData-->
         <xsl:if test="$ReadOnly='false' and $ItemGroup/../@Repeating='Yes'">
           <tr><td colspan='5'>
+            <!--
             <button name="btnRemoveFormData" class="ui-state-default ui-corner-all">Remove <xsl:value-of select="$ItemGroup/@Title"/></button>
+            -->
             <!--Boite de dialogue de confirmation de suppression-->
           </td></tr>
         </xsl:if>         

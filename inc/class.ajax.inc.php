@@ -192,10 +192,10 @@ public function checkFormData(){
       
       if($profile['profileId']=="INV" || $siteId=="BLANK"){
         //Saving data
-        $this->m_ctrl->bocdiscoo()->saveItemGroupData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$_POST,$who,$where,$why,$fillst="");
+        $hasModif = $this->m_ctrl->bocdiscoo()->saveItemGroupData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$_POST,$who,$where,$why,$fillst="");
   
         //HOOK => ajax_saveItemGroupData_afterSave
-        $this->callHook(__FUNCTION__,"afterSave",array($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$this));      
+        $this->callHook(__FUNCTION__,"afterSave",array($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$hasModif,$this));      
       }else{
         $this->addLog("Unauthorized access to saveItemGroupData function. Administrator have been notified.$SubjectKey / $siteId / {$profile['profileId']}",FATAL);
       }

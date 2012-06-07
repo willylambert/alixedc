@@ -196,11 +196,15 @@ class uidashboard extends CommonFunctions
   }
   
   private function getCurve(){    
-
+    $htmlRet = "";
+    
+    //we need an excanvas for IE<9
+    if(preg_match("/MSIE (\d+)\.(\d+);/", $_SERVER['HTTP_USER_AGENT'], $res)>0 && $res[1]<9){
+      $htmlRet .= "<script language='javascript' type='text/javascript' src='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/excanvas.js') . "'></script>";
+    }
 
     //style des chiffres de la courbe
-    $htmlRet = "
-                <!--[if IE]><script language='javascript' type='text/javascript' src='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/excanvas.js') . "'></script><![endif]--> 
+    $htmlRet .= "
                 <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jqplot/jquery.jqplot.min.js') . "'></SCRIPT>
                 <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jqplot/jqplot.pointLabels.min.js') . "'></SCRIPT>
                 <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jqplot/jqplot.canvasTextRenderer.min.js') . "'></SCRIPT>
@@ -309,7 +313,7 @@ class uidashboard extends CommonFunctions
                               show: true,
                               location: 'ne',  
                               xoffset: 12,  
-                              yoffset: 12,
+                              yoffset: 12
                           },
                       axesDefaults:{
                         pad:1.3,
