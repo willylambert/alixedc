@@ -2,7 +2,7 @@
 <!--
 /**************************************************************************\
 * ALIX EDC SOLUTIONS                                                       *
-* Copyright 2011 Business & Decision Life Sciences                         *
+* Copyright 2012 Business & Decision Life Sciences                         *
 * http://www.alix-edc.com                                                  *
 *                                                                          *
 * This file is part of ALIX.                                               *
@@ -41,7 +41,6 @@
 <xsl:template match="div[@id='mysite']">
 	<xsl:copy>
 		<xsl:copy-of select="@*"/>
-		<xsl:apply-templates/>
 		<span id='userInfo'>
 		  [ 
       <a>
@@ -51,6 +50,7 @@
        ]
       <xsl:value-of select="$UserInfo"/>
 		</span>
+		<xsl:apply-templates/>
   </xsl:copy>
 </xsl:template>
 

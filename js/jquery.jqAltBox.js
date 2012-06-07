@@ -1,10 +1,26 @@
+    /**************************************************************************\
+    * ALIX EDC SOLUTIONS                                                       *
+    * Copyright 2012 Business & Decision Life Sciences                         *
+    * http://www.alix-edc.com                                                  *
+    * ------------------------------------------------------------------------ *
+    * This file is part of ALIX.                                               *
+    *                                                                          *
+    * ALIX is free software: you can redistribute it and/or modify             *
+    * it under the terms of the GNU General Public License as published by     *
+    * the Free Software Foundation, either version 3 of the License, or        *
+    * (at your option) any later version.                                      *
+    *                                                                          *
+    * ALIX is distributed in the hope that it will be useful,                  *
+    * but WITHOUT ANY WARRANTY; without even the implied warranty of           *
+    * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            *
+    * GNU General Public License for more details.                             *
+    *                                                                          *
+    * You should have received a copy of the GNU General Public License        *
+    * along with ALIX.  If not, see <http://www.gnu.org/licenses/>.            *
+    \**************************************************************************/
+    
 /**
- * Copyright (c) 2011 Thomas Perraudin
- * jqAltBox is currently available for use in all personal or commercial projects 
- * under both the MIT (http://www.opensource.org/licenses/mit-license.php) and GPL 
- * version 2.0 (http://www.gnu.org/licenses/gpl-2.0.html) licenses. This means that you can 
- * choose the license that best suits your project and use it accordingly. 
- * 
+ * Author 2011 Thomas Perraudin
  * 
  * jqAltBox adds a div box similar to the box created with the attribute "alt" for images, on every element with attribute altbox.
  * The text displayed in the box is the value of the attribute altbox.
