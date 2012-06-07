@@ -92,7 +92,7 @@ function loadSubjectsGrid(CurrentApp, config, bShowPDF, bShowProfile)
             width: width,
             align:'center',
             formatter: formatter,
-            search: false,
+            search: false
           });
         }
       }
