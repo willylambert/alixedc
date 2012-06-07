@@ -1,7 +1,7 @@
 <?php
     /**************************************************************************\
     * ALIX EDC SOLUTIONS                                                       *
-    * Copyright 2011 Business & Decision Life Sciences                         *
+    * Copyright 2012 Business & Decision Life Sciences                         *
     * http://www.alix-edc.com                                                  *
     * ------------------------------------------------------------------------ *                                                                       *
     * This file is part of ALIX.                                               *
@@ -183,12 +183,12 @@ class boacl extends CommonFunctions
         case "deleteDoc" :
         case "viewDocs" :
         case "EditDocs" :
+        case "ManageUsers" :
+        case "ManageSites" :
            if( $GLOBALS['egw_info']['user']['apps']['admin']){
             $access = true; 
            }
            break;    
-        case "ManageUsers" :
-        case "ManageSites" :
         case "ExportData" :
            if($GLOBALS['egw_info']['user']['apps']['admin'] || 
               $this->m_ctrl->boacl()->existUserProfileId(array("DM","SPO"))){
