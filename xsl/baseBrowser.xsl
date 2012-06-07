@@ -41,7 +41,6 @@
 <xsl:template match="div[@id='mysite']">
 	<xsl:copy>
 		<xsl:copy-of select="@*"/>
-		<xsl:apply-templates/>
 		<span id='userInfo'>
 		  [ 
       <a>
@@ -51,6 +50,7 @@
        ]
       <xsl:value-of select="$UserInfo"/>
 		</span>
+		<xsl:apply-templates/>
   </xsl:copy>
 </xsl:template>
 
