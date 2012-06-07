@@ -1,9 +1,9 @@
 <?php
     /**************************************************************************\
     * ALIX EDC SOLUTIONS                                                       *
-    * Copyright 2011 Business & Decision Life Sciences                         *
+    * Copyright 2012 Business & Decision Life Sciences                         *
     * http://www.alix-edc.com                                                  *
-    * ------------------------------------------------------------------------ *                                                                       *
+    * ------------------------------------------------------------------------ *
     * This file is part of ALIX.                                               *
     *                                                                          *
     * ALIX is free software: you can redistribute it and/or modify             *

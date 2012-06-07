@@ -1,6 +1,6 @@
     /**************************************************************************\
     * ALIX EDC SOLUTIONS                                                       *
-    * Copyright 2011 Business & Decision Life Sciences                         *
+    * Copyright 2012 Business & Decision Life Sciences                         *
     * http://www.alix-edc.com                                                  *
     * ------------------------------------------------------------------------ *
     * This file is part of ALIX.                                               *
@@ -18,7 +18,7 @@
     * You should have received a copy of the GNU General Public License        *
     * along with ALIX.  If not, see <http://www.gnu.org/licenses/>.            *
     \**************************************************************************/
-
+    
 //Message d'erreur
 sMsgError = " If the error persists please contact svp.clinical@businessdecision.com";
 
