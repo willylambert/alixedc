@@ -25,9 +25,6 @@
 <xsl:output method="xml" encoding="UTF-8" indent="no"/>
 <xsl:include href="include/alixlib.xsl"/>
 
-<!-- Parameters recovery -->
-<xsl:param name="StudyEventOID"/>
-
 <!--Catch all non treated tags, print them with no treatment-->
 <xsl:template match="*">
    <xsl:copy>
@@ -120,29 +117,6 @@
     
     }
    </script>
-</xsl:template>
-
-<!--Add help label for data entry (visit name)-->
-<xsl:template match="h3">
-   <xsl:copy>
-   <xsl:choose>
-  <xsl:when test="$StudyEventOID = 1">
-    Date of Screening Visit
-  </xsl:when>
-  <xsl:when test="$StudyEventOID = 2">
-    Date of Inclusion Visit
-  </xsl:when>
-  <xsl:when test="$StudyEventOID = 3">
-    Date of Visit V1
-  </xsl:when>
-  <xsl:when test="$StudyEventOID = 4">
-     Date of Visit V2
-  </xsl:when>
-  <xsl:otherwise>   
-  </xsl:otherwise>
-</xsl:choose>
-
-   </xsl:copy>
 </xsl:template>
 
 </xsl:stylesheet>
