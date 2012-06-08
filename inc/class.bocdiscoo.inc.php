@@ -1611,6 +1611,9 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
               }           
             }
             $form->setAttribute("Status",$frmStatus);
+          }else{
+            $nbForm++;
+            $nbFormEmpty++;  
           }
         }
         if($nbForm==$nbFormEmpty){
