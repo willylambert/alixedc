@@ -504,6 +504,22 @@ function uidashboard_getInterface_boardContent($id,$TITLE,$CONTENT,$uidashboard)
 
 
 /**
+* Hook called after the creation of the main menu (html)
+* @param $html
+* @param $etudemenu
+* @author TPI
+**/  
+function etudemenu_getMenu_htmlContent(&$html,$etudemenu){
+  $html .= "
+    <script>
+      var testmode = ". ($_SESSION[$etudemenu->getCurrentApp(false)]['testmode']?'true':'false') .";
+    </script>
+    <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$etudemenu->getCurrentApp(false).'/custom/'. $etudemenu->m_tblConfig['METADATAVERSION'] .'/js/jquery.jqAltBox.js') . "'></SCRIPT>
+    <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$etudemenu->getCurrentApp(false).'/custom/'. $etudemenu->m_tblConfig['METADATAVERSION'] .'/js/menu-tips.js') . "'></SCRIPT>
+  ";
+}
+
+/**
 * Hook called just before the creation of the profile page (html)
 * @param $SubjectKey
 * @param $html HTML generated 
