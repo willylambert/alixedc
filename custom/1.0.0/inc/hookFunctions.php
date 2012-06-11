@@ -110,6 +110,18 @@ function uisubject_getInterface_xslParameters($FormOID,$xslProc,$uisubject){
   }
 }
 
+  /**
+  * @desc Define parameters passed to the XSL used to modify the forms list => conditionnal forms
+  * @param string $SubjectKey
+  * @param XSLTProcessor $xslProc XSL processor  
+  * @return XSLTProcessor New forms list
+  * @author TPI
+  **/  
+function bocdiscoo_getSubjectsTblForm_xslParameters($SubjectKey,$xslProc,$bocdiscoo){
+  $sex = $bocdiscoo->getValue($SubjectKey,"1","0","FORM.IC","0","DM","0","DM.SEX");
+  $xslProc->setParameter('',"SEX",$sex);
+}
+
 function ajax_saveItemGroupData_afterSave($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$hasModif,$ajax){
   //Send AE notification
   $ajax->addLog(__FUNCTION__ . "($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,\$ajax)",INFO);
