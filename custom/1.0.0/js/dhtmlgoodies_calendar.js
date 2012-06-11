@@ -1067,7 +1067,6 @@ function pickDate(e,inputDay)
 
 		}
 	}else if(returnDateToYear.tagName=="SELECT"){
-	 alert('toto');
 		for(var no=0;no<returnDateToYear.options.length;no++){
 			if(returnDateToYear.options[no].value==currentYear){
 				returnDateToYear.selectedIndex=no;

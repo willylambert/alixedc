@@ -1530,7 +1530,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
         let \$SubjectData := index-scan('SubjectData', '$SubjectKey', 'EQ')
         let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
         return
-          <SubjectData SubjectKey='{\$SubjectData/../../@FileOID}'>
+          <SubjectData SubjectKey='{\$SubjectData/../../@FileOID}' MetaDataVersionOID='{\$MetaDataVersion/@OID}'>
           {
             for \$StudyEventData in \$SubjectData/odm:StudyEventData
             let \$StudyEventDef := \$MetaDataVersion/odm:StudyEventDef[@OID=\$StudyEventData/@StudyEventOID]
@@ -1573,6 +1573,23 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
 
     $doc = $this->m_ctrl->socdiscoo()->query($query,false);
     
+    //Custom XSL Form for conditional forms - Applied only if exists
+    $MetaDataVersionOID = $doc->documentElement->getAttribute("MetaDataVersionOID");
+    $xslTblFormFile = EGW_INCLUDE_ROOT ."/".$this->getCurrentApp(false)."/custom/$MetaDataVersionOID/xsl/SubjectsTblForm.xsl";
+    if(file_exists($xslTblFormFile))
+    { 
+      $xslTblForm = new DOMDocument;
+      $xslTblForm->load($xslTblFormFile);
+      
+      $proc = new XSLTProcessor;
+      $proc->importStyleSheet($xslTblForm);
+      
+      //HOOK => bocdiscoo_getSubjectsTblForm_xslParameters
+      $this->callHook(__FUNCTION__,"xslParameters",array($SubjectKey,$proc,$this));
+      
+      $doc = $proc->transformToDoc($doc);
+    }
+    
     //Set StudyEvent and Form status according to associated queries   
     //Loop through SubjectDatas
     $SubjectDatas = $doc->getElementsByTagName("SubjectData");
@@ -1584,14 +1601,17 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
         $nbForm = 0;
         $nbFormEmpty = 0;
         $nbFormFrozen = 0;
+        $nbFormPartial = 0;
+        $nbFormInconsistent = 0;
+        $nbFormFilled = 0;
         $StudyEventOID = $visit->getAttribute('StudyEventOID');
         $StudyEventRepeatKey = $visit->getAttribute('StudyEventRepeatKey');
         
         //Loop through forms
         foreach($visit->childNodes as $form){
           if($form->nodeType!=1) continue; //tpi, why are there some DOMText ?
-          if(!$form->hasAttribute('Status')){
-            $nbForm++;
+          $frmStatus = $form->getAttribute('Status');
+          if(!$frmStatus){
             $FormOID = $form->getAttribute('FormOID');
             $FormRepeatKey = $form->getAttribute('FormRepeatKey');                 
             
@@ -1600,36 +1620,46 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
             $ItemGroupDataCountFrozen = $form->getAttribute('ItemGroupDataCountFrozen');
             
             if($ItemGroupDataCount==$ItemGroupDataCountEmpty){
-              $frmStatus = "EMPTY";
-              $nbFormEmpty++;  
+              $frmStatus = "EMPTY"; 
             }else{
               if($ItemGroupDataCount==$ItemGroupDataCountFrozen){
                 $frmStatus = "FROZEN";
-                $nbFormFrozen++;  
               }else{
                 $frmStatus = $this->m_ctrl->boqueries()->getFormStatus($SubjectKey, $StudyEventOID ,$StudyEventRepeatKey, $FormOID, $FormRepeatKey);
               }           
             }
             $form->setAttribute("Status",$frmStatus);
-          }else{
-            $nbForm++;
-            $nbFormEmpty++;  
+          }
+          //counting forms and statuses
+          $nbForm++;
+          if($frmStatus=="EMPTY"){
+            $nbFormEmpty++;
+          }elseif($frmStatus=="FROZEN"){
+            $nbFormFrozen++;
+          }elseif($frmStatus=="MISSING"){
+            $nbFormPartial++;
+          }elseif($frmStatus=="INCONSISTENT"){
+            $nbFormInconsistent++;
+          }elseif($frmStatus=="FILLED"){
+            $nbFormFilled++;
           }
         }
         if($nbForm==$nbFormEmpty){
           $visitStatus = "EMPTY";
         }else{
-          if($nbForm==$nbFormFrozen){
-            $visitStatus = "FROZEN"; 
+          if($nbForm==$nbFormFilled){
+            $visitStatus = "FILLED"; 
           }else{
-            $visitStatus = $this->m_ctrl->boqueries()->getStudyEventStatus($SubjectKey,$StudyEventOID ,$StudyEventRepeatKey);
-            if($visitStatus=="FILLED"){
-              //FILLED only if there is no empty forms
-              if($nbFormEmpty>0){
-                $visitStatus = "PARTIAL";
+            if($nbForm==$nbFormFrozen){
+              $visitStatus = "FROZEN"; 
+            }else{
+              if($nbFormInconsistent>0){
+                $visitStatus = "INCONSISTENT";
+              }else{
+                  $visitStatus = "MISSING";
               }
             }
-          }           
+          }
         }
         $visit->setAttribute("Status",$visitStatus);
       }
