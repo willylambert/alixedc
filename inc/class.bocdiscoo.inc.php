@@ -1603,6 +1603,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
       foreach($visits as $visit){
         $nbForm = 0;
         $nbFormEmpty = 0;
+        $nbFormEmptyButNotMandatory = 0;
         $nbFormFrozen = 0;
         $nbFormPartial = 0;
         $nbFormInconsistent = 0;
@@ -1636,11 +1637,10 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
           //counting forms and statuses => used to determine visit status
           $nbForm++;
           if($frmStatus=="EMPTY"){
-            //if the form is not Mandatory, it should not be considered as empty to calculate the visit status => considered FILLED
+            $nbFormEmpty++;
             if($form->getAttribute('Mandatory')=="No"){
-              $nbFormFilled++;
+              $nbFormEmptyButNotMandatory++;
             }else{
-              $nbFormEmpty++;
             }
           }elseif($frmStatus=="FROZEN"){
             $nbFormFrozen++;
@@ -1655,7 +1655,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
         if($nbForm==$nbFormEmpty){
           $visitStatus = "EMPTY";
         }else{
-          if($nbForm==$nbFormFilled){
+          if($nbForm==$nbFormFilled+$nbFormEmptyButNotMandatory){ //there may be empty but non-mandatory forms => mixed with filled form in the count of OK forms
             $visitStatus = "FILLED"; 
           }else{
             if($nbForm==$nbFormFrozen){
