@@ -393,7 +393,7 @@ function checkFormData(CurrentApp,SubjectKey,StudyEventOID,StudyEventRepeatKey,F
         helper.displayError("An error occured while checking", data);
       },
     success: function(data) {
-        //$("#dialog-modal-save").dialog("close");
+        $("#dialog-modal-save").dialog("close");
       }
     }); 	 
 }
@@ -532,7 +532,7 @@ function saveAllItemGroup(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventR
     }   
   }
  
-  //$("#dialog-modal-save").dialog("close");
+  $("#dialog-modal-save").dialog("close");
 
 }
 
