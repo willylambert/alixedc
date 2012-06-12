@@ -1553,6 +1553,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
                             return
                                 <FormData FormOID='{\$FormRef/@FormOID}'
                                           FormRepeatKey='{\$FormData/@FormRepeatKey}'
+                                          Mandatory='{\$FormRef/@Mandatory}'
                                           MetaDataVersionOID='{\$MetaDataVersion/@OID}'
                                           ItemGroupDataCount='{\$ItemGroupDataCount}'
                                           ItemGroupDataCountEmpty='{\$ItemGroupDataCountEmpty}'
@@ -1562,6 +1563,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
                     else
                         <FormData FormOID='{\$FormRef/@FormOID}'
                                   FormRepeatKey='0'
+                                  Mandatory='{\$FormRef/@Mandatory}'
                                   MetaDataVersionOID='{\$MetaDataVersion/@OID}'
                                   Title='{\$MetaDataVersion/odm:FormDef[@OID=\$FormRef/@FormOID]/odm:Description/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()}'
                                   Status='EMPTY'>
@@ -1630,10 +1632,15 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
             }
             $form->setAttribute("Status",$frmStatus);
           }
-          //counting forms and statuses
+          //counting forms and statuses => used to determine visit status
           $nbForm++;
           if($frmStatus=="EMPTY"){
-            $nbFormEmpty++;
+            //if the form is not Mandatory, it should not be considered as empty to calculate the visit status => considered FILLED
+            if($form->getAttribute('Mandatory')=="No"){
+              $nbFormFilled++;
+            }else{
+              $nbFormEmpty++;
+            }
           }elseif($frmStatus=="FROZEN"){
             $nbFormFrozen++;
           }elseif($frmStatus=="MISSING"){
