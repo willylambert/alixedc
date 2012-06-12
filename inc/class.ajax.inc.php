@@ -102,7 +102,7 @@ public function removeItemGroupData(){
 }
 
 /*
-*@desc put TransactionType='Remove' at the specified ItemGroupData
+*@desc put TransactionType='Remove' at the specified FormData
 *@author : wlt
 */
 public function removeFormData(){

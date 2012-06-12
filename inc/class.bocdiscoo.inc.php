@@ -1553,8 +1553,9 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
                             return
                                 <FormData FormOID='{\$FormRef/@FormOID}'
                                           FormRepeatKey='{\$FormData/@FormRepeatKey}'
-                                          Mandatory='{\$FormRef/@Mandatory}'
                                           MetaDataVersionOID='{\$MetaDataVersion/@OID}'
+                                          Mandatory='{\$FormRef/@Mandatory}'
+                                          TransactionType='{\$FormData/@TransactionType}'
                                           ItemGroupDataCount='{\$ItemGroupDataCount}'
                                           ItemGroupDataCountEmpty='{\$ItemGroupDataCountEmpty}'
                                           ItemGroupDataCountFrozen='{\$ItemGroupDataCountFrozen}'

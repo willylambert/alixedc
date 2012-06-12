@@ -57,7 +57,7 @@ function loadAlixCRFjs(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepe
   });
   
   $("#btnCancel").click(function(){
-    location.reload(); 
+    reloadLocation();
   });
 
   //Button to remove an ItemGroupData
@@ -264,31 +264,31 @@ function loadAlixCRFjs(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepe
  
   //Handle form dynamism
   initDyn(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey,ProfileId);
- 
+  
   //Handle of "Quit without saving"
   if(ProfileId=='INV'){
-    $("a").click(function(){ 
+    $("a").click(function(){
       if($(this).attr('href')!="javascript:void(0)" && $(this).attr('href')!="#")
       {
         //First, we look for modified data
         var dataModified = false;
-    
+        
         //Here we detect if data were modified
-        $("form").each( 
+        $("form").each(
           function(index){
             dataString = $(this).serialize();
             if(dataString!=$(this).data('initials_values')){
-              dataModified = true; 
+              dataModified = true;
             }
           }
-        ); 
+        );
         
         //if there is more than XX form, runs were not executed. We ask the user to run them now
         if($("div[class='pagination']").length>0 && dataModified==false && location.href.indexOf("donotcheck")==-1 && $(this).attr('href').indexOf("page")==-1 ){
           alert("Checks will be run now");
-          checkFormData(CurrentApp,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey); 
-          location.replace(location.href + "&donotcheck");
-          return false;              
+          checkFormData(CurrentApp,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey);
+          reloadLocation("donotcheck");
+          return false;
         }
              
         if(dataModified){
@@ -417,7 +417,7 @@ function removeItemGroup(CurrentApp,dataString){
       },
     success: function(data){
       checkFormData(CurrentApp,data.SubjectKey,data.StudyEventOID,data.StudyEventRepeatKey,data.FormOID,data.FormRepeatKey);
-      location.reload();  
+      reloadLocation();
     }
    });
    
@@ -444,7 +444,7 @@ function removeFormData(CurrentApp,dataString){
       },
     success: function(data){
       checkFormData(CurrentApp,data.SubjectKey,data.StudyEventOID,data.StudyEventRepeatKey,data.FormOID,data.FormRepeatKey);
-      location.reload();  
+      reloadLocation();
     }
    });
    
@@ -523,13 +523,13 @@ function saveAllItemGroup(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventR
     $(location).attr('href',newUrl);
   }else{
     //Queries update
-    if(bCheckFormData!==false && $("div[class='pagination']").length==0){ 
+    if(bCheckFormData!==false && $("div[class='pagination']").length==0){
       //only if check on save is not disabled for this site
-      checkFormData(CurrentApp,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey);                        
-      location.replace(location.href + "&donotcheck");
+      checkFormData(CurrentApp,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey);
+      reloadLocation("donotcheck");
     }else{
-      location.reload();
-    }   
+      reloadLocation();
+    }
   }
  
   $("#dialog-modal-save").dialog("close");
@@ -568,4 +568,23 @@ function showInfo(html,width,height){
   $("#dialog-modal-info").dialog( "option", "width", width );
   $("#dialog-modal-info").dialog("open");
   return false;
+}
+
+/**
+ * @desc Reload the page with optional parameters, each parameter will be added as a get &parameter
+ * @author tpi 
+ */ 
+function reloadLocation(){
+  if(arguments.length>0){
+    var newLocation = location.href;
+    //adding optional parameters
+    for (var i = 0; i < arguments.length; i++) {
+      if(newLocation.indexOf(arguments[i])==-1){
+        newLocation += "&" + arguments[i];
+      }
+    }
+    location.replace(newLocation);
+  }else{
+    location.reload();
+  }
 }
