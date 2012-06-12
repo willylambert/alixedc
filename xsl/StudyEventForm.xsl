@@ -84,7 +84,7 @@
           <xsl:variable name="ItemDecode" select="$ItemGroupData/ItemData[@OID=$Item/@OID]/@Decode"/>
           <xsl:variable name="Annotation" select="$ItemGroupData/ItemData[@OID=$Item/@OID]/Annotation"/>
           <tr class="ItemData" id="{$Item/@OID}_{$ItemGroupData/@ItemGroupOID}_{$ItemGroupData/@ItemGroupRepeatKey}" name="{$Item/@OID}">
-            <!--Audi Trail-->
+            <!--Audi Trail icon-->
             <td class="ItemDataAudit" name="{$Item/@OID}">
   	          <!--On n'affiche l'icône que s'il y a du contenu d'audit trail-->
               <xsl:if test="$ItemGroupData/ItemData[@OID=$Item/@OID]/@TransactionType">
@@ -104,9 +104,6 @@
                     &#0160;
                   </xsl:element>
                 </a>
-                <div id="{concat('auditTrail_div_',$Item/@OID,'_',$ItemGroupData/@ItemGroupRepeatKey)}" initialized='false' class='dialog-auditTrail' title='{@Title}' style="display:none;" keys="{$CurrentApp},{$SubjectKey},{$StudyEventOID},{$StudyEventRepeatKey},{$FormOID},{$FormRepeatKey},{$ItemGroup/@OID},{$ItemGroupData/@ItemGroupRepeatKey},{$Item/@OID}">
-                  Loading ...
-                </div>
               </xsl:if>
             </td>
             <td>
@@ -135,6 +132,10 @@
                    <xsl:with-param name="CurrentItemGroupRepeatKey" select="$ItemGroupData/@ItemGroupRepeatKey"/>
                    <xsl:with-param name="ForceSelect" select="contains($CodeListForceSelect,./CodeList/@OID)"/>
                 </xsl:call-template>
+                <!--Audi Trail dialog container-->
+                <div id="{concat('auditTrail_div_',$Item/@OID,'_',$ItemGroupData/@ItemGroupRepeatKey)}" initialized='false' class='dialog-auditTrail' title='{@Title}' style="display:none;" keys="{$CurrentApp},{$SubjectKey},{$StudyEventOID},{$StudyEventRepeatKey},{$FormOID},{$FormRepeatKey},{$ItemGroup/@OID},{$ItemGroupData/@ItemGroupRepeatKey},{$Item/@OID}">
+                  Loading ...
+                </div>
             </td>
             <td class="ItemDataAnnot" name="{$Item/@OID}">
                 <xsl:call-template name="Annotation">

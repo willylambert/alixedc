@@ -27,15 +27,15 @@
 <!-- Creation of table to compact repeated ItemGroup -->
 
 <xsl:template name="col2rowTable">
-  <tr>
-    <xsl:attribute name="id">_<xsl:value-of select="substring-after(./tr[1]/@id,'_')" /></xsl:attribute>
-    <xsl:for-each select="tr/td[@class='ItemDataInput']">
-      <td id="{../@id}" name="{../@name}" class="ItemDataInput"><xsl:apply-templates/></td>
-     <xsl:apply-templates select="../td[@class='ItemDataAnnot']"/>
-<!-- ajout du bouton query -->
-     <xsl:apply-templates select="../td[@class='ItemDataQuery']"/> 
-    </xsl:for-each>
-  </tr> 
+<tr>
+  <xsl:attribute name="id">_<xsl:value-of select="substring-after(./tr[1]/@id,'_')" /></xsl:attribute>
+  <xsl:for-each select="tr/td[@class='ItemDataInput']">
+    <!--<xsl:apply-templates select="../td[@class='ItemDataAudit']"/>-->
+    <td id="{../@id}" name="{../@name}" class="ItemDataInput"><xsl:apply-templates/></td>
+    <xsl:apply-templates select="../td[@class='ItemDataAnnot']"/>
+    <xsl:apply-templates select="../td[@class='ItemDataQuery']"/> 
+  </xsl:for-each>
+</tr> 
 </xsl:template>  
 
 <xsl:template name="col2rowForm">
