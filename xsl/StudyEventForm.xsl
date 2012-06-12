@@ -194,7 +194,7 @@
         <!--Un bouton permet de supprimer l'ItemGroup-->
         <xsl:if test="$ReadOnly='false' and $ItemGroup/@Repeating='Yes' and $ItemGroupData/@TransactionType!='Remove'">
           <tr><td colspan='5'>
-            <button name="btnRemoveItemGroup" class="ui-state-default ui-corner-all">Remove <xsl:value-of select="$ItemGroup/@Title"/> #<xsl:value-of select="position()"/></button>
+            <button name="btnRemoveItemGroup" class="ui-state-default ui-corner-all">Remove <xsl:value-of select="$ItemGroup/@Title"/> #<xsl:value-of select="$ItemGroupData/@ItemGroupRepeatKey"/></button>
             <!--Boite de dialogue de confirmation de suppression-->
           </td></tr>
         </xsl:if>
