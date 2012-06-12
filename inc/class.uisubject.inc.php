@@ -266,7 +266,7 @@ class uisubject extends CommonFunctions
                       $htmlForm
                     </div>
                   </div>
-                                    
+                  
                   <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/helpers.js') . "?$jsVersion'></SCRIPT>
                   <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/queries.js') . "?$jsVersion'></SCRIPT>
                   <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/query.js') . "?$jsVersion'></SCRIPT>
@@ -286,7 +286,7 @@ class uisubject extends CommonFunctions
                   //<![CDATA[
                     $(document).ready(function() {
                                     loadAlixCRFjs('".$this->getCurrentApp(false)."','$SiteId','$SubjectKey','$StudyEventOID','$StudyEventRepeatKey','$FormOID','$FormRepeatKey','".$profileId."','".$formStatus."',$bCheckFormData);
-                                     }); 
+                                     });
                   //]]>
                   </script>
                   ";

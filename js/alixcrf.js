@@ -68,8 +68,8 @@ function loadAlixCRFjs(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepe
         if(confirm("Do you confirm deletion ?")){
           dataString = $(this).closest('form').serialize();
           removeItemGroup(CurrentApp,dataString);
-          return false;
         }
+        return false; //do not submit form
       });    
     }
   );
@@ -82,8 +82,8 @@ function loadAlixCRFjs(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepe
         if(confirm("Do you confirm deletion ?")){
           dataString = $(this).closest('form').serialize();
           removeFormData(CurrentApp,dataString);
-          return false;
         }
+        return false; //do not submit form
       });    
     }
   );

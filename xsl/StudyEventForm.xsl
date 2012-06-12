@@ -54,7 +54,7 @@
   <xsl:for-each select="$ItemGroup/ItemGroupData">
     <xsl:variable name="ItemGroupData" select="."/>  
     <xsl:variable id="{$ItemGroup/@OID}" name="ItemGroupPos" select="position()"/>
-    <form name="{$ItemGroup/@OID}" position="{$ItemGroupPos}">
+    <form name="{$ItemGroup/@OID}" position="{$ItemGroupPos}" onsubmit="alert('toto')">
       <!--Dans le cas des itemggroup repeating, le premier form est notre template d'ajout - il ne faut pas le sauvegarder-->
       <xsl:if test="$ItemGroupData/@ItemGroupRepeatKey='0' and $ItemGroup/@Repeating='Yes'">
         <xsl:attribute name="style">display:none;</xsl:attribute>
@@ -201,9 +201,7 @@
         <!--Un bouton permet de supprimer le FormData-->
         <xsl:if test="$ReadOnly='false' and $ItemGroup/../@Repeating='Yes'">
           <tr><td colspan='5'>
-            <!--
             <button name="btnRemoveFormData" class="ui-state-default ui-corner-all">Remove <xsl:value-of select="$ItemGroup/@Title"/></button>
-            -->
             <!--Boite de dialogue de confirmation de suppression-->
           </td></tr>
         </xsl:if>         
