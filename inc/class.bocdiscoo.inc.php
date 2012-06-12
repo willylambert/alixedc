@@ -1926,8 +1926,14 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
   public function removeFormData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey)
   {
     $this->addLog(__METHOD__ ."($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey)",INFO);
-
+    
+    //FormData
     $query = "UPDATE REPLACE \$x in index-scan('SubjectData','$SubjectKey','EQ')/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']/odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']/@TransactionType
+              WITH attribute {'TransactionType'} {'Remove'}";
+    $res = $this->m_ctrl->socdiscoo()->query($query);
+    
+    //ItemGroupDatas
+    $query = "UPDATE REPLACE \$x in index-scan('SubjectData','$SubjectKey','EQ')/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']/odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']/odm:ItemGroupData/@TransactionType
               WITH attribute {'TransactionType'} {'Remove'}";
     $res = $this->m_ctrl->socdiscoo()->query($query);
   }

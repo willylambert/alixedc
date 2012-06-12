@@ -68,7 +68,7 @@ class uisubject extends CommonFunctions
      
       //Get Form Data / without design      
       $xml = $this->m_ctrl->bocdiscoo()->getStudyEventForms($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,false,$paginateStart,$paginateEnd);    
-
+      
       $FormTag = $xml->getElementsByTagName("Form");  
       $FormTitle = $FormTag->item(0)->getAttribute("Title");
 
@@ -157,6 +157,7 @@ class uisubject extends CommonFunctions
       echo "</pre>";
       echo "-------------<br>";   
 */
+//$this->dumpPre($xml->saveXML());
       $doc = $proc->transformToDoc($xml);
 /*
       echo "##############<br>";
