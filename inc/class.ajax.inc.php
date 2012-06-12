@@ -95,7 +95,10 @@ public function removeItemGroupData(){
   $ItemGroupRepeatKey = $_POST['ItemGroupRepeatKey'];
 
   //Saving data
-  $this->m_ctrl->bocdiscoo()->removeItemGroupData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey);  
+  $this->m_ctrl->bocdiscoo()->removeItemGroupData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey);
+  
+  //Identifiers of the deleted ItemGroup
+  echo json_encode(array("SubjectKey"=>$SubjectKey, "StudyEventOID"=>$StudyEventOID, "StudyEventRepeatKey"=>$StudyEventRepeatKey, "FormOID"=>$FormOID, "FormRepeatKey"=>$FormRepeatKey, "ItemGroupOID"=>$ItemGroupOID, "ItemGroupRepeatKey"=>$ItemGroupRepeatKey));
 }
 
 /*
@@ -114,7 +117,10 @@ public function removeFormData(){
   $FormRepeatKey = $_POST['FormRepeatKey'];
 
   //Enregistrement des données 
-  $this->m_ctrl->bocdiscoo()->removeFormData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey);  
+  $this->m_ctrl->bocdiscoo()->removeFormData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey);
+  
+  //Identifiers of the deleted Form
+  echo json_encode(array("SubjectKey"=>$SubjectKey, "StudyEventOID"=>$StudyEventOID, "StudyEventRepeatKey"=>$StudyEventRepeatKey, "FormOID"=>$FormOID, "FormRepeatKey"=>$FormRepeatKey)); 
 }
 
 

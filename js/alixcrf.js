@@ -286,7 +286,7 @@ function loadAlixCRFjs(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepe
         //if there is more than XX form, runs were not executed. We ask the user to run them now
         if($("div[class='pagination']").length>0 && dataModified==false && location.href.indexOf("donotcheck")==-1 && $(this).attr('href').indexOf("page")==-1 ){
           alert("Checks will be run now");
-          checkFormData(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey); 
+          checkFormData(CurrentApp,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey); 
           location.replace(location.href + "&donotcheck");
           return false;              
         }
@@ -377,7 +377,7 @@ function initDyn(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,
 *@desc Ajax call to run consistency checks
 *@author wlt
 */
-function checkFormData(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey){
+function checkFormData(CurrentApp,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey){
   //Waiting dialog
 	$("#dialog-modal-save").dialog("open");
   
@@ -416,6 +416,7 @@ function removeItemGroup(CurrentApp,dataString){
         helper.displayError("An error occured while saving", data);
       },
     success: function(data){
+      checkFormData(CurrentApp,data.SubjectKey,data.StudyEventOID,data.StudyEventRepeatKey,data.FormOID,data.FormRepeatKey);
       location.reload();  
     }
    });
@@ -442,6 +443,7 @@ function removeFormData(CurrentApp,dataString){
         helper.displayError("An error occured while saving", data);
       },
     success: function(data){
+      checkFormData(CurrentApp,data.SubjectKey,data.StudyEventOID,data.StudyEventRepeatKey,data.FormOID,data.FormRepeatKey);
       location.reload();  
     }
    });
@@ -523,7 +525,7 @@ function saveAllItemGroup(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventR
     //Queries update
     if(bCheckFormData!==false && $("div[class='pagination']").length==0){ 
       //only if check on save is not disabled for this site
-      checkFormData(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey);                        
+      checkFormData(CurrentApp,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey);                        
       location.replace(location.href + "&donotcheck");
     }else{
       location.reload();
