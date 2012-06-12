@@ -341,6 +341,11 @@ div.itemGroupLine:hover{
 .FormStatusFROZEN{
   background-color: #58B208;
 }
+
+/*Dialog box (please wait)*/
+#dialog-modal-save{
+  display: none;
+}
 /*********************************** Menu : Visites ***********************************/
 
 .StudyEventStatus { display: block; text-indent: -99999px; overflow: hidden; background-repeat: no-repeat; }

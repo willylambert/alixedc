@@ -393,7 +393,7 @@ function checkFormData(CurrentApp,SubjectKey,StudyEventOID,StudyEventRepeatKey,F
         helper.displayError("An error occured while checking", data);
       },
     success: function(data) {
-        $("#dialog-modal-save").dialog("close");
+        //$("#dialog-modal-save").dialog("close");
       }
     }); 	 
 }
@@ -526,13 +526,13 @@ function saveAllItemGroup(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventR
     if(bCheckFormData!==false && $("div[class='pagination']").length==0){ 
       //only if check on save is not disabled for this site
       checkFormData(CurrentApp,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey);                        
-      location.replace(location.href + "&donotcheck");
+      //location.replace(location.href + "&donotcheck");
     }else{
       location.reload();
     }   
   }
  
-  $("#dialog-modal-save").dialog("close");
+  //$("#dialog-modal-save").dialog("close");
 
 }
 
