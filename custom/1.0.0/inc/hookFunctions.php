@@ -20,23 +20,23 @@
     * along with ALIX.  If not, see <http://www.gnu.org/licenses/>.            *
     \**************************************************************************/
   
-  /**
-  * @desc Hook called befor the HTML restitution of a form
-  * @param $FormOID OID of the form
-  * @param $uisubject instance of uisubject
-  * @return nothing
-  * @author WLT
-  **/  
+/**
+* Hook called befor the HTML restitution of a form
+* @param $FormOID OID of the form
+* @param $uisubject instance of uisubject
+* @return nothing
+* @author WLT
+**/  
 function uisubject_getInterface_start($FormOID,$uisubject){  
 }
 
-  /**
-  * @desc Define parameters passed to the XSL create the form final display
-  * @param string $FormOID
-  * @param XSLTProcessor $xslProc XSL processor  
-  * @return XSLTProcessor HTML to display
-  * @author WLT
-  **/  
+/**
+* Define parameters passed to the XSL create the form final display
+* @param string $FormOID
+* @param XSLTProcessor $xslProc XSL processor  
+* @return XSLTProcessor HTML to display
+* @author WLT
+**/  
 function uisubject_getInterface_xslParameters($FormOID,$xslProc,$uisubject){
   if($FormOID==""){  
     //Here we force the display of a select instead of radios buttons - multiple codelist could be used - separe them with white space
@@ -110,13 +110,13 @@ function uisubject_getInterface_xslParameters($FormOID,$xslProc,$uisubject){
   }
 }
 
-  /**
-  * @desc Define parameters passed to the XSL used to modify the forms list => conditionnal forms
-  * @param string $SubjectKey
-  * @param XSLTProcessor $xslProc XSL processor  
-  * @return XSLTProcessor New forms list
-  * @author TPI
-  **/  
+/**
+* Define parameters passed to the XSL used to modify the forms list => conditionnal forms
+* @param string $SubjectKey
+* @param XSLTProcessor $xslProc XSL processor  
+* @return XSLTProcessor New forms list
+* @author TPI
+**/  
 function bocdiscoo_getSubjectsTblForm_xslParameters($SubjectKey,$xslProc,$bocdiscoo){
   $sex = $bocdiscoo->getValue($SubjectKey,"1","0","FORM.IC","0","DM","0","DM.SEX");
   $xslProc->setParameter('',"SEX",$sex);
@@ -217,20 +217,20 @@ function uisubject_getMenu_xslParameters($xslProc,$uisubject){
 }
 
 /**
- *wrapper to uisubject_getMenu_beforeRendering hook
- *@author wlt 
- */
+* wrapper to uisubject_getMenu_beforeRendering hook
+* @author wlt 
+**/
 function bosubjects_updateSubjectInList_customVisitStatus($SubjectKey,$tblForm,$bosubjects){
   uisubject_getMenu_beforeRendering($SubjectKey,$tblForm,$bosubjects);
 }
 
 /**
- *@desc Should return the status of the subject in the CRF, determined from its data
- *@param SumpleXMLElement $subj : one subject as return by bosubjects->getSubjectsParams
- *@param string $SubjectStatus has to be updated 
- *@param bosubjects $bosubjects
- *@author tpi 
- */
+* Should return the status of the subject in the CRF, determined from its data
+* @param SumpleXMLElement $subj : one subject as return by bosubjects->getSubjectsParams
+* @param string $SubjectStatus has to be updated 
+* @param bosubjects $bosubjects
+* @author tpi 
+**/
 function bosubjects_getSubjectStatus_customSubjectStatus($subj,&$SubjectStatus,$bosubjects){
     if($subj['colINCLUSIONDATE']!=""){
       $SubjectStatus = "Screened";
@@ -273,14 +273,14 @@ function bocdiscoo_getNewPatientID_customSubjId($bocdiscoo){
   return $subjKey;  
 }
 
-  /**
-  * @desc Specific treatment of queries for each form when the queries are updated
-  * @param string $FormOID
-  * @param string $FormRepeatKey
-  * @param string $queryType
-  * @return array $queries
-  * @author TPI
-  **/  
+/**
+* Specific treatment of queries for each form when the queries are updated
+* @param string $FormOID
+* @param string $FormRepeatKey
+* @param string $queryType
+* @return array $queries
+* @author TPI
+**/  
 function boqueries_updateQueries_form($FormOID, $FormRepeatKey, $queryType, $queries){
   //No query at enrolment
   if($FormOID=="FORM.ENROL"){
@@ -288,12 +288,12 @@ function boqueries_updateQueries_form($FormOID, $FormRepeatKey, $queryType, $que
   }
 }
 
-  /**
-  * @desc List of custom dashboards, will be used to create the menu in the left on the dashboard
-  * @param uidashboard $uidashboard
-  * @return array $boardItems
-  * @author TPI
-  **/  
+/**
+* List of custom dashboards, will be used to create the menu in the left on the dashboard
+* @param uidashboard $uidashboard
+* @return array $boardItems
+* @author TPI
+**/  
 function uidashboard_getMenu_boardMenu($uidashboard){
   $boardItems = array();
   $boardItems[] = array("id" => "saeList", "title" => "List of SAE"); //an id and a label
@@ -303,14 +303,14 @@ function uidashboard_getMenu_boardMenu($uidashboard){
   return $boardItems;
 }
 
-  /**
-  * @desc The content of the custom dashboards
-  * @param string $id : the id of the specified custom dashboard (defined in uidashboard_getMenu_boardMenu)
-  * @param string &$TITLE : the top title of the dashboard
-  * @param string &$CONTENT : the html content of the dashboard
-  * @param uidashboard $uidashboard
-  * @author TPI
-  **/  
+/**
+* The content of the custom dashboards
+* @param string $id : the id of the specified custom dashboard (defined in uidashboard_getMenu_boardMenu)
+* @param string byref &$TITLE : the top title of the dashboard
+* @param string byref &$CONTENT : the html content of the dashboard
+* @param uidashboard $uidashboard
+* @author TPI
+**/  
 function uidashboard_getInterface_boardContent($id,$TITLE,$CONTENT,$uidashboard){
   switch($id){
   
@@ -373,12 +373,7 @@ function uidashboard_getInterface_boardContent($id,$TITLE,$CONTENT,$uidashboard)
               </aes>
               "; 
     
-        try{
-          $saes = $uidashboard->m_ctrl->socdiscoo()->query($query);
-        }catch(xmlexception $e){
-          $str = "xQuery error : " . $e->getMessage() ." (".__METHOD__.")";
-          $this->addLog($str,FATAL);
-        }
+        $saes = $uidashboard->m_ctrl->socdiscoo()->query($query);
         
         $nbSAE = 0;
         $class = "";
@@ -458,14 +453,7 @@ function uidashboard_getInterface_boardContent($id,$TITLE,$CONTENT,$uidashboard)
         foreach($stats as $stat){
           $query = "let \$SubjCol := collection('ClinicalData')/odm:ODM/odm:ClinicalData/odm:SubjectData";
           $query .= $stat['query'];
-    
-    
-          try{
-            $res = $uidashboard->m_ctrl->socdiscoo()->query($query);
-          }catch(xmlexception $e){
-            $str = "xQuery error : " . $e->getMessage() ." (".__METHOD__.")";
-            $uidashboard->addLog($str,FATAL);
-          }
+          $res = $uidashboard->m_ctrl->socdiscoo()->query($query);
     
           $res = (string)$res[0]['value'];
           

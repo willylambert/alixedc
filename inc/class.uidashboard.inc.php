@@ -21,17 +21,16 @@
     \**************************************************************************/
     
 /**
-* @desc Class d'UI dédié à laffichage de tableaux et chiffres clés de l'étude, courbe d'inclusion, etc
+* UI Class dedicated to study dashboard
 * @author TPI
 **/ 
 class uidashboard extends CommonFunctions
 {
   /**
-  * @desc Constructeur de class
-  * @param array $configEtude tableau des constantes de configuration    
-  * @param uietude $ctrlRef reference vers l'instance instanciation, où est délégué l'installation des objets (appel du type $this->m_ctrl->bcdiscoo() ) 
+  * Class constructor
+  * @param array $configEtude array of config values    
+  * @param uietude $ctrlRef reference to instanciation object 
   * @author WLT
-  * 
   **/ 
   function uidashboard($configEtude,$ctrlRef)
   {	
@@ -39,8 +38,8 @@ class uidashboard extends CommonFunctions
   }
 
   /**
-  * @desc fonction principale - retoure l'html à afficher, appelé depuis uietude
-  * @return string HTML à afficher
+  * Get the main interface, called from uietude
+  * @return string HTML
   * @author TPI
   **/     
   public function getInterface()
@@ -119,7 +118,7 @@ class uidashboard extends CommonFunctions
     $htmlRet .= "</div>";
     	         
     $htmlRet .= '<script>
-	               /*Mise en place des icones sur les boutons*/
+	               /*Setup buttons icons*/
               	$(function() {
                   $("#dashboardMenu a").each(function(){
                     $(this).button({
@@ -145,8 +144,7 @@ class uidashboard extends CommonFunctions
   
   private function getInclusions(){
     $htmlRet = "";   
-        
-    //Construction de la liste des centres
+
     $htmlRet .= "
     <div class='ui-grid ui-widget ui-widget-content ui-corner-all'>
       <table class='ui-grid-content ui-widget-content'>
@@ -165,12 +163,7 @@ class uidashboard extends CommonFunctions
               for \$SubjectData in \$SubjectsCol
               let \$siteId := \$SubjectData/odm:SiteRef/@LocationOID
               return <subj subjectKey='{\$SubjectData/@SubjectKey}' siteId='{\$siteId}' />";
-    try{
-      $res = $this->m_ctrl->socdiscoo()->query($query);
-    }catch(xmlexception $e){
-      $str = __METHOD__." Erreur de la requete : " . $e->getMessage() . " " . $query ." (". __METHOD__ .")";
-      $this->addLog($str,FATAL);
-    }
+    $res = $this->m_ctrl->socdiscoo()->query($query);
 
     foreach($res as $subj){
      if(isset($tblSite["site{$subj['siteId']}"])){
@@ -180,8 +173,7 @@ class uidashboard extends CommonFunctions
      }
     }
                  
-    foreach($tblSite as $site)
-		{		  
+    foreach($tblSite as $site){		  
       $htmlRet .= "<tr id='".$site['siteId']."'>
               					<td class='ui-widget-content'>".$site['siteId']."</td>
               					<td class='ui-widget-content'>".$site['siteName']."</td>
@@ -203,7 +195,6 @@ class uidashboard extends CommonFunctions
       $htmlRet .= "<script language='javascript' type='text/javascript' src='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/excanvas.js') . "'></script>";
     }
 
-    //style des chiffres de la courbe
     $htmlRet .= "
                 <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jqplot/jquery.jqplot.min.js') . "'></SCRIPT>
                 <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jqplot/jqplot.pointLabels.min.js') . "'></SCRIPT>
@@ -221,11 +212,11 @@ class uidashboard extends CommonFunctions
                   }*/
                 </style>";
     
-    //Expected first enrolment: September 2010 - Expected completion date: August 2013.
-    $year = 2011;
+    //Expected first enrolment: January 2011
+    $year = 2010;
     $month = 1;
     $duration = 24; //months
-    $subjects = 50; //50 patients in total, 40 in the olesoxime group, and 10 in the placebo group. This includes a hypothetical 5% drop-out rate over 2 years.
+    $subjects = 50; //50 patients in total.
     
     $xaxis = "";
     $values = "";
@@ -256,12 +247,7 @@ class uidashboard extends CommonFunctions
                        SubjectKey='{\$SubjectData/@SubjectKey}'
                        INCLUSIONDATE= '{\$INCLUSIONDATE}'
                        />";
-        try{
-          $res = $this->m_ctrl->socdiscoo()->query($query);
-        }catch(xmlexception $e){
-          $str = __METHOD__." Erreur de la requete : " . $e->getMessage() . " " . $query ." (". __METHOD__ .")";
-          $this->addLog($str,FATAL);
-        }
+        $res = $this->m_ctrl->socdiscoo()->query($query);
         
         $nbSubj = count($res);
         $nbThisMonth = $nbSubj - $count;

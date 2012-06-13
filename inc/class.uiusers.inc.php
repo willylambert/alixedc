@@ -31,7 +31,6 @@ class uiusers extends CommonFunctions
   * @param array $configEtude array of config values    
   * @param uietude $ctrlRef reference to instanciation object 
   * @author WLT
-  * 
   **/ 
   function uiusers($configEtude,$ctrlRef)
   {	
