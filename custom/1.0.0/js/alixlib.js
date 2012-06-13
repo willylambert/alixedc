@@ -68,8 +68,8 @@ function compactItemGroup(FormOID,tblCol){
       //width = $(this).find("tr:visible td[class='ItemDataInput']").size() * 105;
       htmlRet = "<div style='min-width:"+width+"px;'>";
       //Loop through itemDataInput
-      $(this).find("td[class='ItemDataInput']").each(function(){
-        if(typeof(tblCol)=="undefined" || typeof(tblCol)!="undefined" && tblCol[$(this).parent().attr('name')]==true){        
+      $(this).find("td.ItemDataInput").each(function(){
+        if(typeof(tblCol)=="undefined" || typeof(tblCol)!="undefined" && tblCol[$(this).parent().attr('name')]==true){
           if($(this).parent().is(':visible')){
             value = $(this).attr("lastvalue");
             if(value==""){
