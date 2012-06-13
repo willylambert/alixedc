@@ -22,30 +22,30 @@
     
 require_once("class.CommonFunctions.php");
 
-/*
-management of users rights
-@author wlt
-*/
+/**
+* management of users rights
+* @author wlt
+**/
 class boacl extends CommonFunctions
 {
-  //Constructeur
   function __construct(&$tblConfig,$ctrlRef)
   {
       parent::__construct($tblConfig,$ctrlRef);
   }
 
-/**************************************************** Accesseurs User/Profile ****************************************************/
+/**************************************************** Accessors User/Profile ****************************************************/
 
-/*
-@desc teste si l'utilisateur prossède un profile du profile spécifié (INV, CRA, DM, etc) (ou des profiles spécifiés (tableau) : retourne true au premier profile rencontré)
-@params le profileId à tester (ou un tableau de profileId, ou une liste de profiles séparés par une virgule), userId et siteId optionnels
-@return boolean
-@author tpi
-*/
+  /**
+  * Test if the user has the specified Profile (INV, CRA, DM, ...) for the specified Site 
+  * @param profileId to test, could be an array of profileId or a comma separated list of profileId
+  * @param optional $userId 
+  * @param optional $siteId
+  * @return boolean
+  * @author tpi
+  **/
   public function existUserProfileId($profileIds, $userId="", $siteId=""){
     $userProfiles = $this->getUserProfiles($userId,$siteId);
     if(!is_array($profileIds)){
-      //$profileIds = array($profileIds);
       $profileIds = explode(",",$profileIds);
     }
     foreach($profileIds as $profileId){
@@ -58,11 +58,11 @@ class boacl extends CommonFunctions
     return false;
   }
   
-/*
-@desc retourne les infos de l'utilisateur connecté
-@return array(login,fullname,lastlogin)
-@author wlt
-*/
+  /**
+  * Retrieve infos on connected user
+  * @return array(login,fullname,lastlogin)
+  * @author wlt
+  **/
   public function getUserInfo(){
     $tblRet = array();
     $tblRet['login'] = $this->getUserId();
@@ -71,11 +71,13 @@ class boacl extends CommonFunctions
     return $tblRet;   
   }
 
-/*
-@desc retourne le profileId par défaut de l'utlisateur spécifié (utilisateur connecté si non spécifié) dans le site spécifié (profile par défaut si le siteId n'est pas précisé)
-@return string profileId (ARC, INV, DM)  or false if no profile found
-@author tpi
-*/ 
+  /**
+  * Get the default profileId for the specified user and siteId
+  * @param optional $userId if empty, get default profile of the current user
+  * @param optional $siteId if empty, get default profile of the user
+  * @return string profileId (ARC, INV, DM) or false if no profile found
+  * @author tpi
+  **/ 
   public function getUserProfileId($userId="", $siteId=""){
     $userProfile = $this->getUserProfile($userId,$siteId);
     if($userProfile===false){
@@ -89,27 +91,32 @@ class boacl extends CommonFunctions
     }
   }
   
-/*
-@desc retourne le profile de l'utlisateur spécifié (utilisateur connecté si non spécifié) dans le site spécifié (profile par défaut si le siteId n'est pas précisé)
-@return array(siteId,sitename,siteCountry,profileId,defaultProfile) or false if no profile found
-@author tpi
-*/ 
+  /**
+  * Get the default profile array for the specified user and siteId
+  * @param optional $userId if empty, get default profile of the current user
+  * @param optional $siteId if empty, get default profile of the user
+  * @return array(siteId,sitename,siteCountry,profileId,defaultProfile) or false if no profile found
+  * @author tpi
+  **/ 
   public function getUserProfile($userId="", $siteId=""){
     $bDefault = false;
     if($siteId=="") $bDefault = true;
     $userProfiles = $this->getUserProfiles($userId,$siteId,$bDefault);
     if(count($userProfiles)>0){
-      return $userProfiles[0]; //normalement une seule ligne dans le tableau ! soit c'est le profil par défaut (un seul autorisé en base), soit c'est le profile sur le siteId spécifié (un seul autorisé en base)
+      return $userProfiles[0]; //We should have only one line in the array !
     }else{
       return false;
     }
   }
   
-/*
-@desc retourne la liste des profiles de l'utlisateur spécifié (utilisateur connecté si non spécifié)
-@return array(array(siteId,sitename,siteCountry,profileId,defaultProfile))
-@author wlt
-*/ 
+  /**
+  * Get the profiles list of specified user for the specified site
+  * @param optional $userId if empty, get default profile of the current user
+  * @param optional $siteId if empty, get default profile of the user
+  * @param optional $bDefault get only the default profile if true  
+  * @return array(array(siteId,sitename,siteCountry,profileId,defaultProfile))
+  * @author wlt
+  **/ 
   public function getUserProfiles($userId="",$siteId="",$bDefault=false){
     $tblRet = array();
     
@@ -117,7 +124,6 @@ class boacl extends CommonFunctions
       $userId = $this->getUserId();
     }
     
-    //Recuperation de la liste des centres de l'utilisateur
     $sql = "SELECT egw_alix_acl.SITEID,PROFILEID,SITENAME,COUNTRY,CHECKONSAVE,DEFAULTPROFILE
             FROM egw_alix_acl,egw_alix_sites
             WHERE USERID='".$userId."' AND 
@@ -147,30 +153,26 @@ class boacl extends CommonFunctions
     return $tblRet;
   }
 
-
-/**************************************************** Modificateurs Profile ****************************************************/
-
-/*
-@desc ajoute un profile utilisateur à la base ACL
-@author wlt
-*/
+  /**
+  * Add a profile to the ACL table
+  * @author wlt
+  **/
   public function addProfile($userId,$siteId,$profileId,$isDefault=false){
     $default = "";
     if($isDefault){
       $default = "Y";
+    }else{
+      $default = "N";
     }
     $sql = "REPLACE INTO egw_alix_acl(CURRENTAPP,SITEID,USERID,PROFILEID,DEFAULTPROFILE) 
           VALUES('".$this->getCurrentApp(false)."','$siteId','$userId','$profileId','$default');";
     $GLOBALS['egw']->db->query($sql); 
   }
-  
 
-/**************************************************** Others ****************************************************/
-
-  /**
- *Check if current user has access to the module (or one of the modules listed and separated by a double-pipe)
- *@return boolean true if module is enable for current user
- *@author wlt        
+ /**
+ * Check if current user has access to the module (or one of the modules listed and separated by a double-pipe)
+ * @return boolean true if module is enable for current user
+ * @author wlt        
  **/  
   public function checkModuleAccess($moduleName){
     $access = false;

@@ -39,10 +39,13 @@
       unset($process);
   }
 
-  $basePath = "/var/lib/alix/demo/files";
+  $basePath = "/var/www/alix/data";
+  
   //No more than 20 characters
   $moduleName = "alixedc";
   $moduleTitle = "alixedc";
+
+  $wwwPath = "/var/www/alix/docs/demo/$moduleName";
 
   $configEtude = array();
 
@@ -70,9 +73,9 @@
   $configEtude["SEDNA_PASSWORD"] = "MANAGER";
   $configEtude["SEDNA_NAMESPACE_ODM"] = "http://www.cdisc.org/ns/odm/v1.3";
 
-  $configEtude["ODM_1_3_SCHEMA"] = "/var/www/bdlifes-extra.net/docs/alix/demo/$moduleName/xsd/ODM1-3-0-foundation.xsd";
-  $configEtude["ODM_1_2_SCHEMA"] = "/var/www/bdlifes-extra.net/docs/alix/demo/$moduleName/xsd/ODM1-2-1-foundation.xsd";
-  $configEtude["XQUERY_LIB"][] = "/var/www/bdlifes-extra.net/docs/alix/demo/$moduleName/xquery/alix.xqlib";
+  $configEtude["ODM_1_3_SCHEMA"] = "$wwwPath/xsd/ODM1-3-0-foundation.xsd";
+  $configEtude["ODM_1_2_SCHEMA"] = "$wwwPath/xsd/ODM1-2-1-foundation.xsd";
+  $configEtude["XQUERY_LIB"][] = "$wwwPath/xquery/alix.xqlib";
   
   $configEtude["EMAIL_PV"] = "svp.clinical@businessdecision.com";
   $configEtude["EMAIL_ERROR"] = "svp.clinical@businessdecision.com,hotline@cyber-nova.com";
