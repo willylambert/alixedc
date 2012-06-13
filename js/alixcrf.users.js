@@ -19,10 +19,10 @@
     * along with ALIX.  If not, see <http://www.gnu.org/licenses/>.            *
     \**************************************************************************/
     
-/*
-@desc point d'entrée - appelée pour initialiser le comportement AJAX
-@author wlt
-*/
+/**
+* Entry point - used to initialize AJAX behavior
+* @author wlt
+**/
 function loadAlixCRFusersJS(CurrentApp)
 {
   //Binding buttons
@@ -62,7 +62,6 @@ function loadAlixCRFusersJS(CurrentApp)
   			
   			if(bValid){
           //form submission
-          //$("form#addUser").submit();
           $("form#addUser #submitButton").click();
   			}
   		},

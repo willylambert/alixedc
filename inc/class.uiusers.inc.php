@@ -307,7 +307,7 @@ class uiusers extends CommonFunctions
                         </select>  
                     		<select name='default'>
                     		  <option value='Y'>Y</option>
-                    		  <option value='N'>N</option>
+                    		  <option value='N' selected='selected'>N</option>
                         </select> 
                       </fieldset>
                   	</form>
