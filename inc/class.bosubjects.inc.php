@@ -141,14 +141,18 @@ class bosubjects extends CommonFunctions
       if($key=="SUBJID"){
         $query .= "let \$col$key := \$SubjectKey \n";
       }else{
-        if(is_array($col['Value'])){
-          $query .= "let \$col$key := \$SubjectData/odm:StudyEventData[@StudyEventOID='{$col['Value']['SEOID']}' and @StudyEventRepeatKey='{$col['Value']['SERK']}']/
-                                                    odm:FormData[@FormOID='{$col['Value']['FRMOID']}' and @FormRepeatKey='{$col['Value']['FRMRK']}']/
-                                                    odm:ItemGroupData[@ItemGroupOID='{$col['Value']['IGOID']}' and @ItemGroupRepeatKey='{$col['Value']['IGRK']}']/
-                                                    odm:*[@ItemOID='{$col['Value']['ITEMOID']}'][last()]
-                    ";
+        if($key=="SITEID"){
+          $query .= "let \$col$key := \$SubjectData/odm:SiteRef/@LocationOID \n";
         }else{
-          $query .= "let \$col$key := " . $col['Value'] ." \n";
+          if(is_array($col['Value'])){
+            $query .= "let \$col$key := \$SubjectData/odm:StudyEventData[@StudyEventOID='{$col['Value']['SEOID']}' and @StudyEventRepeatKey='{$col['Value']['SERK']}']/
+                                                      odm:FormData[@FormOID='{$col['Value']['FRMOID']}' and @FormRepeatKey='{$col['Value']['FRMRK']}']/
+                                                      odm:ItemGroupData[@ItemGroupOID='{$col['Value']['IGOID']}' and @ItemGroupRepeatKey='{$col['Value']['IGRK']}']/
+                                                      odm:*[@ItemOID='{$col['Value']['ITEMOID']}'][last()]
+                      ";
+          }else{
+            $query .= "let \$col$key := " . $col['Value'] ." \n";
+          }
         }
       }
     }            
