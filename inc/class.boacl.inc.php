@@ -161,6 +161,8 @@ class boacl extends CommonFunctions
     $default = "";
     if($isDefault){
       $default = "Y";
+    }else{
+      $default = "N";
     }
     $sql = "REPLACE INTO egw_alix_acl(CURRENTAPP,SITEID,USERID,PROFILEID,DEFAULTPROFILE) 
           VALUES('".$this->getCurrentApp(false)."','$siteId','$userId','$profileId','$default');";
