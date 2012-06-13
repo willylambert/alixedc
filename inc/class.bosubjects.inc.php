@@ -138,15 +138,15 @@ class bosubjects extends CommonFunctions
                 ";
                 
     foreach($this->m_tblConfig['SUBJECT_LIST']['COLS'] as $key=>$col){
-      if(is_array($col['Value'])){
-        $query .= "let \$col$key := \$SubjectData/odm:StudyEventData[@StudyEventOID='{$col['Value']['SEOID']}' and @StudyEventRepeatKey='{$col['Value']['SERK']}']/
-                                                  odm:FormData[@FormOID='{$col['Value']['FRMOID']}' and @FormRepeatKey='{$col['Value']['FRMRK']}']/
-                                                  odm:ItemGroupData[@ItemGroupOID='{$col['Value']['IGOID']}' and @ItemGroupRepeatKey='{$col['Value']['IGRK']}']/
-                                                  odm:*[@ItemOID='{$col['Value']['ITEMOID']}'][last()]
-                  ";
+      if($key=="SUBJID"){
+        $query .= "let \$col$key := \$SubjectKey \n";
       }else{
-        if($key=="SUBJID"){
-          $query .= "let \$col$key := \$SubjectKey \n";
+        if(is_array($col['Value'])){
+          $query .= "let \$col$key := \$SubjectData/odm:StudyEventData[@StudyEventOID='{$col['Value']['SEOID']}' and @StudyEventRepeatKey='{$col['Value']['SERK']}']/
+                                                    odm:FormData[@FormOID='{$col['Value']['FRMOID']}' and @FormRepeatKey='{$col['Value']['FRMRK']}']/
+                                                    odm:ItemGroupData[@ItemGroupOID='{$col['Value']['IGOID']}' and @ItemGroupRepeatKey='{$col['Value']['IGRK']}']/
+                                                    odm:*[@ItemOID='{$col['Value']['ITEMOID']}'][last()]
+                    ";
         }else{
           $query .= "let \$col$key := " . $col['Value'] ." \n";
         }
