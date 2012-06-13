@@ -1553,8 +1553,9 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
                             return
                                 <FormData FormOID='{\$FormRef/@FormOID}'
                                           FormRepeatKey='{\$FormData/@FormRepeatKey}'
-                                          Mandatory='{\$FormRef/@Mandatory}'
                                           MetaDataVersionOID='{\$MetaDataVersion/@OID}'
+                                          Mandatory='{\$FormRef/@Mandatory}'
+                                          TransactionType='{\$FormData/@TransactionType}'
                                           ItemGroupDataCount='{\$ItemGroupDataCount}'
                                           ItemGroupDataCountEmpty='{\$ItemGroupDataCountEmpty}'
                                           ItemGroupDataCountFrozen='{\$ItemGroupDataCountFrozen}'
@@ -1602,6 +1603,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
       foreach($visits as $visit){
         $nbForm = 0;
         $nbFormEmpty = 0;
+        $nbFormEmptyButNotMandatory = 0;
         $nbFormFrozen = 0;
         $nbFormPartial = 0;
         $nbFormInconsistent = 0;
@@ -1635,11 +1637,10 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
           //counting forms and statuses => used to determine visit status
           $nbForm++;
           if($frmStatus=="EMPTY"){
-            //if the form is not Mandatory, it should not be considered as empty to calculate the visit status => considered FILLED
+            $nbFormEmpty++;
             if($form->getAttribute('Mandatory')=="No"){
-              $nbFormFilled++;
+              $nbFormEmptyButNotMandatory++;
             }else{
-              $nbFormEmpty++;
             }
           }elseif($frmStatus=="FROZEN"){
             $nbFormFrozen++;
@@ -1654,7 +1655,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
         if($nbForm==$nbFormEmpty){
           $visitStatus = "EMPTY";
         }else{
-          if($nbForm==$nbFormFilled){
+          if($nbForm==$nbFormFilled+$nbFormEmptyButNotMandatory){ //there may be empty but non-mandatory forms => mixed with filled form in the count of OK forms
             $visitStatus = "FILLED"; 
           }else{
             if($nbForm==$nbFormFrozen){
@@ -1925,8 +1926,14 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
   public function removeFormData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey)
   {
     $this->addLog(__METHOD__ ."($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey)",INFO);
-
+    
+    //FormData
     $query = "UPDATE REPLACE \$x in index-scan('SubjectData','$SubjectKey','EQ')/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']/odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']/@TransactionType
+              WITH attribute {'TransactionType'} {'Remove'}";
+    $res = $this->m_ctrl->socdiscoo()->query($query);
+    
+    //ItemGroupDatas
+    $query = "UPDATE REPLACE \$x in index-scan('SubjectData','$SubjectKey','EQ')/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']/odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']/odm:ItemGroupData/@TransactionType
               WITH attribute {'TransactionType'} {'Remove'}";
     $res = $this->m_ctrl->socdiscoo()->query($query);
   }

@@ -22,9 +22,9 @@
 //////////////////////////////////////////////////////////////
 // Audit Trails 
 
-function initAuditTrail(ItemOID,IGRK){
+function initAuditTrail(ItemOID,IGOID,IGRK){
 
-  var elementId = "#auditTrail_div_"+ItemOID+"_"+IGRK;
+  var elementId = "#auditTrail_div_"+ItemOID+"_"+IGOID+"_"+IGRK;
   var elementIdEsc = elementId.replace(".","\\.");
   $(elementIdEsc).dialog({
     	autoOpen: false,
@@ -45,15 +45,15 @@ function initAuditTrail(ItemOID,IGRK){
 }
 
 
-function toggleAuditTrail(ItemOID,IGRK){
-  var elementId = "#auditTrail_div_"+ItemOID+"_"+IGRK;
+function toggleAuditTrail(ItemOID,IGOID,IGRK){
+  var elementId = "#auditTrail_div_"+ItemOID+"_"+IGOID+"_"+IGRK;
   var elementIdEsc = elementId.replace(".","\\.");
   
   //dialog initialized ?
   if($(elementIdEsc).attr('initialized')=='false'){
     //Initialisation of AuditTrail
     if(typeof(initAuditTrail)=="function"){
-      initAuditTrail(ItemOID,IGRK);
+      initAuditTrail(ItemOID,IGOID,IGRK);
     }
   }
   

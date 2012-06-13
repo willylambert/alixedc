@@ -68,7 +68,7 @@ class uisubject extends CommonFunctions
      
       //Get Form Data / without design      
       $xml = $this->m_ctrl->bocdiscoo()->getStudyEventForms($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,false,$paginateStart,$paginateEnd);    
-
+      
       $FormTag = $xml->getElementsByTagName("Form");  
       $FormTitle = $FormTag->item(0)->getAttribute("Title");
 
@@ -157,6 +157,7 @@ class uisubject extends CommonFunctions
       echo "</pre>";
       echo "-------------<br>";   
 */
+//$this->dumpPre($xml->saveXML());
       $doc = $proc->transformToDoc($xml);
 /*
       echo "##############<br>";
@@ -266,7 +267,7 @@ class uisubject extends CommonFunctions
                       $htmlForm
                     </div>
                   </div>
-                                    
+                  
                   <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/helpers.js') . "?$jsVersion'></SCRIPT>
                   <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/queries.js') . "?$jsVersion'></SCRIPT>
                   <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/query.js') . "?$jsVersion'></SCRIPT>
@@ -286,7 +287,7 @@ class uisubject extends CommonFunctions
                   //<![CDATA[
                     $(document).ready(function() {
                                     loadAlixCRFjs('".$this->getCurrentApp(false)."','$SiteId','$SubjectKey','$StudyEventOID','$StudyEventRepeatKey','$FormOID','$FormRepeatKey','".$profileId."','".$formStatus."',$bCheckFormData);
-                                     }); 
+                                     });
                   //]]>
                   </script>
                   ";

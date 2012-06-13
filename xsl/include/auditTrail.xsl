@@ -38,7 +38,7 @@
   	
   	<!--xsl:variable name="ItemOID" select="translate($ItemOID,'.','-')"/-->
   	
-    	<xsl:variable name="DivId" select="concat('auditTrail_div_',$ItemOID,'_',$ItemGroupRepeatKey)"/>
+    	<xsl:variable name="DivId" select="concat('auditTrail_div_',$ItemOID,'_',$ItemGroupOID,'_',$ItemGroupRepeatKey)"/>
     	
     	<xsl:element name='span'>
         <xsl:attribute name='id'><xsl:value-of select="concat($DivId,'_picture')"/></xsl:attribute>

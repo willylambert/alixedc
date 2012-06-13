@@ -99,7 +99,7 @@
                         <xsl:attribute name="style">background-image: url('<xsl:value-of select="$CurrentApp"/>/templates/default/images/clock-history-discret.png');</xsl:attribute>
                       </xsl:otherwise>
                     </xsl:choose>
-                    <xsl:attribute name="onclick">toggleAuditTrail('<xsl:value-of select="$Item/@OID" />','<xsl:value-of select="$ItemGroupData/@ItemGroupRepeatKey" />');</xsl:attribute>
+                    <xsl:attribute name="onclick">toggleAuditTrail('<xsl:value-of select="$Item/@OID" />','<xsl:value-of select="$ItemGroupData/@ItemGroupOID" />','<xsl:value-of select="$ItemGroupData/@ItemGroupRepeatKey" />');</xsl:attribute>
                     <xsl:attribute name="altbox">Edit the history of this item</xsl:attribute>
                     &#0160;
                   </xsl:element>
@@ -133,7 +133,7 @@
                    <xsl:with-param name="ForceSelect" select="contains($CodeListForceSelect,./CodeList/@OID)"/>
                 </xsl:call-template>
                 <!--Audi Trail dialog container-->
-                <div id="{concat('auditTrail_div_',$Item/@OID,'_',$ItemGroupData/@ItemGroupRepeatKey)}" initialized='false' class='dialog-auditTrail' title='{@Title}' style="display:none;" keys="{$CurrentApp},{$SubjectKey},{$StudyEventOID},{$StudyEventRepeatKey},{$FormOID},{$FormRepeatKey},{$ItemGroup/@OID},{$ItemGroupData/@ItemGroupRepeatKey},{$Item/@OID}">
+                <div id="{concat('auditTrail_div_',$Item/@OID,'_',$ItemGroupData/@ItemGroupOID,'_',$ItemGroupData/@ItemGroupRepeatKey)}" initialized='false' class='dialog-auditTrail' title='{@Title}' style="display:none;" keys="{$CurrentApp},{$SubjectKey},{$StudyEventOID},{$StudyEventRepeatKey},{$FormOID},{$FormRepeatKey},{$ItemGroup/@OID},{$ItemGroupData/@ItemGroupRepeatKey},{$Item/@OID}">
                   Loading ...
                 </div>
             </td>
@@ -201,9 +201,7 @@
         <!--Un bouton permet de supprimer le FormData-->
         <xsl:if test="$ReadOnly='false' and $ItemGroup/../@Repeating='Yes'">
           <tr><td colspan='5'>
-            <!--
             <button name="btnRemoveFormData" class="ui-state-default ui-corner-all">Remove <xsl:value-of select="$ItemGroup/@Title"/></button>
-            -->
             <!--Boite de dialogue de confirmation de suppression-->
           </td></tr>
         </xsl:if>         
