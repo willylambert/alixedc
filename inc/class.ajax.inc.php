@@ -102,7 +102,7 @@ public function removeItemGroupData(){
 }
 
 /*
-*@desc put TransactionType='Remove' at the specified FormData
+*@desc put TransactionType='Remove' at the specified ItemGroupData
 *@author : wlt
 */
 public function removeFormData(){
@@ -1334,8 +1334,8 @@ public function checkFormData(){
     $tblSubjectKeys = $this->m_ctrl->bosubjects()->getSubjectsList($siteId);
 
     //pagination
-    if(count($subjects)>0 && $limit>0) {
-    	$total_pages = ceil($count/$limit);
+    if(count($tblSubjectKeys)>0 && $limit>0) {
+    	$total_pages = ceil(count($tblSubjectKeys)/$limit);
     } else {
     	$total_pages = 0;
     }
@@ -1345,7 +1345,7 @@ public function checkFormData(){
     
     $response->page = $page;
     $response->total = $total_pages;
-    $response->records = $count;
+    $response->records = count($tblSubjectKeys);
     $i=0; //current item in all set
     $j=0; //current (number) item being added
         
