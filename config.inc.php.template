@@ -19,6 +19,25 @@
     * You should have received a copy of the GNU General Public License        *
     * along with ALIX.  If not, see <http://www.gnu.org/licenses/>.            *
     \**************************************************************************/
+  
+  //Server configuration in php.ini should be "magic_quotes_gpc = Off"
+  //Otherwise: In the interest of writing portable code (code that works in any environment), like if setting at the server level is not possible, here's an example to disable magic_quotes_gpc at runtime. This method is inefficient so it's preferred to instead set the appropriate directives elsewhere.
+  //http://php.net/manual/en/security.magicquotes.disabling.php
+  if (get_magic_quotes_gpc()) {
+      $process = array(&$_GET, &$_POST, &$_COOKIE, &$_REQUEST);
+      while (list($key, $val) = each($process)) {
+          foreach ($val as $k => $v) {
+              unset($process[$key][$k]);
+              if (is_array($v)) {
+                  $process[$key][stripslashes($k)] = $v;
+                  $process[] = &$process[$key][stripslashes($k)];
+              } else {
+                  $process[$key][stripslashes($k)] = stripslashes($v);
+              }
+          }
+      }
+      unset($process);
+  }
 
   $basePath = "/var/lib/alix/demo/files";
   //No more than 20 characters
