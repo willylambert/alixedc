@@ -39,8 +39,8 @@ class uiusers extends CommonFunctions
   }
 
   /**
-  * @desc fonction principale - retoure l'html à afficher, appelé depuis uietude
-  * @return string HTML à afficher
+  * Get the main interface, called from uietude
+  * @return string HTML
   * @author WLT
   **/     
   public function getInterface()
