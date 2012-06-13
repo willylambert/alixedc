@@ -21,15 +21,15 @@
     \**************************************************************************/
     
 /**
-* @desc Class d'UI dédié à la gestion des utilisateurs
+* UI Class dedicated to users management
 * @author WLT
 **/ 
 class uiusers extends CommonFunctions
 {
   /**
-  * @desc Constructeur de class
-  * @param array $configEtude tableau des constantes de configuration    
-  * @param uietude $ctrlRef reference vers l'instance instanciation, où est délégué l'installation des objets (appel du type $this->m_ctrl->bcdiscoo() ) 
+  * Class constructor
+  * @param array $configEtude array of config values    
+  * @param uietude $ctrlRef reference to instanciation object 
   * @author WLT
   * 
   **/ 
@@ -81,10 +81,10 @@ class uiusers extends CommonFunctions
 		return $htmlRet;
   }
 
-/*
-@desc interface par défaut - liste des utilisateurs
-@author wlt
-*/ 
+  /**
+  * Default interface - users list
+  * @author wlt
+  **/ 
   private function getInterfaceUserList(){
     if(isset($_GET['sort'])){
       $sort = $_GET['sort'];
@@ -104,7 +104,7 @@ class uiusers extends CommonFunctions
       $start = 0;
     } 
     
-    //Recuperation de la liste des utilisateurs - cf egroupware/admin/inc/class.uiaccounts.inc.php - list_users
+    //Get eGroupware Users lists - cf egroupware/admin/inc/class.uiaccounts.inc.php - list_users
 		$search_param = array(
 			'type' => 'accounts',
 			'start' => $start,
@@ -124,7 +124,7 @@ class uiusers extends CommonFunctions
     $prevStart = $start - count($account_info);
     if($prevStart<0){$prevStart = 0;}
     
-    //Construction de la liste des utilisateurs
+    //Build users list
     $htmlUsers = "
     <div class='ui-grid ui-widget ui-widget-content ui-corner-all'>
 	    <div class='ui-grid-header ui-widget-header ui-corner-top'>Users list</div>
@@ -211,10 +211,10 @@ class uiusers extends CommonFunctions
     return $htmlRet;
   }
 
-/*
-@desc permet de définir pour un user donné ses profils pour chaque centre
-@author wlt
-*/  
+  /**
+  * for a given user, define sites profiles
+  * @author wlt
+  **/  
   private function getInterfaceProfil(){
       
       $userId = "";
@@ -241,7 +241,7 @@ class uiusers extends CommonFunctions
       }
       $selSite .= "</select>";
     
-      //Construction de la liste des profils-centre
+      //Build of profiles-site lists
       $htmlUser = "
       <div class='ui-grid ui-widget ui-widget-content ui-corner-all'>
 		    <div class='ui-grid-header ui-widget-header ui-corner-top'>User <span style='color: #dd0000;'>$userId</span> profiles list</div>
