@@ -473,15 +473,15 @@ return a context menu, can be used with a right click on inputs
     //Default XSL
     $xsl = new DOMDocument;
     $xsl->load(EGW_INCLUDE_ROOT . "/".$this->getCurrentApp(false)."/xsl/SubjectPDF.xsl"); 
-
-    $proc = new XSLTProcessor;     
+    
+    $proc = new XSLTProcessor;
     $proc->importStyleSheet($xsl);
     
     //XSL Parameters
     $siteId = $this->m_ctrl->bosubjects()->getSubjectColValue($SubjectKey,"SITEID");
     $subjId = sprintf($this->m_tblConfig["SUBJID_FORMAT"],$SubjectKey);
     $siteName = $this->m_ctrl->bosites()->getSiteName($siteId);
-    $proc->setParameter('','studyName',$this->m_tblConfig["APP_NAME"]);
+    $proc->setParameter('','STUDYNAME',$this->m_tblConfig["APP_NAME"]);
     $proc->setParameter('','siteId',$siteId);
     $proc->setParameter('','subjId',$subjId);
     $proc->setParameter('','siteName',$siteName);
@@ -489,7 +489,7 @@ return a context menu, can be used with a right click on inputs
     $doc = $proc->transformToDoc($doc);
     
     $html = $doc->saveHTML();
-
+    
     //convert to PDF using htmldoc command line
     $htmlTemp = tempnam("/tmp","htmlDocGfpc");
     $tmpHandle = fopen($htmlTemp,"w");
@@ -555,6 +555,50 @@ return a context menu, can be used with a right click on inputs
     putenv("HTMLDOC_NOCGI=1");
     //Generation and output
     $cmd = "htmldoc -t pdf --quiet --color --webpage --jpeg  --left 10 --top 20 --bottom 20 --right 10 --footer c.: --fontsize 10 --textfont {helvetica}";
+    ob_start();
+    $err = passthru("$cmd '$htmlTemp'");
+    $pdf = ob_get_contents();
+    ob_end_clean();
+    unlink($htmlTemp);
+    
+    return $pdf;
+  }
+  
+  /**
+  *return generate annotated CRF into PDF format (binary data)
+  *@return PDF data - binary content
+  **/
+  public function getAnnotatedCRF(){
+    $doc = $this->m_ctrl->bocdiscoo()->getAllMetadataForAnnotatedPDF();
+ 
+    //clean html to convert to a more simple HTML 4 output without css
+    //Default XSL
+    $xsl = new DOMDocument;
+    $xsl->load(EGW_INCLUDE_ROOT . "/".$this->getCurrentApp(false)."/xsl/AnnotatedCRFPDF.xsl"); 
+    
+    $proc = new XSLTProcessor;
+    $proc->importStyleSheet($xsl);
+    
+    //XSL Parameters
+    $proc->setParameter('','STUDYNAME',$this->m_tblConfig["APP_NAME"]);
+    $proc->setParameter('','METADATAVERSION',$this->m_tblConfig["METADATAVERSION"]);
+    
+    $doc = $proc->transformToDoc($doc);
+    
+    $html = $doc->saveHTML();
+    
+    //die($html);
+
+    //convert to PDF using htmldoc command line
+    $htmlTemp = tempnam("/tmp","htmlDocGfpc");
+    $tmpHandle = fopen($htmlTemp,"w");
+    fwrite($tmpHandle,$html);
+    fclose($tmpHandle);
+    
+    # Tell HTMLDOC not to run in CGI mode...
+    putenv("HTMLDOC_NOCGI=1");
+    //Generation and output on standard output
+    $cmd = "htmldoc -t pdf --quiet --color --webpage --jpeg  --left 30 --top 20 --bottom 20 --right 20 --footer c.: --fontsize 10 --textfont {helvetica}";
     ob_start();
     $err = passthru("$cmd '$htmlTemp'");
     $pdf = ob_get_contents();

@@ -30,6 +30,7 @@ require_once(EGW_SERVER_ROOT . "/".$GLOBALS['egw_info']['flags']['currentapp']."
 class uietude extends CommonFunctions
 {
 	var $public_functions = array(
+	  'annotatedCRF' => True,
 	  'auditTrailInterface' => True,
 		'changePasswordInterface' => True,
 		'dashboardInterface'	=> True,
@@ -359,6 +360,32 @@ class uietude extends CommonFunctions
         $filename = $this->m_tblConfig["APP_NAME"] ."_Site_". $siteId ."_Patient_". $subjId .".pdf";
         
         $pdf = $ui->getPDF($SubjectKey);
+        
+        if(!$pdf) $this->m_ctrl->addLog($pdf,FATAL);
+        
+        header("Content-Disposition: attachment; filename=\"$filename\"");
+        header("Expires: 0");
+        header("Pragma: public"); 
+        header("Cache-Control: private, must-revalidate");
+        header("Content-Type: application/pdf");
+        
+        echo $pdf;
+        
+        exit(0);  
+   }
+   
+   public function annotatedCRF()
+   {
+        require_once('class.uisubject.inc.php');
+        global $configEtude;
+        $ui = new uisubject($configEtude,$this->m_ctrl);
+        
+        $content = ob_get_contents();
+        ob_end_clean();
+        
+        $filename = $this->m_tblConfig["APP_NAME"] ."_Annotated_CRF.pdf";
+        
+        $pdf = $ui->getAnnotatedCRF();
         
         if(!$pdf) $this->m_ctrl->addLog($pdf,FATAL);
         

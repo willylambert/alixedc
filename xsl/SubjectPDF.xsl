@@ -23,7 +23,7 @@
 -->
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 <xsl:output method="xml" encoding="UTF-8" indent="yes"/>
-  <xsl:param name="studyName"/>
+  <xsl:param name="STUDYNAME"/>
   <xsl:param name="siteId"/>
   <xsl:param name="subjId"/>
   <xsl:param name="siteName"/>
@@ -32,7 +32,7 @@
     <html>
       <head>
         <title>
-          <xsl:value-of select="$studyName" /> - Site <xsl:value-of select="$siteId" /> (<xsl:value-of select="$siteName" />) Subject <xsl:value-of select="$subjId" />
+          <xsl:value-of select="$STUDYNAME" /> - Site <xsl:value-of select="$siteId" /> (<xsl:value-of select="$siteName" />) Subject <xsl:value-of select="$subjId" />
         </title>
       </head>
       <body>

@@ -257,6 +257,10 @@ class uidbadmin extends CommonFunctions{
       $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.editorInterface',
 			                                                                        'action' => ''),
                                         "Editor");
+      
+      $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.annotatedCRF',
+			                                                                        'action' => ''),
+                                        "Annotated CRF");
                                           
       $menu .= $this->getSubMenu("Design", $submenu);
     }

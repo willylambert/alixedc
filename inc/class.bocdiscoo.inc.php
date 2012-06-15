@@ -926,6 +926,96 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
     return $doc;
   }
   
+  
+  /*  
+  @desc returns the list of the visits, forms, (predefined) itemgroups, items and codelists for generation of the annotated CRF
+  */
+  function getAllMetadataForAnnotatedPDF()
+  {
+    $this->addLog(__METHOD__."()",INFO);
+    
+    $query = "let \$SubjectBLANK := index-scan('SubjectData','".$this->m_tblConfig["BLANK_OID"]."','EQ')
+              let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectBLANK/../@MetaDataVersionOID]
+              return
+                <MetaData>
+                {
+                  for \$StudyEventRef in \$MetaDataVersion/odm:Protocol/odm:StudyEventRef
+                  let \$StudyEventDef := \$MetaDataVersion/odm:StudyEventDef[@OID=\$StudyEventRef/@StudyEventOID]
+                  order by \$StudyEventRef/@OrderNumber ascending
+                  return
+                    <StudyEvent 
+                      OID='{\$StudyEventDef/@OID}'
+                      Mandatory='{\$StudyEventRef/@Mandatory}'
+                      Repeating='{\$StudyEventDef/@Repeating}'
+                      Description='{\$StudyEventDef/odm:Description/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()}'
+                    >
+                    {
+                      for \$FormRef in \$StudyEventDef/odm:FormRef
+                      let \$FormDef := \$MetaDataVersion/odm:FormDef[@OID=\$FormRef/@FormOID]
+                      order by \$FormRef/@OrderNumber ascending
+                      return
+                      <Form 
+                        OID='{\$FormDef/@OID}'
+                        Mandatory='{\$FormRef/@Mandatory}'
+                        Repeating='{\$FormDef/@Repeating}'
+  	                    Description='{\$FormDef/odm:Description/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()}'
+                      >
+                      {
+                        for \$ItemGroupRef in \$FormDef/odm:ItemGroupRef
+                        let \$ItemGroupDef := \$MetaDataVersion/odm:ItemGroupDef[@OID=\$ItemGroupRef/@ItemGroupOID]
+                        order by \$ItemGroupRef/@OrderNumber ascending
+                        return
+                          <ItemGroup 
+                            OID='{\$ItemGroupDef/@OID}'
+                            Mandatory='{\$ItemGroupRef/@Mandatory}'
+                            Repeating='{\$ItemGroupDef/@Repeating}'
+      	                    Description='{\$ItemGroupDef/odm:Description/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()}'
+      	                  >
+                          {
+                            for \$ItemRef in \$ItemGroupDef/odm:ItemRef
+                            let \$ItemDef := \$MetaDataVersion/odm:ItemDef[@OID=\$ItemRef/@ItemOID]
+                            order by \$ItemRef/@OrderNumber ascending
+                            return
+                              <Item
+                                OID='{\$ItemDef/@OID}'
+                                Mandatory='{\$ItemRef/@Mandatory}'
+                                Question='{\$ItemDef/odm:Question/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()}'
+                              >
+                              {
+                                for \$CodeListRef in \$ItemDef/odm:CodeListRef
+                                let \$CodeList := \$MetaDataVersion/odm:CodeList[@OID=\$CodeListRef/@CodeListOID]
+                                order by \$CodeListRef/@OrderNumber ascending
+                                return
+                                  <CodeList
+                                    OID='{\$CodeList/@OID}'
+                                  >
+                                  {
+                                    for \$CodeListItem in \$CodeList/odm:CodeListItem
+                                    order by \$CodeListItem/@Rank ascending
+                                    return
+                                      <CodeListItem
+                                        CodedValue='{\$CodeListItem/@CodedValue}'
+                                        Decode='{\$CodeListItem/odm:Decode/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()}'
+                                      />
+                                  }
+                                  </CodeList>
+                              }
+                              </Item>
+                          }
+                          </ItemGroup>
+                      }
+                      </Form>
+                  }
+                  </StudyEvent>
+              }
+              </MetaData>";
+
+    $doc = $this->m_ctrl->socdiscoo()->query($query,false);
+    //$this->dumpPre($doc->saveXML());
+    //exit(0);
+    return $doc;
+  }
+  
   /**
    * Get the Audit Trail for requested sites between $startDate and $enDate
    * @param array $sitesList
