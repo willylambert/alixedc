@@ -50,9 +50,7 @@
   
   <xsl:template match="StudyEvent">
     
-    <xsl:if test="position()>1">
-      <xsl:text disable-output-escaping="yes">&lt;!-- PAGE BREAK --&gt;</xsl:text>
-    </xsl:if>
+    <xsl:text disable-output-escaping="yes">&lt;!-- PAGE BREAK --&gt;</xsl:text>
     
     <table bgcolor="#cccccc" border="1" width="100%">
       <tr>
@@ -68,6 +66,9 @@
   </xsl:template>
   
   <xsl:template match="Form">
+    
+    <xsl:text disable-output-escaping="yes">&lt;!--</xsl:text> NEED 5 <xsl:text disable-output-escaping="yes">--&gt;</xsl:text>
+    
     <br />
     <table bgcolor="#ffffff" border="0" width="100%">
       <tr>
