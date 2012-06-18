@@ -67,7 +67,7 @@
   
   <xsl:template match="Form">
     
-    <xsl:text disable-output-escaping="yes">&lt;!--</xsl:text> NEED 5 <xsl:text disable-output-escaping="yes">--&gt;</xsl:text>
+    <xsl:text disable-output-escaping="yes">&lt;!--</xsl:text> NEED 7 <xsl:text disable-output-escaping="yes">--&gt;</xsl:text>
     
     <br />
     <table bgcolor="#ffffff" border="0" width="100%">
@@ -163,6 +163,7 @@
     <xsl:variable name="NbCodeLists" select="count(CodeList)" />
     <xsl:variable name="NbItemGroupDatas" select="count(ItemGroupData)" />
     <xsl:variable name="MaxCodeListValues" select="count(CodeList[@OID=$ItemGroup/@CodeListMaxItemsOID]/CodeListItem)" />
+    <xsl:variable name="NbItemsLimitInWidth" select="12" />
     
     <xsl:text disable-output-escaping="yes">&lt;!--</xsl:text> NEED <xsl:value-of select="5 + number($NbItemGroupDatas) + number($MaxCodeListValues)" /> <xsl:text disable-output-escaping="yes">--&gt;</xsl:text>
     
@@ -173,8 +174,9 @@
     <!--Reduce font size if too much items-->
     <font>
       <xsl:attribute name="size">
-      <xsl:if test="$NbItems&gt;12 and $NbItems&lt;=16">1</xsl:if>
-      <xsl:if test="$NbItems&gt;16">0</xsl:if>
+      <xsl:if test="$NbItems &gt; 12">1</xsl:if>
+      <!--xsl:if test="$NbItems&gt;12 and $NbItems&lt;=16">1</xsl:if>
+      <xsl:if test="$NbItems&gt;16">0</xsl:if-->
       </xsl:attribute>
     
     <table border="1" width="100%">
@@ -187,7 +189,7 @@
     <table border="1" width="100%">
       <tr>
         <!--Items questions for this ItemGroup-->
-        <xsl:for-each select="Item">
+        <xsl:for-each select="Item[position() &lt;= $NbItemsLimitInWidth]">
           <td>
             <xsl:value-of select="@Question" />
           </td>
@@ -198,7 +200,7 @@
         <xsl:variable name="ItemGroupData" select="." />
         <tr>
           <!--Items for this ItemGroup-->
-          <xsl:for-each select="$ItemGroup/Item">
+          <xsl:for-each select="$ItemGroup/Item[position() &lt;= $NbItemsLimitInWidth]">
             <xsl:variable name="Item" select="." />
             <td>
               <xsl:choose> <!--Display the value if it exists, otherwise display an blank space -->
@@ -214,7 +216,7 @@
       </xsl:for-each>
         <!--Items OID for this ItemGroup-->
       <tr>
-        <xsl:for-each select="$ItemGroup/Item">
+        <xsl:for-each select="$ItemGroup/Item[position() &lt;= $NbItemsLimitInWidth]">
           <td>
             <font color="blue"><xsl:value-of select="@OID" /></font>
           </td>
@@ -223,7 +225,7 @@
         <!--Items codelists for this ItemGroup-->
       <xsl:if test="$NbCodeLists>0"> <!--This last row is not needed if there is no CodeList in this ItemGroup-->
         <tr>
-          <xsl:for-each select="Item">
+          <xsl:for-each select="Item[position() &lt;= $NbItemsLimitInWidth]">
             <td>
               <xsl:choose> <!--Display the CodeList OID if it exists, otherwise display an blank space -->
                 <xsl:when test="@CodeListOID">
@@ -237,6 +239,69 @@
         </tr>
       </xsl:if>
     </table>
+    
+    <xsl:if test="$NbItems &gt; $NbItemsLimitInWidth">
+      <table border="1" width="100%">
+        <tr bgcolor="black">
+          <td>
+            <b><font color="white"><xsl:value-of select="@Description" />&#0160;<font color="yellow">[<xsl:value-of select="@OID" />]</font></font></b>
+          </td>
+        </tr>
+      </table>
+      <table border="1" width="100%">
+        <tr>
+          <!--Items questions for this ItemGroup-->
+          <xsl:for-each select="Item[position() > $NbItemsLimitInWidth]">
+            <td>
+              <xsl:value-of select="@Question" />
+            </td>
+          </xsl:for-each>
+        </tr>
+        <!--Items values for predefined data-->
+        <xsl:for-each select="ItemGroupData">
+          <xsl:variable name="ItemGroupData" select="." />
+          <tr>
+            <!--Items for this ItemGroup-->
+            <xsl:for-each select="$ItemGroup/Item[position() > $NbItemsLimitInWidth]">
+              <xsl:variable name="Item" select="." />
+              <td>
+                <xsl:choose> <!--Display the value if it exists, otherwise display an blank space -->
+                  <xsl:when test="$ItemGroupData/ItemData[@ItemOID=$Item/@OID]">
+                    <font color="#5f9ea0"><xsl:value-of select="$ItemGroupData/ItemData[@ItemOID=$Item/@OID]" /></font>
+                  </xsl:when>
+                  <xsl:otherwise>&#0160;
+                  </xsl:otherwise>
+                </xsl:choose>
+              </td>
+            </xsl:for-each>
+          </tr>
+        </xsl:for-each>
+          <!--Items OID for this ItemGroup-->
+        <tr>
+          <xsl:for-each select="$ItemGroup/Item[position() > $NbItemsLimitInWidth]">
+            <td>
+              <font color="blue"><xsl:value-of select="@OID" /></font>
+            </td>
+          </xsl:for-each>
+        </tr>
+          <!--Items codelists for this ItemGroup-->
+        <xsl:if test="$NbCodeLists>0"> <!--This last row is not needed if there is no CodeList in this ItemGroup-->
+          <tr>
+            <xsl:for-each select="Item[position() > $NbItemsLimitInWidth]">
+              <td>
+                <xsl:choose> <!--Display the CodeList OID if it exists, otherwise display an blank space -->
+                  <xsl:when test="@CodeListOID">
+                    <font color="green"><xsl:value-of select="@CodeListOID" /></font>
+                  </xsl:when>
+                  <xsl:otherwise>&#0160;
+                  </xsl:otherwise>
+                </xsl:choose>
+              </td>
+            </xsl:for-each>
+          </tr>
+        </xsl:if>
+      </table>
+    </xsl:if>
     
     <!--CodeLists details for this ItemGroup-->
     <xsl:if test="$NbCodeLists>0">
