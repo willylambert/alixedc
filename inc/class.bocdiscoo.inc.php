@@ -336,7 +336,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
     
     $whereItemData = "";
     if($Value==false){
-      $whereItemData = "where \$ItemData/string()!=''";
+      $whereItemData = "and \$ItemData/string()!=''";
     }
     
     //Loop through ItemDatas with ItemDef having a FormalExpression (EditChecks)
@@ -349,29 +349,35 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
         let \$ItemGroupOID := \$ItemGroupData/@ItemGroupOID
         let \$ItemGroupRepeatKey := \$ItemGroupData/@ItemGroupRepeatKey
           let \$ItemOID := \"$ItemOID\"
-          let \$ItemDatas := \$ItemGroupData/odm:*[@ItemOID=\$ItemOID]
-          let \$ItemData := \$ItemDatas[last()]
+          let \$ItemData := \$ItemGroupData/odm:*[@ItemOID=\$ItemOID][last()]
           let \$ItemDef := \$MetaDataVersion/odm:ItemDef[@OID=\$ItemOID]
+          where exists(\$MetaDataVersion/odm:ItemGroupDef[@OID=\$ItemGroupOID]/odm:ItemRef[@ItemOID=\$ItemOID])
           $whereItemData
           return
-              <Control ItemOID=\"{\$ItemDef/@OID}\"
-                       ItemGroupRepeatKey=\"{\$ItemGroupRepeatKey}\"
-                       Position=\"-1\"
-                       ItemGroupOID=\"{\$ItemGroupOID}\"
-                       AuditRecordID=\"{\$ItemData/@AuditRecordID}\"
-                       Name=\"{\$ItemDef/@Name}\"
-                       SoftHard=\"$SoftHard\"
-                       ErrorMessage=\"$ErrorMessage\"
-                       FormalExpression=\"$FormalExpression\"
-                       FormalExpressionDecode=\"$FormalExpressionDecode\"
-                       Title=\"{\$ItemDef/odm:Question/odm:TranslatedText[@xml:lang=\"{$this->m_lang}\"]/text()}\"/>
+            <Control ItemOID=\"{\$ItemDef/@OID}\"
+                     ItemGroupRepeatKey=\"{\$ItemGroupRepeatKey}\"
+                     Position=\"-1\"
+                     ItemGroupOID=\"{\$ItemGroupOID}\"
+                     AuditRecordID=\"{\$ItemData/@AuditRecordID}\"
+                     Name=\"{\$ItemDef/@Name}\"
+                     SoftHard=\"$SoftHard\"
+                     ErrorMessage=\"$ErrorMessage\"
+                     FormalExpression=\"$FormalExpression\"
+                     FormalExpressionDecode=\"$FormalExpressionDecode\"
+                     Title=\"{\$ItemDef/odm:Question/odm:TranslatedText[@xml:lang=\"{$this->m_lang}\"]/text()}\"/>
         ";
     $ctrls = $this->m_ctrl->socdiscoo()->query($query);
     $errors = array();
 
     foreach($ctrls as $ctrl)
     {
-      $testXQuery = $macros . $this->getXQueryConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ctrl,$Value);
+      $macros = "";
+      $testXQueryConsistency = $this->getXQueryConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ctrl);
+      if($Value!==false){ //If value is specified somewhere (eCRFDesigner)
+        $testXQueryConsistency = preg_replace(array("/alix:getValue\(\\\$ItemData\)/","/alix:getRawValue\(\\\$ItemData\)/"), "'".$Value."'", $testXQueryConsistency);
+        //$testXQueryConsistency = preg_replace(array("/alix:getDecode\(\\\$ItemData([^\)])*\)/"), "local:getDecode(\$ItemData,\$MetaDataVersion)", $testXQueryConsistency);
+      }
+      $testXQuery = $macros . $testXQueryConsistency;
       try{
         $ctrlResult = $this->m_ctrl->socdiscoo()->query($testXQuery,true,false,true);
       }catch(xmlexception $e){
@@ -1996,7 +2002,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
    * @return string optimized query code
    * @author tpi       
    **/  
-  private function getXQueryConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ctrl,$Value=false){
+  private function getXQueryConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ctrl){
     $testExpr = $ctrl['FormalExpression'];   
     
     //To optimize query, each call to functions getValue,getRawValue,count and max with same parameters is made unique.
@@ -2057,13 +2063,6 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
             </Decode>";
     }
     
-    $ItemData = "\$FormData/odm:ItemGroupData[@ItemGroupOID='{$ctrl['ItemGroupOID']}' and @ItemGroupRepeatKey='{$ctrl['ItemGroupRepeatKey']}']/
-                                   odm:*[@ItemOID='{$ctrl['ItemOID']}' and @AuditRecordID='{$ctrl['AuditRecordID']}']";
-    if($Value!==false){ //If value is specified somewhere (eCRFDesigner via RunXQuery())
-      $ItemData = "<ItemData ItemOID='{$ctrl['ItemOID']}' AuditRecordID='{$ctrl['AuditRecordID']}'>$Value</ItemData>";
-      //TODO: recreate the full context : recreate FormData and ItemGroupData with this Specified ItemData included
-    }
-    
     //Création de la requête de test pour l'ItemData en cours
     $testXQuery = "
       import module namespace alix = 'http://www.alix-edc.com/alix';
@@ -2078,7 +2077,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
       let \$StudyEventData := \$SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']
       let \$FormData := \$StudyEventData/odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']
       let \$ItemGroupData := \$FormData/odm:ItemGroupData[@ItemGroupOID='{$ctrl['ItemGroupOID']}' and @ItemGroupRepeatKey='{$ctrl['ItemGroupRepeatKey']}']
-      let \$ItemData := $ItemData
+      let \$ItemData := \$ItemGroupData/odm:*[@ItemOID='{$ctrl['ItemOID']}'][last()]
       let \$value := alix:getRawValue(\$ItemData)
       let \$decode := alix:getDecode(\$ItemData,\$SubjectData,\$MetaDataVersion)
       $lets

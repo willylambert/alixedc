@@ -169,6 +169,7 @@ I, the undersigned Dr
 					JourSelection = parseInt(document.getElementsByName('text_dd_DS@DSSTDTC_0')[0].value,10);
 					MoisSelection = parseInt(document.getElementsByName('text_mm_DS@DSSTDTC_0')[0].value,10);
 					AnneeSelection = parseInt(document.getElementsByName('text_yy_DS@DSSTDTC_0')[0].value);
+          
 					document.getElementsByName('text_integer_DM@AGE_0')[0].value = '';
 					if(!isNaN(JourNaissance)){		
 						if(!isNaN(MoisNaissance)){
@@ -176,6 +177,7 @@ I, the undersigned Dr
 								if(!isNaN(JourSelection)){
 									if(!isNaN(MoisSelection)){
 										if(!isNaN(AnneeSelection)){
+                      /*
 											nbrAnnee = AnneeSelection - AnneeNaissance;
 											nbrMois = nbrAnnee * 12.0;
 											nbrMois = nbrMois + MoisSelection;
@@ -186,6 +188,12 @@ I, the undersigned Dr
 										
 											age = nbrJour/(12.0 * 30.44);
 											age = Math.floor(age);
+                      */
+                      
+                      var dateNaissance = new Date(JourNaissance+"/"+MoisNaissance+"/"+AnneeNaissance);
+                      var dateSelection = new Date(JourSelection+"/"+MoisSelection+"/"+AnneeSelection);
+                      age = new Number((dateSelection.getTime() - dateNaissance.getTime()) / 31536000000).toFixed(0);
+                      
 											document.getElementsByName('text_integer_DM@AGE_0')[0].value = age;
 											$("input[name='text_integer_DM@AGE_0']").attr("readonly",true);
 										}
