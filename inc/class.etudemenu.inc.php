@@ -76,10 +76,11 @@ class etudemenu extends CommonFunctions
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //Button: Queries
+    $queries = "";
     if($this->m_ctrl->boacl()->existUserProfileId(array("CRA","DM"))){
       $queries = '<a name="queries" href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.queriesInterface')).'"><li class="ui-state-default"><img src="'. $GLOBALS['egw_info']['flags']['currentapp'].'/templates/default/images/file_notification_warning.png" alt="" /><div><p>Queries</p></div></li></a>';
     }elseif($this->m_ctrl->boacl()->existUserProfileId("SPO")){
-      $queries = '<a name="queries" href="#"><li class="ui-state-default" class="inactiveButton"><img src="'. $this->getCurrentApp(false).'/templates/default/images/file_notification_warning.png" alt=""/><div><p>Queries</p></div></li></a>';
+      $queries = '<a name="queries" href="#"><li class="ui-state-default inactiveButton"><img src="'. $this->getCurrentApp(false).'/templates/default/images/file_notification_warning.png" alt="" /><div><p>Queries</p></div></li></a>';
     }
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

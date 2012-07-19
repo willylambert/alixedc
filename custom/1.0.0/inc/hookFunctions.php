@@ -265,7 +265,7 @@ function bocdiscoo_getNewPatientID_customSubjId($bocdiscoo){
   }
   else
   {
-      $subjKey = $siteId."01";
+      $subjKey = $siteId."001";
   }
   
   $bocdiscoo->addLog("bocdiscoo_getNewPatientID_customSubjId() : New SubjId = $subjKey",INFO);

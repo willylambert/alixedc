@@ -79,7 +79,7 @@
   </xsl:if>
 </xsl:template>
 
-<xsl:template match="div[@FormOID='FORM.ELIG']">
+<!--xsl:template match="div[@FormOID='FORM.ELIG']">
   <xsl:choose>
     <xsl:when test="@StudyEventRepeatKey='1'">
       <xsl:if test="$FwDrug1='1'">
@@ -106,7 +106,7 @@
       </xsl:if>
     </xsl:when>
   </xsl:choose>   
-</xsl:template>
+</xsl:template-->
 
 <!--Link to add AE-->
 <xsl:template match="div[preceding-sibling::h3[@id='visit_AE_0']][1]">
