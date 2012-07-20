@@ -31,6 +31,8 @@ class uipreferences extends CommonFunctions
   {
     $menu = $this->m_ctrl->etudemenu()->getMenu();
     
+    //////////////////////////////////////////////////////////////////////////////////////////
+    //Profiles
     $user = $this->m_ctrl->boacl()->getUserInfo();
     $tblProfile = $this->m_ctrl->boacl()->getUserProfiles($user['login']);
     //Construction de la liste des profils-centre
@@ -48,32 +50,48 @@ class uipreferences extends CommonFunctions
   			</thead>
         <tbody>";
 
-      foreach($tblProfile as $profile)
-			{
-			   $htmlProfiles .= "<tr>
-                					<td class='ui-widget-content' name='siteId'>".$profile['siteId']."</td>
-                					<td class='ui-widget-content'>".$profile['siteName']."</td>
-                					<td class='ui-widget-content' name='profileId'>".$profile['profileId']."</td>
-                					<td class='ui-widget-content' name='default'>".$profile['defaultProfile']."</td>
-                				</tr>";
+    foreach($tblProfile as $profile)
+		{
+		   $htmlProfiles .= "<tr>
+              					<td class='ui-widget-content' name='siteId'>".$profile['siteId']."</td>
+              					<td class='ui-widget-content'>".$profile['siteName']."</td>
+              					<td class='ui-widget-content' name='profileId'>".$profile['profileId']."</td>
+              					<td class='ui-widget-content' name='default'>".$profile['defaultProfile']."</td>
+              				</tr>";
 
-			}
-			$htmlProfiles .= "</tbody></table>
-                  	</div>";
+		}
+		$htmlProfiles .= "</tbody></table>
+                	</div>";
     
-    $htmlRet = "$menu
-                  <div id='mainForm' class='ui-dialog ui-widget ui-widget-content ui-corner-all'>
-                    <div class='ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix'>
-                      <span class='ui-grid-header ui-widget-header ui-corner-top'>Preferences</span>
-                    </div>
-                    <p>Welcome {$user['fullname']}. Here is the information of your account.</p>
-                    <div id='frmPreferences'>
-                      <div><span><strong>Login : </strong></span><span>{$user['login']}</span></div>
-                      <div><span><strong>Last login : </strong></span><span>".date('r',$user['lastlogin'])."</span></div>
-                      <div><a href='".$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.changePasswordInterface'))."'>Change account password</a></div>
-                    </div>
+    //////////////////////////////////////////////////////////////////////////////////////////
+    //User info
+    $userInfo = "
+      <p>Welcome {$user['fullname']}. Here is the information of your account.</p>
+      <div id='frmPreferences'>
+      <div><span><strong>Login : </strong></span><span>{$user['login']}</span></div>
+      <div><span><strong>Last login : </strong></span><span>".date('r',$user['lastlogin'])."</span></div>
+      <div><a href='".$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.changePasswordInterface'))."' style='color:blue;'>Change account password</a></div>
+      </div>"; 
+    
+    $htmlRet = "
+                $menu
+                
+                <div id='mainFormOnly' class='ui-dialog ui-widget ui-widget-content ui-corner-all'>
+                  <div class='ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix'>
+                    <span class='ui-dialog-title'>Preferences</span>
+                  </div>
+                  <div class='ui-grid-users ui-dialog-content ui-widget-content'>
+                    $userInfo
+                  </div>
+                  <div class='ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix'>
+                    <span class='ui-dialog-title'>Profiles</span>
+                  </div>
+                  <div class='ui-grid-users ui-dialog-content ui-widget-content'>
                     $htmlProfiles
-                  </div>";
+                  </div>
+                </div>
+                ";
+                  
     return $htmlRet;  
   }
 }

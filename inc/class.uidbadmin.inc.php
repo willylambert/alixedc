@@ -282,6 +282,21 @@ class uidbadmin extends CommonFunctions{
                                           
       $menu .= $this->getSubMenu("Clinical data", $submenu);                                                                                                                     
     }
+
+    if(true) //everyone
+    {
+      $submenu = "";
+      
+      if(true) //everyone
+      {
+      
+      $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.preferencesInterface',
+			                                                                        'action' => ''),
+                                        "Profile");
+      }
+                                          
+      $menu .= $this->getSubMenu("Preferences", $submenu);                                                                                                                     
+    }
     
     if($menu==""){
       $menu .= $this->getSubMenu("Administration tools", "Sorry, you have no privilege in this module.");   
