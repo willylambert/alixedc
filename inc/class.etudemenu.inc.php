@@ -85,16 +85,18 @@ class etudemenu extends CommonFunctions
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //Button: Deviations
-    if($this->m_ctrl->boacl()->existUserProfileId(array("CRA","DM","SPO"))){
+    if($this->m_ctrl->boacl()->existUserProfileId(array("CRA","DM"))){
       $deviations = '<a name="deviations" href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.deviationsInterface')).'"><li class="ui-state-default"><img src="'. $this->getCurrentApp(false).'/templates/default/images/file_warning.png" alt="" /><div><p>Deviations</p></div></li></a>';
     }elseif($this->m_ctrl->boacl()->existUserProfileId("SPO")){
-      $deviations = '<a name="deviations" href="#"><li class="ui-state-default" class="inactiveButton"><img src="'. $this->getCurrentApp(false).'/templates/default/images/file_warning.png" alt=""/><div><p>Deviations</p></div></li></a>';
+      $deviations = '<a name="deviations" href="#"><li class="ui-state-default inactiveButton"><img src="'. $this->getCurrentApp(false).'/templates/default/images/file_warning.png" alt=""/><div><p>Deviations</p></div></li></a>';
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //Button: Audit Trail
-    if($this->m_ctrl->boacl()->existUserProfileId(array("CRA","DM","SPO"))){
+    if($this->m_ctrl->boacl()->existUserProfileId(array("CRA","DM"))){
       $auditTrail = '<a name="audittrail" href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.auditTrailInterface')).'"><li class="ui-state-default"><img src="'. $this->getCurrentApp(false).'/templates/default/images/file_notification_warning.png" alt="" /><div><p>Audit Trail</p></div></li></a>';
+    }elseif($this->m_ctrl->boacl()->existUserProfileId("SPO")){
+      $auditTrail = '<a name="audittrail" href="#"><li class="ui-state-default inactiveButton"><img src="'. $this->getCurrentApp(false).'/templates/default/images/file_notification_warning.png" alt=""/><div><p>Audit Trail</p></div></li></a>';
     }
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
