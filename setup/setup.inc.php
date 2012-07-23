@@ -27,7 +27,7 @@
 	/* Basic information about this app */
 	$setup_info[$moduleName]['name']      = $moduleName;
 	$setup_info[$moduleName]['title']     = $moduleTitle;
-	$setup_info[$moduleName]['version']   = '11.9.2';
+	$setup_info[$moduleName]['version']   = '12.6.0';
 	$setup_info[$moduleName]['app_order'] = 100;
 	$setup_info[$moduleName]['enable']    = 1;
 
