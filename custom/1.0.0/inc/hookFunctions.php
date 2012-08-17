@@ -38,7 +38,7 @@ function uisubject_getInterface_start($FormOID,$uisubject){
 * @author WLT
 **/  
 function uisubject_getInterface_xslParameters($FormOID,$xslProc,$uisubject){
-  if($FormOID==""){  
+  if($FormOID!="FORM.IE"){
     //Here we force the display of a select instead of radios buttons - multiple codelist could be used - separe them with white space
     $xslProc->setParameter('','CodeListForceSelect','CL.$YN CL.$SYMB');    
   }

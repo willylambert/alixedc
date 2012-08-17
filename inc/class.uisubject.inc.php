@@ -149,7 +149,7 @@ class uisubject extends CommonFunctions
       $proc->setParameter('','ShowDeviations',$ShowDeviation);
       
       //HOOK => uisubject_getInterface_xslParameters
-      $this->callHook(__FUNCTION__,"xslParameters",array("",$proc,$this));
+      $this->callHook(__FUNCTION__,"xslParameters",array($FormOID,$proc,$this));
 /*
       echo "-------------<br>";
       echo "<pre>";
@@ -320,6 +320,12 @@ class uisubject extends CommonFunctions
     $proc = new XSLTProcessor;     
     $proc->importStyleSheet($xsl);
     
+    //Extraction of the form's status (ask by reference in parameter)
+    $xpath = new DOMXPath($tblForm);
+    $query = "/SubjectData/StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']/FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']/@Status";   
+    $formdata = $xpath->query($query);
+    $formStatus = $formdata->item(0)->nodeValue;
+    
     $proc->setParameter('','SubjectKey',"$SubjectKey");
     $proc->setParameter('','AllowLock',"$AllowLock");
     $proc->setParameter('','CurrentApp',$this->getCurrentApp(false));
@@ -345,7 +351,7 @@ class uisubject extends CommonFunctions
     //HOOK => uisubject_getMenu_saveSubjectStatus
     $this->callHook(__FUNCTION__,"saveSubjectStatus",array($SubjectKey,$tblForm,$this));
 
-    $htmlRet .= $doc->saveXML($doc->childNodes->item(0));
+    $htmlRet = $doc->saveXML($doc->childNodes->item(0));
 
     return $htmlRet;
   }
