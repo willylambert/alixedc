@@ -184,17 +184,22 @@ class boacl extends CommonFunctions
         case "importDoc" :
         case "deleteDoc" :
         case "viewDocs" :
-        case "EditDocs" :
         case "ManageUsers" :
         case "ManageSites" :
            if( $GLOBALS['egw_info']['user']['apps']['admin']){
-            $access = true; 
+             $access = true; 
            }
-           break;    
+           break;
+        case "EditDocs" :
+           if( $GLOBALS['egw_info']['user']['apps']['admin'] || 
+              $this->m_ctrl->boacl()->existUserProfileId(array("DM"))){
+             $access = true; 
+           }
+           break;
         case "ExportData" :
            if($GLOBALS['egw_info']['user']['apps']['admin'] || 
               $this->m_ctrl->boacl()->existUserProfileId(array("DM","SPO"))){
-            $access = true; 
+             $access = true; 
            }
            break;    
       }
