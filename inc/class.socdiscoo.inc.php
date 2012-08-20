@@ -440,6 +440,7 @@ class socdiscoo extends CommonFunctions
     
     $strLib = implode("','",$this->m_tblConfig['XQUERY_LIB']);
     
+    /*
     //unloading module
     if($reload){
       $query = "DROP MODULE 'http://www.alix-edc.com/alix'";
@@ -447,9 +448,9 @@ class socdiscoo extends CommonFunctions
         $results[] = "xquery module $strLib dropped";
       }
     }
-    
+    */
     //loading module
-    $query = "LOAD MODULE '$strLib'";
+    $query = "LOAD MODULE '/var/www/alix/docs/demo/alixedc/xquery/alix.xqlib'";
     if(!sedna_execute($query)){
       if(sedna_ercls() != "SE1073"){ //Module with the same name already exists.
         $str = "Could create module '$query': " . sedna_error() ." (". __METHOD__ .")";

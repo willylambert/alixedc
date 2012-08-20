@@ -1867,9 +1867,19 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
   //@optional param ItemGroupOID => if empty, look into the whole form
   //@optional param exlude => exclude some values from the research of the value : can be a string or an array of strings
   //@author tpi
-  public function getValue($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$ItemOID,$exclude=false)
+  public function getValue($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID="",$ItemGroupRepeatKey="",$ItemOID,$exclude=false)
   {
-    $whereIGString = "";
+    //Some parameters are optional
+    $whereIGString = "@TransactionType!='Remove'";
+    //Specific ItemGroupOID
+    if($ItemGroupOID!=""){
+      $whereIGString .= " and @ItemGroupOID='$ItemGroupOID'";
+    }
+    //Specific ItemGroupRepeatKey
+    if($ItemGroupRepeatKey!=""){
+      $whereIGString .= " and @ItemGroupRepeatKey='$ItemGroupRepeatKey'";
+    }
+    //value to exclude
     if($exclude!==false){
       if(!is_array($exclude)) $exclude = array($exclude);
       foreach($exclude as $val){
@@ -1881,7 +1891,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
       let \$SubjectData := index-scan('SubjectData','$SubjectKey','EQ')
       let \$value := \$SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']
                                  /odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']
-                                 /odm:ItemGroupData[@ItemGroupOID='$ItemGroupOID' and @ItemGroupRepeatKey='$ItemGroupRepeatKey' and @TransactionType!='Remove' $whereIGString]
+                                 /odm:ItemGroupData[$whereIGString]
                                  /odm:*[@ItemOID='$ItemOID'][last()]/string()
       return
         <result value='{\$value}' />
