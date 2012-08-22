@@ -190,8 +190,9 @@ class uietude extends CommonFunctions
    {
         require_once('class.uieditor.inc.php');
         
-        //Only accessible to admin
-        if(!$GLOBALS['egw_info']['user']['apps']['admin']){
+        //Only accessible to admin and DM
+        if(!$GLOBALS['egw_info']['user']['apps']['admin'] &&
+           !$this->m_ctrl->boacl()->existUserProfileId(array("DM"))){
           $this->addLog("Unauthorized Access to Admin Module - Administrator has been notified",FATAL);
         }
 

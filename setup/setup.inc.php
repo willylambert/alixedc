@@ -42,6 +42,7 @@
 	$setup_info[$moduleName]['tables'][] = 'egw_alix_acl';
 	$setup_info[$moduleName]['tables'][] = 'egw_alix_deviations';
 	$setup_info[$moduleName]['tables'][] = 'egw_alix_export';
+	$setup_info[$moduleName]['tables'][] = 'egw_alix_export_log';
 	$setup_info[$moduleName]['tables'][] = 'egw_alix_import';
 	$setup_info[$moduleName]['tables'][] = 'egw_alix_lock';
 	$setup_info[$moduleName]['tables'][] = 'egw_alix_postit';
