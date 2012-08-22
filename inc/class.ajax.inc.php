@@ -1160,7 +1160,7 @@ public function checkFormData(){
       $decodedValue = $value;
     }
     
-    //That's a new query, we need a position identifier => we use a negative identifier to make th difference between this manual query and those coming from the rangeChecks
+    //That's a new query, we need a position identifier => we use a negative identifier to make the difference between this manual query and those coming from the rangeChecks
     $sql = "SELECT MIN(POSITION) as MINPOSITION
               FROM egw_alix_queries
               WHERE CURRENTAPP='".$this->getCurrentApp(true)."' AND
@@ -1198,7 +1198,13 @@ public function checkFormData(){
   
     $res = $this->m_ctrl->boqueries()->updateQuery($SubjectKey, $StudyEventOID, $StudyEventRepeatKey, $FormOID, $FormRepeatKey, $isManual, $answer, $query);
     
-    $this->m_ctrl->bocdiscoo()->updateFormStatus($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey);
+    $nbAutoQueries = $this->m_ctrl->bocdiscoo()->updateFormStatus($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey);
+    
+    //If there is missing or inconsistent opened queries, the form has already be unlocked
+    if($bAutoQueries==0){
+      //If there is a new manual query, the form must be unlocked
+      $this->m_ctrl->bocdiscoo()->setLock($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,false);
+    }
     
     echo json_encode($res);
   }

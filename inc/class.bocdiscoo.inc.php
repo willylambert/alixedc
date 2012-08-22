@@ -2380,6 +2380,8 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
   **/
   public function setLock($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$bLock)
   {
+    $this->addLog(__METHOD__ ."($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$bLock)",INFO);
+
     $ItemGroupDatas = $this->getItemGroupDatas($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey);
     foreach($ItemGroupDatas as $ItemGroupData){
       $ItemGroupOID = (string)$ItemGroupData['ItemGroupOID'];
@@ -2421,6 +2423,11 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
     //Look for queries on the form
     $errorsMandatory = $this->checkMandatoryData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey);
     $errorsConsistency = $this->checkFormConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey);
-    return count($errorsMandatory)+count($errorsConsistency);
+    $nbPendingQueries = count($errorsMandatory)+count($errorsConsistency);
+    if($nbPendingQueries>0){
+      //If there is queries, the form must be unlocked in any case
+      $this->setLock($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,false);
+    }
+    return $nbPendingQueries; 
   }
 }
