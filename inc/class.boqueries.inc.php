@@ -52,11 +52,11 @@ class boqueries extends CommonFunctions
  * @author wlt 
  **/ 
   function getFormStatus($SubjectKey, $StudyEventOID, $StudyEventRepeatKey, $FormOID, $FormRepeatKey, $profileId="INV"){
-    $nbCM = $this->getQueriesCount($SubjectKey, $StudyEventOID, $StudyEventRepeatKey, $FormOID,$FormRepeatKey, "", "", "","","O", "Y", "QUERYTYPE='CM'");      
+    $nbCM = $this->getQueriesCount($SubjectKey, $StudyEventOID, $StudyEventRepeatKey, $FormOID,$FormRepeatKey, "", "", "","","O,P", "Y", "QUERYTYPE='CM'");      
     if($nbCM>0){
       $frmStatus = "MISSING";
     }else{
-      $queryStatus = "O"; //For investigators, we only show open queries but not the confirmed queries
+      $queryStatus = "O,P"; //For investigators, we only show open queries but not the confirmed queries
       if($profileId=="CRA"){ //CRAs need to see when a query has been confirmed (acknowledged) (it still have to be reopened or closed)
         $queryStatus .= ",A";
       }
@@ -495,6 +495,7 @@ class boqueries extends CommonFunctions
                           ISMANUAL='N' AND
                           QUERYSTATUS<>'C' AND
                           $where";
+    $this->addLog(__METHOD__ . "sql : $sql",INFO);
     $GLOBALS['egw']->db->query($sql);
     $tblQueryFromDB = array();
     while($GLOBALS['egw']->db->next_record()){
@@ -510,7 +511,7 @@ class boqueries extends CommonFunctions
     }
     
     foreach($tblQueryFromDB as $queryDB){  
-      $this->addLog(__METHOD__." : query {$queryDB['QueryId']} is opened",INFO);
+      $this->addLog(__METHOD__." : query {$queryDB['QueryId']} not closed",INFO);
       //Query is still here
       if($queryDB['Position']<0){ //Do not close automatically manual queries
         $queryDB['Value'] = $this->m_ctrl->bocdiscoo()->getValue($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$queryDB['ItemGroupOID'],$queryDB['ItemGroupRepeatKey'],$queryDB['ItemOID']);

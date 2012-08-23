@@ -646,7 +646,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
 /**
  * Check for missing data into the asked form
  * a missing mandatory data could not generate an error if the CollectionConditionException return true
- * This function also fill the queries db, and close opened queries if needed 
+ * This function also fill the queries db, and close opened and Resolution proposed queries if needed 
  * @return array of missing errors   
  **/
   function checkMandatoryData($SubjectKey, $StudyEventOID, $StudyEventRepeatKey, $FormOID, $FormRepeatKey)
@@ -2411,14 +2411,14 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
     return $var;
   }
 
-  /*
-  Run edit checks on asked form and update accordingly Form's ItemGroupData
-  @see class.ajax.inc.php, runChecks.php
-  @version 2 by WLT 01/07/2011 : Only update ItemGroupData Status if needed, add return value
-  @version 3 by WLT 25/04/2012 : No more need to update ItemGroupData Status. From now only authorized status are EMPTY, FROZEN, and FILLED
-  @return int number of queries
-  @author tpi, wlt
-  */
+/**
+* Run edit checks on asked form and update accordingly Form's ItemGroupData
+* @see class.ajax.inc.php, runChecks.php
+* @version 2 by WLT 01/07/2011 : Only update ItemGroupData Status if needed, add return value
+* @version 3 by WLT 25/04/2012 : No more need to update ItemGroupData Status. From now only authorized status are EMPTY, FROZEN, and FILLED
+* @return int number of queries
+* @author tpi, wlt
+**/
   public function updateFormStatus($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey){
     //Look for queries on the form
     $errorsMandatory = $this->checkMandatoryData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey);

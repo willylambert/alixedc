@@ -426,7 +426,7 @@ Return the toolbox buttons (post-it for CRA)
     $htmlRet = "";
     
     //everybody can run form checking
-    $htmlRet .= '<button id="btnRunChecks" class="ui-state-default ui-corner-all" onclick="checkFormData(\''.$this->getCurrentApp(false).'\',\''.$this->getCurrentApp(false).'\',\''.$SubjectKey.'\',\''.$StudyEventOID.'\',\''.$StudyEventRepeatKey.'\',\''.$FormOID.'\',\''.$FormRepeatKey.'\');location.reload();"><img src="'.$this->getCurrentApp(false).'/templates/default/images/ok.png" style="float:left; margin-right: 5px;" />Run checks</button>';
+    $htmlRet .= '<button id="btnRunChecks" class="ui-state-default ui-corner-all" onclick="checkFormData(\''.$this->getCurrentApp(false).'\',\''.$SubjectKey.'\',\''.$StudyEventOID.'\',\''.$StudyEventRepeatKey.'\',\''.$FormOID.'\',\''.$FormRepeatKey.'\');location.reload();"><img src="'.$this->getCurrentApp(false).'/templates/default/images/ok.png" style="float:left; margin-right: 5px;" />Run checks</button>';
                    
     //only CRA could put Post-It
     if($profileId=="CRA"){
@@ -437,7 +437,7 @@ Return the toolbox buttons (post-it for CRA)
       //and only on specified forms
       if($this->m_ctrl->bodeviations()->formCanHaveDeviation($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey)){
       /*
-        //Si la dernière déviation enregistrée en base n'est pas une chaine de caractère vide (équivalent à déviation supprimée)
+        //Si la dernière déviation enregistrée en base n'est pas une chaine de caractère vide (équivalent �  déviation supprimée)
         if($this->m_ctrl->bodeviations()->getFormDeviation($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey) == ""){
           $htmlRet .= '<button id="btnAddDeviation" class="ui-state-default ui-corner-all" onclick="$(\'#formDeviation\').slideDown();$(\'#btnAddDeviation\').fadeOut();"><img src="'.$GLOBALS['egw_info']['flags']['currentapp'].'/templates/default/images/delta_add.png" style="float:left; margin-right: 3px;" />Deviation</button>';
         }
