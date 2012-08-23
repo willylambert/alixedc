@@ -312,7 +312,7 @@ public function checkFormData(){
     if(isset($_POST['FormRepeatKey'])) $FormRepeatKey = $_POST['FormRepeatKey'];
     if(isset($_POST['ItemGroupOID'])) $ItemGroupOID = $_POST['ItemGroupOID'];
     if(isset($_POST['ItemGroupKey'])) $ItemGroupKey = $_POST['ItemGroupKey'];
-    if(isset($_POST['ItemOID'])) $ItemOID = $_POST['ItemOID'];
+    if(isset($_POST['ItemOID'])) $ItemOID = $_POST['ItemOID'];   
     if(isset($_REQUEST['deviationStatus'])) $deviationStatus = $_REQUEST['deviationStatus'];
     if(isset($_REQUEST['deviationType'])) $deviationType = $_REQUEST['deviationType'];
     if(isset($_POST['isLast'])) $isLast = $_POST['isLast'];
@@ -345,7 +345,7 @@ public function checkFormData(){
       foreach($desKeys as $descKey => $descValue){
         $descSearches = array();
         foreach($description[$MetaDataVersion][$descKey] as $OID => $desc){
-          if(eregi($search,$desc)){
+          if(preg_match("/".$search."/i",$desc)){
             $descSearches[$OID] = $OID;
           }
         }
@@ -407,7 +407,7 @@ public function checkFormData(){
         if(isset($_REQUEST[$descValue])){
             $descSearches = array(0=>""); //at least an empty value for empty value or value not found
             foreach($description[$MetaDataVersion][$descKey] as $OID => $desc){
-              if(eregi($_REQUEST[$descValue],$desc)){
+              if(preg_match("/".$_REQUEST[$descValue]."/i",$desc)){
                 $descSearches[$OID] = $OID;
               }
             }
@@ -712,6 +712,7 @@ public function checkFormData(){
     $search = "";
     if(isset($_POST['MetaDataVersionOID'])) $MetaDataVersion = $_POST['MetaDataVersionOID'];
     if(isset($_POST['SubjectKey'])) $SubjectKey = $_POST['SubjectKey'];
+    
     if(isset($_POST['StudyEventOID'])) $StudyEventOID = $_POST['StudyEventOID'];
     if(isset($_POST['StudyEventRepeatKey'])) $StudyEventRepeatKey = $_POST['StudyEventRepeatKey'];
     if(isset($_POST['FormOID'])) $FormOID = $_POST['FormOID'];
@@ -720,9 +721,11 @@ public function checkFormData(){
     if(isset($_POST['ItemGroupKey'])) $ItemGroupKey = $_POST['ItemGroupKey'];
     if(isset($_POST['ItemOID'])) $ItemOID = $_POST['ItemOID'];
     if(isset($_POST['position'])) $position = $_POST['position'];
+    
     if(isset($_REQUEST['queryStatus'])) $queryStatus = $_REQUEST['queryStatus'];
     if(isset($_REQUEST['queryType'])) $queryType = $_REQUEST['queryType'];
     if(isset($_POST['isLast'])) $isLast = $_POST['isLast'];
+    
     if(isset($_REQUEST['search'])) $search = $_REQUEST['search']; //global search : texte libre
     if(isset($_REQUEST['mode'])) $mode = $_REQUEST['mode']; //jqGrid ou export CSV
     
@@ -752,7 +755,7 @@ public function checkFormData(){
       foreach($desKeys as $descKey => $descValue){
         $descSearches = array();
         foreach($description[$MetaDataVersion][$descKey] as $OID => $desc){
-          if(eregi($search,$desc)){
+          if(preg_match("/".$search."/i",$desc)){
             $descSearches[$OID] = $OID;
           }
         }
@@ -814,7 +817,7 @@ public function checkFormData(){
         if(isset($_REQUEST[$descValue])){
             $descSearches = array(0=>""); //au moins une valeur vide pour valeur vide ou non trouvable
             foreach($description[$MetaDataVersion][$descKey] as $OID => $desc){
-              if(eregi($_REQUEST[$descValue],$desc)){
+              if(preg_match("/".$_REQUEST[$descValue]."/i",$desc)){
                 $descSearches[$OID] = $OID;
               }
             }

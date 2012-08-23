@@ -262,7 +262,6 @@ class boqueries extends CommonFunctions
     if($limit!=""){
       $sql .= " LIMIT $limit";
     }
-    
     $GLOBALS['egw']->db->query($sql); 
     while($GLOBALS['egw']->db->next_record()){
       $tblQueries[] = array(

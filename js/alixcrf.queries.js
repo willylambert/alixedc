@@ -53,25 +53,30 @@ function loadQueriesGrid(CurrentApp){
    		{name:'SEOID',
        index:'SEOID',
        sortable:false,
-       width: 130
+       width: 130,
+       search:true
       },
    		{name:'FRMOID',
        index:'FRMOID',
        sortable:false,
-       width: 130
+       width: 130,
+       search:true
       },
    		{name:'IGOID',
        index:'IGOID',
        sortable:false,
-       width: 130
+       width: 130,
+       search:false
       },		
    		{name:'ITEMTITLE',
        index:'ITEMTITLE',
-       width: 150
+       width: 150,
+       search:false
       },		
    		{name:'LABEL',
        index:'LABEL',
-       width: 185
+       width: 185,
+       search:false
       },		
    		{name:'QUERYTYPE',
        index:'QUERYTYPE',
@@ -82,7 +87,8 @@ function loadQueriesGrid(CurrentApp){
    		{name:'ANSWER',
        index:'ANSWER',
        sortable:false,
-       width: 185
+       width: 185,
+       search:false
       },		
    		{name:'QUERYSTATUS',
        index:'QUERYSTATUS',
