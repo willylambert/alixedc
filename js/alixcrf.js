@@ -40,9 +40,7 @@ function loadAlixCRFjs(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepe
   //Utile (ex: postit.js)
   profileId = ProfileId;
   currentApp = CurrentApp;
-  if($.browser.msie * jQuery.browser.version.substr(0, 1)<="7"){
-    isOldIE = true;
-  }
+  isOldIE = helper.isOldIE();
   
   //Bind des buttons
   $("#btnSave").click(function(){
