@@ -57,8 +57,8 @@ class boqueries extends CommonFunctions
       $frmStatus = "MISSING";
     }else{
       $queryStatus = "O,P"; //For investigators, we only show open queries but not the confirmed queries
-      if($profileId=="CRA"){ //CRAs need to see when a query has been confirmed (acknowledged) (it still have to be reopened or closed)
-        $queryStatus .= ",A";
+      if($profileId=="CRA"){ //CRAs need to see when a query has been confirmed (acknowledged) or resolved (value modified for a manual query) (it still have to be reopened or closed)
+        $queryStatus .= ",A,R";
       }
       $nbHC = $this->getQueriesCount($SubjectKey, $StudyEventOID, $StudyEventRepeatKey, $FormOID,$FormRepeatKey, "", "", "","",$queryStatus, "Y", "QUERYTYPE='HC'");     
       if($nbHC>0){
@@ -79,13 +79,13 @@ class boqueries extends CommonFunctions
  * @author wlt 
  **/ 
   function getStudyEventStatus($SubjectKey, $StudyEventOID, $StudyEventRepeatKey, $profileId="INV"){
-    $nbCM = $this->getQueriesCount($SubjectKey, $StudyEventOID, $StudyEventRepeatKey, "", "","", "", "","","O", "Y", "QUERYTYPE='CM'");     
+    $nbCM = $this->getQueriesCount($SubjectKey, $StudyEventOID, $StudyEventRepeatKey, "", "","", "", "","","O,P", "Y", "QUERYTYPE='CM'");     
     if($nbCM>0){
       $seStatus = "MISSING";
     }else{
-      $queryStatus = "O"; //For investigators, we only show open queries but not the confirmed queries
+      $queryStatus = "O,P"; //For investigators, we only show open queries but not the confirmed queries
       if($profileId=="CRA"){ //CRAs need to see when a query has been confirmed (acknowledged) (it still have to be reopened or closed)
-        $queryStatus .= ",A";
+        $queryStatus .= ",A,R";
       }
       $nbHC = $this->getQueriesCount($SubjectKey, $StudyEventOID, $StudyEventRepeatKey, "", "","", "", "","",$queryStatus, "Y", "QUERYTYPE='HC'");           
       if($nbHC>0){
@@ -366,7 +366,7 @@ class boqueries extends CommonFunctions
   }
 
   function getQueriesCount($SubjectKey="", $StudyEventOID="", $StudyEventRepeatKey="", $FormOID="", $FormRepeatKey="", $ItemGroupOID="", $ItemGroupKey="", $ItemOID="", $position="", $queryStatus="", $isLast="", $where=""){
-     $tblQueries = array();
+    $tblQueries = array();
 
     $sql = "SELECT COUNT(*) as NBQUERIES
             FROM egw_alix_queries
@@ -465,8 +465,9 @@ class boqueries extends CommonFunctions
   }
 
   /**
-  @param string $queryType : 'M' => Mandatory 'C' => Consistency (Hard ou Soft)
-  **/
+   * Update all queries status from with queries detected by the CRF (automatic updates)
+   * @param string $queryType : 'M' => Mandatory 'C' => Consistency (Hard ou Soft)
+   **/
   function updateQueries($SubjectKey, $StudyEventOID, $StudyEventRepeatKey, $FormOID, $FormRepeatKey, $queryType, $queries)
   {  
     $this->addLog(__METHOD__."($SubjectKey, $StudyEventOID, $StudyEventRepeatKey, $FormOID, $FormRepeatKey, $queryType, $queries)",INFO);
@@ -482,8 +483,8 @@ class boqueries extends CommonFunctions
       $where = "QUERYTYPE='CM'";
     }
 
-    //Get automatic (<> manual queries) non closed queries for asked form
-    $sql = "SELECT QUERYID,IGOID,IGRK,ITEMOID,POSITION,LABEL,ITEMTITLE,QUERYTYPE,VALUE,DECODE,QUERYSTATUS
+    //Get non closed queries for asked form
+    $sql = "SELECT QUERYID,IGOID,IGRK,ITEMOID,POSITION,LABEL,ITEMTITLE,ISMANUAL,QUERYTYPE,VALUE,DECODE,QUERYSTATUS
             FROM egw_alix_queries
             WHERE CURRENTAPP='".$this->getCurrentApp(true)."' AND
                           SUBJKEY='$SubjectKey' AND
@@ -492,7 +493,6 @@ class boqueries extends CommonFunctions
                           FRMOID='$FormOID' AND
                           FRMRK='$FormRepeatKey' AND
                           ISLAST='Y' AND
-                          ISMANUAL='N' AND
                           QUERYSTATUS<>'C' AND
                           $where";
     $GLOBALS['egw']->db->query($sql);
@@ -505,6 +505,7 @@ class boqueries extends CommonFunctions
                                 'QueryId' => $GLOBALS['egw']->db->f('QUERYID'),
                                 'Description' => $GLOBALS['egw']->db->f('LABEL'),
                                 'Title' => $GLOBALS['egw']->db->f('ITEMTITLE'),
+                                'IsManual' => $GLOBALS['egw']->db->f('ISMANUAL'),
                                 'Type' => $GLOBALS['egw']->db->f('QUERYTYPE'),
                                 'QueryStatus' => $GLOBALS['egw']->db->f('QUERYSTATUS'));  
     }
@@ -512,34 +513,43 @@ class boqueries extends CommonFunctions
     foreach($tblQueryFromDB as $queryDB){  
       $this->addLog(__METHOD__." : query {$queryDB['QueryId']} not closed",INFO);
       //Query is still here
-      if($queryDB['Position']<0){ //Do not close automatically manual queries
+      if($queryDB['Position']<0){ //Do not close automatically the manual queries
         $queryDB['Value'] = $this->m_ctrl->bocdiscoo()->getValue($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$queryDB['ItemGroupOID'],$queryDB['ItemGroupRepeatKey'],$queryDB['ItemOID']);
         $queryDB['Decode'] = $this->m_ctrl->bocdiscoo()->getDecodedValue($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$queryDB['ItemGroupOID'],$queryDB['ItemGroupRepeatKey'],$queryDB['ItemOID']);
-        $this->updateQuery($SubjectKey, $StudyEventOID, $StudyEventRepeatKey, $FormOID, $FormRepeatKey, false, 'Value changed', $queryDB);
-      }else{
-        $i=0;
-        $bFind = false;
-        while($i<count($queries) && $bFind == false){
-          $query = $queries[$i];
-          $i++;
-          if( $query['ItemGroupOID']==$queryDB['ItemGroupOID'] && 
-              $query['ItemGroupRepeatKey']==$queryDB['ItemGroupRepeatKey'] &&
-              $query['ItemOID']==$queryDB['ItemOID'] &&
-              $query['Position']==$queryDB['Position']
-              ){
-                //Found !
-                $bFind = true;
-                $this->addLog(__METHOD__." : query {$queryDB['QueryId']} still here",INFO);
-              }
+        if($queryDB['IsManual']=='N'){ //CRF can ask for an update of automatically modified queries
+          $this->updateQuery($SubjectKey, $StudyEventOID, $StudyEventRepeatKey, $FormOID, $FormRepeatKey, false, 'Value changed', $queryDB);
+        }else{
+          if($queryDB['QueryStatus']=="O" && $queryDB['Value']!=$queryDB['Decode']){ //Manually opened queries in status OPENED are automatically set to RESOLVED if value has been modified
+            //Resolve query
+            $this->updateQuery($SubjectKey, $StudyEventOID, $StudyEventRepeatKey, $FormOID, $FormRepeatKey, false, 'Value changed', $queryDB);
+          }
         }
-        if($bFind==false){
-          //Close query
-          if($queryDB['QueryStatus']!="A"){ //CRF must not close automatically CONFIRMED queries
+      }else{
+        if($queryDB['IsManual']=='N'){ //CRF can ask for an update of automatically modified queries
+          $i=0;
+          $bFind = false;
+          while($i<count($queries) && $bFind == false){
+            $query = $queries[$i];
+            $i++;
+            if( $query['ItemGroupOID']==$queryDB['ItemGroupOID'] && 
+                $query['ItemGroupRepeatKey']==$queryDB['ItemGroupRepeatKey'] &&
+                $query['ItemOID']==$queryDB['ItemOID'] &&
+                $query['Position']==$queryDB['Position']
+                ){
+                  //Found !
+                  $bFind = true;
+                  $this->addLog(__METHOD__." : query {$queryDB['QueryId']} still here",INFO);
+                }
+          }
+          if($bFind==false){
+            //Close query
             $siteId = $this->m_ctrl->bosubjects()->getSubjectColValue($SubjectKey,"SITEID");
             $profileId = $this->m_ctrl->boacl()->getUserProfileId("",$siteId);
             $this->closeQuery($queryDB['QueryId'],$userId,$profileId);
           }
-        }    
+         }else{
+           //nothing: the CRF do no touch these manually modified queries
+         }  
       } 
     }
     
@@ -695,12 +705,12 @@ class boqueries extends CommonFunctions
       $this->addLog(__METHOD__." : hasModif = true => mise à jour de la query  {$query['ItemGroupOID']}/{$query['ItemGroupRepeatKey']}/{$query['Position']}/{$query['ItemOID']} ",INFO);
       $GLOBALS['egw']->db->query($sql);
   
-      $sql = "INSERT INTO egw_alix_queries(CURRENTAPP,SITEID,SUBJKEY,SEOID,SERK,FRMOID,FRMRK,IGOID,IGRK,POSITION,ITEMOID,
-                                            LABEL,ITEMTITLE,ISMANUAL,BYWHO,UPDATEDT,
+      $sql = "INSERT INTO egw_alix_queries(CURRENTAPP,SITEID,SUBJKEY,SEOID,SERK,FRMOID,FRMRK,IGOID,IGRK,
+                                            POSITION,ITEMOID,LABEL,ITEMTITLE,ISMANUAL,BYWHO,UPDATEDT,
                                             QUERYTYPE,QUERYSTATUS,ANSWER,ISLAST,VALUE,DECODE,CONTEXTKEY)
-             VALUES('".$this->getCurrentApp(true)."',
-                    '$siteId','$SubjectKey','$StudyEventOID','$StudyEventRepeatKey','$FormOID','$FormRepeatKey','".$query['ItemGroupOID']."','".$query['ItemGroupRepeatKey']."',
-                    '".$query['Position']."','".$query['ItemOID']."','".addslashes($query['Description'])."','".addslashes($query['Title'])."','$cIsManual','$userId',now(),'".$query['Type']."','".$queryStatus."','".addslashes($answer)."','Y','".$query['Value']."','".addslashes($query['Decode'])."','".$query['ContextKey']."')";
+             VALUES('".$this->getCurrentApp(true)."','$siteId','$SubjectKey','$StudyEventOID','$StudyEventRepeatKey','$FormOID','$FormRepeatKey','".$query['ItemGroupOID']."','".$query['ItemGroupRepeatKey']."',
+                    '".$query['Position']."','".$query['ItemOID']."','".addslashes($query['Description'])."','".addslashes($query['Title'])."','$cIsManual','$userId',now(),
+                    '".$query['Type']."','".$queryStatus."','".addslashes($answer)."','Y','".$query['Value']."','".addslashes($query['Decode'])."','".$query['ContextKey']."')";
       $GLOBALS['egw']->db->query($sql);
       
       return array(
@@ -746,71 +756,4 @@ class boqueries extends CommonFunctions
     $GLOBALS['egw']->db->query($sql);
   }
   
-  /**
-   * Manual queries can switch from opened to resolved status if 
-   * value of the linked item is modified. This function called from bocdiscoo::updateFormStatus do that.   
-   * @author wlt
-   **/     
-  public function resolveManualQueries($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey){
-    $this->addLog(__METHOD__ . "$SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey",INFO);
-    
-    if($SubjectKey=="" || $StudyEventOID=="" || $StudyEventRepeatKey=="" || $FormOID=="" || $FormRepeatKey==""){
-      $this->addLog("boqueries->resolveManualQuery at least one parameter is missing($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey)",FATAL);
-    }
-    
-    //Extract manual queries from database, with associated item value
-    $lstQueries = $this->getQueriesList($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,"","","","","O","Y","POSITION<0");  
-
-    foreach($lstQueries as $query){
-      $previousValue = $query['VALUE'];
-      $ItemGroupOID = $query['IGOID'];
-      $ItemGroupRepeatKey = $query['IGRK'];
-      $ItemOID = $query['ITEMOID'];
-      $queryId = $query['QUERYID'];
-      
-      //Retrieve actual value from ClinicalData
-      $currentValue = $this->m_ctrl->bocdiscoo()->getValue($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$ItemOID);  
-    
-      //If value changed, the status of the opened manual query switch to RESOLVED, waiting to be closed by the CRA
-      if($previousValue != $currentValue){
-        $userId = $this->m_user;
-        $siteId = $this->m_ctrl->bosubjects()->getSubjectColValue($SubjectKey,"SITEID");
-        $profileId = $this->m_ctrl->boacl()->getUserProfileId("",$siteId);
-        $this->resolveQuery($queryId,$userId,$profileId);  
-      }      
-    }        
-  }
-
-  /**
-  * Resolve query $queryId  
-  **/
-  private function resolveQuery($queryId,$userId,$profileId){
-    $this->addLog(__METHOD__."($queryId,$userId,$profileId)",INFO);
-
-    $sql = "UPDATE egw_alix_queries 
-            SET ISLAST='N'
-            WHERE QUERYID='$queryId'";
-    $GLOBALS['egw']->db->query($sql);
-    
-    //Get the Item new value, to be stored into the queries db
-    $value = "?";
-    $decodedValue = "?";
-    $sql = "SELECT * FROM egw_alix_queries
-            WHERE QUERYID='$queryId'";
-    $GLOBALS['egw']->db->query($sql);
-    if($GLOBALS['egw']->db->next_record()){
-      $value = $this->m_ctrl->bocdiscoo()->getValue($GLOBALS['egw']->db->f('SUBJKEY'),$GLOBALS['egw']->db->f('SEOID'),$GLOBALS['egw']->db->f('SERK'),$GLOBALS['egw']->db->f('FRMOID'),$GLOBALS['egw']->db->f('FRMRK'),$GLOBALS['egw']->db->f('IGOID'),$GLOBALS['egw']->db->f('IGRK'),$GLOBALS['egw']->db->f('ITEMOID'));
-      $decodedValue = $this->m_ctrl->bocdiscoo()->getDecodedValue($GLOBALS['egw']->db->f('SUBJKEY'),$GLOBALS['egw']->db->f('SEOID'),$GLOBALS['egw']->db->f('SERK'),$GLOBALS['egw']->db->f('FRMOID'),$GLOBALS['egw']->db->f('FRMRK'),$GLOBALS['egw']->db->f('IGOID'),$GLOBALS['egw']->db->f('IGRK'),$GLOBALS['egw']->db->f('ITEMOID'));
-    }
-    $sql = "INSERT INTO egw_alix_queries(CURRENTAPP,SITEID,SUBJKEY,SEOID,SERK,FRMOID,FRMRK,IGOID,IGRK,POSITION,ITEMOID,
-                                         LABEL,ITEMTITLE,ISMANUAL,QUERYTYPE,QUERYSTATUS,ANSWER,BYWHO,BYWHOGROUP,UPDATEDT,ISLAST,VALUE,DECODE)
-              (
-               SELECT CURRENTAPP,SITEID,SUBJKEY,SEOID,SERK,FRMOID,FRMRK,IGOID,IGRK,POSITION,ITEMOID,
-                      LABEL,ITEMTITLE,ISMANUAL,QUERYTYPE,'R',ANSWER,'$userId','$profileId',now(),'Y','". $value ."','". addslashes($decodedValue) ."'
-               FROM egw_alix_queries 
-               WHERE QUERYID=$queryId
-              )";                              
-                                         
-    $GLOBALS['egw']->db->query($sql);    
-  }
 }

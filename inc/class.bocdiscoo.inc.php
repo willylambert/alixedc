@@ -1781,6 +1781,10 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
       $doc = $proc->transformToDoc($doc);
     }
     
+    //We will need the user ProfileId
+    $siteId = $this->m_ctrl->bosubjects()->getSubjectColValue($SubjectKey,"SITEID");
+    $profileId = $this->m_ctrl->boacl()->getUserProfileId("",$siteId);
+    
     //Set StudyEvent and Form status according to associated queries   
     //Loop through SubjectDatas
     $SubjectDatas = $doc->getElementsByTagName("SubjectData");
@@ -1817,7 +1821,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
               if($ItemGroupDataCount==$ItemGroupDataCountFrozen){
                 $frmStatus = "FROZEN";
               }else{
-                $frmStatus = $this->m_ctrl->boqueries()->getFormStatus($SubjectKey, $StudyEventOID ,$StudyEventRepeatKey, $FormOID, $FormRepeatKey);
+                $frmStatus = $this->m_ctrl->boqueries()->getFormStatus($SubjectKey, $StudyEventOID ,$StudyEventRepeatKey, $FormOID, $FormRepeatKey, $profileId);
               }           
             }
             $form->setAttribute("Status",$frmStatus);
@@ -2422,9 +2426,6 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
     //Look for queries on the form
     $errorsMandatory = $this->checkMandatoryData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey);
     $errorsConsistency = $this->checkFormConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey);
-        
-    //Check if Manual queries could be resolved due to enter of new value
-    $this->m_ctrl->boqueries()->resolveManualQueries($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey);
     
     $nbPendingQueries = count($errorsMandatory)+count($errorsConsistency);
     if($nbPendingQueries>0){
