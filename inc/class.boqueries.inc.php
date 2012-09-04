@@ -495,7 +495,6 @@ class boqueries extends CommonFunctions
                           ISMANUAL='N' AND
                           QUERYSTATUS<>'C' AND
                           $where";
-    $this->addLog(__METHOD__ . "sql : $sql",INFO);
     $GLOBALS['egw']->db->query($sql);
     $tblQueryFromDB = array();
     while($GLOBALS['egw']->db->next_record()){
@@ -556,12 +555,12 @@ class boqueries extends CommonFunctions
   *                                                "ItemGroupRepeatKey" => '',
   *                                                "Description" => '',
   *                                                "Title" => ''
-  *                                                'Position' => '' (Position du ranheCheck dans L'itemDef)
+  *                                                'Position' => '' (RangeCheck position into the ItemDef)
   *                                                'Type' =>  'CM' (CheckMandatory),
   *                                                           'CS' (CheckSoft)
   *                                                           'CH' (CheckHard),
   *                                                'Value' => '',
-  *                                                'Decode' => ''
+  *                                                'Decode' => '')
   * @return false or array(
   *                        'QUERYID'=>$GLOBALS['egw']->db->f('QUERYID'),
   *                        'SITEID'=>$GLOBALS['egw']->db->f('SITEID'),
@@ -678,7 +677,7 @@ class boqueries extends CommonFunctions
     }
 
     if($hasModif){    
-      $userId = $this->m_userId; 
+      $userId = $this->m_user; 
       $siteId = $this->m_ctrl->bosubjects()->getSubjectColValue($SubjectKey,"SITEID");
 
       $sql = "UPDATE egw_alix_queries 
@@ -745,5 +744,73 @@ class boqueries extends CommonFunctions
     }
     $sql = "DELETE FROM egw_alix_queries WHERE SUBJKEY='$SubjectKey'";
     $GLOBALS['egw']->db->query($sql);
+  }
+  
+  /**
+   * Manual queries can switch from opened to resolved status if 
+   * value of the linked item is modified. This function called from bocdiscoo::updateFormStatus do that.   
+   * @author wlt
+   **/     
+  public function resolveManualQueries($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey){
+    $this->addLog(__METHOD__ . "$SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey",INFO);
+    
+    if($SubjectKey=="" || $StudyEventOID=="" || $StudyEventRepeatKey=="" || $FormOID=="" || $FormRepeatKey==""){
+      $this->addLog("boqueries->resolveManualQuery at least one parameter is missing($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey)",FATAL);
+    }
+    
+    //Extract manual queries from database, with associated item value
+    $lstQueries = $this->getQueriesList($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,"","","","","O","Y","POSITION<0");  
+
+    foreach($lstQueries as $query){
+      $previousValue = $query['VALUE'];
+      $ItemGroupOID = $query['IGOID'];
+      $ItemGroupRepeatKey = $query['IGRK'];
+      $ItemOID = $query['ITEMOID'];
+      $queryId = $query['QUERYID'];
+      
+      //Retrieve actual value from ClinicalData
+      $currentValue = $this->m_ctrl->bocdiscoo()->getValue($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$ItemOID);  
+    
+      //If value changed, the status of the opened manual query switch to RESOLVED, waiting to be closed by the CRA
+      if($previousValue != $currentValue){
+        $userId = $this->m_user;
+        $siteId = $this->m_ctrl->bosubjects()->getSubjectColValue($SubjectKey,"SITEID");
+        $profileId = $this->m_ctrl->boacl()->getUserProfileId("",$siteId);
+        $this->resolveQuery($queryId,$userId,$profileId);  
+      }      
+    }        
+  }
+
+  /**
+  * Resolve query $queryId  
+  **/
+  private function resolveQuery($queryId,$userId,$profileId){
+    $this->addLog(__METHOD__."($queryId,$userId,$profileId)",INFO);
+
+    $sql = "UPDATE egw_alix_queries 
+            SET ISLAST='N'
+            WHERE QUERYID='$queryId'";
+    $GLOBALS['egw']->db->query($sql);
+    
+    //Get the Item new value, to be stored into the queries db
+    $value = "?";
+    $decodedValue = "?";
+    $sql = "SELECT * FROM egw_alix_queries
+            WHERE QUERYID='$queryId'";
+    $GLOBALS['egw']->db->query($sql);
+    if($GLOBALS['egw']->db->next_record()){
+      $value = $this->m_ctrl->bocdiscoo()->getValue($GLOBALS['egw']->db->f('SUBJKEY'),$GLOBALS['egw']->db->f('SEOID'),$GLOBALS['egw']->db->f('SERK'),$GLOBALS['egw']->db->f('FRMOID'),$GLOBALS['egw']->db->f('FRMRK'),$GLOBALS['egw']->db->f('IGOID'),$GLOBALS['egw']->db->f('IGRK'),$GLOBALS['egw']->db->f('ITEMOID'));
+      $decodedValue = $this->m_ctrl->bocdiscoo()->getDecodedValue($GLOBALS['egw']->db->f('SUBJKEY'),$GLOBALS['egw']->db->f('SEOID'),$GLOBALS['egw']->db->f('SERK'),$GLOBALS['egw']->db->f('FRMOID'),$GLOBALS['egw']->db->f('FRMRK'),$GLOBALS['egw']->db->f('IGOID'),$GLOBALS['egw']->db->f('IGRK'),$GLOBALS['egw']->db->f('ITEMOID'));
+    }
+    $sql = "INSERT INTO egw_alix_queries(CURRENTAPP,SITEID,SUBJKEY,SEOID,SERK,FRMOID,FRMRK,IGOID,IGRK,POSITION,ITEMOID,
+                                         LABEL,ITEMTITLE,ISMANUAL,QUERYTYPE,QUERYSTATUS,ANSWER,BYWHO,BYWHOGROUP,UPDATEDT,ISLAST,VALUE,DECODE)
+              (
+               SELECT CURRENTAPP,SITEID,SUBJKEY,SEOID,SERK,FRMOID,FRMRK,IGOID,IGRK,POSITION,ITEMOID,
+                      LABEL,ITEMTITLE,ISMANUAL,QUERYTYPE,'R',ANSWER,'$userId','$profileId',now(),'Y','". $value ."','". addslashes($decodedValue) ."'
+               FROM egw_alix_queries 
+               WHERE QUERYID=$queryId
+              )";                              
+                                         
+    $GLOBALS['egw']->db->query($sql);    
   }
 }

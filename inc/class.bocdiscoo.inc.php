@@ -2179,8 +2179,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
                 insert <StudyEventData StudyEventOID='$StudyEventOID' StudyEventRepeatKey='$StudyEventRepeatKey' TransactionType='Insert'/>
                 preceding index-scan('SubjectData','$SubjectKey','EQ')/odm:StudyEventData[@StudyEventOID='$nextStudyEventOID']";
       $this->m_ctrl->socdiscoo()->query($query);
-      $this->addLog("bocdiscoo()->saveItemGroupData() Adding StudyEventOID=$StudyEventOID StudyEventRepeatKey=$StudyEventRepeatKey preceding$nextStudyEventOID",INFO);
-      
+      $this->addLog("bocdiscoo()->saveItemGroupData() Adding StudyEventOID=$StudyEventOID StudyEventRepeatKey=$StudyEventRepeatKey preceding$nextStudyEventOID",INFO);  
     }else{
       if($result->length!=1){
         $str = "Error duplicate entry StudyEventData[@StudyEventOID='$StudyEventOID' @StudyEventRepeatKey='$StudyEventRepeatKey] (". __METHOD__ .")";
@@ -2423,11 +2422,16 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
     //Look for queries on the form
     $errorsMandatory = $this->checkMandatoryData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey);
     $errorsConsistency = $this->checkFormConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey);
+        
+    //Check if Manual queries could be resolved due to enter of new value
+    $this->m_ctrl->boqueries()->resolveManualQueries($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey);
+    
     $nbPendingQueries = count($errorsMandatory)+count($errorsConsistency);
     if($nbPendingQueries>0){
       //If there is queries, the form must be unlocked in any case
       $this->setLock($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,false);
     }
+
     return $nbPendingQueries; 
   }
 }

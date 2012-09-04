@@ -68,7 +68,7 @@ class CommonFunctions{
     
     if(self::$nb_instance==0){  
       $this->addLog("******************************NEW REQUEST******************************",INFO);
-      $this->addLog($_SERVER['HTTP_USER_AGENT'] . " user=" . $GLOBALS['egw_info']['user']['userid'],INFO);
+      $this->addLog($_SERVER['HTTP_USER_AGENT'] . " user=" .$this->m_user,INFO);
     }
     self::$nb_instance++;
   }
