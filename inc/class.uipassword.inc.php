@@ -109,17 +109,18 @@ class uipassword extends CommonFunctions
   			if(is_array($errors)==false){ //Pas d'erreur
   			  $bopassword = & CreateObject('preferences.bopassword');
   			  $passwd_changed = $bopassword->changepass($o_passwd, $n_passwd);
-  				if(!$passwd_changed)
+  				if($passwd_changed===false)
   				{
   					$errors[] = lang('Failed to change password.  Please contact your administrator.');
     			}else{
             $GLOBALS['egw']->session->appsession('password','phpgwapi',base64_encode($n_passwd));
 					  $GLOBALS['egw_info']['user']['passwd'] = $n_passwd;
 					  
-					  $htmlRet = "<div>Password successfully updated. <a href='".$GLOBALS['egw']->link('/logout.php')."'>Click here to logout</a></div>";
+					  $htmlRet = "<div style='margin: 50px; border: 1px solid #ccc;'>Password successfully updated. <a href='".$GLOBALS['egw']->link('/logout.php')."'>Click here to logout</a></div>";
 					  
           }
-        }else{
+        }
+        if(is_array($errors)){
           $htmlErrors = $GLOBALS['egw']->common->error_list($errors);
     		}
 			}

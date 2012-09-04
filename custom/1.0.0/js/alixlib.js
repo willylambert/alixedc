@@ -75,7 +75,7 @@ function compactItemGroup(FormOID,tblCol){
             if(value==""){
               value = " ";
             }
-            if($.browser.msie * jQuery.browser.version.substr(0, 1)<="7"){
+            if(helper.isOldIE()){ //old version of IE
               htmlRet += "<span>&#160;"+value+"</span>";
             }else{
               htmlRet += "<div>&#160;"+value+"</div>";
@@ -86,18 +86,41 @@ function compactItemGroup(FormOID,tblCol){
       htmlRet += "</div>";
       return htmlRet;
       
-    }).hide().prev().addClass("itemGroupLine").addClass("ui-widget-content ui-row-ltr").click(function(){$(this).next().slideToggle()});
-   
+    }).hide().prev().addClass("itemGroupLine").addClass("ui-widget-content ui-row-ltr").click(function(){$(this).next().slideToggle(200,function(){postItToggle(this)});});
+    
     //Handle TransactionType 
     $(".itemGroupLine").each(function(){
       $(this).addClass($(this).next().attr('class'));
+      postItToggle($(this).next());
     });
     
     //If TransactionType = remove, no slide
     $(".itemGroupLine.TransactionTypeRemove").unbind('click');
     
     //remove unneeded H3
-    $("form[name='"+FormOID+"'] h3").detach();    
+    $("form[name='"+FormOID+"'] h3").detach();
   });
-      
+  
+}
+
+//Toggle visibility of the post-its when an ItemGroup is clicked
+function postItToggle(ig){
+  if(helper.isOldIE(8)){ //the management of visibility is needed only with IE <= IE8
+    igid = $(ig).find("tr[id]").attr("id");
+    igparams = igid.split(new RegExp("_", "g"));
+    igoidref = igparams[1];
+    igrkref = igparams[2];
+    $('.PostIt').each( function(){
+      params = $(this).attr("id").split(new RegExp("_", "g"));
+      igoid = params[6];
+      igrk = params[7];
+      if(igoid==igoidref && igrk==igrkref){ //post-it in the concerned ItemGroup
+        if($(ig).is(':visible')){
+          $(this).show();
+        }else{
+          $(this).hide();
+        }
+      }
+    });
+  }
 }

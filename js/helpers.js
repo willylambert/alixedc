@@ -190,5 +190,15 @@ var helper = {
     });
     $("#helper_prompt_bg").fadeIn('slow');
     $("#helper_prompt").fadeIn('slow');
-  }
+  },
+  
+  /**
+   *@desc : true if browser is an old version of IE
+   *
+   **/
+  isOldIE : function(version){
+    sVersion = "7";
+    if(typeof(version)!="undefined") sVersion = version.toString();
+    return ($.browser.msie * jQuery.browser.version.substr(0, 1) <= sVersion );
+  }        
 }
