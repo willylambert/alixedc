@@ -114,11 +114,12 @@ function postItToggle(ig){
       params = $(this).attr("id").split(new RegExp("_", "g"));
       igoid = params[6];
       igrk = params[7];
-      if(igoid==igoidref && igrk==igrkref) //post-it in the concerned ItemGroup
-      if($(ig).is(':visible')){
-        $(this).show();
-      }else{
-        $(this).hide();
+      if(igoid==igoidref && igrk==igrkref){ //post-it in the concerned ItemGroup
+        if($(ig).is(':visible')){
+          $(this).show();
+        }else{
+          $(this).hide();
+        }
       }
     });
   }
