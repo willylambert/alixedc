@@ -1847,7 +1847,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
         if($nbForm==$nbFormEmpty){
           $visitStatus = "EMPTY";
         }else{
-          if($nbForm==$nbFormFilled+$nbFormEmptyButNotMandatory){ //there may be empty but non-mandatory forms => mixed with filled form in the count of OK forms
+          if($nbForm==$nbFormFilled+$nbFormFrozen+$nbFormEmptyButNotMandatory){ //there may be empty but non-mandatory forms => mixed with filled form in the count of OK forms
             $visitStatus = "FILLED"; 
           }else{
             if($nbForm==$nbFormFrozen){
@@ -1856,7 +1856,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
               if($nbFormInconsistent>0){
                 $visitStatus = "INCONSISTENT";
               }else{
-                  $visitStatus = "MISSING";
+                $visitStatus = "MISSING";
               }
             }
           }
