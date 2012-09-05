@@ -475,7 +475,8 @@ run;";
               }else{
                 $procSASformat .= $contextVar . " " . $this->getSasFormat($infos['type'],
                                                                           $infos['length'],
-                                                                          $infos['significantDigits']) . "
+                                                                          $infos['significantDigits'],
+                                                                          $contextVar) . "
        ";
               }
               $procSASlabel .= $contextVar . "= \"" . $infos['name'] . "\" 
@@ -527,7 +528,8 @@ run;";
                   }else{
                     $procSASformat .= $col . " " . $this->getSasFormat($DataType,
                                                           (string)($tblItemRef[$i]['Length']),
-                                                          (string)($tblItemRef[$i]['SignificantDigits'])) . "
+                                                          (string)($tblItemRef[$i]['SignificantDigits']),
+                                                          $col) . "
        ";
                   }
                   $procSASlabel .= $col . "= \"" . (string)($tblItemRef[$i]['Label']) . "\" 
@@ -740,7 +742,8 @@ delimiter = ';' MISSOVER DSD lrecl=32767 firstobs=2;";
           }else{
             $procSASformat .= $contextVar . " " . $this->getSasFormat($infos['type'],
                                                                    $infos['length'],
-                                                                   $infos['significantDigits']) . "
+                                                                   $infos['significantDigits'],
+                                                                   $contextVar) . "
        ";
           }
           $procSASlabel .= $contextVar . " = \"" . $infos['name'] . "\" 
@@ -774,7 +777,8 @@ delimiter = ';' MISSOVER DSD lrecl=32767 firstobs=2;";
                 }else{
                   $procSASformat .= $SASName . " " . $this->getSasFormat($DataType,
                                                         (string)($tblItemRef[$i]['Length']),
-                                                        (string)($tblItemRef[$i]['SignificantDigits'])) . "
+                                                        (string)($tblItemRef[$i]['SignificantDigits']),
+                                                        $SASName) . "
        ";
                 }
                 $procSASlabel .= $SASName . " = \"" . (string)($tblItemRef[$i]['Label']) . "\" 
@@ -1155,7 +1159,7 @@ delimiter = ';' MISSOVER DSD lrecl=32767 firstobs=2;";
   @return string sas format to be inserted in the SAS Import Macro
   @author wlt
   */
-  private function getSasFormat($DataType,$Length,$SignificantDigits){
+  private function getSasFormat($DataType,$Length,$SignificantDigits,$Context){
     $sasFormat = "";
     switch($DataType){
       case "string" :
@@ -1184,7 +1188,7 @@ delimiter = ';' MISSOVER DSD lrecl=32767 firstobs=2;";
         $sasFormat = "is8601dt.";
         break;
       default :
-        $this->addLog("boexport::getSasFormat() => Unkown datatype $DataType",FATAL);
+        $this->addLog("boexport::getSasFormat() => Unkown datatype '$DataType' for '$Context'",FATAL);
     }     
     return $sasFormat;
   } 
