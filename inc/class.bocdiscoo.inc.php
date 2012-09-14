@@ -224,6 +224,104 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
     return $tblRet;
   }
 
+  public function computeDerivedItem($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey)
+  {
+    $this->addLog(__METHOD__ ."($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID)", INFO);
+
+    //Loop through ItemRef having MethodOID 
+    $query = "
+        import module namespace alix = 'http://www.alix-edc.com/alix';
+         
+        let \$SubjectData := index-scan('SubjectData','$SubjectKey','EQ')
+        let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
+        let \$ItemGroupDatas := \$SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']
+                                             /odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey' and @TransactionType!='Remove']
+                                             /odm:ItemGroupData[@TransactionType!='Remove'] 
+        let \$nbAuditRecords := count(\$SubjectData/odm:AuditRecords/odm:AuditRecord)
+        return
+          if (count(\$ItemGroupDatas)=0)
+          then <NoItemGroupData />      
+          else
+            for \$ItemGroupData in \$ItemGroupDatas
+            let \$ItemGroupOID := \$ItemGroupData/@ItemGroupOID
+            let \$ItemGroupRepeatKey := \$ItemGroupData/@ItemGroupRepeatKey
+            for \$ItemOID in distinct-values(\$ItemGroupData/odm:*/@ItemOID)
+              let \$ItemDatas := \$ItemGroupData/odm:*[@ItemOID=\$ItemOID]
+              let \$ItemData := \$ItemDatas[last()]
+              let \$ItemRef := \$MetaDataVersion/odm:ItemGroupDef[@OID=\$ItemGroupOID]/odm:ItemRef[@ItemOID=\$ItemOID]
+              let \$ItemDef := \$MetaDataVersion/odm:ItemDef[@OID=\$ItemOID]
+              let \$MethodDef := \$MetaDataVersion/odm:MethodDef[@OID=\$ItemRef/@MethodOID]
+              where exists(\$ItemRef/@MethodOID)
+              return
+                <Method ItemOID='{\$ItemRef/@ItemOID}'
+                        ItemGroupRepeatKey='{\$ItemGroupRepeatKey}'
+                        ItemGroupOID='{\$ItemGroupOID}'
+                        AuditRecordID='{\$ItemData/@AuditRecordID}'
+                        FormalExpression='{\$MethodDef/odm:FormalExpression[@Context='XQuery']/string()}'
+                        DataType='{\$ItemDef/@DataType}'
+                        ItemValue='{\$ItemData/string()}'
+                        NbAT='{\$nbAuditRecords}' />";
+    $methods = $this->m_ctrl->socdiscoo()->query($query);
+    if($methods[0]->getName()!="NoItemGroupData")
+    {
+      $hasModif = false;
+      //For simplicy and performance reason, the last AuditRecord # is stored on each Method Element but we only use the first
+      $nbAT = (int)$methods[0]['NbAT'];
+      $AuditRecordID = sprintf("AT-%06s",$nbAT+1);
+      foreach($methods as $method)
+      {
+          $testXQuery = $this->getXQueryConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$method);
+          try{
+            $methodResult = $this->m_ctrl->socdiscoo()->query($testXQuery,true,false,true);
+          }catch(exception $e){
+            //Error is probably due to the method code. Error is not display to the user, and administrator notified by email 
+            $str = "Derived variable : Xquery error : " . $e->getMessage() . " " . $testXQuery;
+            $this->addLog($str,ERROR);
+          }
+    
+          $lastValue = (string)$method['ItemValue'];
+          $computedValue = (string)$methodResult[0]->Result;
+          $this->addLog("bocdiscoo->computeDerivedItem() Method[{$StudyEventOID}][{$FormOID}][{$method['ItemGroupOID']}][{$method['ItemGroupRepeatKey']}]['{$method['ItemOID'] }'] => Result=" . $methodResult[0]->Result, INFO);
+          if($lastValue!=$computedValue){
+            $dataType = ucfirst($method['DataType']); 
+            //We update value
+            $strUpdate = "<ItemData$dataType ItemOID='".$method['ItemOID']."' 
+                                             AuditRecordID='$AuditRecordID'
+                                             TransactionType='Update'>$computedValue</ItemData$dataType>";
+            $query = "declare default element namespace '".$this->m_tblConfig['SEDNA_NAMESPACE_ODM']."';
+                      UPDATE
+                      insert ($strUpdate)
+                      following index-scan('SubjectData','$SubjectKey','EQ')/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']
+                                                                            /odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']
+                                                                            /odm:ItemGroupData[@ItemGroupOID='{$method['ItemGroupOID']}' and @ItemGroupRepeatKey='{$method['ItemGroupRepeatKey']}']
+                                                                            /odm:*[last()]";
+            $this->m_ctrl->socdiscoo()->query($query);       
+
+            $hasModif = true;
+
+          }  
+      }
+      
+      if($hasModif){
+        //We insert an AuditRecord element, once per form        
+        $who = $GLOBALS['egw_info']['user']['userid'];
+        $where = $GLOBALS['egw']->accounts->id2name($GLOBALS['egw_info']['user']['account_primary_group']);
+        $why = "";
+
+        $query = "declare default element namespace '".$this->m_tblConfig['SEDNA_NAMESPACE_ODM']."';
+                  UPDATE
+                  insert <AuditRecord ID='$AuditRecordID'>
+                          <UserRef UserOID='$who'/>
+                          <LocationRef LocationOID='$where'/>
+                          <DateTimeStamp>".date('c')."</DateTimeStamp>
+                          <ReasonForChange>$why</ReasonForChange>
+                         </AuditRecord>
+                  following index-scan('SubjectData','$SubjectKey','EQ')/../odm:AuditRecords/odm:AuditRecord[last()]";
+        $this->m_ctrl->socdiscoo()->query($query);
+      }
+    }
+  }
+
   private function checkFormConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey)
   {
     $this->addLog(__METHOD__ ."($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID)", INFO);
@@ -276,7 +374,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
           $testXQuery = $this->getXQueryConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ctrl);
           try{
             $ctrlResult = $this->m_ctrl->socdiscoo()->query($testXQuery,true,false,true);
-          }catch(xmlexception $e){
+          }catch(exception $e){
             //Error is probably due to the edit check code. Error is not display to the user, and administrator notified by email 
             $str = "Consistency : Xquery error : " . $e->getMessage() . " " . $testXQuery;
             $this->addLog($str,ERROR);
@@ -1618,7 +1716,8 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
                                 SignificantDigits='{\$ItemDef/@SignificantDigits}'
                                 Mandatory='{\$ItemRef/@Mandatory}'
                                 Role='{\$ItemRef/@Role}'
-                                CollectionExceptionConditionOID='{\$ItemRef/@CollectionExceptionConditionOID}'>
+                                CollectionExceptionConditionOID='{\$ItemRef/@CollectionExceptionConditionOID}'
+                                MethodOID='{\$ItemRef/@MethodOID}'>
                             <CodeList OID='{\$ItemDef/odm:CodeListRef/@CodeListOID}'>
                             {
                               for \$CodeListItem in \$MetaDataVersion/odm:CodeList[@OID=\$ItemDef/odm:CodeListRef/@CodeListOID]/*
@@ -2423,6 +2522,10 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
 * @author tpi, wlt
 **/
   public function updateFormStatus($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey){
+
+    //Compute Derived variable
+    $this->computeDerivedItem($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey);
+
     //Look for queries on the form
     $errorsMandatory = $this->checkMandatoryData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey);
     $errorsConsistency = $this->checkFormConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey);
@@ -2432,7 +2535,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
       //If there is queries, the form must be unlocked in any case
       $this->setLock($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,false);
     }
-
+  
     return $nbPendingQueries; 
   }
 }

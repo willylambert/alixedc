@@ -39,6 +39,10 @@
   	<xsl:variable name="ItemOID" select="translate($Item/@OID,'.','@')"/>
 
     <xsl:choose>
+      <!--Derived item : no input, just display the raw value-->
+      <xsl:when test="$Item/@MethodOID!=''">
+          <xsl:value-of select="$ItemValue"/>
+      </xsl:when>
     	<!--Item associé à une codelist-->
       <xsl:when test="count($Item/CodeList/CodeListItem)!=0">
         <!--Si nous sommes en présence d'une codelist à 2,3 ou 4 réponses, et que les libellés sont courts, on présente des radios button-->

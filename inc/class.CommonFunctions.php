@@ -102,6 +102,7 @@ class CommonFunctions{
       if($level>=ERROR){
         $message .= "\nrequest = " . $this->dumpRet($_REQUEST);
         $message .= "\nbacktrace = " . $this->dumpRet(debug_backtrace(false));
+        error_log("$dt " . $message . "\n",3,$this->m_tblConfig['LOG_FILE'].".error");
         mail($this->m_tblConfig['EMAIL_ERROR'],"ETUDE (".$this->m_tblConfig['APP_NAME'].") ERROR/FATAL : {$this->m_user}@$dt",$message);
         if($level==FATAL){
           die("<pre>$message</pre>");

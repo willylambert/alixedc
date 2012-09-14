@@ -197,23 +197,25 @@ function uisubject_getMenu_xslParameters($xslProc,$uisubject){
   $selDT = $uisubject->m_ctrl->bocdiscoo()->getValue($_GET['SubjectKey'],"1","0","FORM.SV","0","SV","0","SV.SVSTDTC");  
   $incDT =  $uisubject->m_ctrl->bocdiscoo()->getValue($_GET['SubjectKey'],"2","0","FORM.SV","0","SV","0","SV.SVSTDTC");
   $dmAge = $uisubject->m_ctrl->bocdiscoo()->getValue($_GET['SubjectKey'],"1","0","FORM.IC","0","DM","0","DM.AGE");
-
+/*
   $fwDrug1 = $uisubject->m_ctrl->bocdiscoo()->getValue($_GET['SubjectKey'],"FW","1","FORM.SVFW","0","SVFW","0","SVFW.DRUGD");
   $fwDrug2 = $uisubject->m_ctrl->bocdiscoo()->getValue($_GET['SubjectKey'],"FW","2","FORM.SVFW","0","SVFW","0","SVFW.DRUGD");
   $fwDrug3 = $uisubject->m_ctrl->bocdiscoo()->getValue($_GET['SubjectKey'],"FW","3","FORM.SVFW","0","SVFW","0","SVFW.DRUGD");
   $fwDrug4 = $uisubject->m_ctrl->bocdiscoo()->getValue($_GET['SubjectKey'],"FW","4","FORM.SVFW","0","SVFW","0","SVFW.DRUGD");
   $fwDrug5 = $uisubject->m_ctrl->bocdiscoo()->getValue($_GET['SubjectKey'],"FW","5","FORM.SVFW","0","SVFW","0","SVFW.DRUGD");
   $fwDrug6 = $uisubject->m_ctrl->bocdiscoo()->getValue($_GET['SubjectKey'],"FW","6","FORM.SVFW","0","SVFW","0","SVFW.DRUGD");
-  
+*/  
   $xslProc->setParameter('','SelDT',$selDT);
   $xslProc->setParameter('','IncDT',$incDT);
   $xslProc->setParameter('','DMAGE',$dmAge);
+/*
   $xslProc->setParameter('','FwDrug1',$fwDrug1);
   $xslProc->setParameter('','FwDrug2',$fwDrug2);
   $xslProc->setParameter('','FwDrug3',$fwDrug3);
   $xslProc->setParameter('','FwDrug4',$fwDrug4);
   $xslProc->setParameter('','FwDrug5',$fwDrug5);
   $xslProc->setParameter('','FwDrug6',$fwDrug6);
+*/
 }
 
 /**

@@ -145,12 +145,12 @@ public function checkFormData(){
 }
 
 
- /*
+ /**
  *Ajax method, received in POST an ItemGroupData 
  *Return missing and edit checks raised 
  *@return array("errors"=>array(),"newSubjectId"=>string) $tblRet 
  *@author wlt
- */
+ **/
   public function saveItemGroupData(){
     $this->addlog(__METHOD__ ." : _POST=".$this->dumpRet($_POST),INFO);  
   
@@ -1667,11 +1667,11 @@ public function checkFormData(){
     echo json_encode($newName);
   }
 
- /*
- *@desc ajax, return an html tree to select a folder
- *@return new filename
- *@author TPI
- */
+  /**
+  *@desc ajax, return an html tree to select a folder
+  *@return new filename
+  *@author TPI
+  **/
   public function getSelectableFolderTree(){
     
     $root = $_POST['root'];

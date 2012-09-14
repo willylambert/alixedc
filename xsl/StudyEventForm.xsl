@@ -110,7 +110,14 @@
             <xsl:if test="@Mandatory='Yes' or @CollectionExceptionConditionOID!=''">
               <span class="ItemDataRequired">*</span>
             </xsl:if>
-            &#160;
+            <xsl:if test="$Item/@MethodOID!=''">
+              <a href="javascript:void(0)">
+                <xsl:element name="span">
+                  <xsl:attribute name='class'>imageOnly image16</xsl:attribute>
+                  <xsl:attribute name="style">background-image: url('<xsl:value-of select="$CurrentApp"/>/templates/default/images/kded.png');</xsl:attribute>
+                </xsl:element>
+              </a>
+            </xsl:if>
             </td>
             <td>
             <xsl:choose>
@@ -120,8 +127,9 @@
               <xsl:otherwise>
                 <xsl:attribute name="class">ItemDataLabel</xsl:attribute>
               </xsl:otherwise>
-            </xsl:choose>              
-            <xsl:value-of select="@Title"/>&#160;</td>
+            </xsl:choose>
+            <xsl:value-of select="@Title"/>&#160;
+            </td>              
             <td class="ItemDataInput" name="{$Item/@OID}" lastvalue="{$ItemDecode}">
                 <xsl:call-template name="Item">                                                                            
                    <xsl:with-param name="Item" select="."/>
@@ -132,7 +140,7 @@
                    <xsl:with-param name="CurrentItemGroupRepeatKey" select="$ItemGroupData/@ItemGroupRepeatKey"/>
                    <xsl:with-param name="ForceSelect" select="contains($CodeListForceSelect,./CodeList/@OID)"/>
                 </xsl:call-template>
-                <!--Audi Trail dialog container-->
+                <!--Audit Trail dialog container-->
                 <div id="{concat('auditTrail_div_',$Item/@OID,'_',$ItemGroupData/@ItemGroupOID,'_',$ItemGroupData/@ItemGroupRepeatKey)}" initialized='false' class='dialog-auditTrail' title='{@Title}' style="display:none;" keys="{$CurrentApp},{$SubjectKey},{$StudyEventOID},{$StudyEventRepeatKey},{$FormOID},{$FormRepeatKey},{$ItemGroup/@OID},{$ItemGroupData/@ItemGroupRepeatKey},{$Item/@OID}">
                   Loading ...
                 </div>
