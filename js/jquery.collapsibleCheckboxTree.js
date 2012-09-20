@@ -36,9 +36,9 @@
 				$("input:checked").parents("li").find("input[type='checkbox']:first").attr('checked', true);
 			}
 			// Check children if necessary
-			if (defaults.checkChildren) {
-				$("input:checked").parent("li").find("input[type='checkbox']").attr('checked', true);
-			}
+			//if (defaults.checkChildren) {
+			//	$("input:checked").parent("li").find("input[type='checkbox']").attr('checked', true);
+			//}
 			// Show checked and immediate children of checked
 			$("li:has(input:checked) > ul", $(this)).removeClass('hide');
 			// Add tree links
