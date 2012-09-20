@@ -234,7 +234,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
          
         let \$SubjectData := index-scan('SubjectData','$SubjectKey','EQ')
         let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
-        let \$ItemGroupDatas := \$SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']
+        let \$ItemGroupDatas := \$SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey' and @TransactionType!='Remove']
                                              /odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey' and @TransactionType!='Remove']
                                              /odm:ItemGroupData[@TransactionType!='Remove'] 
         let \$nbAuditRecords := count(\$SubjectData/odm:AuditRecords/odm:AuditRecord)
@@ -332,7 +332,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
          
         let \$SubjectData := index-scan('SubjectData','$SubjectKey','EQ')
         let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
-        let \$ItemGroupDatas := \$SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']
+        let \$ItemGroupDatas := \$SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey' and @TransactionType!='Remove']
                                             /odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey' and @TransactionType!='Remove']
                                             /odm:ItemGroupData[@TransactionType!='Remove'] 
         return
@@ -441,7 +441,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
     $query = "
         let \$SubjectData := index-scan('SubjectData','$SubjectKey','EQ')
         let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
-        for \$ItemGroupData in \$SubjectData/odm:StudyEventData[@StudyEventOID=\"$StudyEventOID\" and @StudyEventRepeatKey=\"$StudyEventRepeatKey\"]
+        for \$ItemGroupData in \$SubjectData/odm:StudyEventData[@StudyEventOID=\"$StudyEventOID\" and @StudyEventRepeatKey=\"$StudyEventRepeatKey\"  and @TransactionType!='Remove']
                                             /odm:FormData[@FormOID=\"$FormOID\" and @FormRepeatKey=\"$FormRepeatKey\" and @TransactionType!=\"Remove\"]
                                             /odm:ItemGroupData[@TransactionType!=\"Remove\"]
         let \$ItemGroupOID := \$ItemGroupData/@ItemGroupOID
@@ -757,8 +757,8 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
         return
             <errors>
             {       
-            for \$ItemGroupData in \$SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']
-                                                /odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey']
+            for \$ItemGroupData in \$SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey' and @TransactionType!='Remove']
+                                                /odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey' and TransactionType='Remove']
                                                 /odm:ItemGroupData[@TransactionType!='Remove']   
               let \$ItemGroupOID := \$ItemGroupData/@ItemGroupOID
               let \$ItemGroupDef := \$MetaDataVersion/odm:ItemGroupDef[@OID=\$ItemGroupOID]
@@ -913,7 +913,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
       $ItemGroupDataAT = "
       {
       (:Insertion des données d'Audit Trail:)
-      let \$ItemGroupData := \$StudyEventData/odm:FormData[@FormOID=\$FormOID and (@FormRepeatKey=\$FormData/@FormRepeatKey or not(\$FormData/@FormRepeatKey))]/odm:ItemGroupData[@ItemGroupOID=\$ItemGroupOID]
+      let \$ItemGroupData := \$StudyEventData[@TransactionType!='Remove']/odm:FormData[@FormOID=\$FormOID and (@FormRepeatKey=\$FormData/@FormRepeatKey or not(\$FormData/@FormRepeatKey))]/odm:ItemGroupData[@ItemGroupOID=\$ItemGroupOID]
       return
           <ItemGroupDataAT OID='{\$ItemGroupData/@ItemGroupOID}'>
           {
@@ -942,7 +942,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
               return
                 <SubjectData>
                 {
-                    for \$StudyEventData in \$SubjectData/odm:StudyEventData
+                    for \$StudyEventData in \$SubjectData/odm:StudyEventData[@TransactionType!='Remove']
                     return
                         <StudyEvent OID='{\$StudyEventData/@StudyEventOID}'
                                     StudyEventRepeatKey='{\$StudyEventData/@StudyEventRepeatKey}'
@@ -1599,7 +1599,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
     $this->addLog(__METHOD__."($SubjectKey)",INFO);
     $query = "
               let \$SubjectData := index-scan('SubjectData','$SubjectKey','EQ')
-              for \$StudyEventData in \$SubjectData/odm:StudyEventData
+              for \$StudyEventData in \$SubjectData/odm:StudyEventData[@TransactionType!='Remove']
               return
                 <StudyEventData StudyEventOID='{\$StudyEventData/@StudyEventOID}'
                                StudyEventRepeatKey='{\$StudyEventData/@StudyEventRepeatKey}'/>
@@ -1672,7 +1672,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
     
     $query = "import module namespace alix = 'http://www.alix-edc.com/alix';
               let \$SubjectData := index-scan('SubjectData','$SubjectKey','EQ')
-              let \$StudyEventData := \$SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey']
+              let \$StudyEventData := \$SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey' and @TransactionType!='Remove']
               let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
               let \$BasicDefinitions := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:BasicDefinitions[../odm:MetaDataVersion/@OID=\$SubjectData/../@MetaDataVersionOID]
 
