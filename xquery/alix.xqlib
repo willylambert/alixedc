@@ -192,7 +192,7 @@ declare function alix:getDecode($ItemData as node(),$MetaDataVersion as node(),$
 
 declare function alix:getDecode($ItemData as node()*,$MetaDataVersion as node()) as xs:string?
 {
-  let $value := alix:getValue($ItemData)
+  let $value := alix:getRawValue($ItemData)
   let $CodeListOID := $MetaDataVersion/odm:ItemDef[@OID=$ItemData/@ItemOID]/odm:CodeListRef/@CodeListOID
   return
     if($CodeListOID)

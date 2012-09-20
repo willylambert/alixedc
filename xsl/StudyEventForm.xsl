@@ -31,7 +31,7 @@
 
 <xsl:param name="lang"/>
 <xsl:param name="ReadOnly"/>
-<xsl:param name="CodeListForceSelect"/> <!--liste d'element séparé par un espace qui seront dans tous les cas affiché sous la forme de select-->
+<xsl:param name="CodeListForceSelect"/> <!-- list of elements separated with a space which will be in any case displayed as a select-->
 <xsl:param name="ProfileId"/>
 <xsl:param name="ShowDeviations"/>
 
