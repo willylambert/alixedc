@@ -33,11 +33,6 @@
   </xsl:copy>
 </xsl:template>
 
-<!-- Suppression du bouton d'Ajout -->
-<xsl:template match="button[@id='btnAddItemGroup']">
-	<!-- Bouton d'ajout supprimé -->
-</xsl:template>
-
 <!-- Hide coding items -->
 <xsl:template match="tr[@name='MH.MHLLT_C' or @name='MH.MHLLT_N' or @name='MH.MHPT_C' or @name='MH.MHDECOD' or @name='MH.MHSOC_C' 
     or @name='MH.MHBODSYS' or @name='MH.MHHLT_C' or @name='MH.MHHLT_N' or @name='MH.MHHLGT_C' or @name='MH.MHHLGT_N' or @name='MH.MEDDRA_V']">

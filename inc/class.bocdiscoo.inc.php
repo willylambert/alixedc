@@ -83,9 +83,9 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
       {
         case 'datetime' :
         case 'date' :
-          $dd = $formVars["text_dd_" . str_replace(".","@",$Item['ItemOID']) . "_$ItemGroupRepeatKey"];
-          $mm = $formVars["text_mm_" . str_replace(".","@",$Item['ItemOID']) . "_$ItemGroupRepeatKey"];
-          $yy = $formVars["text_yy_" . str_replace(".","@",$Item['ItemOID']) . "_$ItemGroupRepeatKey"];
+          $dd = trim($formVars["text_dd_" . str_replace(".","@",$Item['ItemOID']) . "_$ItemGroupRepeatKey"]);
+          $mm = trim($formVars["text_mm_" . str_replace(".","@",$Item['ItemOID']) . "_$ItemGroupRepeatKey"]);
+          $yy = trim($formVars["text_yy_" . str_replace(".","@",$Item['ItemOID']) . "_$ItemGroupRepeatKey"]);
 
           if($dd=="" && $mm=="" && $yy==""){
             //If null value, it can't be save as "ItemDataDate", must use ItemDataAny
@@ -109,9 +109,9 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
           break;
 
         case 'partialDate' :
-          $dd = $formVars["text_dd_" . str_replace(".","@",$Item['ItemOID']) . "_$ItemGroupRepeatKey"];
-          $mm = $formVars["text_mm_" . str_replace(".","@",$Item['ItemOID']) . "_$ItemGroupRepeatKey"];
-          $yy = $formVars["text_yy_" . str_replace(".","@",$Item['ItemOID']) . "_$ItemGroupRepeatKey"];
+          $dd = trim($formVars["text_dd_" . str_replace(".","@",$Item['ItemOID']) . "_$ItemGroupRepeatKey"]);
+          $mm = trim($formVars["text_mm_" . str_replace(".","@",$Item['ItemOID']) . "_$ItemGroupRepeatKey"]);
+          $yy = trim($formVars["text_yy_" . str_replace(".","@",$Item['ItemOID']) . "_$ItemGroupRepeatKey"]);
 
           if($dd !="" && $mm !="" && $yy != ""){
             $dt = date('Y-m-d',mktime(0,0,0,$mm,$dd,$yy));
@@ -262,7 +262,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
                         ItemValue='{\$ItemData/string()}'
                         NbAT='{\$nbAuditRecords}' />";
     $methods = $this->m_ctrl->socdiscoo()->query($query);
-    if($methods[0]->getName()!="NoItemGroupData")
+    if(count($methods)>0 && $methods[0]->getName()!="NoItemGroupData")
     {
       $hasModif = false;
       //For simplicy and performance reason, the last AuditRecord # is stored on each Method Element but we only use the first
@@ -608,9 +608,9 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
           //Handle of Date and PartialDate type
           case 'partialDate' :
             $isBadFormated = false;
-            $dd = $formVars["text_dd_" . str_replace(".","@",$Item['ItemOID']) . "_$ItemGroupRepeatKey"];
-            $mm = $formVars["text_mm_" . str_replace(".","@",$Item['ItemOID']) . "_$ItemGroupRepeatKey"];
-            $yy = $formVars["text_yy_" . str_replace(".","@",$Item['ItemOID']) . "_$ItemGroupRepeatKey"];
+            $dd = trim($formVars["text_dd_" . str_replace(".","@",$Item['ItemOID']) . "_$ItemGroupRepeatKey"]);
+            $mm = trim($formVars["text_mm_" . str_replace(".","@",$Item['ItemOID']) . "_$ItemGroupRepeatKey"]);
+            $yy = trim($formVars["text_yy_" . str_replace(".","@",$Item['ItemOID']) . "_$ItemGroupRepeatKey"]);
             
             if(!$isBadFormated){
               //First, we need numeric values !
@@ -668,9 +668,9 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
 
           case 'date' :
             $isBadFormated = false;
-            $dd = $formVars["text_dd_" . str_replace(".","@",$Item['ItemOID']) . "_$ItemGroupRepeatKey"];
-            $mm = $formVars["text_mm_" . str_replace(".","@",$Item['ItemOID']) . "_$ItemGroupRepeatKey"];
-            $yy = $formVars["text_yy_" . str_replace(".","@",$Item['ItemOID']) . "_$ItemGroupRepeatKey"];
+            $dd = trim($formVars["text_dd_" . str_replace(".","@",$Item['ItemOID']) . "_$ItemGroupRepeatKey"]);
+            $mm = trim($formVars["text_mm_" . str_replace(".","@",$Item['ItemOID']) . "_$ItemGroupRepeatKey"]);
+            $yy = trim($formVars["text_yy_" . str_replace(".","@",$Item['ItemOID']) . "_$ItemGroupRepeatKey"]);
 
             if(!$isBadFormated){
               //First, we need numeric values !
