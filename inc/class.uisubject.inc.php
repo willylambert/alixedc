@@ -437,7 +437,7 @@ Return the toolbox buttons (post-it for CRA)
       //and only on specified forms
       if($this->m_ctrl->bodeviations()->formCanHaveDeviation($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey)){
       /*
-        //Si la dernière déviation enregistrée en base n'est pas une chaine de caractère vide (équivalent �  déviation supprimée)
+        //Si la derniÃ¨re dÃ©viation enregistrÃ©e en base n'est pas une chaine de caractÃ¨re vide (Ã©quivalent Ã  dÃ©viation supprimÃ©e)
         if($this->m_ctrl->bodeviations()->getFormDeviation($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey) == ""){
           $htmlRet .= '<button id="btnAddDeviation" class="ui-state-default ui-corner-all" onclick="$(\'#formDeviation\').slideDown();$(\'#btnAddDeviation\').fadeOut();"><img src="'.$GLOBALS['egw_info']['flags']['currentapp'].'/templates/default/images/delta_add.png" style="float:left; margin-right: 3px;" />Deviation</button>';
         }
@@ -487,10 +487,12 @@ return a context menu, can be used with a right click on inputs
     $siteId = $this->m_ctrl->bosubjects()->getSubjectColValue($SubjectKey,"SITEID");
     $subjId = sprintf($this->m_tblConfig["SUBJID_FORMAT"],$SubjectKey);
     $siteName = $this->m_ctrl->bosites()->getSiteName($siteId);
+    $dateOfGeneration = date('Y-m-d H:i');
     $proc->setParameter('','STUDYNAME',$this->m_tblConfig["APP_NAME"]);
     $proc->setParameter('','siteId',$siteId);
     $proc->setParameter('','subjId',$subjId);
     $proc->setParameter('','siteName',$siteName);
+    $proc->setParameter('','DateOfGeneration',$dateOfGeneration);
     
     $doc = $proc->transformToDoc($doc);
     
@@ -534,22 +536,6 @@ return a context menu, can be used with a right click on inputs
       $inclusionDate = $this->formatDate($this->m_ctrl->bosubjects()->getSubjectColValue($SubjectKey,"INCLUSIONDATE"));
       
       $htmlContent = '<html><head><meta http-equiv=Content-Type content="text/html; charset=iso8859-2"></head><body> <font face="Arial"><center><table border="1" width="500" cellpadding="5" rules="rows"><tr> <td width="500" bgcolor="#000000"><font color="#ffffff"><b>'.$this->m_tblConfig['APP_NAME'].'</b></font></td></tr><tr> <td colspan="1">Patient '.$SubjectKey.'</td></tr><tr> <td colspan="1"><b>Patient profile</b></td></tr></table> <br><table border="1" width="500" cellpadding="5" rules="rows"><tr> <td colspan="2" bgcolor="#000000"><font color="#ffffff"><b>Patient profile</b></font></td></tr><tr> <td width="350"><b>Subject identifier </b></td> <td width="150">'.$SubjectKey.'</td></tr><tr> <td width="350"><b>Site Id </b></td> <td width="150">'.$siteId.'</td></tr><tr> <td width="350"><b>Site Name </b></td> <td width="150">'.$siteName.'</td></tr><tr> <td width="350"><b>Inclusion date </b></td> <td width="150">'.$inclusionDate.'</td></tr></table></center></font></body></html>';
-      
-      /*
-      //template file
-      $template = dirname(__FILE__)."/templates/profile.htm";
-      if(!file_exists($template)){
-        $str = "Template not found '$template'.";
-        $this->m_ctrl->addLog($str,ERROR);
-      }
-      $handle = fopen($template, "r");
-      $htmlContent = fread($handle, filesize($template));
-      fclose($handle);
-      
-      $code = array("STUDYNAME", "SUBJECTKEY", "SITEID", "SITENAME", "INCLUSIONDATE");
-      $value = array($this->m_tblConfig['APP_NAME'], $SubjectKey, $siteId, $siteName, $inclusionDate);
-      $htmlContent = str_replace(preg_replace("(.*)","{\${0}}",$code, 1), $value, $htmlContent);
-      */
     }
     
     $htmlTemp = tempnam("/tmp","htmlDocGfpc");

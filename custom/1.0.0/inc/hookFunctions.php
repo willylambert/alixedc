@@ -595,9 +595,12 @@ function uisubject_getProfile_profileContent($SubjectKey,$htmlContent,$uisubject
     }
   }
   
+  $dateOfGeneration = date('Y-m-d H:i');
+
   //Remplacement dans le fichier html
-  $code = array("SUBJID", "INITIALS", "SITEID", "SITENAME", "LASTVISITDATE", "LASTVISITNAME", "SEX", "BRTHDT", "INCDT", "WEIGHT", "HEIGHT", "MH");
-  $value = array($SubjectKey
+  $code = array("GENERATIONDATE","SUBJID", "INITIALS", "SITEID", "SITENAME", "LASTVISITDATE", "LASTVISITNAME", "SEX", "BRTHDT", "INCDT", "WEIGHT", "HEIGHT", "MH");
+  $value = array($dateOfGeneration
+                ,$SubjectKey
                 ,$values['ENROL.SUBJINIT']
                 ,$values['ENROL.SITEID']
                 ,utf8_decode($values['ENROL.SITENAME'])

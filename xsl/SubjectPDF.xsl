@@ -27,6 +27,7 @@
   <xsl:param name="siteId"/>
   <xsl:param name="subjId"/>
   <xsl:param name="siteName"/>
+  <xsl:param name="DateOfGeneration"/>
   
   <xsl:template match="SubjectData">
     <html>
@@ -55,7 +56,7 @@
     
     <h1>
       <font size="6">
-        <xsl:value-of select="@Title" />
+        <xsl:value-of select="@Title" />  / Date of generation : <xsl:value-of select="$DateOfGeneration" />
       </font>
     </h1>
     
