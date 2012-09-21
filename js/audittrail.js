@@ -68,10 +68,9 @@ function toggleAuditTrail(ItemOID,IGOID,IGRK){
       data: dataString,
       dataType: "json",
       success: function(data) {
-        //alert(data.toString());
         
-        //On créé le tableau html pour afficher le résultat
-        var html = "<table class='AuditTrail'><tr><th>Date</th><th>Type</th><th>User</th><th>Transaction</th><th>Value</th><th>Flag</th><th>Comment</th></tr>";
+        //here we build the html table to display
+        var html = "<table class='AuditTrail'><tr><th>Date</th><th>Type</th><th>User</th><th>Transaction</th><th>Value</th><th>Flag</th><th>Comment</th><th>SDV</th></tr>";
         for(var i=0; i<data.length; i++){
           transaction = data[i]['transaction'];
           transactionlabel = transaction;
@@ -110,6 +109,7 @@ function toggleAuditTrail(ItemOID,IGOID,IGRK){
           html += "<td>"+ data[i]['value'] +"</td>";
           html += "<td>"+ data[i]['flagvalue'] +"</td>";
           html += "<td>"+ data[i]['flagcomment'] +"</td>";
+          html += "<td>"+ data[i]['sdvcheck'] +"</td>";
           html += "</tr>";
         }
         html += "</table>";

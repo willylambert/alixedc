@@ -36,8 +36,6 @@
     <xsl:param name="Title"/>
     <xsl:param name="CurrentApp"/>
   	
-  	<!--xsl:variable name="ItemOID" select="translate($ItemOID,'.','-')"/-->
-  	
     	<xsl:variable name="DivId" select="concat('auditTrail_div_',$ItemOID,'_',$ItemGroupOID,'_',$ItemGroupRepeatKey)"/>
     	
     	<xsl:element name='span'>
@@ -48,17 +46,9 @@
         <xsl:attribute name="altbox">Edit the history of this item</xsl:attribute>
         &#0160;
       </xsl:element>
-      <!--ancienne img, ne marche pas sous IE-->
-      <!--a href="javascript:void(0)">
-        <xsl:element name='img'>
-          <xsl:attribute name='id'><xsl:value-of select="concat($DivId,'_picture')"/></xsl:attribute>
-          <xsl:attribute name="src"><xsl:value-of select="$CurrentApp"/>/templates/default/images/clock-history.png</xsl:attribute>
-          <xsl:attribute name="onClick">toggleAuditTrail('<xsl:value-of select="$DivId"/>');</xsl:attribute>
-          <xsl:attribute name="altbox">Edit the history of this item</xsl:attribute>
-        </xsl:element>
-      </a-->
+
       <div id="{$DivId}" initialized='false' class='dialog-auditTrail' title='{$Title}' style="display:none;" keys="{$SubjectKey}_{$StudyEventOID}_{$StudyEventRepeatKey}_{$FormOID}_{$FormRepeatKey}_{$ItemGroupOID}_{$ItemGroupRepeatKey}_{$ItemOID}">
-        Chargement ...
+        Loading ...
       </div>
       
   </xsl:template>

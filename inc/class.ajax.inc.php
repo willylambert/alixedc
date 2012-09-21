@@ -123,7 +123,6 @@ public function removeFormData(){
   echo json_encode(array("SubjectKey"=>$SubjectKey, "StudyEventOID"=>$StudyEventOID, "StudyEventRepeatKey"=>$StudyEventRepeatKey, "FormOID"=>$FormOID, "FormRepeatKey"=>$FormRepeatKey)); 
 }
 
-
 /*
 @desc aplies checkMandatory and checkConsistency to the specified form
       the results are saved in the database, a call to getQueriesList allow to get them back
@@ -196,7 +195,8 @@ public function checkFormData(){
       //Access right check      
       $profile = $this->m_ctrl->boacl()->getUserProfile("",$siteId);
       
-      if($profile['profileId']=="INV" || $siteId=="BLANK"){
+      //Allow also CRA to save, but only for saving SDV checks
+      if($profile['profileId']=="INV" || $profile['profileId']=="CRA" || $siteId=="BLANK"){
         //Saving data
         $hasModif = $this->m_ctrl->bocdiscoo()->saveItemGroupData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$_POST,$who,$where,$why,$fillst="");
   
@@ -1249,6 +1249,7 @@ public function checkFormData(){
           }
           if($childNode->nodeName == "Annotation"){
             $item['flagvalue'] = $childNode->getAttribute("FlagValue");
+            $item['sdvcheck'] = $childNode->getAttribute("SDVcheck");
             $item['flagcomment'] = $childNode->getAttribute("Comment");
           }
         }
@@ -1267,6 +1268,7 @@ public function checkFormData(){
         $item['date'] = $query['UPDATEDT'];
         $item['flagvalue'] = "";
         $item['flagcomment'] = "";
+        $item['sdvcheck'] = "";
         
         $audit[] = $item;
       }
@@ -1283,6 +1285,7 @@ public function checkFormData(){
         $item['date'] = $deviation['UPDATEDT'];
         $item['flagvalue'] = "";
         $item['flagcomment'] = "";
+        $item['sdvcheck'] = "";
         
         $audit[] = $item;
       }

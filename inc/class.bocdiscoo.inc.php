@@ -31,12 +31,12 @@ class bocdiscoo extends CommonFunctions
       CommonFunctions::__construct($tblConfig,$ctrlRef);
   }
 
-/*
-Convert input POSTed data to XML string ODM Compliant, regarding metadata
-@param boolean $bEraseNotFoundItem erase in XML Db Item not present in incoming data. usefull for clean disabled inputs 
-@return array array of ItemDatas to be inserted into ItemGroupData, empty string if no modification 
-@author wlt
-*/
+  /**
+  * Convert input POSTed data to XML string ODM Compliant, regarding metadata
+  * @param boolean $bEraseNotFoundItem erase in XML Db Item not present in incoming data. usefull for clean disabled inputs 
+  * @return array array of ItemDatas to be inserted into ItemGroupData, empty string if no modification 
+  * @author wlt
+  **/
   private function addItemData($SubjectKey,$ItemGroupOID,$ItemGroupRepeatKey,$ItemGroupRef,$formVars,&$tblFilledVar,$subj,$AuditRecordID,$bEraseNotFoundItem=true,$nbAnnotations)
   {
     $this->addLog(__METHOD__ ."() : tblFilledVar = " . $this->dumpRet($tblFilledVar),TRACE);
@@ -52,12 +52,28 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
       $previousflag = $formVars["annotation_previousflag_" . str_replace(".","-",$Item['ItemOID']) . "_$ItemGroupOID" . "_$ItemGroupRepeatKey"];
       $comment = $formVars["annotation_comment_" . str_replace(".","-",$Item['ItemOID']) . "_$ItemGroupOID" . "_$ItemGroupRepeatKey"];
       $previouscomment = $formVars["annotation_previouscomment_" . str_replace(".","-",$Item['ItemOID']) . "_$ItemGroupOID" . "_$ItemGroupRepeatKey"];
+      $previoussdv = $formVars["sdv_previousvalue_" . str_replace(".","-",$Item['ItemOID']) . "_$ItemGroupOID" . "_$ItemGroupRepeatKey"]; 
+      $sdv = $formVars["sdv_" . str_replace(".","-",$Item['ItemOID']) . "_$ItemGroupOID" . "_$ItemGroupRepeatKey"]; 
       
-      if($flag != $previousflag || $comment != $previouscomment)
-      {
+      if($sdv != $previoussdv){
+        $bSDVupdated = true;
+      }else{
+        $bSDVupdated = false;
+      }
+      
+      //Insert Annotation
+      if($flag != $previousflag || $comment != $previouscomment || $bSDVupdated){
         $bAnnotationModif = true;
         $hasModif = true;
         
+        //Flag (ND/NA/Comment) CANNOT be updated at the same time than SDV check
+        //Because INV => Flag and CRA => SDV.  
+        if($sdv=='on'){
+          $sdv = 'Y';
+        }else{
+          $sdv = 'N';
+        }
+
         $AnnotationSeqNum = $nbAnnotations+1;
         $AnnotationID = sprintf("Annot-%06s",$nbAnnotations+1);
         $comment = htmlspecialchars(stripslashes($comment));     
@@ -66,15 +82,14 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
                   insert <Annotation ID='$AnnotationID' SeqNum='$AnnotationSeqNum'>
                           <Comment>$comment</Comment>
                           <Flag>
-                            <FlagValue CodeListOID='ANNOTFLA'>$flag</FlagValue> 
+                            <FlagValue CodeListOID='ANNOTFLA'>$flag</FlagValue>
+                            <FlagValue CodeListOID='ANNOTSDV'>$sdv</FlagValue> 
                           </Flag>
                          </Annotation> 
                   into index-scan('SubjectData','$SubjectKey','EQ')/../odm:Annotations";
         $this->m_ctrl->socdiscoo()->query($query);
         $this->addLog("bocdiscoo->addItemData() Adding annotation $AnnotationID : ". $flag ." / ". $comment,INFO);        
-      }
-      else
-      {
+      }else{
         $AnnotationID = $Item['AnnotationID'];
       }
 
@@ -199,6 +214,12 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
       {
         $this->addLog("bocdiscoo->addItemData() Adding ItemData={$Item['ItemOID']} PreviousItemValue=".$Item->PreviousItemValue." Value=".$tblFilledVar["{$Item['ItemOID']}"],INFO);
 
+        //Handle of SDV : if SDV is modified, it could be only done by the CRA
+        //So the Item value is unchanged
+        if($bSDVupdated){
+          $tblFilledVar["{$Item['ItemOID']}"] = $Item->PreviousItemValue;   
+        }
+
         //Value may contains & caracters
         $encodedValue = htmlspecialchars($tblFilledVar["{$Item['ItemOID']}"],ENT_NOQUOTES); 
         
@@ -212,6 +233,7 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
         }else{
           $annotationAttr = "";
         }
+                
         $tblRet[] = "
                     <ItemData".ucfirst($Item['DataType'])."
                         ItemOID='".$Item['ItemOID']."' 
@@ -1304,7 +1326,8 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
                                                  Location='{\$AuditRecord/odm:LocationRef/@LocationOID}'
                                                  Date='{\$AuditRecord/odm:DateTimeStamp/string()}'
                                                  Reason='{\$AuditRecord/odm:ReasonForChange/string()}'/>
-                                    <Annotation FlagValue='{\$Annotation/odm:Flag/odm:FlagValue/string()}'
+                                    <Annotation FlagValue='{\$Annotation/odm:Flag/odm:FlagValue[@CodeListOID='ANNOTFLA']/string()}'
+                                                SDVcheck='{\$Annotation/odm:Flag/odm:FlagValue[@CodeListOID='ANNOTSDV']/string()}'
                                                 Comment='{\$Annotation/odm:Comment/string()}'/>
                              </ItemDataAT>
               			}</ItemGroupDataAT>
@@ -1769,7 +1792,8 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
                                       TransactionType='{\$ItemData/@TransactionType}'
                                       Value='{\$ItemData/string()}'
                                       Decode='{\$ItemDataDecode}'>
-                                      <Annotation FlagValue='{\$Annotation/odm:Flag/odm:FlagValue/string()}'
+                                      <Annotation FlagValue='{\$Annotation/odm:Flag/odm:FlagValue[@CodeListOID='ANNOTFLA']/string()}'
+                                                  SDVcheck='{\$Annotation/odm:Flag/odm:FlagValue[@CodeListOID='ANNOTSDV']/string()}'
                                                   Comment='{\$Annotation/odm:Comment/string()}'/>
                                 </ItemData>
                             }

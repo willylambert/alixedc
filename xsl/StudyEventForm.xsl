@@ -111,12 +111,16 @@
               <span class="ItemDataRequired">*</span>
             </xsl:if>
             <xsl:if test="$Item/@MethodOID!=''">
-              <a href="javascript:void(0)">
                 <xsl:element name="span">
                   <xsl:attribute name='class'>imageOnly image16</xsl:attribute>
                   <xsl:attribute name="style">background-image: url('<xsl:value-of select="$CurrentApp"/>/templates/default/images/kded.png');</xsl:attribute>
                 </xsl:element>
-              </a>
+            </xsl:if>
+            <xsl:if test="$Annotation/@SDVcheck='Y' and $ProfileId!='CRA'">
+                <xsl:element name="span">
+                  <xsl:attribute name='class'>imageOnly image16</xsl:attribute>
+                  <xsl:attribute name="style">background-image: url('<xsl:value-of select="$CurrentApp"/>/templates/default/images/agt_action_success.png');</xsl:attribute>
+                </xsl:element>
             </xsl:if>
             </td>
             <td>
@@ -134,11 +138,14 @@
                 <xsl:call-template name="Item">                                                                            
                    <xsl:with-param name="Item" select="."/>
                    <xsl:with-param name="ItemValue" select="$ItemValue"/>
+                   <xsl:with-param name="ItemDecode" select="$ItemDecode"/>
                    <xsl:with-param name="FlagValue" select="$Annotation/@FlagValue"/>
+                   <xsl:with-param name="SDVcheck" select="$Annotation/@SDVcheck"/>
                    <xsl:with-param name="TabIndex" select="concat($ItemGroupPos,position())"/>
                    <xsl:with-param name="CurrentItemGroupOID" select="$ItemGroupData/@ItemGroupOID"/>                    
                    <xsl:with-param name="CurrentItemGroupRepeatKey" select="$ItemGroupData/@ItemGroupRepeatKey"/>
                    <xsl:with-param name="ForceSelect" select="contains($CodeListForceSelect,./CodeList/@OID)"/>
+                   <xsl:with-param name="ProfileId" select="$ProfileId"/>
                 </xsl:call-template>
                 <!--Audit Trail dialog container-->
                 <div id="{concat('auditTrail_div_',$Item/@OID,'_',$ItemGroupData/@ItemGroupOID,'_',$ItemGroupData/@ItemGroupRepeatKey)}" initialized='false' class='dialog-auditTrail' title='{@Title}' style="display:none;" keys="{$CurrentApp},{$SubjectKey},{$StudyEventOID},{$StudyEventRepeatKey},{$FormOID},{$FormRepeatKey},{$ItemGroup/@OID},{$ItemGroupData/@ItemGroupRepeatKey},{$Item/@OID}">
@@ -149,6 +156,7 @@
                 <xsl:call-template name="Annotation">
                     <xsl:with-param name="ItemOID" select="$Item/@OID"/>
                     <xsl:with-param name="FlagValue" select="$Annotation/@FlagValue"/>
+                    <xsl:with-param name="SDVcheck" select="$Annotation/@SDVcheck"/>
                     <xsl:with-param name="Comment" select="$Annotation/@Comment"/>
                     <xsl:with-param name="CurrentItemGroupOID" select="$ItemGroupData/@ItemGroupOID"/>
                     <xsl:with-param name="CurrentItemGroupRepeatKey" select="$ItemGroupData/@ItemGroupRepeatKey"/>
@@ -245,10 +253,10 @@
 
     <!-- Boutons de modification nécessaire en ReadOnly=false -->
     <div id="ActionsButtons">
-      <xsl:if test="$ReadOnly='false'">
+      <!--<xsl:if test="$ReadOnly='false'">-->
         <button id="btnCancel" class="ui-state-default ui-corner-all">Cancel</button>
         <button id="btnSave" class="ui-state-default ui-corner-all">Save</button>
-      </xsl:if>
+      <!--</xsl:if>-->
     </div>  
   
     <div id="dialog-modal-save" title="Processing...">
