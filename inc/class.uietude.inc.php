@@ -257,10 +257,20 @@ class uietude extends CommonFunctions
         global $configEtude;
         $ui = new uiaudittrail($configEtude,$this->m_ctrl);
         
-        $GLOBALS['egw_info']['flags']['app_header'];
-		    $this->create_header();
-        echo $ui->getInterface();
-		    $this->create_footer();  
+        if(isset($_POST['bExport']) && $_POST['bExport']=='true'){
+          $bExport = true;  
+        }else{
+          $bExport = false;
+        }
+        
+        if($bExport==false){
+          $GLOBALS['egw_info']['flags']['app_header'];
+  		    $this->create_header();
+          echo $ui->getInterface($bExport);
+  		    $this->create_footer();  
+        }else{
+          echo $ui->getInterface($bExport);  		    
+        }
    } 
 
    public function sitesInterface()
