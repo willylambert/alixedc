@@ -42,38 +42,40 @@
     <!--On doit modifier les OID, car à la soumission d'un formulaire les navigateurs remplacent les "." par des "_" -->
   	<xsl:variable name="ItemOID" select="translate($ItemOID,'.','-')"/>
 
-    <!--SDV Previous value-->
-    <xsl:element name="input">
-      <xsl:attribute name="type">hidden</xsl:attribute>
-      <xsl:attribute name="name">sdv_previousvalue_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/></xsl:attribute>
-      <xsl:attribute name="value"><xsl:value-of select="$SDVcheck"/></xsl:attribute>
-    </xsl:element>
-    <!-- SDV flag only accessible to CRA-->
-    <xsl:if test="$ProfileId='CRA'">
-      <xsl:element name="input">
-        <xsl:attribute name="type">checkbox</xsl:attribute>
-        <xsl:attribute name="name">sdv_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/></xsl:attribute>
-        <xsl:if test="$SDVcheck='Y'">
-          <xsl:attribute name='checked'>checked</xsl:attribute>  
-        </xsl:if>
-      </xsl:element>
-    </xsl:if>
-    <!--input hidden to keep the SDV check value-->
-    <xsl:if test="$ProfileId!='CRA'">
+    <xsl:if test="not(contains($Role,'NOSDV'))">
+      <!--SDV Previous value-->
       <xsl:element name="input">
         <xsl:attribute name="type">hidden</xsl:attribute>
-        <xsl:attribute name="name">sdv_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/></xsl:attribute>
-        <xsl:if test="$SDVcheck='Y'">
-          <xsl:attribute name='value'>on</xsl:attribute>  
-        </xsl:if>
-      </xsl:element>       
-    </xsl:if>    
+        <xsl:attribute name="name">sdv_previousvalue_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/></xsl:attribute>
+        <xsl:attribute name="value"><xsl:value-of select="$SDVcheck"/></xsl:attribute>
+      </xsl:element>
+      <!-- SDV flag only accessible to CRA-->
+      <xsl:if test="$ProfileId='CRA'">
+        <xsl:element name="input">
+          <xsl:attribute name="type">checkbox</xsl:attribute>
+          <xsl:attribute name="name">sdv_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/></xsl:attribute>
+          <xsl:if test="$SDVcheck='Y'">
+            <xsl:attribute name='checked'>checked</xsl:attribute>  
+          </xsl:if>
+        </xsl:element>
+      </xsl:if>
+      <!--input hidden to keep the SDV check value-->
+      <xsl:if test="$ProfileId!='CRA'">
+        <xsl:element name="input">
+          <xsl:attribute name="type">hidden</xsl:attribute>
+          <xsl:attribute name="name">sdv_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/></xsl:attribute>
+          <xsl:if test="$SDVcheck='Y'">
+            <xsl:attribute name='value'>on</xsl:attribute>  
+          </xsl:if>
+        </xsl:element>       
+      </xsl:if>    
+    </xsl:if>
     
-    <!-- Les ARC/DM ne voient que les Annotations non vides-->
+    <!-- CRA and DM do not see empty annotations-->
     <xsl:if test="$ProfileId='INV' or ($FlagValue!='' or $Comment!='')">
     
   	 <xsl:if test="not(contains($Role,'NOAN'))">
-      	  <!--Valeurs précédentes-->
+      	  <!--Previous values-->
         	<xsl:element name="input">
           	 <xsl:attribute name="type">hidden</xsl:attribute>
           	 <xsl:attribute name="name">annotation_previousflag_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/></xsl:attribute>

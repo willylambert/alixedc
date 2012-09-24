@@ -73,16 +73,17 @@ class bocdiscoo extends CommonFunctions
         }else{
           $sdv = 'N';
         }
-
-        $AnnotationSeqNum = $nbAnnotations+1;
-        $AnnotationID = sprintf("Annot-%06s",$nbAnnotations+1);
+        $nbAnnotations++;
+        $AnnotationID = sprintf("Annot-%06s",$nbAnnotations);
         $comment = htmlspecialchars(stripslashes($comment));     
         $query = "declare default element namespace '".$this->m_tblConfig['SEDNA_NAMESPACE_ODM']."';
                   UPDATE
-                  insert <Annotation ID='$AnnotationID' SeqNum='$AnnotationSeqNum'>
+                  insert <Annotation ID='$AnnotationID' SeqNum='$nbAnnotations'>
                           <Comment>$comment</Comment>
                           <Flag>
                             <FlagValue CodeListOID='ANNOTFLA'>$flag</FlagValue>
+                          </Flag>
+                          <Flag>
                             <FlagValue CodeListOID='ANNOTSDV'>$sdv</FlagValue> 
                           </Flag>
                          </Annotation> 

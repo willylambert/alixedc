@@ -116,12 +116,6 @@
                   <xsl:attribute name="style">background-image: url('<xsl:value-of select="$CurrentApp"/>/templates/default/images/kded.png');</xsl:attribute>
                 </xsl:element>
             </xsl:if>
-            <xsl:if test="$Annotation/@SDVcheck='Y' and $ProfileId!='CRA'">
-                <xsl:element name="span">
-                  <xsl:attribute name='class'>imageOnly image16</xsl:attribute>
-                  <xsl:attribute name="style">background-image: url('<xsl:value-of select="$CurrentApp"/>/templates/default/images/agt_action_success.png');</xsl:attribute>
-                </xsl:element>
-            </xsl:if>
             </td>
             <td>
             <xsl:choose>
@@ -146,6 +140,7 @@
                    <xsl:with-param name="CurrentItemGroupRepeatKey" select="$ItemGroupData/@ItemGroupRepeatKey"/>
                    <xsl:with-param name="ForceSelect" select="contains($CodeListForceSelect,./CodeList/@OID)"/>
                    <xsl:with-param name="ProfileId" select="$ProfileId"/>
+                   <xsl:with-param name="CurrentApp" select="$CurrentApp"/>
                 </xsl:call-template>
                 <!--Audit Trail dialog container-->
                 <div id="{concat('auditTrail_div_',$Item/@OID,'_',$ItemGroupData/@ItemGroupOID,'_',$ItemGroupData/@ItemGroupRepeatKey)}" initialized='false' class='dialog-auditTrail' title='{@Title}' style="display:none;" keys="{$CurrentApp},{$SubjectKey},{$StudyEventOID},{$StudyEventRepeatKey},{$FormOID},{$FormRepeatKey},{$ItemGroup/@OID},{$ItemGroupData/@ItemGroupRepeatKey},{$Item/@OID}">

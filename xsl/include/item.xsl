@@ -43,6 +43,10 @@
 
     <xsl:choose>
       <xsl:when test="$SDVcheck='Y' and $ProfileId!='CRA'">
+        <xsl:element name="span">
+          <xsl:attribute name='class'>imageOnly image16</xsl:attribute>
+          <xsl:attribute name="style">background-image: url('<xsl:value-of select="$CurrentApp"/>/templates/default/images/agt_action_success.png');</xsl:attribute>
+        </xsl:element>
         <xsl:value-of select="$ItemDecode" />
       </xsl:when>
       <xsl:otherwise>
