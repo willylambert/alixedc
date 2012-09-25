@@ -23,10 +23,10 @@ var defaultPostItText = "Drag and drop me...";
 
 function getDropZoneSelector(ItemOID,ItemGroupRepeatKey,ItemGroupOID){
   id = ItemOID +"_"+ ItemGroupOID +"_"+ ItemGroupRepeatKey;
-  if($("form[name='"+ItemGroupOID+"']").length==1){ //distinction entre repeating yes et no
-    return jq(id) +" td.ItemDataInput"; //repeating=no
-  }else{
-    return "td."+ jq(id); //repeating=yes
+  if($("table[name='"+ItemGroupOID+"'][inline='yes']").length==1){//inline itemgroups (alixlib.xsl)
+    return "td"+ jq(id);
+  }else{ //normal itemgroups
+    return jq(id) +" td.ItemDataInput";
   }
 }
 
@@ -189,16 +189,17 @@ function setDroppable(el){
       oldItemGroupOID = keys[6]
       oldItemGroupRepeatKey = keys[7]
       oldItemOID = keys[8]
-      if($(this).closest("tr").attr("id") == ""){
-        ItemGroupOID = $(this).closest("table").attr("name"); //repeating=yes
+      var isCompactedIG = $(this).closest("tr").attr("id").split(new RegExp("_")).shift() == "";
+      if(isCompactedIG){
+        ItemGroupOID = $(this).closest("table").attr("name"); //compacted ItemGroup
       }else{
-        ItemGroupOID = $(this).closest("form").attr("name"); //repeating=no
+        ItemGroupOID = $(this).closest("form").attr("name"); //normal ItemGroup
       }
       
-      if($(this).closest("tr").attr("id") == ""){
-        ids = $(this).attr("id").split(new RegExp("_")); //repeating=yes
+      if(isCompactedIG){
+        ids = $(this).attr("id").split(new RegExp("_")); //compacted ItemGroup
       }else{
-        ids = $(this).closest("tr").attr("id").split(new RegExp("_")); //repeating=no
+        ids = $(this).closest("tr").attr("id").split(new RegExp("_")); //normal ItemGroup
       }
       ItemGroupRepeatKey = ids[2];
       ItemOID = ids[0];

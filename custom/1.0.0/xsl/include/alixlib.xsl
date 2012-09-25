@@ -41,7 +41,7 @@
   <xsl:param name="ItemGroupOID" />
   <xsl:if test="@position=1">
     <h3><xsl:copy-of select="h3"/></h3>
-    <table name="{@name}" class="ItemGroup">
+    <table name="{@name}" class="ItemGroup" inline="yes">
       <thead>
         <tr>
           <xsl:for-each select=".//td[@class='ItemDataLabel' or @class='ItemDataLabel underCondition']">
