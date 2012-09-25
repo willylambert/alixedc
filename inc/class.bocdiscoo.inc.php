@@ -781,7 +781,7 @@ class bocdiscoo extends CommonFunctions
             <errors>
             {       
             for \$ItemGroupData in \$SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey' and @TransactionType!='Remove']
-                                                /odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey' and TransactionType='Remove']
+                                                /odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey' and @TransactionType!='Remove']
                                                 /odm:ItemGroupData[@TransactionType!='Remove']   
               let \$ItemGroupOID := \$ItemGroupData/@ItemGroupOID
               let \$ItemGroupDef := \$MetaDataVersion/odm:ItemGroupDef[@OID=\$ItemGroupOID]
@@ -791,7 +791,7 @@ class bocdiscoo extends CommonFunctions
                  for \$ItemOID in distinct-values(\$ItemGroupData/odm:*/@ItemOID)
                   let \$ItemDatas := \$ItemGroupData/odm:*[@ItemOID=\$ItemOID]
                   let \$ItemData := \$ItemDatas[last()]
-                  let \$FlagValue := \$SubjectData/../odm:Annotations/odm:Annotation[@ID=\$ItemData/@AnnotationID]/odm:Flag/odm:FlagValue/string()
+                  let \$FlagValue := \$SubjectData/../odm:Annotations/odm:Annotation[@ID=\$ItemData/@AnnotationID]/odm:Flag/odm:FlagValue[@CodeListOID='ANNOTFLA']/string()
                   let \$ItemRef := \$MetaDataVersion/odm:ItemGroupDef[@OID=\$ItemGroupOID]/odm:ItemRef[@ItemOID=\$ItemOID]
                   let \$CollectionException := \$MetaDataVersion/odm:ConditionDef[@OID=\$ItemRef/@CollectionExceptionConditionOID]
                     where \$ItemRef/@Mandatory='Yes' and 
@@ -821,8 +821,9 @@ class bocdiscoo extends CommonFunctions
     
     //Loop through errors to run CollectionConditionException
     $tblRet = array();
+    $this->addLog("=>".$this->dumpRet($query),INFO);
     foreach($errors[0] as $error){
-      $this->addLog(__METHOD__ ."() : error=".$this->dumpRet($error),TRACE);
+      $this->addLog(__METHOD__ ."() : error=".$this->dumpRet($error),INFO);
       
       //Position = 1 Because only one mandatory query can exist per Item
       //Type = M stand for Mandatory
