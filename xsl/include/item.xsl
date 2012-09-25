@@ -53,7 +53,16 @@
         <xsl:choose>
           <!--Derived item : no input, just display the raw value-->
           <xsl:when test="$Item/@MethodOID!=''">
-              <xsl:value-of select="$ItemValue"/>
+            <xsl:value-of select="$ItemValue"/>
+        	  <xsl:element name="input">
+              <xsl:attribute name="type">hidden</xsl:attribute>
+              <xsl:attribute name="value"><xsl:value-of select="$ItemValue"/></xsl:attribute>
+        			<xsl:attribute name="oldvalue"><xsl:value-of select="$ItemValue"/></xsl:attribute>
+        			<xsl:attribute name="flagvalue"><xsl:value-of select="$FlagValue"/></xsl:attribute>
+        			<xsl:attribute name="MaxAuditRecordID"><xsl:value-of select="$MaxAuditRecordID"/></xsl:attribute>
+        			<xsl:attribute name="itemoid"><xsl:value-of select="$Item/@OID"/></xsl:attribute>
+              <xsl:attribute name="name">text_<xsl:value-of select="@DataType"/>_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/></xsl:attribute>
+            </xsl:element>
           </xsl:when>      
           <!--Item associé à une codelist-->
           <xsl:when test="count($Item/CodeList/CodeListItem)!=0">

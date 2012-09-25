@@ -112,7 +112,12 @@ function updateFlag(ItemOID, ItemGroupOID, CurrentItemGroupRepeatKey, FlagValue,
     freezeFields(ItemOID, ItemGroupOID, CurrentItemGroupRepeatKey, false, false, false);
     //alert(freezeOnlyEmpty);
   }
-  freezeFields(ItemOID,ItemGroupOID, CurrentItemGroupRepeatKey, bFreeze, keepDisabled, freezeOnlyEmpty); 
+  freezeFields(ItemOID,ItemGroupOID, CurrentItemGroupRepeatKey, bFreeze, keepDisabled, freezeOnlyEmpty);
+  
+  //Call the main updateUI loop
+  if(typeof(updateUI) == 'function') {
+    updateUI('',true,ItemGroupOID,CurrentItemGroupRepeatKey);
+  } 
 }
 
 function updateElementContent(elementId,content){

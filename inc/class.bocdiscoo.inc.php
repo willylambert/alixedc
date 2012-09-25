@@ -37,7 +37,7 @@ class bocdiscoo extends CommonFunctions
   * @return array array of ItemDatas to be inserted into ItemGroupData, empty string if no modification 
   * @author wlt
   **/
-  private function addItemData($SubjectKey,$ItemGroupOID,$ItemGroupRepeatKey,$ItemGroupRef,$formVars,&$tblFilledVar,$subj,$AuditRecordID,$bEraseNotFoundItem=true,$nbAnnotations)
+  private function addItemData($SubjectKey,$ItemGroupOID,$ItemGroupRepeatKey,$ItemGroupRef,$formVars,&$tblFilledVar,$subj,$AuditRecordID,$bEraseNotFoundItem=true,$nbAnnotations,$profileId)
   {
     $this->addLog(__METHOD__ ."() : tblFilledVar = " . $this->dumpRet($tblFilledVar),TRACE);
     $tblRet = array();
@@ -80,7 +80,7 @@ class bocdiscoo extends CommonFunctions
                           <FlagValue CodeListOID='ANNOTSDV'>N</FlagValue> 
                         </Flag>";          
           }else{
-            //Hidden input => user is an invest, do nothing
+            //Hidden sdv input => user is an invest, do nothing
             $sdvFlag = "";
             $bSDVupdated = false;
           }          
@@ -217,7 +217,7 @@ class bocdiscoo extends CommonFunctions
           (
            !isset($Item->PreviousItemValue) ||
            isset($Item->PreviousItemValue) && 
-           (string)($Item->PreviousItemValue) != (string)($tblFilledVar["{$Item['ItemOID']}"]) || 
+           $profileId=="INV" && (string)($Item->PreviousItemValue) != (string)($tblFilledVar["{$Item['ItemOID']}"]) || 
            $bAnnotationModif
           ) || 
           !isset($tblFilledVar["{$Item['ItemOID']}"]) && $bEraseNotFoundItem 
@@ -225,9 +225,11 @@ class bocdiscoo extends CommonFunctions
       {
         $this->addLog("bocdiscoo->addItemData() Adding ItemData={$Item['ItemOID']} PreviousItemValue=".$Item->PreviousItemValue." Value=".$tblFilledVar["{$Item['ItemOID']}"],INFO);
 
-        //Handle of SDV : if SDV is modified, it could be only done by the CRA
+        //Data update are only authorized for INV
         //So the Item value is unchanged
-        if($bSDVupdated){
+        //Also if sdv is checked, value cannot be updated
+        //Also if a method is specified, value is set by the computeDerivedItem Method
+        if($profileId!='INV' || $sdv=='on' || $Item['MethodOID']!=''){
           $tblFilledVar["{$Item['ItemOID']}"] = $Item->PreviousItemValue;   
         }
 
@@ -2282,10 +2284,10 @@ class bocdiscoo extends CommonFunctions
   *                false if database update was unnecessary        
   * @author wlt                 
   **/
-  function saveItemGroupData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$formVars,$who,$where,$why,$fillst="",$bFormVarsIsAlreadyDecoded=false)
+  function saveItemGroupData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$formVars,$who,$where,$why,$fillst="",$bEraseNotFoundItem,$profileId)
   {
     $hasModif = false;
-    $this->addLog(__METHOD__ ."($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$formVars,$who,$where,$why,$fillst,$bFormVarsIsAlreadyDecoded)",INFO);
+    $this->addLog(__METHOD__ ."($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$formVars,$who,$where,$why,$fillst,$bEraseNotFoundItem,$profileId)",INFO);
         
     //DomDocument of Subject
     try{
@@ -2392,34 +2394,28 @@ class bocdiscoo extends CommonFunctions
       }
     }
         
-    //Extraction from POSTed data
-    if($bFormVarsIsAlreadyDecoded){
-      $tblFilledVar = $formVars;  
-    }else{
-      $tblFilledVar = array();
-      //loop through incoming POST variables
-      foreach($formVars as $key=>$value)
-      {
-        //oid extraction
-        $varParts = explode("_",$key);
-        if($varParts[0]!="annotation" && end($varParts)==$ItemGroupRepeatKey)
-        {          
-          // Here we handle itemoid containing '_' character in itemoid string
-          $rawItemOID = str_replace("_".end($varParts),"",$key);  //remove ItemGroupRepeatKey              
-          if($varParts[0]=="radio" || $varParts[0]=="select"){
-            $rawItemOID = str_replace($varParts[0]."_","",$rawItemOID);  //remove ItemGroupRepeatKey              
-          }else{
-            $rawItemOID = str_replace($varParts[0]."_".$varParts[1]."_","",$rawItemOID);  //remove ItemGroupRepeatKey
-          }
-          
-          $ItemOID = str_replace("@",".",$rawItemOID);
-          
-          $this->addLog("rawItemOID=$rawItemOID ItemOID=$ItemOID",TRACE);
-          
-          $tblFilledVar["$ItemOID"] = $value;
+    $tblFilledVar = array();
+    //loop through incoming POST variables
+    foreach($formVars as $key=>$value)
+    {
+      //oid extraction
+      $varParts = explode("_",$key);
+      if($varParts[0]!="annotation" && end($varParts)==$ItemGroupRepeatKey)
+      {          
+        // Here we handle itemoid containing '_' character in itemoid string
+        $rawItemOID = str_replace("_".end($varParts),"",$key);  //remove ItemGroupRepeatKey              
+        if($varParts[0]=="radio" || $varParts[0]=="select"){
+          $rawItemOID = str_replace($varParts[0]."_","",$rawItemOID);  //remove ItemGroupRepeatKey              
+        }else{
+          $rawItemOID = str_replace($varParts[0]."_".$varParts[1]."_","",$rawItemOID);  //remove ItemGroupRepeatKey
         }
+        
+        $ItemOID = str_replace("@",".",$rawItemOID);
+        
+        $this->addLog("rawItemOID=$rawItemOID ItemOID=$ItemOID",TRACE);
+        
+        $tblFilledVar["$ItemOID"] = $value;
       }
-      
     }
       
     //Get all Items to save from metadata (Format,...)
@@ -2444,6 +2440,7 @@ class bocdiscoo extends CommonFunctions
       return
         <Item ItemOID='{\$ItemOID}'
               DataType='{\$ItemDef/@DataType}'
+              MethodOID='{\$ItemRef/@MethodOID}'
               AnnotationID='{\$LastItemData/@AnnotationID}'>
               {
                   if(exists(\$ItemData))
@@ -2457,7 +2454,7 @@ class bocdiscoo extends CommonFunctions
 
     $ItemGroupRef = $this->m_ctrl->socdiscoo()->query($query);
 
-    $tblItemDatas = $this->addItemData($SubjectKey,$ItemGroupOID,$ItemGroupRepeatKey,$ItemGroupRef[0],$formVars,$tblFilledVar,$subj,$AuditRecordID,!$bFormVarsIsAlreadyDecoded,$nbAnnotations);
+    $tblItemDatas = $this->addItemData($SubjectKey,$ItemGroupOID,$ItemGroupRepeatKey,$ItemGroupRef[0],$formVars,$tblFilledVar,$subj,$AuditRecordID,$bEraseNotFoundItem,$nbAnnotations,$profileId);
     $strItemDatas = implode(',',$tblItemDatas);      
     //Update XML DB only if needed
     if($strItemDatas!="")

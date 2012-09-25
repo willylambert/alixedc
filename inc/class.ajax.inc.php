@@ -192,13 +192,22 @@ public function checkFormData(){
       
       $siteId = $this->m_ctrl->bosubjects()->getSubjectColValue($SubjectKey,"SITEID");
       
+      if($siteId=="BLANK"){ //@inclusion
+        $siteId="";
+      }
+      
       //Access right check      
       $profile = $this->m_ctrl->boacl()->getUserProfile("",$siteId);
       
       //Allow also CRA to save, but only for saving SDV checks
       if($profile['profileId']=="INV" || $profile['profileId']=="CRA" || $siteId=="BLANK"){
+        if($profile['profileId']=="INV"){
+          $bEraseNotFoundItem = true;
+        }else{
+          $bEraseNotFoundItem = false;
+        }
         //Saving data
-        $hasModif = $this->m_ctrl->bocdiscoo()->saveItemGroupData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$_POST,$who,$where,$why,$fillst="");
+        $hasModif = $this->m_ctrl->bocdiscoo()->saveItemGroupData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$_POST,$who,$where,$why,"",$bEraseNotFoundItem,$profile['profileId']);
   
         //HOOK => ajax_saveItemGroupData_afterSave
         $this->callHook(__FUNCTION__,"afterSave",array($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$hasModif,$this));      

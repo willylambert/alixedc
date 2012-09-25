@@ -71,10 +71,10 @@ I, the undersigned Dr
 			<script language="JavaScript">
 				function updateUI(origin,loading,ItemGroupOID,ItemGroupRepeatKey)
 				{   
-					input_destination = 'DM.PUBES'; /*ITEMOID=destination*/
+          input_destination = 'DM.PUBES'; /*ITEMOID=destination*/
 					input_origin = 'radio_DM@SEX_0';
 			
-					if(origin.name==input_origin) 
+					if(origin.name==input_origin || loading) 
 					{
             action = $("input[name='radio_DM@SEX_0']:checked").val();
             if(action==1 || typeof(action)=="undefined")
@@ -91,10 +91,11 @@ I, the undersigned Dr
 					input_origin = 'radio_DM@SEX_0';
 					input_origin1 = 'radio_DM@PUBES_0';
 			
-					if(origin.name==input_origin||origin.name==input_origin1) 
+					if(origin.name==input_origin || origin.name==input_origin1 || loading) 
 					{
 						action = $("input[name='radio_DM@SEX_0']:checked").val();
 						action1 = $("input[name='radio_DM@PUBES_0']:checked").val();
+
 						if(action == 1||typeof(action)=="undefined"||typeof(action1)=="undefined"||action1!=1)
 						{
 							freezeFields(input_destination1,ItemGroupOID,ItemGroupRepeatKey,true,false,false);
@@ -110,7 +111,7 @@ I, the undersigned Dr
 					input_origin1 = 'radio_DM@PUBES_0';
 					input_origin2 = 'select_DM@CONTR_0';
 			
-					if(origin.name==input_origin||origin.name==input_origin1||origin.name==input_origin2) 
+					if(origin.name==input_origin || origin.name==input_origin1 || origin.name==input_origin2 || loading) 
 					{
 						action = $("input[name='radio_DM@SEX_0']:checked").val();
 						action1 = $("input[name='radio_DM@PUBES_0']:checked").val();
@@ -126,9 +127,6 @@ I, the undersigned Dr
 						}
 					}						
 				}
-
-				
-    updateUI('', true);
 
 	</script>
   </div>  
