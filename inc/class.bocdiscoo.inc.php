@@ -55,7 +55,8 @@ class bocdiscoo extends CommonFunctions
       $previoussdv = $formVars["sdv_previousvalue_" . str_replace(".","-",$Item['ItemOID']) . "_$ItemGroupOID" . "_$ItemGroupRepeatKey"]; 
       $sdv = $formVars["sdv_" . str_replace(".","-",$Item['ItemOID']) . "_$ItemGroupOID" . "_$ItemGroupRepeatKey"]; 
       
-      if($sdv != $previoussdv){
+      if( !isset($formVars["sdv_" . str_replace(".","-",$Item['ItemOID']) . "_$ItemGroupOID" . "_$ItemGroupRepeatKey"]) && $previoussdv=="Y" 
+          || $sdv=="on" && ($previoussdv=="N" || $previoussdv=="")){
         $bSDVupdated = true;
       }else{
         $bSDVupdated = false;
@@ -69,9 +70,20 @@ class bocdiscoo extends CommonFunctions
         //Flag (ND/NA/Comment) CANNOT be updated at the same time than SDV check
         //Because INV => Flag and CRA => SDV.  
         if($sdv=='on'){
-          $sdv = 'Y';
+          $sdvFlag = "<Flag>
+                        <FlagValue CodeListOID='ANNOTSDV'>Y</FlagValue> 
+                      </Flag>";
         }else{
-          $sdv = 'N';
+          //Detect uncheck of SDV by CRA
+          if(!isset($formVars["sdv_" . str_replace(".","-",$Item['ItemOID']) . "_$ItemGroupOID" . "_$ItemGroupRepeatKey"])){
+            $sdvFlag = "<Flag>
+                          <FlagValue CodeListOID='ANNOTSDV'>N</FlagValue> 
+                        </Flag>";          
+          }else{
+            //Hidden input => user is an invest, do nothing
+            $sdvFlag = "";
+            $bSDVupdated = false;
+          }          
         }
         $nbAnnotations++;
         $AnnotationID = sprintf("Annot-%06s",$nbAnnotations);
@@ -83,9 +95,7 @@ class bocdiscoo extends CommonFunctions
                           <Flag>
                             <FlagValue CodeListOID='ANNOTFLA'>$flag</FlagValue>
                           </Flag>
-                          <Flag>
-                            <FlagValue CodeListOID='ANNOTSDV'>$sdv</FlagValue> 
-                          </Flag>
+                          $sdvFlag
                          </Annotation> 
                   into index-scan('SubjectData','$SubjectKey','EQ')/../odm:Annotations";
         $this->m_ctrl->socdiscoo()->query($query);
@@ -821,9 +831,8 @@ class bocdiscoo extends CommonFunctions
     
     //Loop through errors to run CollectionConditionException
     $tblRet = array();
-    $this->addLog("=>".$this->dumpRet($query),INFO);
     foreach($errors[0] as $error){
-      $this->addLog(__METHOD__ ."() : error=".$this->dumpRet($error),INFO);
+      $this->addLog(__METHOD__ ."() : error=".$this->dumpRet($error),TRACE);
       
       //Position = 1 Because only one mandatory query can exist per Item
       //Type = M stand for Mandatory
