@@ -189,7 +189,7 @@ function setDroppable(el){
       oldItemGroupOID = keys[6]
       oldItemGroupRepeatKey = keys[7]
       oldItemOID = keys[8]
-      var isCompactedIG = $(this).closest("tr").attr("id").split(new RegExp("_")).shift() == "";
+      var isCompactedIG = ($(this).closest("tr").attr("id").substr(0,1) == "_");
       if(isCompactedIG){
         ItemGroupOID = $(this).closest("table").attr("name"); //compacted ItemGroup
       }else{
