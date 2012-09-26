@@ -93,7 +93,7 @@ class boexport extends CommonFunctions
   @author WLT - 09/12/2011
   **/   
   public function runExport($id,$type,$rawValue='Y')
-  { 	        
+  {
     $this->addLog("boexport::runExport($id,$type,$rawValue)",INFO);
     //Checking parameters
     if($type!="db" && $type!="config_file"){
@@ -944,7 +944,7 @@ delimiter = ';' MISSOVER DSD lrecl=32767 firstobs=2;";
     shell_exec('cd '.$tmp.'/'.$uid.';zip -P '.$uid.' -r '.escapeshellarg($dsmbFile).' ./');
     
     $sql = "INSERT INTO egw_alix_export_log(exportid,exportfilename,exportpath,exporttype,exportdate,exportpassword,exportuser,currentapp)
-            VALUES('$id','$dsmbFileName','{$this->m_tblConfig["EXPORT_BASE_PATH"]}','$type',now(),'$uid','{$GLOBALS['egw_info']['user']['userid']}','{$GLOBALS['egw_info']['flags']['currentapp']}')";
+            VALUES('$id','$dsmbFileName','{$this->m_tblConfig["EXPORT_BASE_PATH"]}','$type',now(),'$uid','{$this->m_user}','{$this->getCurrentApp(true)}')";
   
     $GLOBALS['egw']->db->query($sql);
   }
