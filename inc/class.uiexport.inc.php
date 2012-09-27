@@ -229,7 +229,8 @@ class uiexport extends CommonFunctions{
 		{
 		   $editLink = "&nbsp;";
 		   //Only owner can edit 
-       if($export['user']==$GLOBALS['egw_info']['user']['userid']){
+       if($GLOBALS['egw_info']['user']['apps']['admin'] ||
+          $export['user']==$GLOBALS['egw_info']['user']['userid']){
         $editLink =  "<a href='" . $GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.exportInterface',
                                                                                               'action' => 'edit',
                                                                                               'id' => $export['id'])) . "'>Edit</a>";
