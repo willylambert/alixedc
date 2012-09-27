@@ -464,6 +464,7 @@ function saveAllItemGroup(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventR
   $("form").each( 
     function(index){
       dataString = $(this).serialize();
+      //alert(dataString);
       if(dataString!=$(this).data('initials_values') || bForceSave==true || index==$("form").length-1 )
       {
         //Form is modified - we submit it

@@ -34,7 +34,7 @@
 </xsl:template>
 
 <!-- Suppression du bouton d'Ajout -->
-<xsl:template match="button[@id='btnAddItemGroup']">
+<xsl:template Amatch="button[@id='btnAddItemGroup']">
 	<!-- Bouton d'ajout supprimé -->
 </xsl:template>
 
