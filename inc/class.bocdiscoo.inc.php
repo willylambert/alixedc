@@ -267,16 +267,17 @@ Convert input POSTed data to XML string ODM Compliant, regarding metadata
                              Title='{\$ItemDef/odm:Question/odm:TranslatedText[@xml:lang='{$this->m_lang}']/text()}' />";
     $ctrls = $this->m_ctrl->socdiscoo()->query($query);
     $errors = array();
-
+    
     if($ctrls[0]->getName()!="NoItemGroupData")
     {
       foreach($ctrls as $ctrl)
       {
+            $i++; 
         if($ctrl->getName()!="NoControl"){        
           $testXQuery = $this->getXQueryConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ctrl);
           try{
             $ctrlResult = $this->m_ctrl->socdiscoo()->query($testXQuery,true,false,true);
-          }catch(xmlexception $e){
+          }catch(exception $e){
             //Error is probably due to the edit check code. Error is not display to the user, and administrator notified by email 
             $str = "Consistency : Xquery error : " . $e->getMessage() . " " . $testXQuery;
             $this->addLog($str,ERROR);
