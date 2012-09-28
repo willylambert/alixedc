@@ -276,7 +276,7 @@ class bocdiscoo extends CommonFunctions
         let \$ItemGroupDatas := \$SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey' and @TransactionType!='Remove']
                                              /odm:FormData[@FormOID='$FormOID' and @FormRepeatKey='$FormRepeatKey' and @TransactionType!='Remove']
                                              /odm:ItemGroupData[@TransactionType!='Remove'] 
-        let \$nbAuditRecords := count(\$SubjectData/odm:AuditRecords/odm:AuditRecord)
+        let \$nbAuditRecords := count(\$SubjectData/../odm:AuditRecords/odm:AuditRecord)
         return
           if (count(\$ItemGroupDatas)=0)
           then <NoItemGroupData />      
@@ -322,7 +322,11 @@ class bocdiscoo extends CommonFunctions
           $computedValue = (string)$methodResult[0]->Result;
           $this->addLog("bocdiscoo->computeDerivedItem() Method[{$StudyEventOID}][{$FormOID}][{$method['ItemGroupOID']}][{$method['ItemGroupRepeatKey']}]['{$method['ItemOID'] }'] => Result=" . $methodResult[0]->Result, INFO);
           if($lastValue!=$computedValue){
-            $dataType = ucfirst($method['DataType']); 
+            if($computedValue==""){
+              $dataType = "Any";
+            }else{
+              $dataType = ucfirst($method['DataType']);
+            }
             //We update value
             $strUpdate = "<ItemData$dataType ItemOID='".$method['ItemOID']."' 
                                              AuditRecordID='$AuditRecordID'
