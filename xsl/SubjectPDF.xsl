@@ -56,7 +56,7 @@
     
     <h1>
       <font size="6">
-        <xsl:value-of select="@Title" />  / Date of generation : <xsl:value-of select="$DateOfGeneration" />
+        <xsl:value-of select="@Title" /><font size="0" color="white">  / Date of generation : <xsl:value-of select="$DateOfGeneration" /></font>
       </font>
     </h1>
     
