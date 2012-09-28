@@ -40,6 +40,8 @@
         <center>
           <br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
           <font face="Arial" size="32"><b>Case Report Form</b></font>
+          <br /><br />
+          <font face="Arial" size="3">Date of generation : <xsl:value-of select="$DateOfGeneration" /></font>
         </center>
         <font face="Arial">
           <xsl:apply-templates/>
