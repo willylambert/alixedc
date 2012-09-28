@@ -123,7 +123,6 @@ public function removeFormData(){
   echo json_encode(array("SubjectKey"=>$SubjectKey, "StudyEventOID"=>$StudyEventOID, "StudyEventRepeatKey"=>$StudyEventRepeatKey, "FormOID"=>$FormOID, "FormRepeatKey"=>$FormRepeatKey)); 
 }
 
-
 /*
 @desc aplies checkMandatory and checkConsistency to the specified form
       the results are saved in the database, a call to getQueriesList allow to get them back
@@ -145,12 +144,12 @@ public function checkFormData(){
 }
 
 
- /*
+ /**
  *Ajax method, received in POST an ItemGroupData 
  *Return missing and edit checks raised 
  *@return array("errors"=>array(),"newSubjectId"=>string) $tblRet 
  *@author wlt
- */
+ **/
   public function saveItemGroupData(){
     $this->addlog(__METHOD__ ." : _POST=".$this->dumpRet($_POST),INFO);  
   
@@ -193,12 +192,22 @@ public function checkFormData(){
       
       $siteId = $this->m_ctrl->bosubjects()->getSubjectColValue($SubjectKey,"SITEID");
       
+      if($siteId=="BLANK"){ //@inclusion
+        $siteId="";
+      }
+      
       //Access right check      
       $profile = $this->m_ctrl->boacl()->getUserProfile("",$siteId);
       
-      if($profile['profileId']=="INV" || $siteId=="BLANK"){
+      //Allow also CRA to save, but only for saving SDV checks
+      if($profile['profileId']=="INV" || $profile['profileId']=="CRA" || $siteId=="BLANK"){
+        if($profile['profileId']=="INV"){
+          $bEraseNotFoundItem = true;
+        }else{
+          $bEraseNotFoundItem = false;
+        }
         //Saving data
-        $hasModif = $this->m_ctrl->bocdiscoo()->saveItemGroupData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$_POST,$who,$where,$why,$fillst="");
+        $hasModif = $this->m_ctrl->bocdiscoo()->saveItemGroupData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$_POST,$who,$where,$why,"",$bEraseNotFoundItem,$profile['profileId']);
   
         //HOOK => ajax_saveItemGroupData_afterSave
         $this->callHook(__FUNCTION__,"afterSave",array($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$hasModif,$this));      
@@ -1249,6 +1258,7 @@ public function checkFormData(){
           }
           if($childNode->nodeName == "Annotation"){
             $item['flagvalue'] = $childNode->getAttribute("FlagValue");
+            $item['sdvcheck'] = $childNode->getAttribute("SDVcheck");
             $item['flagcomment'] = $childNode->getAttribute("Comment");
           }
         }
@@ -1267,6 +1277,7 @@ public function checkFormData(){
         $item['date'] = $query['UPDATEDT'];
         $item['flagvalue'] = "";
         $item['flagcomment'] = "";
+        $item['sdvcheck'] = "";
         
         $audit[] = $item;
       }
@@ -1283,6 +1294,7 @@ public function checkFormData(){
         $item['date'] = $deviation['UPDATEDT'];
         $item['flagvalue'] = "";
         $item['flagcomment'] = "";
+        $item['sdvcheck'] = "";
         
         $audit[] = $item;
       }
@@ -1667,11 +1679,11 @@ public function checkFormData(){
     echo json_encode($newName);
   }
 
- /*
- *@desc ajax, return an html tree to select a folder
- *@return new filename
- *@author TPI
- */
+  /**
+  *@desc ajax, return an html tree to select a folder
+  *@return new filename
+  *@author TPI
+  **/
   public function getSelectableFolderTree(){
     
     $root = $_POST['root'];

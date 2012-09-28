@@ -31,7 +31,7 @@ function loadAlixCRFexporteditJS(CurrentApp)
                checkParents : true,
  
           // When checking a box, all children are checked (Default: false)
-               checkChildren : false,
+               checkChildren : true,
  
           // When unchecking a box, all children are unchecked (Default: true)
                uncheckChildren : true,

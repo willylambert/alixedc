@@ -30,6 +30,7 @@
   	<xsl:param name="CurrentTransactionType"/>
     <xsl:param name="ItemOID"/>
     <xsl:param name="FlagValue"/>
+    <xsl:param name="SDVcheck"/>
     <xsl:param name="Comment"/>
     <xsl:param name="ShowFlag"/>
     <xsl:param name="DataType"/>
@@ -41,11 +42,40 @@
     <!--On doit modifier les OID, car à la soumission d'un formulaire les navigateurs remplacent les "." par des "_" -->
   	<xsl:variable name="ItemOID" select="translate($ItemOID,'.','-')"/>
 
-    <!-- Les ARC/DM ne voient que les Annotations non vides-->
+    <xsl:if test="not(contains($Role,'NOSDV'))">
+      <!--SDV Previous value-->
+      <xsl:element name="input">
+        <xsl:attribute name="type">hidden</xsl:attribute>
+        <xsl:attribute name="name">sdv_previousvalue_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/></xsl:attribute>
+        <xsl:attribute name="value"><xsl:value-of select="$SDVcheck"/></xsl:attribute>
+      </xsl:element>
+      <!-- SDV flag only accessible to CRA-->
+      <xsl:if test="$ProfileId='CRA'">
+        <xsl:element name="input">
+          <xsl:attribute name="type">checkbox</xsl:attribute>
+          <xsl:attribute name="name">sdv_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/></xsl:attribute>
+          <xsl:if test="$SDVcheck='Y'">
+            <xsl:attribute name='checked'>checked</xsl:attribute>  
+          </xsl:if>
+        </xsl:element>
+      </xsl:if>
+      <!--input hidden to keep the SDV check value-->
+      <xsl:if test="$ProfileId!='CRA'">
+        <xsl:element name="input">
+          <xsl:attribute name="type">hidden</xsl:attribute>
+          <xsl:attribute name="name">sdv_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/></xsl:attribute>
+          <xsl:if test="$SDVcheck='Y'">
+            <xsl:attribute name='value'>on</xsl:attribute>  
+          </xsl:if>
+        </xsl:element>       
+      </xsl:if>    
+    </xsl:if>
+    
+    <!-- CRA and DM do not see empty annotations-->
     <xsl:if test="$ProfileId='INV' or ($FlagValue!='' or $Comment!='')">
     
   	 <xsl:if test="not(contains($Role,'NOAN'))">
-      	  <!--Valeurs précédentes-->
+      	  <!--Previous values-->
         	<xsl:element name="input">
           	 <xsl:attribute name="type">hidden</xsl:attribute>
           	 <xsl:attribute name="name">annotation_previousflag_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/></xsl:attribute>
@@ -85,15 +115,6 @@
               &#0160;
             </xsl:element>
           </a>
-          <!--ancienne img, ne marche pas sous IE-->
-          <!--a href="javascript:void(0)">
-            <xsl:element name='img'>
-              <xsl:attribute name='id'><xsl:value-of select="concat($DivId,'_picture')"/></xsl:attribute>
-              <xsl:attribute name="src"><xsl:value-of select="$CurrentApp"/>/templates/default/images/post_note<xsl:if test="string-length($Comment)=0 or $Comment='&#160;'">_empty</xsl:if>.gif</xsl:attribute>
-              <xsl:attribute name="onClick">updateAnnotPict('<xsl:value-of select="$CurrentApp"/>', 'annotation_comment_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupOID"/>'_<xsl:value-of select="$CurrentItemGroupRepeatKey"/>','<xsl:value-of select="concat($DivId,'_picture')"/>');toggleAnnotation('<xsl:value-of select="$DivId"/>');</xsl:attribute>
-              <xsl:attribute name="altbox">Add an annotation on this item</xsl:attribute>
-            </xsl:element>
-          </a-->
           <div id="{$DivId}" initialized='false' class='dialog-annotation TransactionType{$CurrentTransactionType}' title='{$Title}' style="display:none;">
             <input type="radio" name='annotation-flag' value="Ø">
                <xsl:attribute name="onClick">updateFlag('<xsl:value-of select="$ItemOID"/>','<xsl:value-of select="$CurrentItemGroupOID"/>','<xsl:value-of select="$CurrentItemGroupRepeatKey"/>',this.value,false,false)</xsl:attribute>

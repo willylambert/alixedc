@@ -562,9 +562,9 @@ run;";
                     let \$BLANKSubjectData := index-scan('SubjectData','BLANK','EQ')
                     let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID='{$this->m_tblConfig["METADATAVERSION"]}']
                     let \$ItemGroupDef := \$MetaDataVersion/odm:ItemGroupDef[@OID='$ItemGroupOID']
-                    for \$ItemGroupData in \$SubjectDatas/odm:StudyEventData/
-                                                         odm:FormData[@TransactionType!='Remove']/
-                                                         odm:ItemGroupData[@ItemGroupOID='$ItemGroupOID' and @TransactionType!='Remove']
+                    for \$ItemGroupData in \$SubjectDatas/odm:StudyEventData[@TransactionType!='Remove']/
+                                                          odm:FormData[@TransactionType!='Remove']/
+                                                          odm:ItemGroupData[@ItemGroupOID='$ItemGroupOID' and @TransactionType!='Remove']
                     let \$SubjectKey := \$ItemGroupData/../../../@SubjectKey
                     let \$StudyEventOID := \$ItemGroupData/../../@StudyEventOID
                     let \$StudyEventRepeatKey := \$ItemGroupData/../../@StudyEventRepeatKey
@@ -798,7 +798,7 @@ delimiter = ';' MISSOVER DSD lrecl=32767 firstobs=2;";
                 let \$BLANKSubjectData := index-scan('SubjectData','BLANK','EQ')
                 let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID='{$this->m_tblConfig["METADATAVERSION"]}']                    
                 let \$ItemGroupDef := \$MetaDataVersion/odm:ODM/odm:Study/odm:MetaDataVersion/odm:ItemGroupDef[$xQuerySelect]
-                for \$StudyEventData in \$SubjectDatas/odm:StudyEventData[odm:FormData/odm:ItemGroupData[$xQuerySelectIGOID and @TransactionType!='Remove']]
+                for \$StudyEventData in \$SubjectDatas/odm:StudyEventData[@TransactionType!='Remove' and odm:FormData/odm:ItemGroupData[$xQuerySelectIGOID and @TransactionType!='Remove']]
                 let \$SubjectKey := \$StudyEventData/../@SubjectKey
                 let \$StudyEventOID := \$StudyEventData/@StudyEventOID
                 let \$StudyEventRepeatKey := \$StudyEventData/@StudyEventRepeatKey
@@ -884,7 +884,7 @@ delimiter = ';' MISSOVER DSD lrecl=32767 firstobs=2;";
               let \$SubjectKey := \$SubjectData/@SubjectKey 
               for \$Annotation in \$SubjectData/../odm:Annotations/odm:Annotation                
                 let \$AnnotationID := \$Annotation/@ID
-                let \$ItemDatas := \$SubjectData/odm:StudyEventData/odm:FormData/odm:ItemGroupData/odm:*[@AnnotationID=\$AnnotationID]
+                let \$ItemDatas := \$SubjectData/odm:StudyEventData[@TransactionType!='Remove']/odm:FormData[@TransactionType!='Remove']/odm:ItemGroupData[@TransactionType!='Remove']/odm:*[@AnnotationID=\$AnnotationID]
                 for \$ItemData in \$ItemDatas
                   let \$StudyEventOID := \$ItemData/../../../@StudyEventOID
                   let \$StudyEventRepeatKey := \$ItemData/../../../@StudyEventRepeatKey

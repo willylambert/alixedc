@@ -26,7 +26,7 @@
 
   <xsl:template name="Item">
   	<xsl:param name="ItemValue" />
-	<xsl:param name="MaxAuditRecordID"/>
+	  <xsl:param name="MaxAuditRecordID"/>
   	<xsl:param name="TabIndex"/>
   	<xsl:param name="CurrentItemGroupRepeatKey"/>
     <xsl:param name="Item"/>

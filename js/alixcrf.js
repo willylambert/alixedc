@@ -42,6 +42,12 @@ function loadAlixCRFjs(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepe
   currentApp = CurrentApp;
   isOldIE = helper.isOldIE();
   
+  m_SubjectKey  = SubjectKey;
+  m_StudyEventOID = StudyEventOID;
+  m_StudyEventRepeatKey = StudyEventRepeatKey;
+  m_FormOID = FormOID;
+  m_FormRepeatKey = FormRepeatKey;  
+  
   //Bind des buttons
   $("#btnSave").click(function(){
     

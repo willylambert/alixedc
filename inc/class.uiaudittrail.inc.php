@@ -42,8 +42,9 @@ class uiaudittrail extends CommonFunctions
   * @return string HTML to display
   * @author WLT
   **/     
-  public function getInterface()
+  public function getInterface($bExport)
   {
+
     $html = "";
     
     //Main menu
@@ -53,29 +54,41 @@ class uiaudittrail extends CommonFunctions
     $htmlFilters = $this->getFilters();
     
     //Results
-    $thmlResults = $this->getResults();
+    $htmlResults = $this->getResults($bExport);
 
-    $html = " <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jquery-1.6.2.min.js') . "'></SCRIPT>
-              <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jquery-ui-1.8.16.custom.min.js') . "'></SCRIPT>
-              <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jqGrid/grid.locale-en.js') . "'></SCRIPT>
-              <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jqGrid/jquery.jqGrid.min.js') . "'></SCRIPT>
-              <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jquery.jqAltBox.js') . "'></SCRIPT>
-              <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/helpers.js') . "'></SCRIPT>
-              <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/audittrail.js') . "'></SCRIPT>
-
-              $menu
-
-              <div id='mainFormOnly' class='ui-dialog ui-widget ui-widget-content ui-corner-all'>
-                <div class='ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix'>
-                  <span class='ui-dialog-title'>Audit Trail</span>
-                </div> 
-                <div class='ui-dialog-content ui-widget-content'>
-                $htmlFilters
-                <br/>
-                $thmlResults
-                </div>                  
-                ";
-    
+    if($bExport){
+      header("Pragma: public");
+      header("Expires: 0");
+      header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
+      header("Cache-Control: private",false);
+      header("Content-Type: application/octet-stream");
+      header("Content-Disposition: attachment; filename=\"AuditTrail.csv\";" );
+      header("Content-Transfer-Encoding: binary"); 
+      
+      echo $htmlResults;
+      $html = "";
+    }else{
+      $html = " <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jquery-1.6.2.min.js') . "'></SCRIPT>
+                <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jquery-ui-1.8.16.custom.min.js') . "'></SCRIPT>
+                <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jqGrid/grid.locale-en.js') . "'></SCRIPT>
+                <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jqGrid/jquery.jqGrid.min.js') . "'></SCRIPT>
+                <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jquery.jqAltBox.js') . "'></SCRIPT>
+                <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/helpers.js') . "'></SCRIPT>
+                <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/audittrail.js') . "'></SCRIPT>
+  
+                $menu
+  
+                <div id='mainFormOnly' class='ui-dialog ui-widget ui-widget-content ui-corner-all'>
+                  <div class='ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix'>
+                    <span class='ui-dialog-title'>Audit Trail</span>
+                  </div> 
+                  <div class='ui-dialog-content ui-widget-content'>
+                  $htmlFilters
+                  <br/>
+                  $htmlResults
+                  </div>                  
+                  ";
+    }
     return $html;
   }
   
@@ -100,7 +113,8 @@ class uiaudittrail extends CommonFunctions
     
     $html .= "<div id='filterParamsAudit' class='ui-widget'>
                         <div class='ui-widget-header'>Search Audit Trail</div>
-                        <form action='".$_SERVER['PHP_SELF']."?menuaction=".$this->getCurrentApp(false).".uietude.auditTrailInterface' method='post'>";
+                        <form id='formAT' action='".$_SERVER['PHP_SELF']."?menuaction=".$this->getCurrentApp(false).".uietude.auditTrailInterface' method='post'>
+                          <input type='hidden' name='bExport' value='false'/>";
     //Sites
     $html .= "<div id='siteFilter' class='auditFilers'><h4>Select Site(s): </h4><div id='siteFilterList'>";
     foreach($sitesList as $site){
@@ -114,19 +128,22 @@ class uiaudittrail extends CommonFunctions
 
     //Dates
     $html .= "<div id='dateFilter' class='auditFilers'><h4>Choose date range: </h4>
-                          <div id='selDateRange'>
-                          <label>Start Date:</label><input readonly='true' id='datepickerStartDate' name='startDate' type='text' />
-                          <br />
-                          <br />
-                          <label>End Date:</label><input readonly='true' id='datepickerEndDate' name='endDate' type='text' />
-                        </div>
-                        </div>";
+                <div id='selDateRange'>
+                  <label>Start Date:</label><input readonly='true' id='datepickerStartDate' name='startDate' type='text' />
+                  <br />
+                  <br />
+                  <label>End Date:</label><input readonly='true' id='datepickerEndDate' name='endDate' type='text' />
+                </div>
+              </div>";
     
     //Actions
     $html .= "<div id='auditActions' class='auditFilers'><h4>Actions: </h4>
-                          <div><input type='button' value='Reset filters' onclick='resetFilters();'></div>
-                          <div><input type='submit' value='Filter Audit Trail'></div>
-                        </div>";
+                <div><input type='button' value='Reset filters' onclick='resetFilters();' /></div>
+                <div><input type='button' value='Filter Audit Trail' onclick='filterAT();' /></div>";
+    if(isset($_POST['tblSites'])){
+      $html .= "<div><input type='button' value='Export Result' onclick='exportResult();' /></div>";
+    } 
+    $html .= "</div>";
     
     $html .= "</form>";
     
@@ -152,6 +169,18 @@ class uiaudittrail extends CommonFunctions
                   $('#siteFilter :checked').removeAttr('checked');
                   $('#dateFilter input').val('');
                 }
+                
+                function filterAT(){
+                  $('#formAT input[name=bExport]').val('false');
+                  $('#formAT').attr('target', '');
+                  $('#formAT').submit();                    
+                }
+                
+                function exportResult(){
+                 $('#formAT input[name=bExport]').val('true');
+                 $('#formAT').attr('target', '_blank');
+                 $('#formAT').submit();                    
+                }
               </script>";
     
     return $html;
@@ -159,13 +188,12 @@ class uiaudittrail extends CommonFunctions
   
   /**
   * @desc Results
-  * @return string HTML to display the results in the audit trail
+  * @return string HTML to display the results in the audit trail, or csv output if export is asked
   * @author WLT,TPI
   **/ 
-  private function getResults(){
+  private function getResults($bExport){
     $html = "";
-    
-    
+        
     //We have POSTed data to retrieve Audit Trail
     if(isset($_POST['tblSites']) && isset($_POST['startDate']) && $_POST['startDate']!='' && isset($_POST['endDate']) && $_POST['endDate']!=''){
       $html .= "<div id='auditResults'><div class='ui-widget-header'>Results</div>";
@@ -173,20 +201,38 @@ class uiaudittrail extends CommonFunctions
       if(count($ATlist)==0){
         $html .= "<i>No Audit Trail found for the selected criterias</i>";
       }else{
-        $html .= "
-        <table><thead><tr><th>Subject</th><th>Visit</th><th>Form</th><th>Item</th><th>Value</th><th>User</th><th>Date</th></tr></thead><tbody>";
-        foreach($ATlist as $AT){
-          $html .= "<tr><td>" . $AT['subjectKey'] ."</td>
-                         <td>" . $AT['studyEvent'] ."</td>
-                         <td>" . $AT['form'] ."</td>
-                         <td>" . $AT['item'] ."</td>
-                         <td>" . $AT['value'] ."</td>
-                         <td>" . $AT['user'] ."</td>
-                         <td>" . $AT['auditDate'] ."</td></tr>";
+        if($bExport){
+          $html = "Subject;Visit;Form;Item;Value;User;Date\n";
+        }else{
+          $html .= "
+          <table><thead><tr><th>Subject</th><th>Visit</th><th>Form</th><th>Item</th><th>Value</th><th>User</th><th>Date</th></tr></thead><tbody>";
         }
-        $html .= "</tbody></table>";
+        foreach($ATlist as $AT){
+          if($bExport){
+            $html .= $AT['subjectKey'] . ";" .
+                     $AT['studyEvent'] . ";" .
+                     $AT['form'] . ";" .
+                     $AT['item'] . ";" .
+                     $AT['value'] . ";" .
+                     $AT['user'] . ";" .
+                     $AT['auditDate'] .";\n";
+          }else{
+            $html .= "<tr><td>" . $AT['subjectKey'] ."</td>
+                          <td>" . $AT['studyEvent'] ."</td>
+                          <td>" . $AT['form'] ."</td>
+                          <td>" . $AT['item'] ."</td>
+                          <td>" . $AT['value'] ."</td>
+                          <td>" . $AT['user'] ."</td>
+                          <td>" . $AT['auditDate'] ."</td></tr>";
+          }
+        }
+        if(!$bExport){
+          $html .= "</tbody></table>";
+        }
       }
-      $html .= "</div></div>";
+      if(!$bExport){
+        $html .= "</div></div>";
+      }
     }
   
     return $html;
