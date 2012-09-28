@@ -262,7 +262,11 @@ class bocdiscoo extends CommonFunctions
   public function computeDerivedItem($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey)
   {
     $this->addLog(__METHOD__ ."($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID)", INFO);
-
+    
+    //TODO: change xquery for Method :
+    // - loop over the metadata (instead of clinical data) to find the values to be computed in the Form
+    // - return if ItemData for this computed value already exists => set new @TransactionType to Insert or to Update (instead of Update only)
+    
     //Loop through ItemRef having MethodOID 
     $query = "
         import module namespace alix = 'http://www.alix-edc.com/alix';

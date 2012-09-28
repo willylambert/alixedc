@@ -114,6 +114,7 @@
                 <xsl:element name="span">
                   <xsl:attribute name='class'>imageOnly image16</xsl:attribute>
                   <xsl:attribute name="style">background-image: url('<xsl:value-of select="$CurrentApp"/>/templates/default/images/kded.png');</xsl:attribute>
+                  <xsl:attribute name="altbox">Computed value. Save this form to update this value.</xsl:attribute>
                 </xsl:element>
             </xsl:if>
             </td>
