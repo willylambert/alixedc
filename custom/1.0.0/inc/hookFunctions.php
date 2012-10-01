@@ -652,7 +652,7 @@ function uisubject_getProfile_profileContent($SubjectKey,$htmlContent,$uisubject
       $err = passthru("$cmd '$htmlTemp'");
       $content = ob_get_contents();
       ob_end_clean();
-      $tmpHandle = fopen(dirname(__FILE__)."/tmp/".$filename,"w");
+      $tmpHandle = fopen("/tmp/".$filename,"w");
       fwrite($tmpHandle,$content);
       fclose($tmpHandle);
       unlink($htmlTemp);
