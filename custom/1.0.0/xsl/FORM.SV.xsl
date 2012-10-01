@@ -27,6 +27,7 @@
 
 <!-- Parameters recovery -->
 <xsl:param name="StudyEventOID"/>
+<xsl:param name="ProfileId"/>
 
 <!--Catch all non treated tags, print them with no treatment-->
 <xsl:template match="*">
@@ -52,7 +53,9 @@
        <xsl:apply-templates/>
    </xsl:copy>
    &#0160;
-   <img src="alixedc/templates/default/images/calendar.gif" class="pointer" value="Calendar" onclick="showCalendarVisit(this)" />
+   <xsl:if test="$ProfileId='INV'">
+    <img src="alixedc/templates/default/images/calendar.gif" class="pointer" value="Calendar" onclick="showCalendarVisit(this)" />
+   </xsl:if>
    <script>
      function showCalendarVisit(srcEl){
        var year = $("input[name='text_yy_SV@SVSTDTC_0']").get(0);

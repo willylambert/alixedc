@@ -99,7 +99,7 @@ class bocdiscoo extends CommonFunctions
                          </Annotation> 
                   into index-scan('SubjectData','$SubjectKey','EQ')/../odm:Annotations";
         $this->m_ctrl->socdiscoo()->query($query);
-        $this->addLog("bocdiscoo->addItemData() Adding annotation $AnnotationID : ". $flag ." / ". $comment,INFO);        
+        $this->addLog("bocdiscoo->addItemData() Adding annotation $AnnotationID : ". $flag ." / ". $comment ." / ". $sdvFlag,INFO);        
       }else{
         $AnnotationID = $Item['AnnotationID'];
       }
@@ -246,6 +246,7 @@ class bocdiscoo extends CommonFunctions
         }else{
           $annotationAttr = "";
         }
+                  if($sdv=='on') die($annotationAttr); //ici
                 
         $tblRet[] = "
                     <ItemData".ucfirst($Item['DataType'])."
