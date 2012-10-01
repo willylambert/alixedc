@@ -103,6 +103,8 @@ class bocdiscoo extends CommonFunctions
       }else{
         $AnnotationID = $Item['AnnotationID'];
       }
+                  //if($bSDVupdated) echo("sdv: $query \n\n $AnnotationID" ); //ici
+                  //if($bSDVupdated) die("sdv: $sdv / $ItemGroupOID / $ItemGroupRepeatKey / ". $Item['ItemOID']); //ici
 
       //Specific handle of types Date and PartialDate
       switch($Item['DataType'])
@@ -212,6 +214,7 @@ class bocdiscoo extends CommonFunctions
         }
       }
       
+        //if(isset($tblFilledVar["{$Item['ItemOID']}"]) && $bSDVupdated) echo("\n\nisset: ".$Item['ItemOID'] ); //ici    
       //New ItemData only if new Item or updated value and value present in POSTed vars, unless $bEraseNotFoundItem = true (default)
       if(isset($tblFilledVar["{$Item['ItemOID']}"]) && 
           (
@@ -225,6 +228,7 @@ class bocdiscoo extends CommonFunctions
       {
         $this->addLog("bocdiscoo->addItemData() Adding ItemData={$Item['ItemOID']} PreviousItemValue=".$Item->PreviousItemValue." Value=".$tblFilledVar["{$Item['ItemOID']}"],INFO);
 
+        //if($bSDVupdated) echo("\n\nsdv: $AnnotationID, attr: $annotationAttr" ); //ici    
         //Data update are only authorized for INV
         //So the Item value is unchanged
         //Also if sdv is checked, value cannot be updated
@@ -246,6 +250,7 @@ class bocdiscoo extends CommonFunctions
         }else{
           $annotationAttr = "";
         }
+                  //if($bSDVupdated) echo($annotationAttr); //ici
                 
         $tblRet[] = "
                     <ItemData".ucfirst($Item['DataType'])."

@@ -115,15 +115,25 @@ Complete <b>Posology</b> to download dispensation prescription
    </xsl:copy> 
 </xsl:template>
 
-<xsl:template match="input[@itemoid='EXI.RDNUM']">
+<!--xsl:template match="input[@itemoid='EXI.RDNUM']">
    <xsl:copy>
        <xsl:copy-of select="@*"/>
        <xsl:attribute name="value"><xsl:value-of select="$RANDOID"/></xsl:attribute>     
        <xsl:apply-templates/>
    </xsl:copy>  
+</xsl:template-->
+<!--Randomization number-->
+<xsl:template match="input[@itemoid='EXI.RDNUM']">
+   <xsl:copy>
+       <xsl:copy-of select="@*"/>
+       <xsl:apply-templates/>
+   </xsl:copy>  
+   <xsl:if test="@value='' or not(@value)">
+     <input type="button" value="Generate" onclick="randomizeMe()" id="randomize" />  
+   </xsl:if>   
 </xsl:template>
 
-<xsl:template match="input[@itemoid='EXI.EXLOT1']">
+<!--xsl:template match="input[@itemoid='EXI.EXLOT1']">
    <xsl:copy>
        <xsl:copy-of select="@*"/>
        <xsl:attribute name="value"><xsl:value-of select="$tblUTdisp1_1"/></xsl:attribute>
@@ -161,7 +171,7 @@ Complete <b>Posology</b> to download dispensation prescription
        <xsl:attribute name="value"><xsl:value-of select="$tblUTdisp1_5"/></xsl:attribute>
        <xsl:apply-templates/>
    </xsl:copy>  
-</xsl:template>
+</xsl:template-->
 
 <!--Mask IECAT and 3 number of treatement-->
 <xsl:template match="tr[@id='IE.IECAT_0'or @id='EXI.EXLOT3_0' or @id='EXI.EXLOT4_0' or @id='EXI.EXLOT5_0' or @id='EXN.EXLOT3_0' or @id='EXN.EXLOT4_0' or @id='EXN.EXLOT5_0']">
@@ -201,6 +211,20 @@ Complete <b>Posology</b> to download dispensation prescription
           }
          }
         										        										
+        }
+        
+        function randomizeMe(){
+          if(confirm("Do you want to generate the randomizaiton number now ?")){
+            var number = Math.floor(Math.random() * 1000);
+            $(":[name='text_string_EXI@RDNUM_0']").val(number);
+            $("#randomize").css({visibility: 'hidden'});
+            var trtId = Math.floor(Math.random() * 10) * 100;
+            for(var i=1; Math.min(i,3)==i; i++){
+              $(":[name='text_string_EXI@EXLOT"+i+"_0']").val(trtId);
+              trtId++;
+            } 
+            alert("The randomization number is "+ number +".");
+          }
         }
       </script>
   </div>
