@@ -27,6 +27,8 @@
 
 <!-- Nandomisation number attached to patient - cf hookFunctions.php-->
 <xsl:param name="RANDOID"/>
+<xsl:param name="ProfileId"/>
+<xsl:param name="FormStatus"/>
 
 <xsl:param name="country"/>
 <xsl:param name="siteId"/>
@@ -128,9 +130,9 @@ Complete <b>Posology</b> to download dispensation prescription
        <xsl:copy-of select="@*"/>
        <xsl:apply-templates/>
    </xsl:copy>  
-   <xsl:if test="@value='' or not(@value)">
-     <input type="button" value="Generate" onclick="randomizeMe()" id="randomize" />  
-   </xsl:if>   
+   <xsl:if test="(@value='' or not(@value)) and $ProfileId='INV' and $FormStatus!='FROZEN'">
+     <div style="width: 100px; display: inline-block"><input type="button" value="Generate" onclick="randomizeMe()" id="randomize" /><img src="alixedc/templates/default/images/helpers/ajax-loader-small.gif" id="randomize-loading" style="display: none; margin:0px; padding: 0px; height: 14px;"/></div>
+   </xsl:if>
 </xsl:template>
 
 <!--xsl:template match="input[@itemoid='EXI.EXLOT1']">
@@ -215,16 +217,23 @@ Complete <b>Posology</b> to download dispensation prescription
         
         function randomizeMe(){
           if(confirm("Do you want to generate the randomizaiton number now ?")){
+            setTimeout("finishRandomisation()", 1500);
+            $("#randomize").remove();
+            $("#randomize-loading").css({display: 'block'});
+          }
+        }
+        function finishRandomisation(){
             var number = Math.floor(Math.random() * 1000);
             $(":[name='text_string_EXI@RDNUM_0']").val(number);
-            $("#randomize").css({visibility: 'hidden'});
+            //$("#randomize").css({visibility: 'hidden'});
             var trtId = Math.floor(Math.random() * 10) * 100;
             for(var i=1; Math.min(i,3)==i; i++){
               $(":[name='text_string_EXI@EXLOT"+i+"_0']").val(trtId);
               trtId++;
-            } 
-            alert("The randomization number is "+ number +".");
-          }
+            }
+            $("#randomize-loading").remove();
+            //alert("The randomization number is "+ number +".");
+            helper.showPrompt("The randomization number is "+ number +".","",1);
         }
       </script>
   </div>
