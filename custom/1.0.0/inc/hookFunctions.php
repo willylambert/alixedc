@@ -54,6 +54,9 @@ function uisubject_getInterface_xslParameters($FormOID,$xslProc,$uisubject){
 
       case 'FORM.AE' : 
       $xslProc->setParameter('','FormRepeatKey',$_GET['FormRepeatKey']);
+      $AETERM = $uisubject->m_ctrl->bocdiscoo()->getValue($_GET['SubjectKey'],"AE","0","FORM.AE",$_GET['FormRepeatKey'],"AE","0","AE.AETERM");
+      $xslProc->setParameter('','AETERM',$AETERM);
+      $xslProc->setParameter('',"currentApp",$GLOBALS['egw_info']['flags']['currentapp']);
       break;                     
 
     case 'FORM.HE' : 
@@ -130,7 +133,7 @@ function ajax_saveItemGroupData_afterSave($SubjectKey,$StudyEventOID,$StudyEvent
     $template = dirname(__FILE__)."/templates/AE.htm";
     if(!file_exists($template)){
       $str = "Template not found '$template'.";
-      $uisubject->addLog($str,ERROR);
+      $ajax->addLog($str,ERROR);
     }
     $handle = fopen($template, "r");
     $htmlContent = fread($handle, filesize($template));

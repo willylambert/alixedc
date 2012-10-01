@@ -25,7 +25,10 @@
 <xsl:output method="xml" encoding="UTF-8" indent="no"/>
 <xsl:include href="include/alixlib.xsl"/>
 
+<xsl:param name="SubjectKey"/>
 <xsl:param name="FormRepeatKey"/>
+<xsl:param name="AETERM"/>
+<xsl:param name="currentApp"/>
 
 <!--Catch all non treated tags, print them with no treatment-->
 <xsl:template match="*">
@@ -49,6 +52,20 @@
 <xsl:template match="tr[@name='AE.AELLT_C' or @name='AE.AELLT_N' or @name='AE.AEPT_C' or @name='AE.AEDECOD' or @name='AE.AEHLGT_N' 
     or @name='AE.AESOC_C' or @name='AE.AEBODSYS' or @name='AE.AEHLT_C' or @name='AE.AEHLT_N' or @name='AE.AEHLGT_C' or @name='AE.MEDDRA_V']">
    <xsl:apply-templates select="td/input"/> 
+</xsl:template>
+
+<!--Button to get AE as PDF -->
+<xsl:template match="form[@name='AE']">
+   <xsl:copy>
+       <xsl:copy-of select="@*"/>
+       <xsl:apply-templates/>
+       <xsl:if test="$AETERM!=''">
+        <a class="ui-state-default ui-corner-all" href="{$currentApp}/custom/1.0.0/inc/getAE.php?SubjectKey={$SubjectKey}&amp;FormRepeatKey={$FormRepeatKey}&amp;currentapp={$currentApp}" target="new" style="display: inline-block; margin-top: 10px; width: 200px; height: 22px; font-size: 16px;">Download PDF</a>
+       </xsl:if> 
+       <!--xsl:if test="$AETERM=''">
+        <span style="color: red; margin: 5px;">Please fill <b>Diagnosis or Signs/symptoms</b></span>
+       </xsl:if--> 
+   </xsl:copy>
 </xsl:template>
 
 <!-- Javascript treatment -->
