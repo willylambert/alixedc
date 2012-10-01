@@ -252,8 +252,7 @@ class bocdiscoo extends CommonFunctions
                         ItemOID='".$Item['ItemOID']."' 
                         AuditRecordID='$AuditRecordID'
                         $annotationAttr
-                        TransactionType='$transacType'>$encodedValue</ItemData".ucfirst($Item['DataType']).">";
-                        
+                        TransactionType='$transacType'>$encodedValue</ItemData".ucfirst($Item['DataType']).">";  
       }
     }
     return $tblRet;
