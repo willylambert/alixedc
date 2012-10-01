@@ -246,7 +246,6 @@ class bocdiscoo extends CommonFunctions
         }else{
           $annotationAttr = "";
         }
-                  if($sdv=='on') die($annotationAttr); //ici
                 
         $tblRet[] = "
                     <ItemData".ucfirst($Item['DataType'])."

@@ -580,7 +580,7 @@ function showInfo(html,width,height){
  * @author tpi 
  */ 
 function reloadLocation(){
-  return true;
+  //return true;
   if(arguments.length>0){
     var newLocation = location.href;
     //adding optional parameters
