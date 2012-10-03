@@ -86,7 +86,17 @@ function compactItemGroup(FormOID,tblCol){
       htmlRet += "</div>";
       return htmlRet;
       
-    }).hide().prev().addClass("itemGroupLine").addClass("ui-widget-content ui-row-ltr").click(function(){$(this).next().slideToggle(200,function(){postItToggle(this)});});
+    }).hide()
+      .prev()
+      .addClass("itemGroupLine")
+      .addClass("ui-widget-content ui-row-ltr")
+      .click(function(){
+        $(this).next()
+               .slideToggle(200,function(){
+                 postItToggle(this);
+                 setAllPostItsPotision();
+               });
+      });
     
     //Handle TransactionType 
     $(".itemGroupLine").each(function(){
@@ -105,7 +115,8 @@ function compactItemGroup(FormOID,tblCol){
 
 //Toggle visibility of the post-its when an ItemGroup is clicked
 function postItToggle(ig){
-  if(helper.isOldIE(8)){ //the management of visibility is needed only with IE <= IE8
+  //if(helper.isOldIE(8)){ //the management of visibility is needed only with IE <= IE8
+  //management of visibility is needed for IE<8 AND for new post-its (they are at the end of the DOM, not inside the IG)
     igid = $(ig).find("tr[id]").attr("id");
     igparams = igid.split(new RegExp("_", "g"));
     igoidref = igparams[1];
@@ -122,5 +133,5 @@ function postItToggle(ig){
         }
       }
     });
-  }
+  //}
 }

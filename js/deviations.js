@@ -157,8 +157,8 @@ function toggleDeviationForm(CurrentApp,ProfileId,DeviationId,removeFromDOM){
   }
   //le toggle
   $(jq(id)).slideToggle('500',function() {
-              if (typeof(movePostItsTopPositionRelativeTo) == 'function'){
-                movePostItsTopPositionRelativeTo(jq(id)); //appel d'une fonction présente dans postit.js
+              if (typeof(setAllPostItsPotision) == 'function'){
+                setAllPostItsPotision(); //update post-it positions
               }
               if(removeFromDOM){removeDeviationForm(DeviationId);} //suppression du bloc d'édition du DOM, si demandé
             });

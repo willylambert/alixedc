@@ -98,7 +98,8 @@ function loadFormQueries(CurrentApp,ProfileId){
 //Création du formulaire d'édition d'une query
 function addQueryToFormQueries(CurrentApp,ProfileId,QueryId){
   html = getQueryHTML(CurrentApp,ProfileId,QueryId);
-  $("#formQueries").append(html);
+  $("#formQueries").append(html); //add the query at the bottom of the list
+  setAllPostItsPotision(); //update post-it positions
           
   //On supprime la possibilité d'ajouter une querie sur l'élément correspondant (le bouton d'ajout placé par query.xsl)
   //$("#query_div_"+ queriesList[QueryId].ITEMOID.replace('.','-') +"_"+ queriesList[QueryId].IGRK +"_picture").remove();
@@ -157,8 +158,8 @@ function toggleQueryForm(CurrentApp,ProfileId,QueryId,removeFromDOM){
   
   //le toggle
   $(jq(id)).slideToggle('500',function() {
-              if (typeof(movePostItsTopPositionRelativeTo) == 'function'){
-                movePostItsTopPositionRelativeTo(jq(id)); //appel d'une fonction présente dans postit.js
+              if (typeof(setAllPostItsPotision) == 'function'){
+                setAllPostItsPotision(); //update post-it positions
               }
               if(removeFromDOM){removeQueryForm(QueryId);} //suppression du bloc d'édition du DOM, si demandé
             });
@@ -255,7 +256,9 @@ function saveQueryForm(CurrentApp,ProfileId,QueryId){
             if(ProfileId=="INV" && data.QUERYSTATUS=="A"//pour les investigateurs, on cache la querie CONFIRMED (A)
               || data.QUERYSTATUS=="C"//on cache la querie CLOSED (C)
               ){
-              $("#query_"+QueryId).remove();
+              $("#query_"+QueryId).hide(0); //first: we just hide the query to enable motion of post-its
+              setAllPostItsPotision(); //second: update post-its positions
+              $("#query_"+QueryId).remove(); //last: complete removal of the query
             }else{
               //on remplace l'ancien bloc html => mise à jour de la querie, notament de son identifiant
               if($("table#listQueries").length>0){ //alors on est dans le module de gestion globale des queries (un tableau avec des tr et des td)
