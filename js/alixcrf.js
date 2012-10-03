@@ -306,31 +306,28 @@ function loadAlixCRFjs(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepe
     });
   }
   
-  //Only investigators can update CRFs values
+  //Only investigators can update CRFs values (fields and annotations)
   if(ProfileId!='INV' || FormStatus=='FROZEN'){
-    $("td.ItemDataInput input[type=text]").attr("readonly","readonly");
-    $("td.ItemDataInput input[type=radio]").attr("disabled","disabled").map(function() { //we add an hidden field, necessary to update the ItemData in ODM when SDV value is modified
-      var hiddenInput = $(this).clone().removeAttr('disabled').attr('type', 'hidden'); //here bug for IE8 : type cannot be modified
-      $(this).attr('name', $(this).attr('name') +"_display"); //here bug for IE8 : name cannot be modified
-      $(this.form).append(hiddenInput); //must be affected to the form
-    });
-    $("td.ItemDataInput select").attr("disabled","disabled").map(function() { //we add an hidden field, necessary to update the ItemData in ODM when SDV value is modified
-      var attrs = { };
-      $.each($(this)[0].attributes, function(idx, attr) {
-          attrs[attr.nodeName] = attr.nodeValue;
+    try{
+      $("td.ItemDataInput input[type=text]").attr("readonly","readonly");
+      $("td.ItemDataInput input[type=radio]").attr("disabled","disabled").map(function() { //we add an hidden field, necessary to update the ItemData in ODM when SDV value is modified
+        var hiddenInput = $(this).clone().removeAttr('disabled').attr('type', 'hidden'); //here bug for IE8 : type cannot be modified
+        $(this).attr('name', $(this).attr('name') +"_display"); //here bug for IE8 : name cannot be modified
+        $(this.form).append(hiddenInput); //must be affected to the form
       });
-      $(this).attr('name', $(this).attr('name') +"_display");
-      var hiddenInput = $("<input />", attrs).removeAttr('disabled').attr('type', 'hidden');
-      $(this.form).append(hiddenInput); //must be affected to the form
-    });
-    $("td.ItemDataInput textarea").attr("readonly","readonly");
-    
-    $("div[id^=annotation] input[type=radio]").attr("disabled","disabled").map(function() { //we add an hidden field, necessary to update the ItemData in ODM when SDV value is modified
-      var hiddenInput = $(this).clone().removeAttr('disabled').attr('type', 'hidden');
-      $(this).attr('name', $(this).attr('name') +"_display");
-      $(this.form).append(hiddenInput); //must be affected to the form
-    });
-    $("div[id^=annotation] textarea").attr("readonly","readonly");
+      $("td.ItemDataInput select").attr("disabled","disabled").map(function() { //we add an hidden field, necessary to update the ItemData in ODM when SDV value is modified
+        var attrs = { };
+        $.each($(this)[0].attributes, function(idx, attr) {
+            attrs[attr.nodeName] = attr.nodeValue;
+        });
+        $(this).attr('name', $(this).attr('name') +"_display");
+        var hiddenInput = $("<input />", attrs).removeAttr('disabled').attr('type', 'hidden');
+        $(this.form).append(hiddenInput); //must be affected to the form
+      });
+      $("td.ItemDataInput textarea").attr("readonly","readonly");
+    }catch(e){
+      alert(e.message);
+    }
   }
   
   //CRA can modify post-it values
