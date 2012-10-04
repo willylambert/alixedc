@@ -29,27 +29,27 @@ class uipassword extends CommonFunctions
 
   /**
    *Determine rules for suggest password change to the user
-   *@return boolean
+   *@return string reason for need to change
    *@author wlt        
    **/    
-  function passwordNeedChange(){
+  public function passwordNeedChange(){
     //Password must be changed ?
     $password = $GLOBALS['egw_info']['user']['passwd'];
-    $bNeedChange = false;
+    $sReasonForChange = "";
         
-    //By default, passwords ares 6 low case letters long.
+    //By default, passwords are 6 low case letters long.
     //In this case, password change is suggested to the user
     if(strlen($password)==6 && ctype_lower($password)){
-      $bNeedChange = true;
+      $sReasonForChange = "Your password has never been changed";
     }
     
-    //If password change is 
+    //If password change is older than tblConfig['PASSWORD']['CHANGE_AFTER'] (see config.inc.php)
     $nbDaysSinceLastChange = (time() - $GLOBALS['egw_info']['user']['account_lastpwd_change'])/86400; 
     if($nbDaysSinceLastChange >= $this->m_tblConfig['PASSWORD']['CHANGE_AFTER']){
-      $bNeedChange = true;    
+      $sReasonForChange = "Your password is older than ". $this->m_tblConfig['PASSWORD']['CHANGE_AFTER'] ." days";    
     }
     
-    return $bNeedChange;
+    return $sReasonForChange;
   }
   
   /**
@@ -57,7 +57,7 @@ class uipassword extends CommonFunctions
    *@return string html à afficher
    *@author wlt        
    */  
-  function getChangeInterface()
+  public function getChangeInterface($sReasonForChange="")
   {
     $menu = $this->m_ctrl->etudemenu()->getMenu();
     
@@ -125,6 +125,12 @@ class uipassword extends CommonFunctions
     		}
 			}
     }
+    
+    //A message : reason to change the password
+    $message = "";
+    if($sReasonForChange!=""){
+      $message = "<div style='font-weight: bold; color: #740101; margin: 10px; text-align: left;'>". $sReasonForChange .". You should change your password now.</div>";
+    }
 
     if($htmlRet==""){
       $htmlRet = "$menu
@@ -132,20 +138,22 @@ class uipassword extends CommonFunctions
                     <div class='ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix'>
                       <span class='ui-dialog-title'>Change your password</span>
                     </div>
-                    <div>$htmlErrors</div>
+                    $message
+                    <div style='color: #505001; margin: 10px; padding: 10px; text-align: left; background-color: #fefef5; border: 1px solid #383801; width: 350px;'>Your password must :<br />- be at least 6 characters long<br />- have at least one upper case letter<br />- have at least one lower case letter</div>
+                    <div style='color: #740101;'>$htmlErrors</div>
                     <div class='ui-dialog-content ui-widget-content'>
                       <div id='divFrmPasswd' class='ui-widget'>
                         <form name='formu' action='".$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.changePasswordInterface','action'=>'changePassword'))."' method='post'>
                           <p>
-                            <label for='o_passwd_2'>Please enter your old password :</label>
+                            <label for='o_passwd_2' style='display: inline-block; width: 250px;'>Please enter your old password :</label>
                             <input type='password' name='o_passwd_2' size='10'/>
                           </p>
                           <p>
-                            <label for='n_passwd'>Please enter your new password :</label>
+                            <label for='n_passwd' style='display: inline-block; width: 250px;'>Please enter your new password :</label>
                             <input type='password' name='n_passwd' size='10'/>
                           </p>
                           <p>
-                            <label for='n_passwd_confirmed'>Please confirm your new password :</label>
+                            <label for='n_passwd_confirmed' style='display: inline-block; width: 250px;'>Please confirm your new password :</label>
                             <input type='password' name='n_passwd_2' size='10'/>                      
                           </p>
                           <button onClick='document.formu.submit()'>Save</button>

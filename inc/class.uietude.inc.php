@@ -315,9 +315,10 @@ class uietude extends CommonFunctions
     		
         require_once('class.uipassword.inc.php');
         $uiPassword = new uipassword($configEtude,$this->m_ctrl);
-        if($uiPassword->passwordNeedChange()){
+        $sReasonForChange = $uiPassword->passwordNeedChange();
+        if($sReasonForChange!=""){
           $this->create_header();
-          echo $uiPassword->getChangeInterface();
+          echo $uiPassword->getChangeInterface($sReasonForChange);
           $this->create_footer();
         }else{ 
           require_once('class.uidashboard.inc.php');
@@ -341,7 +342,7 @@ class uietude extends CommonFunctions
         $html = $ui->getChangeInterface();
         $this->create_header();
         echo $html;
-        $this->create_footer();                
+        $this->create_footer();
    }
    
    public function subjectInterface()
