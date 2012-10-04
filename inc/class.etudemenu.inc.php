@@ -109,7 +109,7 @@ class etudemenu extends CommonFunctions
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //Final HTML
-    $menu = '<div id="mysite" class="divSideboxHeader" align="center"><span>ALIX EDC Demo</span></div>
+    $menu = '<div id="mysite" class="divSideboxHeader" align="center"><span>'. $this->m_tblConfig['APP_NAME'] .'</span></div>
              <div id="toolbar_ico">         
               <ul>
                 '.$enroll.'
