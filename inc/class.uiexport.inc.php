@@ -172,18 +172,6 @@ class uiexport extends CommonFunctions{
     
     return $htmlRet;
   }
-
-  /**
-  Produce a new data export. Rules are as follows :
-      1 file is produced per ItemGroup
-      Variables to be exported could be defined in the UI or/and the config file config.export.inc.php
-      CSV files are zipped and password protected in 1 file which is avaiable for download from UI
-  @author WLT - 09/12/2011
-  **/  
-  private function runExport($id,$type)
-  {
-    $this->m_ctrl->boexport()->export($id,$type);   
-  }
   
   function defineExport(&$id,$name,$description,$share,$raw){
     $errors = "";
