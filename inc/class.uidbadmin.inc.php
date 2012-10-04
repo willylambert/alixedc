@@ -441,38 +441,6 @@ class uidbadmin extends CommonFunctions{
                     <br/>";
       
       return $htmlRet;  
-  }  
-  
-  private function getExportInterface()
-  {
-    $htmlRet = "<h3>Data export</h3>";
-
-    //Links to process export, read from config file
-    foreach($this->m_tblConfig['EXPORT']['TYPE'] as $exportType=>$exportInfos){
-      $htmlRet .= "<div><a href='" . $GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
-                                                                              'action' => 'export','type'=>$exportType )) . "'>".$exportInfos['name']."</a></div>";
-      
-    }
-    
-    //On liste les exports déja réalisé
-    $tblExport = $this->m_ctrl->boexport()->getExportList();
-    
-    $htmlRet .= "<table><tr><th>Date</th><th>Type</th><th>User</th><th>Password</th><th>File</th></tr>";
-    
-    foreach($tblExport as $export){
-      $htmlRet .= "<tr>
-                    <td>{$export['exportdate']}</td>
-                    <td>{$export['exporttype']}</td>
-                    <td>{$export['exportuser']}</td>
-                    <td>{$export['exportpassword']}</td>
-                    <td><a target='new' href='". $GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uidbadmin.getExportFile',
-                                                                             'exportid' => $export['exportid'],
-                                                                             )) ."'>{$export['exportname']}</a></td>                   
-                   </tr>";
-    }
-    $htmlRet .= "</table>";
-      
-    return $htmlRet;  
   }
 
   private function getSandBoxInterface($query=""){
@@ -516,17 +484,6 @@ class uidbadmin extends CommonFunctions{
     $importFileType = $_GET['importFileType'];
     
     $this->m_ctrl->boimport()->getImportFile($exportId,$importFileType);
-  }
-
-/*
-@desc Produit un nouvel export des données. Les règles sont les suivantes :
-      1 fichier csv est généré par ItemGroup
-      Les variables à exporter sont indiquées dans le fichier de configuration
-      Les fichiers csv sont zippés dans un fichier qui s'ajoute à la liste des exports précédent (pas d'annule et remplace)  
-*/  
-  private function export($type)
-  {
-    $this->m_ctrl->boexport()->export($type);   
   }
 
 /**
