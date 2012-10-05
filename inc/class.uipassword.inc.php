@@ -138,26 +138,30 @@ class uipassword extends CommonFunctions
                     <div class='ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix'>
                       <span class='ui-dialog-title'>Change your password</span>
                     </div>
-                    $message
-                    <div style='color: #505001; margin: 10px; padding: 10px; text-align: left; background-color: #fefef5; border: 1px solid #383801; width: 350px;'>Your password must :<br />- be at least 6 characters long<br />- have at least one upper case letter<br />- have at least one lower case letter</div>
-                    <div style='color: #740101;'>$htmlErrors</div>
-                    <div class='ui-dialog-content ui-widget-content'>
-                      <div id='divFrmPasswd' class='ui-widget'>
-                        <form name='formu' action='".$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.changePasswordInterface','action'=>'changePassword'))."' method='post'>
-                          <p>
-                            <label for='o_passwd_2' style='display: inline-block; width: 250px;'>Please enter your old password :</label>
-                            <input type='password' name='o_passwd_2' size='10'/>
-                          </p>
-                          <p>
-                            <label for='n_passwd' style='display: inline-block; width: 250px;'>Please enter your new password :</label>
-                            <input type='password' name='n_passwd' size='10'/>
-                          </p>
-                          <p>
-                            <label for='n_passwd_confirmed' style='display: inline-block; width: 250px;'>Please confirm your new password :</label>
-                            <input type='password' name='n_passwd_2' size='10'/>                      
-                          </p>
-                          <button onClick='document.formu.submit()'>Save</button>
-                        </form>
+                    <div style='width: 600px; margin: auto;'>
+                      $message
+                      <div style='color: #505001; margin: 10px; padding: 10px; text-align: left; background-color: #fefef5; border: 1px solid #383801; width: 350px;'>Your password must :<br />- be at least 6 characters long<br />- have at least one upper case letter<br />- have at least one lower case letter</div>
+                      <div style='color: #740101;'>$htmlErrors</div>
+                      <div class='ui-dialog-content ui-widget-content'>
+                        <div id='divFrmPasswd' class='ui-widget'>
+                          <form name='formu' action='".$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.changePasswordInterface','action'=>'changePassword'))."' method='post'>
+                            <p>
+                              <label for='o_passwd_2' style='display: inline-block; width: 250px;'>Please enter your old password :</label>
+                              <input type='password' name='o_passwd_2' size='15'/>
+                            </p>
+                            <p>
+                              <label for='n_passwd' style='display: inline-block; width: 250px;'>Please enter your new password :</label>
+                              <input type='password' name='n_passwd' size='15'/>
+                            </p>
+                            <p>
+                              <label for='n_passwd_confirmed' style='display: inline-block; width: 250px;'>Please confirm your new password :</label>
+                              <input type='password' name='n_passwd_2' size='15'/>                      
+                            </p>
+                            <div style='text-align: center;'>
+                              <button onClick='document.formu.submit()' class='ui-state-default ui-corner-all' style='width: 100px;'>Save</button>
+                            </div>
+                          </form>
+                        </div>
                       </div>
                     </div>
                   </div>";
