@@ -36,8 +36,8 @@ class boacl extends CommonFunctions
 /**************************************************** Accessors User/Profile ****************************************************/
 
   /**
-  * Test if the user has the specified Profile (INV, CRA, DM, ...) for the specified Site 
-  * @param profileId to test, could be an array of profileId or a comma separated list of profileId
+  * Test if the user has the specified Profile (CRT, INV, CRA, DM, ...) for the specified Site 
+  * @param profileIds to test, could be an array of profileId or a comma separated list of profileId
   * @param optional $userId 
   * @param optional $siteId
   * @return boolean
@@ -75,7 +75,7 @@ class boacl extends CommonFunctions
   * Get the default profileId for the specified user and siteId
   * @param optional $userId if empty, get default profile of the current user
   * @param optional $siteId if empty, get default profile of the user
-  * @return string profileId (ARC, INV, DM) or false if no profile found
+  * @return string profileId (CRT, INV, ARC, DM) or false if no profile found
   * @author tpi
   **/ 
   public function getUserProfileId($userId="", $siteId=""){

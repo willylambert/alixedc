@@ -72,7 +72,7 @@
     </xsl:if>
     
     <!-- CRA and DM do not see empty annotations-->
-    <xsl:if test="$ProfileId='INV' or ($FlagValue!='' or $Comment!='')">
+    <xsl:if test="($ProfileId='CRT' or $ProfileId='INV') or ($FlagValue!='' or $Comment!='')">
     
   	 <xsl:if test="not(contains($Role,'NOAN'))">
       	  <!--Previous values-->

@@ -53,7 +53,7 @@
        <xsl:apply-templates/>
    </xsl:copy>
    &#0160;
-   <xsl:if test="$ProfileId='INV'">
+   <xsl:if test="($ProfileId='INV' or $ProfileId='CRT')">
     <img src="alixedc/templates/default/images/calendar.gif" class="pointer" value="Calendar" onclick="showCalendarVisit(this)" />
    </xsl:if>
    <script>

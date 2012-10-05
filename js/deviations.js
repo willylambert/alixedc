@@ -179,7 +179,7 @@ function getDeviationFormHTML(CurrentApp,ProfileId,DeviationId){
     html += "<div class='DeviationFormHeader'>"+ ItemTitle +"</div>";
     html += "<div class='DeviationFormContent'>";
     html += "<div><b>Description :</b> <textarea style='vertical-align:text-top;' id='deviationDescription_"+ DeviationId +"' rows='10' cols='70'>"+ Description +"</textarea></div>";
-    if(ProfileId=="INV" && Status!="C"){
+    if((ProfileId=="CRT" || ProfileId=="INV") && Status!="C"){
       html += "<div class='DeviationFormButtons'><button class='ui-state-default ui-corner-all' onClick=\"hideDeviationForm("+ DeviationId +")\">Cancel</button><button id='deleteDeviationButton_"+ DeviationId +"' class='ui-state-default ui-corner-all' onClick=\"saveDeviationForm('"+CurrentApp+"','"+ProfileId+"',"+ DeviationId +",'C')\">Delete</button><button id='saveDeviationButton_"+ DeviationId +"' class='ui-state-default ui-corner-all' onClick=\"saveDeviationForm('"+CurrentApp+"','"+ProfileId+"',"+ DeviationId +",'U')\">Save</button></div>";
     }
     html += "</div>";

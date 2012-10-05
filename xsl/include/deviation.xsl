@@ -39,7 +39,7 @@
   	<xsl:param name="FormOID"/>
   	<xsl:param name="FormRepeatKey"/>
     
-    <xsl:if test="$ProfileId='INV' or $ProfileId='DM'">
+    <xsl:if test="$ProfileId='CRT' or $ProfileId='INV' or $ProfileId='DM'">
   
       <!--On doit modifier les OID, car à la soumission d'un formulaire les navigateurs remplacent les "." par des "_" -->
     	<xsl:variable name="ItemOID" select="translate($ItemOID,'.','-')"/>

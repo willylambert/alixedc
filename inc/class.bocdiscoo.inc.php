@@ -68,7 +68,7 @@ class bocdiscoo extends CommonFunctions
         $hasModif = true;
         
         //Flag (ND/NA/Comment) CANNOT be updated at the same time than SDV check
-        //Because INV => Flag and CRA => SDV.  
+        //Because CRT or INV => Flag and CRA => SDV.  
         if($sdv=='on'){
           $sdvFlag = "<Flag>
                         <FlagValue CodeListOID='ANNOTSDV'>Y</FlagValue> 
@@ -217,7 +217,7 @@ class bocdiscoo extends CommonFunctions
           (
            !isset($Item->PreviousItemValue) ||
            isset($Item->PreviousItemValue) && 
-           $profileId=="INV" && (string)($Item->PreviousItemValue) != (string)($tblFilledVar["{$Item['ItemOID']}"]) || 
+           ($profileId=="CRT" || $profileId=="INV") && (string)($Item->PreviousItemValue) != (string)($tblFilledVar["{$Item['ItemOID']}"]) || 
            $bAnnotationModif
           ) || 
           !isset($tblFilledVar["{$Item['ItemOID']}"]) && $bEraseNotFoundItem 
@@ -225,11 +225,11 @@ class bocdiscoo extends CommonFunctions
       {
         $this->addLog("bocdiscoo->addItemData() Adding ItemData={$Item['ItemOID']} PreviousItemValue=".$Item->PreviousItemValue." Value=".$tblFilledVar["{$Item['ItemOID']}"],INFO);
 
-        //Data update are only authorized for INV
+        //Data update are only authorized for CRT and INV
         //So the Item value is unchanged
         //Also if sdv is checked, value cannot be updated
         //Also if a method is specified, value is set by the computeDerivedItem Method
-        if($profileId!='INV' || $sdv=='on' || $Item['MethodOID']!=''){
+        if(($profileId!="CRT" && $profileId!="INV") || $sdv=='on' || $Item['MethodOID']!=''){
           $tblFilledVar["{$Item['ItemOID']}"] = $Item->PreviousItemValue;   
         }
 

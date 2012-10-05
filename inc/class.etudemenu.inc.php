@@ -38,9 +38,9 @@ class etudemenu extends CommonFunctions
     $profile = $this->m_ctrl->boacl()->getUserProfile("",$siteId);
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //Button: Inclusion (investigators only)
+    //Button: Inclusion (CRT and INV only)
     $enroll = "";
-    if($this->m_ctrl->boacl()->existUserProfileId("INV")){
+    if($this->m_ctrl->boacl()->existUserProfileId(array("CRT","INV"))){
       $enroll = '<a id="addSubj" name="enroll" href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.subjectInterface',
                                                                          'MetaDataVersionOID' => $this->m_tblConfig["METADATAVERSION"],
                                                                          'SubjectKey' => $this->m_tblConfig['BLANK_OID'],

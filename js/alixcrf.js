@@ -270,7 +270,7 @@ function loadAlixCRFjs(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepe
   initDyn(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey,ProfileId);
   
   //Handle of "Quit without saving"
-  if(ProfileId=='INV'){
+  if(ProfileId=="CRT" || ProfileId=="INV"){
     $("a").click(function(){
       if($(this).attr('href')!="javascript:void(0)" && $(this).attr('href')!="#")
       {
@@ -306,8 +306,8 @@ function loadAlixCRFjs(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepe
     });
   }
   
-  //Only investigators can update CRFs values (fields and annotations)
-  if(ProfileId!='INV' || FormStatus=='FROZEN'){
+  //Only CRT and INV can update CRFs values (fields and annotations)
+  if((ProfileId!="CRT" && ProfileId!="INV") || FormStatus=="FROZEN"){
     try{
       //the map() are to create inputs, hidden and not disabled, necessary to save SDV data
       //todo: maybe clean code (readability) with the creation of a new function named "createHiddenFieldsForSDV", maybe called in .map()

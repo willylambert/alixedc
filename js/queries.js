@@ -48,7 +48,7 @@ function showQueries(CurrentApp,SubjectKey,StudyEventOID,StudyEventRepeatKey,For
 	
 	//Les queries à afficher dépendent du profile
 	queryStatus = "O";
-	if(ProfileId=="INV"){
+	if(ProfileId=="CRT" || ProfileId=="INV"){
 	  queryStatus = "O,P";
 	}else{
 	  queryStatus = "O,A,R,P";
@@ -253,7 +253,7 @@ function saveQueryForm(CurrentApp,ProfileId,QueryId){
             queriesList[data.QUERYID] = data; //mise en cache
             hideQueryForm(QueryId,true); //on cache puis supprime le bloc d'édition : il sera recréé automatiquement quand demandé
             
-            if(ProfileId=="INV" && data.QUERYSTATUS=="A"//pour les investigateurs, on cache la querie CONFIRMED (A)
+            if((ProfileId=="CRT" || ProfileId=="INV") && data.QUERYSTATUS=="A"//for CRT and INV we hide the query CONFIRMED (A)
               || data.QUERYSTATUS=="C"//on cache la querie CLOSED (C)
               ){
               $("#query_"+QueryId).hide(0); //first: we just hide the query to enable motion of post-its
@@ -297,13 +297,16 @@ function getNextStatuses(QueryStatus,QueryOrigin,ProfileId){
   newStatuses = [];
   //les statuts accessibles dépendent des droits de l'utilisateur, du statut actuel de la query, et de comment la query a été ouverte (manuellement par un ARC ou automatiquement par le CRF)
   //O : OPEN, query ouverte (manuellement par un ARC, ou automatiquement par le CRF)
-  //R : RESOLVED, valeur modifiée par l'investigateur (non source d'incohérence)
-  //A : CONFIRMED, valeur confirmée par l'investigateur
+  //R : RESOLVED, valeur modifiée par l'investigateur ou le TEC (non source d'incohérence)
+  //A : CONFIRMED, valeur confirmée par l'investigateur ou le TEC
   //P : RESOLUTION PROPOSED, proposition de correction par l'ARC (sur queries ouvertes automatiquement par le CRF)
   //C : CLOSED, query fermée
   switch(QueryStatus){
     case 'O':
         switch(ProfileId){
+          case 'CRT':
+            newStatuses = ['A'];
+            break;
           case 'INV':
             newStatuses = ['A'];
             break;
@@ -318,6 +321,9 @@ function getNextStatuses(QueryStatus,QueryOrigin,ProfileId){
       break;
     case 'A':
         switch(ProfileId){
+          case 'CRT':
+            newStatuses = [];
+            break;
           case 'INV':
             newStatuses = [];
             break;
@@ -328,6 +334,9 @@ function getNextStatuses(QueryStatus,QueryOrigin,ProfileId){
       break;
     case 'P':
         switch(ProfileId){
+          case 'CRT':
+            newStatuses = ['A'];
+            break;
           case 'INV':
             newStatuses = ['A'];
             break;
@@ -338,6 +347,9 @@ function getNextStatuses(QueryStatus,QueryOrigin,ProfileId){
       break;
     case 'R':
         switch(ProfileId){
+          case 'CRT':
+            newStatuses = [];
+            break;
           case 'INV':
             newStatuses = [];
             break;
@@ -348,6 +360,9 @@ function getNextStatuses(QueryStatus,QueryOrigin,ProfileId){
       break;
     case 'C':
         switch(ProfileId){
+          case 'CRT':
+            newStatuses = [];
+            break;
           case 'INV':
             newStatuses = [];
             break;

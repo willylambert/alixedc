@@ -110,6 +110,7 @@ class uisites extends CommonFunctions
                     		<input type='text' name='siteName' id='siteName' class='text ui-widget-content ui-corner-all' />
                     		<label for='siteProfileId'>Site profile Id</label>
                     		<select name='siteProfileId'>
+                    		  <option value='CRT'>Technician</option>
                     		  <option value='INV'>Investigator</option>
                     		  <option value='CRA'>CRA</option>
                     		  <option value='DM'>Data Manager</option>

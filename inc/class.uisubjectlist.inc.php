@@ -67,10 +67,10 @@ class uisubjectlist extends CommonFunctions
                       'Orientation' => $col['Orientation']);
     }
     
-    //INV, ARC and DM can download PDF
+    //CRT, INV, ARC and DM can download PDF
     $bShowPDF = false;
     $bShowProfile = false;
-    if($this->m_ctrl->boacl()->existUserProfileId(array("DM","CRA","INV"))){
+    if($this->m_ctrl->boacl()->existUserProfileId(array("DM","CRA","INV","CRT"))){
       $bShowPDF = true;
       $bShowProfile = true;
     }
