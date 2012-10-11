@@ -204,14 +204,13 @@ class uidbadmin extends CommonFunctions{
     if($this->m_ctrl->boacl()->checkModuleAccess("viewDocs||importDoc")){
       if($this->m_ctrl->boacl()->checkModuleAccess("viewDocs"))
       {
-        $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
-  				                                                                        'container' => 'ClinicalData',
-                                                                                  'action' => 'viewDocs'),
-                                            "ClinicalData");
-        $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
-  				                                                                        'container' => 'MetaDataVersion',
-                                                                                  'action' => 'viewDocs'),      
-                                            "MetaData");
+        $collections = $this->m_ctrl->socdiscoo()->getCollections();
+        foreach($collections as $collection){
+          $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
+    				                                                                        'container' => $collection,
+                                                                                    'action' => 'viewDocs'),
+                                              "Collection: ".$collection);
+        }
         $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',  				                                                                      
                                                                                   'action' => 'initDB'),      
                                             "Init XML Database");
@@ -265,7 +264,7 @@ class uidbadmin extends CommonFunctions{
       $menu .= $this->getSubMenu("Design", $submenu);
     }
 
-    if($this->m_ctrl->boacl()->checkModuleAccess("ExportData||importDoc"))
+    if($this->m_ctrl->boacl()->checkModuleAccess("ExportData||importDoc||LockData"))
     {
       $submenu = "";
       
@@ -278,6 +277,12 @@ class uidbadmin extends CommonFunctions{
       {
         $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.exportInterface'),
                                         "Data export");  
+      }
+
+      if($this->m_ctrl->boacl()->checkModuleAccess("LockDB"))
+      {
+        $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.lockdbInterface'),
+                                        "Data locks");  
       }
                                           
       $menu .= $this->getSubMenu("Clinical data", $submenu);                                                                                                                     

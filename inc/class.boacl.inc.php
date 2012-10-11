@@ -181,22 +181,23 @@ class boacl extends CommonFunctions
     foreach($moduleNames as $moduleName){
       switch($moduleName)
       {
-        case "importDoc" :
-        case "deleteDoc" :
-        case "viewDocs" :
-        case "ManageUsers" :
-        case "ManageSites" :
+        case "importDoc" : //importing documents such as the BLANK, Subjects and Metadata into the database
+        case "deleteDoc" : //deleting documents such as the BLANK, Subjects and Metadata from the database
+        case "viewDocs" : //viewing the content of documents such as the BLANK, Subjects and Metadata from the database
+        case "ManageUsers" : //adding, modifying and deleting users and profiles
+        case "ManageSites" : //adding, modifying and deleting sites
+        case "LockDB" : //locking and unlocking database modifications for everyone
            if( $GLOBALS['egw_info']['user']['apps']['admin']){
              $access = true; 
            }
            break;
-        case "EditDocs" :
+        case "EditDocs" : //editing and modifying content of the database documents and the custom scripts
            if( $GLOBALS['egw_info']['user']['apps']['admin'] || 
               $this->m_ctrl->boacl()->existUserProfileId(array("DM"))){
              $access = true; 
            }
            break;
-        case "ExportData" :
+        case "ExportData" : //exporting clinical data
            if($GLOBALS['egw_info']['user']['apps']['admin'] || 
               $this->m_ctrl->boacl()->existUserProfileId(array("DM","SPO"))){
              $access = true; 

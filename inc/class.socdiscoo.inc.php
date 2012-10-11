@@ -33,7 +33,7 @@ class socdiscoo extends CommonFunctions
   var $user;
   var $password;
   var $odm_declaration;
-  var $collections = array("ClinicalData", "MetaDataVersion");
+  var $collections = array("ClinicalData", "MetaDataVersion", "MetaLocks");
   
   function socdiscoo(&$tblConfig)
   {                
@@ -294,7 +294,7 @@ class socdiscoo extends CommonFunctions
       $xml->formatOutput = true;
       $string = $xml->saveXML();
       if($string!="")
-      {     
+      {
         /* Remove the document */
         $this->deleteDocument($collection,$fileOID);
         
@@ -304,6 +304,7 @@ class socdiscoo extends CommonFunctions
             $str = "Could not load the document '$fileOID' in collection '$collection': " . sedna_error() ." (". __METHOD__ .")";
             $this->addLog($str,FATAL);
           }
+      $this->dumpPre(str_replace(array("<",">"),array("&lt;","&gt;"),$string));
         }else{
           if(!sedna_load($string, $fileOID)){
             $str = "Could not load the document '$fileOID': " . sedna_error() ." (". __METHOD__ .")";
@@ -464,4 +465,12 @@ class socdiscoo extends CommonFunctions
     
     return $results;
   }
+  
+  /**
+   * return array of collections names
+   * @author: TPI
+   */
+  public function getCollections(){
+    return $this->collections;
+  }        
 }

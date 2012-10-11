@@ -362,6 +362,13 @@ function loadAlixCRFjs(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepe
         $(this).attr('name', $(this).attr('name') +"_display");
         $(this.form).append(hiddenInput); //must be affected to the form
       });
+      //annotations
+      $("div[id^=annotation] input[type=radio]").attr("disabled","disabled").map(function() { //we add an hidden field, necessary to update the ItemData in ODM when SDV value is modified
+        var hiddenInput = $(this).clone().removeAttr('disabled').attr('type', 'hidden');
+        $(this).attr('name', $(this).attr('name') +"_display");
+        $(this.form).append(hiddenInput); //must be affected to the form
+      });
+      $("div[id^=annotation] textarea").attr("readonly","readonly");
     }catch(e){
       alert(e.message);
     }

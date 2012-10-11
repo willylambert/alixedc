@@ -40,6 +40,7 @@ class uietude extends CommonFunctions
 		'editorInterface' => True,
 		'exportInterface' => True,
 		'lockInterface' => True,
+		'lockdbInterface' => True,
 		'logout' => True,
 		'preferencesInterface' => True,
 		'queriesInterface' => True,
@@ -161,6 +162,19 @@ class uietude extends CommonFunctions
         $this->create_header($bBuffer);
         echo $ui->getInterface();
 		    $this->create_footer($bBuffer);  
+   }
+
+   public function lockdbInterface()
+   {
+        require_once('class.uilockdb.inc.php');
+        global $configEtude;
+        $ui = new uilockdb($configEtude,$this->m_ctrl);
+        
+        $GLOBALS['egw_info']['flags']['app_header'];
+        
+        $this->create_header();
+        echo $ui->getInterface();
+		    $this->create_footer();  
    }
    
    public function dashboardInterface()
@@ -444,6 +458,13 @@ class uietude extends CommonFunctions
      
    public function lockInterface()
    {
+        if( !isset($_GET['SubjectKey']) ||
+            !isset($_GET['StudyEventOID']) ||
+            !isset($_GET['StudyEventRepeatKey']) ||
+            !isset($_GET['FormOID']) ||
+            !isset($_GET['FormRepeatKey']) ||
+            !isset($_GET['FormStatus'])) $this->m_ctrl->addLog(__METHOD__ ." Missing keys in ". print_r($_GET, true),FATAL);
+        
         require_once('class.uisubject.inc.php');
         
         $SubjectKey = $_GET['SubjectKey'];

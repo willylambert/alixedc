@@ -102,8 +102,7 @@
           <xsl:if test="$ShowFlag">
             <xsl:element name='span'>
             	<xsl:attribute name="id"><xsl:value-of select="concat($DivId,'_flagvalue')"/></xsl:attribute>
-              <xsl:value-of select="$FlagValue"/>&#160;
-            </xsl:element>
+              <xsl:value-of select="$FlagValue"/>&#160;</xsl:element><!--tpi: keep this /xsl:element here, otherwise I don't know why but extra spaces appears here when SDVcheck=Y-->
           </xsl:if>
           <a href="javascript:void(0)">
             <xsl:element name='span'>
@@ -115,59 +114,70 @@
               &#0160;
             </xsl:element>
           </a>
-          <div id="{$DivId}" initialized='false' class='dialog-annotation TransactionType{$CurrentTransactionType}' title='{$Title}' style="display:none;">
-            <input type="radio" name='annotation-flag' value="Ø">
-               <xsl:attribute name="onClick">updateFlag('<xsl:value-of select="$ItemOID"/>','<xsl:value-of select="$CurrentItemGroupOID"/>','<xsl:value-of select="$CurrentItemGroupRepeatKey"/>',this.value,false,false)</xsl:attribute>
-               <!--Mémo : l'utilisation du onChange a ici été abandonnée, le comportement étant différent selon les navigateurs-->
-            	 <xsl:attribute name="value">Ø</xsl:attribute>
-            	 <xsl:if test="'Ø'=$FlagValue">
-            	   <xsl:attribute name="checked">true</xsl:attribute>
-               </xsl:if>
-            </input>
-            Ø (No comment)
-            <br />
-          	<input type="radio" name='annotation-flag' value="UNK">
-               <xsl:attribute name="onClick">updateFlag('<xsl:value-of select="$ItemOID"/>','<xsl:value-of select="$CurrentItemGroupOID"/>','<xsl:value-of select="$CurrentItemGroupRepeatKey"/>',this.value,false,false)</xsl:attribute>
-            	 <xsl:if test="'UNK'=$FlagValue">
-            	   <xsl:attribute name="checked">true</xsl:attribute>
-               </xsl:if>
-            </input>
-            UNK (unknown)
-            <br />
-          	<input type="radio" name='annotation-flag' value="ND">
-               <xsl:attribute name="onClick">updateFlag('<xsl:value-of select="$ItemOID"/>','<xsl:value-of select="$CurrentItemGroupOID"/>','<xsl:value-of select="$CurrentItemGroupRepeatKey"/>',this.value,false,<xsl:choose><xsl:when test="boolean($DataType='partialDate')">true</xsl:when><xsl:otherwise>false</xsl:otherwise></xsl:choose>)</xsl:attribute>
-            	 <xsl:if test="'ND'=$FlagValue">
-            	   <xsl:attribute name="checked">true</xsl:attribute>
-               </xsl:if>
-            </input>
-            ND (Not Done or Missing)
-            <br />
-          	<input type="radio" name='annotation-flag' value="NA">
-               <xsl:attribute name="onClick">updateFlag('<xsl:value-of select="$ItemOID"/>','<xsl:value-of select="$CurrentItemGroupOID"/>','<xsl:value-of select="$CurrentItemGroupRepeatKey"/>',this.value,false,false)</xsl:attribute>
-            	 <xsl:if test="'NA'=$FlagValue">
-            	   <xsl:attribute name="checked">true</xsl:attribute>
-               </xsl:if>
-            </input>
-               NA (Not Applicable)
-            <br />                 
-            <xsl:element name="textarea">
-              <xsl:attribute name="cols">43</xsl:attribute>
-              <xsl:attribute name="rows">3</xsl:attribute>
-              <xsl:attribute name="class">inputText</xsl:attribute>
-              <!-- Le textarea ne sort pas du DOM du form
-              <xsl:attribute name="name">annotation_comment_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/></xsl:attribute>
-              -->
-              <xsl:attribute name="onChange">$("input:[name='annotation_comment_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/>']").val(this.value);</xsl:attribute>              	              <xsl:if test="string-length($Comment)=0">&#160;</xsl:if>
-              <xsl:value-of select="$Comment"/>
-            </xsl:element>
-          </div>
-          
-          <script type="text/javascript">            
-            //sans attendre la fin de chargement de la page : on verrouille les champs de saisies si le flag est différent de Ø
-            $(document).ready(function(){
-                    updateFlag('<xsl:value-of select="$ItemOID"/>','<xsl:value-of select="$CurrentItemGroupOID"/>','<xsl:value-of select="$CurrentItemGroupRepeatKey"/>','<xsl:value-of select="$FlagValue"/>', true, <xsl:choose><xsl:when test="$FlagValue='ND' and boolean($DataType='partialDate')">true</xsl:when><xsl:otherwise>false</xsl:otherwise></xsl:choose>);
-            });            
-          </script>
+          <xsl:choose>
+            <xsl:when test="$SDVcheck!='Y'"><!--the form cannot be modified if SDV is checked-->
+              <div id="{$DivId}" initialized='false' class='dialog-annotation TransactionType{$CurrentTransactionType}' title='{$Title}' style="display:none;">
+                <input type="radio" name='annotation-flag' value="Ø">
+                   <xsl:attribute name="onClick">updateFlag('<xsl:value-of select="$ItemOID"/>','<xsl:value-of select="$CurrentItemGroupOID"/>','<xsl:value-of select="$CurrentItemGroupRepeatKey"/>',this.value,false,false)</xsl:attribute>
+                   <!--Mémo : l'utilisation du onChange a ici été abandonnée, le comportement étant différent selon les navigateurs-->
+                	 <xsl:attribute name="value">Ø</xsl:attribute>
+                	 <xsl:if test="'Ø'=$FlagValue">
+                	   <xsl:attribute name="checked">true</xsl:attribute>
+                   </xsl:if>
+                </input>
+                Ø (No comment)
+                <br />
+              	<input type="radio" name='annotation-flag' value="UNK">
+                   <xsl:attribute name="onClick">updateFlag('<xsl:value-of select="$ItemOID"/>','<xsl:value-of select="$CurrentItemGroupOID"/>','<xsl:value-of select="$CurrentItemGroupRepeatKey"/>',this.value,false,false)</xsl:attribute>
+                	 <xsl:if test="'UNK'=$FlagValue">
+                	   <xsl:attribute name="checked">true</xsl:attribute>
+                   </xsl:if>
+                </input>
+                UNK (unknown)
+                <br />
+              	<input type="radio" name='annotation-flag' value="ND">
+                   <xsl:attribute name="onClick">updateFlag('<xsl:value-of select="$ItemOID"/>','<xsl:value-of select="$CurrentItemGroupOID"/>','<xsl:value-of select="$CurrentItemGroupRepeatKey"/>',this.value,false,<xsl:choose><xsl:when test="boolean($DataType='partialDate')">true</xsl:when><xsl:otherwise>false</xsl:otherwise></xsl:choose>)</xsl:attribute>
+                	 <xsl:if test="'ND'=$FlagValue">
+                	   <xsl:attribute name="checked">true</xsl:attribute>
+                   </xsl:if>
+                </input>
+                ND (Not Done or Missing)
+                <br />
+              	<input type="radio" name='annotation-flag' value="NA">
+                   <xsl:attribute name="onClick">updateFlag('<xsl:value-of select="$ItemOID"/>','<xsl:value-of select="$CurrentItemGroupOID"/>','<xsl:value-of select="$CurrentItemGroupRepeatKey"/>',this.value,false,false)</xsl:attribute>
+                	 <xsl:if test="'NA'=$FlagValue">
+                	   <xsl:attribute name="checked">true</xsl:attribute>
+                   </xsl:if>
+                </input>
+                   NA (Not Applicable)
+                <br />                 
+                <xsl:element name="textarea">
+                  <xsl:attribute name="cols">43</xsl:attribute>
+                  <xsl:attribute name="rows">3</xsl:attribute>
+                  <xsl:attribute name="class">inputText</xsl:attribute>
+                  <!-- Le textarea ne sort pas du DOM du form
+                  <xsl:attribute name="name">annotation_comment_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/></xsl:attribute>
+                  -->
+                  <xsl:attribute name="onChange">$("input:[name='annotation_comment_<xsl:value-of select="$ItemOID"/>_<xsl:value-of select="$CurrentItemGroupOID"/>_<xsl:value-of select="$CurrentItemGroupRepeatKey"/>']").val(this.value);</xsl:attribute>              	              <xsl:if test="string-length($Comment)=0">&#160;</xsl:if>
+                  <xsl:value-of select="$Comment"/>
+                </xsl:element>
+              </div>
+              
+              <script type="text/javascript">            
+                //sans attendre la fin de chargement de la page : on verrouille les champs de saisies si le flag est différent de Ø
+                $(document).ready(function(){
+                        updateFlag('<xsl:value-of select="$ItemOID"/>','<xsl:value-of select="$CurrentItemGroupOID"/>','<xsl:value-of select="$CurrentItemGroupRepeatKey"/>','<xsl:value-of select="$FlagValue"/>', true, <xsl:choose><xsl:when test="$FlagValue='ND' and boolean($DataType='partialDate')">true</xsl:when><xsl:otherwise>false</xsl:otherwise></xsl:choose>);
+                });            
+              </script>
+            </xsl:when>
+            <xsl:otherwise>
+              <div id="{$DivId}" initialized='false' class='dialog-annotation TransactionType{$CurrentTransactionType}' title='{$Title}' style="display:none;">
+                <b>Flag:</b>&#0160;<xsl:value-of select="$FlagValue"/>
+                <br /><br />
+                <b>Comment:</b>&#0160;<xsl:value-of select="$Comment"/>
+              </div>
+            </xsl:otherwise>
+          </xsl:choose>
      </xsl:if>
      
     </xsl:if>    
