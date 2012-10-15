@@ -1675,7 +1675,7 @@ class bocdiscoo extends CommonFunctions
    **/     
   function getStudyEventForms($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$includeAuditTrail=false,$paginateStart=0,$paginateEnd=0)
   {
-    $this->addLog(__METHOD__."($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey)",INFO);
+    $this->addLog(__METHOD__."($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$includeAuditTrail,$paginateStart,$paginateEnd)",INFO);
 
     //Depending of the form, additionnal item could be retrieved - see config.inc.php
     $customQueryLet = "";

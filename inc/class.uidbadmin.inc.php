@@ -249,18 +249,27 @@ class uidbadmin extends CommonFunctions{
       $menu .= $this->getSubMenu("Accounts", $submenu);
     }
 
-    if($this->m_ctrl->boacl()->checkModuleAccess("EditDocs"))
-    {
+    if($this->m_ctrl->boacl()->checkModuleAccess("Configuration||EditDocs")){
       $submenu = "";
       
-      $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.editorInterface',
-			                                                                        'action' => ''),
-                                        "Editor");
+      if($this->m_ctrl->boacl()->checkModuleAccess("Configuration"))
+      {
+        $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.configInterface',
+  			                                                                        'action' => ''),
+                                          "Configuration");
+      }
       
-      $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.annotatedCRF',
-			                                                                        'action' => ''),
-                                        "Annotated CRF");
-                                          
+      if($this->m_ctrl->boacl()->checkModuleAccess("EditDocs"))
+      {
+        $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.editorInterface',
+  			                                                                        'action' => ''),
+                                          "Editor");
+        
+        $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.annotatedCRF',
+  			                                                                        'action' => ''),
+                                          "Annotated CRF");
+      }
+                                      
       $menu .= $this->getSubMenu("Design", $submenu);
     }
 
@@ -328,27 +337,7 @@ class uidbadmin extends CommonFunctions{
   {
       $containerName = $_GET['container'];
       
-      if($containerName!=""){
-        $query = "<docs>
-                  {
-                    for \$doc in document('\$documents')/documents/collection[@name='$containerName']/document
-                    return 
-                    <doc>{\$doc/string(@name)}</doc>
-                  }
-                  </docs>
-                  ";
-      }else{
-        $query = "<docs>
-                  {
-                    for \$doc in document('\$documents')/documents/document
-                    return 
-                    <doc>{\$doc/string(@name)}</doc>
-                  }
-                  </docs>
-                  ";
-      }
-
-      $docs = $this->m_ctrl->socdiscoo()->query($query);
+      $docs = $this->m_ctrl->socdiscoo()->getDocumentsList($containerName);
             
       $htmlRet = '
             	<div class="divSideboxHeader" align="center"><span>'.$containerName.'</span></div>';
@@ -365,7 +354,7 @@ class uidbadmin extends CommonFunctions{
       // Enable user error handling
       libxml_use_internal_errors(true);
       
-      foreach($docs[0] as $doc)
+      foreach($docs as $doc)
       {
         $status = "ok";
         $xml = $this->m_ctrl->socdiscoo()->getDocument($containerName, $doc, false);
@@ -396,7 +385,7 @@ class uidbadmin extends CommonFunctions{
       }
       
       $htmlRet .= "</tbody></table>";
-      $nbDocs = count($docs[0]);
+      $nbDocs = count($docs);
       $htmlRet .= $nbDocs ." document". ($nbDocs>1?"s":"");
       
       $htmlRet .= "<form action='".$GLOBALS['egw']->link('/index.php',array('menuaction' => $GLOBALS['egw_info']['flags']['currentapp'].'.uietude.dbadminInterface',
@@ -571,9 +560,29 @@ class uidbadmin extends CommonFunctions{
         $html .= "<li>adding {$_FILES['uploadedDoc']['name']}...</li>";
         $fileOID = $this->m_ctrl->socdiscoo()->addDocument($uploadfile,false,$containerName);
       }catch(Exception $e){
-          //maybe the document already existing, we will try to replace it
-          $html .= "<li>document already imported, replacing...</li>";
-          $fileOID = $this->m_ctrl->socdiscoo()->replaceDocument($uploadfile,false,$containerName);
+        if(sedna_ercls()=="SE2004"){ //SE2004 = Document with the same name already exists in the collection.
+          try{
+            $html .= "<li>document already imported, replacing...</li>";
+            $fileOID = $this->m_ctrl->socdiscoo()->replaceDocument($uploadfile,false,$containerName);
+          }catch(Exception $e){
+            $this->addLog(__METHOD__." ".$e->getMessage(), FATAL);
+          }
+        }else{
+          if(sedna_ercls()=="SE2003"){ //SE2003 = No collection with this name.
+            try{
+              //Database initialization
+              $html .= "<li>oups, it appears that the database wasn't initialized. Initializing database...</li>";
+              $this->initDB();
+              //Try again to add the document
+              $html .= "<li>adding {$_FILES['uploadedDoc']['name']}...</li>";
+              $fileOID = $this->m_ctrl->socdiscoo()->addDocument($uploadfile,false,$containerName);
+            }catch(Exception $e){
+              $this->addLog(__METHOD__." ".$e->getMessage(), FATAL);
+            }
+          }else{
+            $this->addLog(__METHOD__." ".$e->getMessage(), FATAL);
+          }
+        }
       }
       $html .= "<li>import successfull !</li>";
       $html .= "</ul>";

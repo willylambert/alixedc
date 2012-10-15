@@ -69,7 +69,10 @@ class uisubject extends CommonFunctions
       //Get Form Data / without design      
       $xml = $this->m_ctrl->bocdiscoo()->getStudyEventForms($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,false,$paginateStart,$paginateEnd);    
       
-      $FormTag = $xml->getElementsByTagName("Form");  
+      $FormTag = $xml->getElementsByTagName("Form");
+      if($FormTag->length==0){
+        $this->addLog(__METHOD__." Form not found. Are the Subject/BLANK and MetaDataVersion documents with matching MetaDataVersionOID available ?", FATAL);
+      }
       $FormTitle = $FormTag->item(0)->getAttribute("Title");
 
       $StudyEventTag = $xml->getElementsByTagName("StudyEvent");  

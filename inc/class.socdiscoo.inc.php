@@ -35,6 +35,10 @@ class socdiscoo extends CommonFunctions
   var $odm_declaration;
   var $collections = array("ClinicalData", "MetaDataVersion", "MetaLocks");
   
+  /**
+   * Constructor
+   * @param $tblConfig alix paremeters
+   */        
   function socdiscoo(&$tblConfig)
   {                
       CommonFunctions::__construct($tblConfig,null);
@@ -51,16 +55,28 @@ class socdiscoo extends CommonFunctions
 
   /*
     Intialize database connection
+    @param $dbcontext PROD, TEST, EXPORT
     @author tpi  
   */
-  function initContext(){
+  private function initContext($dbcontext=""){
     /* Don't print anything. We'll handle errors ... */
     ini_set("sedna.verbosity","0");
     
+    //Management of the different access modes (test, export)
+    if($dbcontext=="" && isset($_SESSION[$this->getCurrentApp(false)]['testmode']) && $_SESSION[$this->getCurrentApp(false)]['testmode']){
+      $context = "TEST";
+    }else{
+      if($dbcontext==""){
+        $context = "PROD";
+      }else{
+        $context = $dbcontext;
+      }
+    }
+    
     $this->host      = $this->m_tblConfig['SEDNA_HOST'];
-    $this->database  = $this->m_tblConfig['SEDNA_DATABASE'];
-    $this->user      = $this->m_tblConfig['SEDNA_USER'];
-    $this->password  = $this->m_tblConfig['SEDNA_PASSWORD'];
+    $this->database  = $this->m_tblConfig['SEDNA_'.$context.'_DATABASE'];
+    $this->user      = $this->m_tblConfig['SEDNA_'.$context.'_USER'];
+    $this->password  = $this->m_tblConfig['SEDNA_'.$context.'_PASSWORD'];
     $this->odm_declaration = "declare namespace odm = '".$this->m_tblConfig['SEDNA_NAMESPACE_ODM']."';";
     
     $this->conn = sedna_connect($this->host,$this->database,$this->user,$this->password);
@@ -69,6 +85,14 @@ class socdiscoo extends CommonFunctions
       $str = "Could not connect to database: ".$this->database."\n" . sedna_error() ." (". __METHOD__ .")";
       $this->addLog($str,FATAL);
     }
+  }
+  
+  /**
+   * Change context database  
+   * @param $dbcontext PROD, TEST, EXPORT
+   */   
+  public function setContext($dbcontext){
+    $this->initContext($dbcontext);
   }
   
   private function closeContext(){
@@ -304,7 +328,6 @@ class socdiscoo extends CommonFunctions
             $str = "Could not load the document '$fileOID' in collection '$collection': " . sedna_error() ." (". __METHOD__ .")";
             $this->addLog($str,FATAL);
           }
-      $this->dumpPre(str_replace(array("<",">"),array("&lt;","&gt;"),$string));
         }else{
           if(!sedna_load($string, $fileOID)){
             $str = "Could not load the document '$fileOID': " . sedna_error() ." (". __METHOD__ .")";
@@ -355,7 +378,7 @@ class socdiscoo extends CommonFunctions
   
   /*
   * @desc Database initialiation
-  * @param optional boolean $reloadCollections : reload eventualy existing collections (unused for the moment)
+  * @param optional boolean $reloadCollections : reload eventualy existing collections
   * @param optional boolean $reloadIndices : reload eventualy existing indices
   * @param optional boolean $reloadXQLib : reload eventualy existing modules
   * @return array of string $results : trace of what happened
@@ -366,6 +389,9 @@ class socdiscoo extends CommonFunctions
     
     //Create collections
     foreach($this->collections as $col){
+      if($reloadCollections){ //drop existing collections
+        sedna_execute("DROP COLLECTION '$col'");
+      }
       if(!sedna_execute("CREATE COLLECTION '$col'")){
         if(sedna_ercls() != "SE2002"){ //Collection with the same name already exists.
           $str = "Could create collection '$col': " . sedna_error() ." (". __METHOD__ .")";
@@ -457,7 +483,7 @@ class socdiscoo extends CommonFunctions
         $str = "Could create module '$query': " . sedna_error() ." (". __METHOD__ .")";
         $this->addLog($str,FATAL);
       }else{
-        echo "xquery module $strLib already loaded";
+        $results[] = "xquery module $strLib already loaded";
       }
     }else{
       $results[] = "xquery module $strLib loaded";

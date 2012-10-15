@@ -187,6 +187,7 @@ class boacl extends CommonFunctions
         case "ManageUsers" : //adding, modifying and deleting users and profiles
         case "ManageSites" : //adding, modifying and deleting sites
         case "LockDB" : //locking and unlocking database modifications for everyone
+        case "Configuration" : //access to Alix configuration : maintenance, etc
            if( $GLOBALS['egw_info']['user']['apps']['admin']){
              $access = true; 
            }

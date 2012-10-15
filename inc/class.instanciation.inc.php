@@ -35,6 +35,7 @@ class instanciation extends CommonFunctions
   protected $m_boeditor;  
   protected $m_boetude;  
   protected $m_boacl; 
+  protected $m_boconfig; 
 
   protected $m_etudemenu;
   
@@ -120,6 +121,21 @@ class instanciation extends CommonFunctions
     }
     
     return $this->m_boacl;   
+  }
+
+  /*
+  @desc accesseur de l'instance de la classe boconfig, permet de ne pas instancier inutilement la classe
+  @return retourne la référence de notre objet boconfig
+  */
+  public function boconfig()
+  {
+    require_once("class.boconfig.inc.php");
+    if(!isset($this->m_boconfig)){
+      $this->addLog("uietude->boconfig() : instanciation de boconfig",TRACE);
+      $this->m_boconfig = new boconfig($this->m_tblConfig,$this);
+    }
+    
+    return $this->m_boconfig;   
   }
 
   /*

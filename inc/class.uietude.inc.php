@@ -33,6 +33,7 @@ class uietude extends CommonFunctions
 	  'annotatedCRF' => True,
 	  'auditTrailInterface' => True,
 		'changePasswordInterface' => True,
+		'configInterface' => True,
 		'dashboardInterface'	=> True,
 		'dbadminInterface'	=> True,
 		'deviationsInterface' => True,
@@ -513,6 +514,23 @@ class uietude extends CommonFunctions
 
         global $configEtude;
         $ui = new uiusers($configEtude,$this->m_ctrl);
+        
+        $this->create_header();
+        echo $ui->getInterface();
+        $this->create_footer();   
+   }
+
+   public function configInterface()
+   {
+        require_once('class.uiconfig.inc.php');
+
+        //Only accessible to admin
+        if(!$GLOBALS['egw_info']['user']['apps']['admin']){
+          $this->addLog("Unauthorized Access to Config Module - Administrator has been notified",FATAL);
+        }
+
+        global $configEtude;
+        $ui = new uiconfig($configEtude,$this->m_ctrl);
         
         $this->create_header();
         echo $ui->getInterface();

@@ -40,7 +40,9 @@ class etudemenu extends CommonFunctions
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //Button: Inclusion (CRT and INV only)
     $enroll = "";
-    if($this->m_ctrl->boacl()->existUserProfileId(array("CRT","INV"))){
+    //access to enrolment is forbidden if items of the form are locked
+    $enrollLocked = $this->m_ctrl->bolockdb()->isLocked($this->m_tblConfig['ENROL_SEOID'],$this->m_tblConfig['ENROL_SERK'],$this->m_tblConfig['ENROL_FORMOID'],$this->m_tblConfig['ENROL_FORMRK']);
+    if(!$enrollLocked && $this->m_ctrl->boacl()->existUserProfileId(array("CRT","INV"))){
       $enroll = '<a id="addSubj" name="enroll" href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.subjectInterface',
                                                                          'MetaDataVersionOID' => $this->m_tblConfig["METADATAVERSION"],
                                                                          'SubjectKey' => $this->m_tblConfig['BLANK_OID'],
@@ -49,6 +51,8 @@ class etudemenu extends CommonFunctions
                                                                          'FormOID' => $this->m_tblConfig['ENROL_FORMOID'],
                                                                          'FormRepeatKey' => $this->m_tblConfig['ENROL_FORMRK'])).'">
                 <li class="ui-state-default"><img src="'.$this->getCurrentApp(false).'/templates/default/images/user_add.png" alt="" /><div><p>Enrol Subject</p></div></li></a>';
+    }elseif($this->m_ctrl->boacl()->existUserProfileId(array("CRT","INV"))){
+      $enroll = '<a name="enroll" href="#"><li class="ui-state-default inactiveButton"><img src="'. $this->getCurrentApp(false).'/templates/default/images/user_add.png" alt="" /><div><p>Enrol Subject</p></div></li></a>';
     }
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

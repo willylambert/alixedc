@@ -61,17 +61,22 @@
   $configEtude["CLIENT"] = "BD";
 
   $configEtude["CDISCOO_PATH"] = "$basePath/$moduleName";
-  $configEtude["DBXML_BASE_PATH"] = "$basePath/$moduleName/dbxml/";
   $configEtude["EXPORT_BASE_PATH"] = "$basePath/$moduleName/export/";
-  $configEtude["IMPORT_BASE_PATH"] = "$basePath/$moduleName/import/";
-  $configEtude["DBXML_BASE_DEMO_PATH"] = "$basePath/$moduleName/dbxmlDemoBase/";
+  $configEtude["IMPORT_BASE_PATH"] = "$basePath/alixdb_dev/import/";
+  $configEtude["LOCKDB_LOG_PATH"] = "$basePath/$moduleName/lockdb/";
   
   //Sedna database configuration
   $configEtude["SEDNA_HOST"] = "localhost";
-  $configEtude["SEDNA_DATABASE"] = "alixedc";
-  $configEtude["SEDNA_USER"] = "SYSTEM";
-  $configEtude["SEDNA_PASSWORD"] = "MANAGER";
   $configEtude["SEDNA_NAMESPACE_ODM"] = "http://www.cdisc.org/ns/odm/v1.3";
+  $configEtude["SEDNA_PROD_DATABASE"] = "alixedc";
+  $configEtude["SEDNA_PROD_USER"] = "SYSTEM";
+  $configEtude["SEDNA_PROD_PASSWORD"] = "MANAGER";
+  $configEtude["SEDNA_TEST_DATABASE"] = "alixedc_test";
+  $configEtude["SEDNA_TEST_USER"] = "SYSTEM";
+  $configEtude["SEDNA_TEST_PASSWORD"] = "MANAGER";
+  $configEtude["SEDNA_EXPORT_DATABASE"] = "alixedc_export";
+  $configEtude["SEDNA_EXPORT_USER"] = "SYSTEM";
+  $configEtude["SEDNA_EXPORT_PASSWORD"] = "MANAGER";
 
   $configEtude["ODM_1_3_SCHEMA"] = "$wwwPath/xsd/ODM1-3-0-foundation.xsd";
   $configEtude["ODM_1_2_SCHEMA"] = "$wwwPath/xsd/ODM1-2-1-foundation.xsd";
