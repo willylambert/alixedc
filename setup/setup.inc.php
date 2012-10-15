@@ -40,6 +40,7 @@
 	$setup_info[$moduleName]['maintainer_email'] = 'willy.lambert@businessdecision.com';
 	
 	$setup_info[$moduleName]['tables'][] = 'egw_alix_acl';
+	$setup_info[$moduleName]['tables'][] = 'egw_alix_config';
 	$setup_info[$moduleName]['tables'][] = 'egw_alix_deviations';
 	$setup_info[$moduleName]['tables'][] = 'egw_alix_export';
 	$setup_info[$moduleName]['tables'][] = 'egw_alix_export_def';

@@ -13,6 +13,17 @@
 		'ix' => array(),
 		'uc' => array()
 		),
+	'egw_alix_config' => array(
+		'fd' => array(
+			'currentapp' => array('type' => 'varchar','precision' => '50','nullable' => False),
+			'parameter' => array('type' => 'varchar','precision' => '30','nullable' => False),
+			'value' => array('type' => 'longtext'),
+		),
+		'pk' => array('currentapp','parameter'),
+		'fk' => array(),
+		'ix' => array(),
+		'uc' => array()
+		),
 	'egw_alix_deviations' => array(
 		'fd' => array(
 			'DEVIATIONID' => array('type' => 'auto','nullable' => False),
