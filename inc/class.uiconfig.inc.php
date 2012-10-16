@@ -48,7 +48,7 @@ class uiconfig extends CommonFunctions
           $this->m_ctrl->boconfig()->setParameter($id, $_POST[$id]);
         }
       }
-      $message = "Saved";
+      $message = "Your settings have been saved";
     }
     
     //retrieving the list of list of parameters with their (new ?) values
@@ -80,7 +80,7 @@ class uiconfig extends CommonFunctions
                   <div class='ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix'>
                     <span class='ui-dialog-title'>ALIX Configuration</span>
                   </div>
-                  <div id='action_message'>$message</div>
+                  <div class='action_message'>$message</div>
                   <div id='alixConfiguration'>
                     <form action='".$GLOBALS['egw']->link('/index.php',array('menuaction' => $GLOBALS['egw_info']['flags']['currentapp'].'.uietude.configInterface', 'action' => 'save'))."' method='post'>
                       <div class='parameters'>

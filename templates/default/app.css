@@ -46,6 +46,14 @@ body,td{
   color:white;
 }
 
+.action_message{
+  margin: 10px;
+  color: #008000;
+  background-color: #dfffdf;
+  color: #fff;
+  background-color: #008000;
+}
+
 .divSideboxHeader,.divLoginboxHeader 
 {
 
@@ -1132,11 +1140,6 @@ table.ItemGroup{
 }
 
 /*********************************** Configuration module ***********************************/
-
-#alixConfiguration .action_message{
-  color: lightgreen;
-  margin: 10px;
-}
 
 #alixConfiguration .parameters{
   width: 950px;
