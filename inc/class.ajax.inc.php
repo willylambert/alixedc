@@ -79,6 +79,7 @@ class ajax extends CommonFunctions
     if($this->getConfig("maintenance")=="Y"
       && !$GLOBALS['egw_info']['user']['apps']['admin']
       ){
+      session_destroy();
       die("MAINTENANCE");
     }
     

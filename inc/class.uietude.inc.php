@@ -69,6 +69,7 @@ class uietude extends CommonFunctions
     if($this->getConfig("maintenance")=="Y"
       && !$GLOBALS['egw_info']['user']['apps']['admin']
       ){
+      session_destroy();
       die("<html><div style='text-align: center; margin-top: 150px;'><img src='phpgwapi/templates/idots/images/alix/alix_logo.png'></div><div style='text-align: left; font: 24px calibri bold; width: 450px; margin: 10px auto;'>The site is currently down for maintenance.<div style=' text-align: left; font: 16px calibri; color: #aaa; margin: 10px auto;'>We expect to be back in about an hour.<br />We apologize for the inconvenience and appreciate your patience.</div></div></html>");
     }
   }
@@ -336,7 +337,7 @@ class uietude extends CommonFunctions
     		$_SESSION[$this->getCurrentApp(false)]['forcetestmode'] = $forceTestMode;
     		
     		
-    		//Configuration (first connection to currentapp
+    		//Configuration (first connection to currentapp)
         require_once('class.boconfig.inc.php');
         $boConfig = new boconfig($configEtude,$this->m_ctrl);
         $bConfigurationNeeded = $boConfig->configurationNeeded();

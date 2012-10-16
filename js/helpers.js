@@ -79,11 +79,12 @@ var helper = {
         if(this.displayedError!="maintenance"){ //do not bother the user with the same message many times
           alert("The site is currently down for maintenance. Please try again later.");
           this.displayedError = "maintenance";
+          window.location.reload();
         }
       }else{
         if(response.substr(0,250).indexOf("[Login]", 0) != -1){
           this.showInfoBox("Session closed",true);
-          if(this.displayedError!="session"){ //do not bother the user with the same message many times, do not redirect to login many times
+          if(this.displayedError!="session" && this.displayedError!="maintenance"){ //do not bother the user with the same message many times, do not redirect to login many times
             alert("Your session has ended. Please sign in again.");
             this.displayedError = "session";
             window.location.reload();
