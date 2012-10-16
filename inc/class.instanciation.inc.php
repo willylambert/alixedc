@@ -35,6 +35,7 @@ class instanciation extends CommonFunctions
   protected $m_boeditor;  
   protected $m_boetude;  
   protected $m_boacl; 
+  protected $m_boconfig; 
 
   protected $m_etudemenu;
   
@@ -47,6 +48,7 @@ class instanciation extends CommonFunctions
 
   protected $m_boexport;
   protected $m_boimport;
+  protected $m_bolockdb;
 
   public function __construct()
   {
@@ -119,6 +121,21 @@ class instanciation extends CommonFunctions
     }
     
     return $this->m_boacl;   
+  }
+
+  /*
+  @desc accesseur de l'instance de la classe boconfig, permet de ne pas instancier inutilement la classe
+  @return retourne la référence de notre objet boconfig
+  */
+  public function boconfig()
+  {
+    require_once("class.boconfig.inc.php");
+    if(!isset($this->m_boconfig)){
+      $this->addLog("uietude->boconfig() : instanciation de boconfig",TRACE);
+      $this->m_boconfig = new boconfig($this->m_tblConfig,$this);
+    }
+    
+    return $this->m_boconfig;   
   }
 
   /*
@@ -240,6 +257,21 @@ class instanciation extends CommonFunctions
     }
     
     return $this->m_bosubjects;   
+  }
+
+  /*
+  @desc accesseur de l'instance de la classe bolockdb, permet de ne pas instancier inutilement la classe
+  @return retourne la référence de notre objet bolockdb
+  */
+  public function bolockdb()
+  {
+    require_once("class.bolockdb.inc.php");
+    if(!isset($this->m_bolockdb)){
+      $this->addLog("uietude->bolockdb() : instanciation de bolockdb",TRACE);
+      $this->m_bolockdb = new bolockdb($this->m_tblConfig,$this);
+    }
+    
+    return $this->m_bolockdb;   
   }
 
   /*

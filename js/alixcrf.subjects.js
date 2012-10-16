@@ -176,6 +176,7 @@ function loadSubjectsGrid(CurrentApp, config, bShowPDF, bShowProfile)
       mtype: "POST",
     	datatype: "local",
     	height: "auto",
+    	autowidth: true,
      	colNames: colNames,
      	colModel: colModel,
      	rowNum: 20,
@@ -267,6 +268,11 @@ function loadSubjectsGrid(CurrentApp, config, bShowPDF, bShowProfile)
     });
     
     jQuery("#listSubjects").jqGrid('filterToolbar');
+    
+    //autoresize the grid width when the window is resized
+    $(window).resize(function() {
+      jQuery("#listSubjects").jqGrid('setGridWidth', $(window).width() - 32);
+    });
     
     $('#listSubjects').setGridParam({datatype: 'json'});
     $('#listSubjects')[0].triggerToolbar();

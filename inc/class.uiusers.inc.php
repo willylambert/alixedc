@@ -299,6 +299,7 @@ class uiusers extends CommonFunctions
                     		<label for='siteName'>Profile</label>
                     		<select name='profileId'>
                     		  <option value=''/>
+                    		  <option value='CRT'>Technician</option>
                     		  <option value='INV'>Investigator</option>
                     		  <option value='CRA'>CRA</option>
                     		  <option value='DM'>Data Manager</option>

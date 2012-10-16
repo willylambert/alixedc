@@ -105,7 +105,7 @@ class CommonFunctions{
         error_log("$dt " . $message . "\n",3,$this->m_tblConfig['LOG_FILE'].".error");
         mail($this->m_tblConfig['EMAIL_ERROR'],"ETUDE (".$this->m_tblConfig['APP_NAME'].") ERROR/FATAL : {$this->m_user}@$dt",$message);
         if($level==FATAL){
-          die("<pre>$message</pre>");
+          die("<div class='debug_dump'><b>An error occured</b> (the administrator has been notified)<pre>$message</pre></div>");
         }
       }
       if($message=="socdiscoo::destruct()" && $this->m_tblConfig['LOG_LONG_EXECUTION']){
@@ -186,13 +186,22 @@ class CommonFunctions{
   
   public function dumpPre($mixed = null, $expandable=false)
   {
+    $type = gettype($mixed);
+    if(gettype($mixed)=="object"){
+      $type = get_class($mixed);
+    }
+    echo "<div class='debug_dump'><b>Dump  ". $type ."</b>";
     echo '<pre>';
     if(!$expandable){
-      var_dump($mixed);
+      if($type=="DOMDocument"){
+        echo "". str_replace(array("<",">"),array("&lt;","&gt;"),$mixed->saveXml());
+      }else{
+        var_dump($mixed);
+      }
     }else{
       echo $this->print_r_tree($mixed);
     }
-    echo '</pre>';
+    echo '</pre></div>';
     return null;
   }
   

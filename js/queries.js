@@ -48,7 +48,7 @@ function showQueries(CurrentApp,SubjectKey,StudyEventOID,StudyEventRepeatKey,For
 	
 	//Les queries à afficher dépendent du profile
 	queryStatus = "O";
-	if(ProfileId=="INV"){
+	if(ProfileId=="CRT" || ProfileId=="INV"){
 	  queryStatus = "O,P";
 	}else{
 	  queryStatus = "O,A,R,P";
@@ -98,7 +98,8 @@ function loadFormQueries(CurrentApp,ProfileId){
 //Création du formulaire d'édition d'une query
 function addQueryToFormQueries(CurrentApp,ProfileId,QueryId){
   html = getQueryHTML(CurrentApp,ProfileId,QueryId);
-  $("#formQueries").append(html);
+  $("#formQueries").append(html); //add the query at the bottom of the list
+  setAllPostItsPotision(); //update post-it positions
           
   //On supprime la possibilité d'ajouter une querie sur l'élément correspondant (le bouton d'ajout placé par query.xsl)
   //$("#query_div_"+ queriesList[QueryId].ITEMOID.replace('.','-') +"_"+ queriesList[QueryId].IGRK +"_picture").remove();
@@ -157,8 +158,8 @@ function toggleQueryForm(CurrentApp,ProfileId,QueryId,removeFromDOM){
   
   //le toggle
   $(jq(id)).slideToggle('500',function() {
-              if (typeof(movePostItsTopPositionRelativeTo) == 'function'){
-                movePostItsTopPositionRelativeTo(jq(id)); //appel d'une fonction présente dans postit.js
+              if (typeof(setAllPostItsPotision) == 'function'){
+                setAllPostItsPotision(); //update post-it positions
               }
               if(removeFromDOM){removeQueryForm(QueryId);} //suppression du bloc d'édition du DOM, si demandé
             });
@@ -252,10 +253,12 @@ function saveQueryForm(CurrentApp,ProfileId,QueryId){
             queriesList[data.QUERYID] = data; //mise en cache
             hideQueryForm(QueryId,true); //on cache puis supprime le bloc d'édition : il sera recréé automatiquement quand demandé
             
-            if(ProfileId=="INV" && data.QUERYSTATUS=="A"//pour les investigateurs, on cache la querie CONFIRMED (A)
+            if((ProfileId=="CRT" || ProfileId=="INV") && data.QUERYSTATUS=="A"//for CRT and INV we hide the query CONFIRMED (A)
               || data.QUERYSTATUS=="C"//on cache la querie CLOSED (C)
               ){
-              $("#query_"+QueryId).remove();
+              $("#query_"+QueryId).hide(0); //first: we just hide the query to enable motion of post-its
+              setAllPostItsPotision(); //second: update post-its positions
+              $("#query_"+QueryId).remove(); //last: complete removal of the query
             }else{
               //on remplace l'ancien bloc html => mise à jour de la querie, notament de son identifiant
               if($("table#listQueries").length>0){ //alors on est dans le module de gestion globale des queries (un tableau avec des tr et des td)
@@ -294,13 +297,16 @@ function getNextStatuses(QueryStatus,QueryOrigin,ProfileId){
   newStatuses = [];
   //les statuts accessibles dépendent des droits de l'utilisateur, du statut actuel de la query, et de comment la query a été ouverte (manuellement par un ARC ou automatiquement par le CRF)
   //O : OPEN, query ouverte (manuellement par un ARC, ou automatiquement par le CRF)
-  //R : RESOLVED, valeur modifiée par l'investigateur (non source d'incohérence)
-  //A : CONFIRMED, valeur confirmée par l'investigateur
+  //R : RESOLVED, valeur modifiée par l'investigateur ou le TEC (non source d'incohérence)
+  //A : CONFIRMED, valeur confirmée par l'investigateur ou le TEC
   //P : RESOLUTION PROPOSED, proposition de correction par l'ARC (sur queries ouvertes automatiquement par le CRF)
   //C : CLOSED, query fermée
   switch(QueryStatus){
     case 'O':
         switch(ProfileId){
+          case 'CRT':
+            newStatuses = ['A'];
+            break;
           case 'INV':
             newStatuses = ['A'];
             break;
@@ -315,6 +321,9 @@ function getNextStatuses(QueryStatus,QueryOrigin,ProfileId){
       break;
     case 'A':
         switch(ProfileId){
+          case 'CRT':
+            newStatuses = [];
+            break;
           case 'INV':
             newStatuses = [];
             break;
@@ -325,6 +334,9 @@ function getNextStatuses(QueryStatus,QueryOrigin,ProfileId){
       break;
     case 'P':
         switch(ProfileId){
+          case 'CRT':
+            newStatuses = ['A'];
+            break;
           case 'INV':
             newStatuses = ['A'];
             break;
@@ -335,6 +347,9 @@ function getNextStatuses(QueryStatus,QueryOrigin,ProfileId){
       break;
     case 'R':
         switch(ProfileId){
+          case 'CRT':
+            newStatuses = [];
+            break;
           case 'INV':
             newStatuses = [];
             break;
@@ -345,6 +360,9 @@ function getNextStatuses(QueryStatus,QueryOrigin,ProfileId){
       break;
     case 'C':
         switch(ProfileId){
+          case 'CRT':
+            newStatuses = [];
+            break;
           case 'INV':
             newStatuses = [];
             break;

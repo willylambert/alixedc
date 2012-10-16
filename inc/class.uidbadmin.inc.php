@@ -204,14 +204,13 @@ class uidbadmin extends CommonFunctions{
     if($this->m_ctrl->boacl()->checkModuleAccess("viewDocs||importDoc")){
       if($this->m_ctrl->boacl()->checkModuleAccess("viewDocs"))
       {
-        $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
-  				                                                                        'container' => 'ClinicalData',
-                                                                                  'action' => 'viewDocs'),
-                                            "ClinicalData");
-        $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
-  				                                                                        'container' => 'MetaDataVersion',
-                                                                                  'action' => 'viewDocs'),      
-                                            "MetaData");
+        $collections = $this->m_ctrl->socdiscoo()->getCollections();
+        foreach($collections as $collection){
+          $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
+    				                                                                        'container' => $collection,
+                                                                                    'action' => 'viewDocs'),
+                                              "Collection: ".$collection);
+        }
         $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',  				                                                                      
                                                                                   'action' => 'initDB'),      
                                             "Init XML Database");
@@ -250,22 +249,31 @@ class uidbadmin extends CommonFunctions{
       $menu .= $this->getSubMenu("Accounts", $submenu);
     }
 
-    if($this->m_ctrl->boacl()->checkModuleAccess("EditDocs"))
-    {
+    if($this->m_ctrl->boacl()->checkModuleAccess("Configuration||EditDocs")){
       $submenu = "";
       
-      $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.editorInterface',
-			                                                                        'action' => ''),
-                                        "Editor");
+      if($this->m_ctrl->boacl()->checkModuleAccess("Configuration"))
+      {
+        $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.configInterface',
+  			                                                                        'action' => ''),
+                                          "Configuration");
+      }
       
-      $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.annotatedCRF',
-			                                                                        'action' => ''),
-                                        "Annotated CRF");
-                                          
+      if($this->m_ctrl->boacl()->checkModuleAccess("EditDocs"))
+      {
+        $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.editorInterface',
+  			                                                                        'action' => ''),
+                                          "Editor");
+        
+        $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.annotatedCRF',
+  			                                                                        'action' => ''),
+                                          "Annotated CRF");
+      }
+                                      
       $menu .= $this->getSubMenu("Design", $submenu);
     }
 
-    if($this->m_ctrl->boacl()->checkModuleAccess("ExportData||importDoc"))
+    if($this->m_ctrl->boacl()->checkModuleAccess("ExportData||importDoc||LockData"))
     {
       $submenu = "";
       
@@ -278,6 +286,12 @@ class uidbadmin extends CommonFunctions{
       {
         $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.exportInterface'),
                                         "Data export");  
+      }
+
+      if($this->m_ctrl->boacl()->checkModuleAccess("LockDB"))
+      {
+        $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.lockdbInterface'),
+                                        "Data locks");  
       }
                                           
       $menu .= $this->getSubMenu("Clinical data", $submenu);                                                                                                                     
@@ -323,27 +337,7 @@ class uidbadmin extends CommonFunctions{
   {
       $containerName = $_GET['container'];
       
-      if($containerName!=""){
-        $query = "<docs>
-                  {
-                    for \$doc in document('\$documents')/documents/collection[@name='$containerName']/document
-                    return 
-                    <doc>{\$doc/string(@name)}</doc>
-                  }
-                  </docs>
-                  ";
-      }else{
-        $query = "<docs>
-                  {
-                    for \$doc in document('\$documents')/documents/document
-                    return 
-                    <doc>{\$doc/string(@name)}</doc>
-                  }
-                  </docs>
-                  ";
-      }
-
-      $docs = $this->m_ctrl->socdiscoo()->query($query);
+      $docs = $this->m_ctrl->socdiscoo()->getDocumentsList($containerName);
             
       $htmlRet = '
             	<div class="divSideboxHeader" align="center"><span>'.$containerName.'</span></div>';
@@ -360,7 +354,7 @@ class uidbadmin extends CommonFunctions{
       // Enable user error handling
       libxml_use_internal_errors(true);
       
-      foreach($docs[0] as $doc)
+      foreach($docs as $doc)
       {
         $status = "ok";
         $xml = $this->m_ctrl->socdiscoo()->getDocument($containerName, $doc, false);
@@ -391,7 +385,7 @@ class uidbadmin extends CommonFunctions{
       }
       
       $htmlRet .= "</tbody></table>";
-      $nbDocs = count($docs[0]);
+      $nbDocs = count($docs);
       $htmlRet .= $nbDocs ." document". ($nbDocs>1?"s":"");
       
       $htmlRet .= "<form action='".$GLOBALS['egw']->link('/index.php',array('menuaction' => $GLOBALS['egw_info']['flags']['currentapp'].'.uietude.dbadminInterface',
@@ -441,38 +435,6 @@ class uidbadmin extends CommonFunctions{
                     <br/>";
       
       return $htmlRet;  
-  }  
-  
-  private function getExportInterface()
-  {
-    $htmlRet = "<h3>Data export</h3>";
-
-    //Links to process export, read from config file
-    foreach($this->m_tblConfig['EXPORT']['TYPE'] as $exportType=>$exportInfos){
-      $htmlRet .= "<div><a href='" . $GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
-                                                                              'action' => 'export','type'=>$exportType )) . "'>".$exportInfos['name']."</a></div>";
-      
-    }
-    
-    //On liste les exports déja réalisé
-    $tblExport = $this->m_ctrl->boexport()->getExportList();
-    
-    $htmlRet .= "<table><tr><th>Date</th><th>Type</th><th>User</th><th>Password</th><th>File</th></tr>";
-    
-    foreach($tblExport as $export){
-      $htmlRet .= "<tr>
-                    <td>{$export['exportdate']}</td>
-                    <td>{$export['exporttype']}</td>
-                    <td>{$export['exportuser']}</td>
-                    <td>{$export['exportpassword']}</td>
-                    <td><a target='new' href='". $GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uidbadmin.getExportFile',
-                                                                             'exportid' => $export['exportid'],
-                                                                             )) ."'>{$export['exportname']}</a></td>                   
-                   </tr>";
-    }
-    $htmlRet .= "</table>";
-      
-    return $htmlRet;  
   }
 
   private function getSandBoxInterface($query=""){
@@ -516,17 +478,6 @@ class uidbadmin extends CommonFunctions{
     $importFileType = $_GET['importFileType'];
     
     $this->m_ctrl->boimport()->getImportFile($exportId,$importFileType);
-  }
-
-/*
-@desc Produit un nouvel export des données. Les règles sont les suivantes :
-      1 fichier csv est généré par ItemGroup
-      Les variables à exporter sont indiquées dans le fichier de configuration
-      Les fichiers csv sont zippés dans un fichier qui s'ajoute à la liste des exports précédent (pas d'annule et remplace)  
-*/  
-  private function export($type)
-  {
-    $this->m_ctrl->boexport()->export($type);   
   }
 
 /**
@@ -609,9 +560,29 @@ class uidbadmin extends CommonFunctions{
         $html .= "<li>adding {$_FILES['uploadedDoc']['name']}...</li>";
         $fileOID = $this->m_ctrl->socdiscoo()->addDocument($uploadfile,false,$containerName);
       }catch(Exception $e){
-          //maybe the document already existing, we will try to replace it
-          $html .= "<li>document already imported, replacing...</li>";
-          $fileOID = $this->m_ctrl->socdiscoo()->replaceDocument($uploadfile,false,$containerName);
+        if(sedna_ercls()=="SE2004"){ //SE2004 = Document with the same name already exists in the collection.
+          try{
+            $html .= "<li>document already imported, replacing...</li>";
+            $fileOID = $this->m_ctrl->socdiscoo()->replaceDocument($uploadfile,false,$containerName);
+          }catch(Exception $e){
+            $this->addLog(__METHOD__." ".$e->getMessage(), FATAL);
+          }
+        }else{
+          if(sedna_ercls()=="SE2003"){ //SE2003 = No collection with this name.
+            try{
+              //Database initialization
+              $html .= "<li>oups, it appears that the database wasn't initialized. Initializing database...</li>";
+              $this->initDB();
+              //Try again to add the document
+              $html .= "<li>adding {$_FILES['uploadedDoc']['name']}...</li>";
+              $fileOID = $this->m_ctrl->socdiscoo()->addDocument($uploadfile,false,$containerName);
+            }catch(Exception $e){
+              $this->addLog(__METHOD__." ".$e->getMessage(), FATAL);
+            }
+          }else{
+            $this->addLog(__METHOD__." ".$e->getMessage(), FATAL);
+          }
+        }
       }
       $html .= "<li>import successfull !</li>";
       $html .= "</ul>";

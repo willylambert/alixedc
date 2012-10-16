@@ -13,6 +13,17 @@
 		'ix' => array(),
 		'uc' => array()
 		),
+	'egw_alix_config' => array(
+		'fd' => array(
+			'currentapp' => array('type' => 'varchar','precision' => '50','nullable' => False),
+			'parameter' => array('type' => 'varchar','precision' => '30','nullable' => False),
+			'value' => array('type' => 'longtext'),
+		),
+		'pk' => array('currentapp','parameter'),
+		'fk' => array(),
+		'ix' => array(),
+		'uc' => array()
+		),
 	'egw_alix_deviations' => array(
 		'fd' => array(
 			'DEVIATIONID' => array('type' => 'auto','nullable' => False),
@@ -105,17 +116,52 @@
 		'ix' => array(),
 		'uc' => array()
 		),
-	'egw_alix_lock' => array(
+	'egw_alix_lockdb_log' => array(
 		'fd' => array(
-			'ID' => array('type' => 'auto','nullable' => False),
-			'STUDY' => array('type' => 'varchar','precision' => '30','nullable' => False),
-			'STARTTIME' => array('type' => 'int','precision' => '12','nullable' => False),
-			'STOPTIME' => array('type' => 'int','precision' => '12','nullable' => False),
-			'WAITTIME' => array('type' => 'float','nullable' => False),
-			'LOCKDT' => array('type' => 'datetime','nullable' => False),
-			'WHO' => array('type' => 'varchar','precision' => '100','nullable' => False),
+			'logid' => array('type' => 'auto','nullable' => False),
+			'lockfilename' => array('type' => 'varchar','precision' => '200','nullable' => False),
+			'locktype' => array('type' => 'varchar','precision' => '100','nullable' => False),
+			'lockdate' => array('type' => 'datetime'),
+      'lockpassword' => array('type' => 'varchar','precision' => '50','nullable' => False),
+      'lockuser' => array('type' => 'varchar','precision' => '50','nullable' => False),
+      'currentapp' => array('type' => 'varchar','precision' => '50','nullable' => False),
+      'lockpath' => array('type' => 'varchar','precision' => '255','nullable' => False),
+      'lockid' => array('type' => 'varchar','precision' => '20','nullable' => False),
 		),
-		'pk' => array('ID'),
+		'pk' => array('logid'),
+		'fk' => array(),
+		'ix' => array(),
+		'uc' => array()
+		),
+	'egw_alix_lockdb_def' => array(
+		'fd' => array(
+			'lockid' => array('type' => 'int','precision' => '11','nullable' => False),
+			'studyeventoid' => array('type' => 'varchar','precision' => '50','nullable' => False),
+      'studyeventrepeatkey' => array('type' => 'varchar','precision' => '255','nullable' => False),
+			'formoid' => array('type' => 'varchar','precision' => '50','nullable' => False),
+			'formrepeatkey' => array('type' => 'varchar','precision' => '50','nullable' => False),
+			'itemgroupoid' => array('type' => 'varchar','precision' => '50','nullable' => False),
+			'itemgrouprepeatkey' => array('type' => 'varchar','precision' => '50','nullable' => False),
+			'fields' => array('type' => 'text','nullable' => False),
+			'updateDT' => array('type' => 'datetime'),
+		),
+		'pk' => array('lockid','studyeventoid','formoid','itemgroupoid'),
+		'fk' => array(),
+		'ix' => array(),
+		'uc' => array()
+		),
+	'egw_alix_lockdb' => array(
+		'fd' => array(
+			'id' => array('type' => 'auto','nullable' => False),
+			'name' => array('type' => 'varchar','precision' => '100','nullable' => False),
+			'description' => array('type' => 'text','nullable' => False),
+			'user' => array('type' => 'varchar','precision' => '100','nullable' => False),
+			'creationDate' => array('type' => 'datetime'),
+      'share' => array('type' => 'varchar','precision' => '1','nullable' => False),
+      'currentapp' => array('type' => 'varchar','precision' => '50','nullable' => False),
+      'raw' => array('type' => 'varchar','precision' => '1','nullable' => False),
+		),
+		'pk' => array('id'),
 		'fk' => array(),
 		'ix' => array(),
 		'uc' => array()

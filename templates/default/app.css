@@ -1131,6 +1131,48 @@ table.ItemGroup{
   background-color: #53a1c4;
 }
 
+/*********************************** Configuration module ***********************************/
+
+#alixConfiguration .action_message{
+  color: lightgreen;
+  margin: 10px;
+}
+
+#alixConfiguration .parameters{
+  width: 950px;
+  border: 1px solid #ccc;
+  padding: 5px;
+  margin: 5px;
+  text-align: left;
+  margin: 10px auto;
+}
+
+#alixConfiguration .configParam:not(:last-child){
+  border-bottom: 1px solid #ccc;
+}
+#alixConfiguration .configParam{
+  padding: 0px 5px;
+}
+#alixConfiguration .configParam:hover{
+  background-color: #ccc;
+}
+#alixConfiguration label{
+  width: 500px;
+  display: inline-block;
+  border-right: 1px solid #fff;
+}
+
+#alixConfiguration select{
+  min-width: 150px;
+}
+
+/*********************************** Debug features ***********************************/
+.debug_dump{
+  border: 1px solid red;
+  background-color: #faf9f9;
+  padding: 2px;
+  margin: 2px;
+}
 
 
 

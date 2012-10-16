@@ -200,8 +200,8 @@ public function checkFormData(){
       $profile = $this->m_ctrl->boacl()->getUserProfile("",$siteId);
       
       //Allow also CRA to save, but only for saving SDV checks
-      if($profile['profileId']=="INV" || $profile['profileId']=="CRA" || $siteId=="BLANK"){
-        if($profile['profileId']=="INV"){
+      if($profile['profileId']=="CRT" || $profile['profileId']=="INV" || $profile['profileId']=="CRA" || $siteId=="BLANK"){
+        if($profile['profileId']=="CRT" || $profile['profileId']=="INV"){
           $bEraseNotFoundItem = true;
         }else{
           $bEraseNotFoundItem = false;
@@ -519,7 +519,7 @@ public function checkFormData(){
           $canEdit = false;
           if($deviation['STATUS']=="C"){ //nobody can modify a CLOSED deviation
             $canEdit = false;
-          }elseif($profileId=="INV" && ($deviation['STATUS']=="O" || $deviation['STATUS']=="U")){ //The investigator cannot modify the status of the deviations OPEN and UPDATED
+          }elseif(($profileId=="CRT" || $profileId=="INV") && ($deviation['STATUS']=="O" || $deviation['STATUS']=="U")){ //The CRT or INV cannot modify the status of the deviations OPEN and UPDATED
             $canEdit = true;
           }
           if($canEdit){
@@ -939,7 +939,7 @@ public function checkFormData(){
             $canEdit = false;
           }elseif($profileId=="CRA" && !($query['QUERYSTATUS']=="O" && $query['QUERYSTATUS']=="M")){ //The CRA cannot modify the status of the manually opened queries
             $canEdit = true;
-          }elseif($profileId=="INV" && ($query['QUERYSTATUS']=="O" || $query['QUERYSTATUS']=="P")){ //The investigator cannot modify the status of the queries OPEN and RESOLUTION PROPOSED, 
+          }elseif(($profileId=="CRT" || $profileId=="INV") && ($query['QUERYSTATUS']=="O" || $query['QUERYSTATUS']=="P")){ //The investigator cannot modify the status of the queries OPEN and RESOLUTION PROPOSED, 
             $canEdit = true;
           }
           if($canEdit){
@@ -1379,7 +1379,7 @@ public function checkFormData(){
         $xPath = new DOMXPath($SubjectTblForm);
 
         $see = "<div class='imageFindIn imageOnly image16 pointer' onClick=\"location.href='index.php?menuaction=". $this->getCurrentApp(false) .".uietude.subjectInterface&action=view&SubjectKey=". $subj["SubjectKey"] ."&StudyEventOID=". $this->m_tblConfig['ENROL_SEOID'] ."&StudyEventRepeatKey=". $this->m_tblConfig['ENROL_SERK'] ."&FormOID=". $this->m_tblConfig['ENROL_FORMOID'] ."&FormRepeatKey=". $this->m_tblConfig['ENROL_FORMRK'] ."'\" altbox='Go to CRF'></div>";
-        if($this->m_ctrl->boacl()->existUserProfileId(array("DM","CRA","INV"),"",$subj['colSITEID'])){
+        if($this->m_ctrl->boacl()->existUserProfileId(array("DM","CRA","INV","CRT"),"",$subj['colSITEID'])){
           $pdf = "<button class='ui-state-default ui-corner-all' onClick=\"if(window.event){ var e = window.event; e.cancelBubble = true; if(e && e.stopPropagation){ e.stopPropagation();};}else{event.stopPropagation();}; window.location='index.php?menuaction=". $GLOBALS['egw_info']['flags']['currentapp'] .".uietude.subjectPDF&SubjectKey=". $subj["SubjectKey"] ."';\">PDF</button>";
           $profile = "<button class='ui-state-default ui-corner-all' onClick=\"if(window.event){ var e = window.event; e.cancelBubble = true; if(e && e.stopPropagation){ e.stopPropagation();};}else{event.stopPropagation();}; window.location='index.php?menuaction=". $GLOBALS['egw_info']['flags']['currentapp'] .".uietude.subjectProfile&SubjectKey=". $subj["SubjectKey"] ."';\">Profile</button>";
         }else{

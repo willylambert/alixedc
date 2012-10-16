@@ -51,8 +51,8 @@ class boqueries extends CommonFunctions
  * @return string "FILLED","PARTIAL","INCONSISTENT" 
  * @author wlt 
  **/ 
-  function getFormStatus($SubjectKey, $StudyEventOID, $StudyEventRepeatKey, $FormOID, $FormRepeatKey, $profileId="INV"){
-    $queryStatus = "O,P"; //For investigators, we only show open queries but not the confirmed queries
+  function getFormStatus($SubjectKey, $StudyEventOID, $StudyEventRepeatKey, $FormOID, $FormRepeatKey, $profileId="CRT"){
+    $queryStatus = "O,P"; //For CRT and INV, we only show open queries but not the confirmed queries
     if($profileId=="CRA"){ //CRAs need to see when a query has been confirmed (acknowledged) or resolved (value modified for a manual query) (it still have to be reopened or closed)
       $queryStatus .= ",A,R";
     }

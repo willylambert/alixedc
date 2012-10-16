@@ -37,14 +37,21 @@ class bocdiscoo extends CommonFunctions
   * @return array array of ItemDatas to be inserted into ItemGroupData, empty string if no modification 
   * @author wlt
   **/
-  private function addItemData($SubjectKey,$ItemGroupOID,$ItemGroupRepeatKey,$ItemGroupRef,$formVars,&$tblFilledVar,$subj,$AuditRecordID,$bEraseNotFoundItem=true,$nbAnnotations,$profileId)
+  private function addItemData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$ItemGroupRef,$formVars,&$tblFilledVar,$subj,$AuditRecordID,$bEraseNotFoundItem=true,$nbAnnotations,$profileId)
   {
     $this->addLog(__METHOD__ ."() : tblFilledVar = " . $this->dumpRet($tblFilledVar),TRACE);
     $tblRet = array();
 
+    //Get the array of ItemOID for locked items in this ItemGroup
+    $lockedItems = $this->m_ctrl->bolockdb()->getLockedItems($StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey);
+    
     //Loop through all ItemDef for current ItemGroup
     foreach($ItemGroupRef as $Item)
     {
+      //Check if the Item cannot be modified because it is locked
+      if(in_array($Item['ItemOID'], $lockedItems)){
+        continue; //do not touch this item, go to next item
+      }
       //Annotations management : RAS/ND/NSP + comment
       $AnnotationID = "";
       $bAnnotationModif = false;
@@ -68,7 +75,7 @@ class bocdiscoo extends CommonFunctions
         $hasModif = true;
         
         //Flag (ND/NA/Comment) CANNOT be updated at the same time than SDV check
-        //Because INV => Flag and CRA => SDV.  
+        //Because CRT or INV => Flag and CRA => SDV.  
         if($sdv=='on'){
           $sdvFlag = "<Flag>
                         <FlagValue CodeListOID='ANNOTSDV'>Y</FlagValue> 
@@ -103,8 +110,6 @@ class bocdiscoo extends CommonFunctions
       }else{
         $AnnotationID = $Item['AnnotationID'];
       }
-                  //if($bSDVupdated) echo("sdv: $query \n\n $AnnotationID" ); //ici
-                  //if($bSDVupdated) die("sdv: $sdv / $ItemGroupOID / $ItemGroupRepeatKey / ". $Item['ItemOID']); //ici
 
       //Specific handle of types Date and PartialDate
       switch($Item['DataType'])
@@ -213,14 +218,13 @@ class bocdiscoo extends CommonFunctions
           $tblFilledVar["{$Item['ItemOID']}"] = "";
         }
       }
-      
-        //if(isset($tblFilledVar["{$Item['ItemOID']}"]) && $bSDVupdated) echo("\n\nisset: ".$Item['ItemOID'] ); //ici    
+       
       //New ItemData only if new Item or updated value and value present in POSTed vars, unless $bEraseNotFoundItem = true (default)
       if(isset($tblFilledVar["{$Item['ItemOID']}"]) && 
           (
            !isset($Item->PreviousItemValue) ||
            isset($Item->PreviousItemValue) && 
-           $profileId=="INV" && (string)($Item->PreviousItemValue) != (string)($tblFilledVar["{$Item['ItemOID']}"]) || 
+           ($profileId=="CRT" || $profileId=="INV") && (string)($Item->PreviousItemValue) != (string)($tblFilledVar["{$Item['ItemOID']}"]) || 
            $bAnnotationModif
           ) || 
           !isset($tblFilledVar["{$Item['ItemOID']}"]) && $bEraseNotFoundItem 
@@ -228,12 +232,11 @@ class bocdiscoo extends CommonFunctions
       {
         $this->addLog("bocdiscoo->addItemData() Adding ItemData={$Item['ItemOID']} PreviousItemValue=".$Item->PreviousItemValue." Value=".$tblFilledVar["{$Item['ItemOID']}"],INFO);
 
-        //if($bSDVupdated) echo("\n\nsdv: $AnnotationID, attr: $annotationAttr" ); //ici    
-        //Data update are only authorized for INV
+        //Data update are only authorized for CRT and INV
         //So the Item value is unchanged
         //Also if sdv is checked, value cannot be updated
         //Also if a method is specified, value is set by the computeDerivedItem Method
-        if($profileId!='INV' || $sdv=='on' || $Item['MethodOID']!=''){
+        if(($profileId!="CRT" && $profileId!="INV") || $sdv=='on' || $Item['MethodOID']!=''){
           $tblFilledVar["{$Item['ItemOID']}"] = $Item->PreviousItemValue;   
         }
 
@@ -250,7 +253,6 @@ class bocdiscoo extends CommonFunctions
         }else{
           $annotationAttr = "";
         }
-                  //if($bSDVupdated) echo($annotationAttr); //ici
                 
         $tblRet[] = "
                     <ItemData".ucfirst($Item['DataType'])."
@@ -260,6 +262,7 @@ class bocdiscoo extends CommonFunctions
                         TransactionType='$transacType'>$encodedValue</ItemData".ucfirst($Item['DataType']).">";  
       }
     }
+    
     return $tblRet;
   }
 
@@ -1672,7 +1675,7 @@ class bocdiscoo extends CommonFunctions
    **/     
   function getStudyEventForms($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$includeAuditTrail=false,$paginateStart=0,$paginateEnd=0)
   {
-    $this->addLog(__METHOD__."($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey)",INFO);
+    $this->addLog(__METHOD__."($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$includeAuditTrail,$paginateStart,$paginateEnd)",INFO);
 
     //Depending of the form, additionnal item could be retrieved - see config.inc.php
     $customQueryLet = "";
@@ -1685,6 +1688,7 @@ class bocdiscoo extends CommonFunctions
       $paginateWhere = "";
     }
     
+    //tpi: there is no comment for this block, what is it expected to to ? can it be deleted (and the query cleaned) ?
     if(isset($this->m_tblConfig['FORM_VAR'][$FormOID])){
       foreach($this->m_tblConfig['FORM_VAR'][$FormOID] as $key=>$col){
         $customQueryLet .= "let \$$key := \$SubjectData/odm:StudyEventData[@StudyEventOID='{$col['SEOID']}' and @StudyEventRepeatKey='{$col['SERK']}']/
@@ -1724,6 +1728,7 @@ class bocdiscoo extends CommonFunctions
               let \$StudyEventData := \$SubjectData/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and @StudyEventRepeatKey='$StudyEventRepeatKey' and @TransactionType!='Remove']
               let \$MetaDataVersion := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:MetaDataVersion[@OID=\$SubjectData/../@MetaDataVersionOID]
               let \$BasicDefinitions := collection('MetaDataVersion')/odm:ODM/odm:Study/odm:BasicDefinitions[../odm:MetaDataVersion/@OID=\$SubjectData/../@MetaDataVersionOID]
+              let \$MetaLocks := collection('MetaLocks')/odm:ODM/odm:ClinicalData/odm:SubjectData
 
               let \$SiteId := \$SubjectData/odm:SiteRef/@LocationOID
               $customQueryLet
@@ -1810,6 +1815,7 @@ class bocdiscoo extends CommonFunctions
                               let \$ItemDataDecode := alix:getDecode(\$ItemData,\$MetaDataVersion)
                               let \$Annotation := \$SubjectData/../odm:Annotations/odm:Annotation[@ID=\$ItemData/@AnnotationID]
                               let \$ItemDef := \$MetaDataVersion/odm:ItemDef[@OID=\$ItemOID]
+                              let \$Locked := \$MetaLocks/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and (@StudyEventRepeatKey='' or @StudyEventRepeatKey='$StudyEventRepeatKey')]/odm:FormData[@FormOID='$FormOID' and (@FormRepeatKey='' or @FormRepeatKey='$FormRepeatKey')]/odm:ItemGroupData[@ItemGroupOID=\$ItemGroupOID and (@ItemGroupRepeatKey='' or @ItemGroupRepeatKey=\$ItemGroupData/@ItemGroupRepeatKey)]/odm:ItemData[@ItemOID=\$ItemOID]/string(@Locked)
                               return
                                 <ItemData OID='{\$ItemOID}'
                                       Title='{\$ItemDef/odm:Question/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()}'
@@ -1817,7 +1823,8 @@ class bocdiscoo extends CommonFunctions
                                       Length='{\$ItemDef/@Length}'
                                       TransactionType='{\$ItemData/@TransactionType}'
                                       Value='{\$ItemData/string()}'
-                                      Decode='{\$ItemDataDecode}'>
+                                      Decode='{\$ItemDataDecode}'
+                                      Locked='{\$Locked}'>
                                       <Annotation FlagValue='{\$Annotation/odm:Flag/odm:FlagValue[@CodeListOID='ANNOTFLA']/string()}'
                                                   SDVcheck='{\$Annotation/odm:Flag/odm:FlagValue[@CodeListOID='ANNOTSDV']/string()}'
                                                   Comment='{\$Annotation/odm:Comment/string()}'/>
@@ -2467,7 +2474,7 @@ class bocdiscoo extends CommonFunctions
 
     $ItemGroupRef = $this->m_ctrl->socdiscoo()->query($query);
 
-    $tblItemDatas = $this->addItemData($SubjectKey,$ItemGroupOID,$ItemGroupRepeatKey,$ItemGroupRef[0],$formVars,$tblFilledVar,$subj,$AuditRecordID,$bEraseNotFoundItem,$nbAnnotations,$profileId);
+    $tblItemDatas = $this->addItemData($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$ItemGroupRef[0],$formVars,$tblFilledVar,$subj,$AuditRecordID,$bEraseNotFoundItem,$nbAnnotations,$profileId);
     $strItemDatas = implode(',',$tblItemDatas);      
     //Update XML DB only if needed
     if($strItemDatas!="")

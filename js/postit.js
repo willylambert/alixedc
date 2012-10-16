@@ -74,21 +74,12 @@ function initPostIt(SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRep
         html = getPostItHTML(postItId, txt);
         //on positionne sur le bon td
         dropzone = getDropZoneSelector(ItemOID,ItemGroupRepeatKey,ItemGroupOID);
-        pos = $(dropzone).offset();
-        pos.left = pos.left + $(dropzone).width();
-        pos.top = pos.top;
         if(!(jQuery.browser.msie && jQuery.browser.version<9)){ //test à mettre à jour si IE9 se révèle être toujours aussi pourri qu'IE8
           $(dropzone).append(html);
         }else{
           $("body").append(html);
         }
-        if($(dropzone).width() > $(jq(postItId)).width()){
-          pos.left = pos.left - $(jq(postItId)).innerWidth();
-        }else{
-          pos.left = $(dropzone).offset().left;
-        }
-          pos.top = pos.top + ($(dropzone).height() - $(jq(postItId)).height())/2;
-        $(jq(postItId)).offset(pos);
+        setPostItPosition(postItId);
         $(jq(postItId)).draggable({ revert: "invalid" });
         $(dropzone).addClass("DroppedZone");
       }
@@ -101,6 +92,35 @@ function initPostIt(SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRep
       //On s'assure que le post-it puisse être redimensionné
       ensurePostIsResizable();
     }
+  });
+}
+
+//set the position for a post-it
+function setPostItPosition(postItId){
+  var keys = postItId.split(new RegExp("_"));
+  if(keys.length<9) return false; //may be a new and still unidentified post-it (not dropped)
+  ItemGroupOID = keys[6];
+  ItemGroupRepeatKey = keys[7];
+  ItemOID = keys[8];
+  dropzone = getDropZoneSelector(ItemOID,ItemGroupRepeatKey,ItemGroupOID);
+  var jDropZone = $(dropzone);
+  pos = jDropZone.offset();
+  pos.left = pos.left + jDropZone.width();
+  pos.top = pos.top;
+  var jPostIt = $(jq(postItId));
+  if(jDropZone.width() > jPostIt.width()){
+    pos.left = pos.left - jPostIt.innerWidth();
+  }else{
+    pos.left = jDropZone.offset().left;
+  }
+  pos.top = pos.top + (jDropZone.height() - jPostIt.height())/2;
+  jPostIt.offset(pos);
+}
+
+//set the position of every post-it in the form
+function setAllPostItsPotision(){
+  $("div[id^='PostIt_']").each(function(index) {
+      setPostItPosition($(this).attr("id"));
   });
 }
 
@@ -133,6 +153,10 @@ function displayNewPostIt(SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,F
     $("body").append(html);
     $(jq(newid)).offset($("#btnAddPostIt").offset());
     $(jq(newid)).draggable({ revert: "invalid" });
+    //On s'assure que le post-it clické est visible par dessus les autres
+    ensurePostItVisibility();
+    //On s'assure que le post-it puisse être redimensionné
+    ensurePostIsResizable();
   }
 }
 
@@ -146,7 +170,7 @@ function getPostItHTML(id,txt){
   if(profileId=='CRA'){
     options = "<img src='"+currentApp+"/templates/default/images/delete_12.png' onClick='deletePostIt(this.parentNode.parentNode)' altbox='Delete'/>";
     readonly = "";
-    onActions = "onFocus='editPostIt(this)' onKeyUp='id=helper.getFirstParentId(this); savePostIt(id)'";
+    onActions = "onFocus='editPostIt(this)' onKeyUp='postItId=helper.getFirstParentId(this); savePostIt(postItId)'";
   }else{
     options = "<img src='"+currentApp+"/templates/default/images/delete_12.png' onClick='hidePostIt(this.parentNode.parentNode)' altbox='Hide'/>";
     readonly = "readonly='readonly'";
@@ -365,13 +389,10 @@ function hidePostIt(postit){
   postit.style.display = "none";
 }
 
-//permet de déplacer les post-it pour qu'ils conservent une position correcte par rapport à un élément affiché/masqué (exemple : bloc d'édition d'une querie)
-function movePostItsTopPositionRelativeTo(selector){
-  moveY = $(selector).outerHeight(true); //hauteur, marges comprises, de l'élément
-  if($(selector).css('display')=='none') moveY = -moveY; //s'il est masqué il faut remonter le post-it
-  $("div[id^='PostIt_']").each(function(index) {
-    posPI = $(this).offset();
-    posPI.top += moveY;
-    $(this).offset(posPI);
-  });
+function getPos(el) {
+    // yay readability
+    for (var lx=0, ly=0;
+         el != null;
+         lx += el.offsetLeft, ly += el.offsetTop, el = el.offsetParent);
+    return {x: lx,y: ly};
 }

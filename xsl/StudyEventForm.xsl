@@ -82,6 +82,7 @@
                l'order by de notre xquery s'occupant de mettre le plus récent en premier  -->
           <xsl:variable name="ItemValue" select="$ItemGroupData/ItemData[@OID=$Item/@OID]/@Value"/>
           <xsl:variable name="ItemDecode" select="$ItemGroupData/ItemData[@OID=$Item/@OID]/@Decode"/>
+          <xsl:variable name="ItemLocked" select="$ItemGroupData/ItemData[@OID=$Item/@OID]/@Locked"/>
           <xsl:variable name="Annotation" select="$ItemGroupData/ItemData[@OID=$Item/@OID]/Annotation"/>
           <tr class="ItemData" id="{$Item/@OID}_{$ItemGroupData/@ItemGroupOID}_{$ItemGroupData/@ItemGroupRepeatKey}" name="{$Item/@OID}">
             <!--Audi Trail icon-->
@@ -134,6 +135,7 @@
                    <xsl:with-param name="Item" select="."/>
                    <xsl:with-param name="ItemValue" select="$ItemValue"/>
                    <xsl:with-param name="ItemDecode" select="$ItemDecode"/>
+                   <xsl:with-param name="ItemLocked" select="$ItemLocked"/>
                    <xsl:with-param name="FlagValue" select="$Annotation/@FlagValue"/>
                    <xsl:with-param name="SDVcheck" select="$Annotation/@SDVcheck"/>
                    <xsl:with-param name="TabIndex" select="concat($ItemGroupPos,position())"/>

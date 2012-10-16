@@ -36,8 +36,8 @@ class boacl extends CommonFunctions
 /**************************************************** Accessors User/Profile ****************************************************/
 
   /**
-  * Test if the user has the specified Profile (INV, CRA, DM, ...) for the specified Site 
-  * @param profileId to test, could be an array of profileId or a comma separated list of profileId
+  * Test if the user has the specified Profile (CRT, INV, CRA, DM, ...) for the specified Site 
+  * @param profileIds to test, could be an array of profileId or a comma separated list of profileId
   * @param optional $userId 
   * @param optional $siteId
   * @return boolean
@@ -75,7 +75,7 @@ class boacl extends CommonFunctions
   * Get the default profileId for the specified user and siteId
   * @param optional $userId if empty, get default profile of the current user
   * @param optional $siteId if empty, get default profile of the user
-  * @return string profileId (ARC, INV, DM) or false if no profile found
+  * @return string profileId (CRT, INV, ARC, DM) or false if no profile found
   * @author tpi
   **/ 
   public function getUserProfileId($userId="", $siteId=""){
@@ -181,22 +181,24 @@ class boacl extends CommonFunctions
     foreach($moduleNames as $moduleName){
       switch($moduleName)
       {
-        case "importDoc" :
-        case "deleteDoc" :
-        case "viewDocs" :
-        case "ManageUsers" :
-        case "ManageSites" :
+        case "importDoc" : //importing documents such as the BLANK, Subjects and Metadata into the database
+        case "deleteDoc" : //deleting documents such as the BLANK, Subjects and Metadata from the database
+        case "viewDocs" : //viewing the content of documents such as the BLANK, Subjects and Metadata from the database
+        case "ManageUsers" : //adding, modifying and deleting users and profiles
+        case "ManageSites" : //adding, modifying and deleting sites
+        case "LockDB" : //locking and unlocking database modifications for everyone
+        case "Configuration" : //access to Alix configuration : maintenance, etc
            if( $GLOBALS['egw_info']['user']['apps']['admin']){
              $access = true; 
            }
            break;
-        case "EditDocs" :
+        case "EditDocs" : //editing and modifying content of the database documents and the custom scripts
            if( $GLOBALS['egw_info']['user']['apps']['admin'] || 
               $this->m_ctrl->boacl()->existUserProfileId(array("DM"))){
              $access = true; 
            }
            break;
-        case "ExportData" :
+        case "ExportData" : //exporting clinical data
            if($GLOBALS['egw_info']['user']['apps']['admin'] || 
               $this->m_ctrl->boacl()->existUserProfileId(array("DM","SPO"))){
              $access = true; 

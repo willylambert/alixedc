@@ -28,6 +28,7 @@
   	<xsl:param name="ItemValue" />
   	<xsl:param name="FlagValue" />
   	<xsl:param name="SDVcheck"/>
+  	<xsl:param name="ItemLocked"/>
     <xsl:param name="ItemDecode"/>                   
 	  <xsl:param name="MaxAuditRecordID"/>
   	<xsl:param name="TabIndex"/>
@@ -42,13 +43,31 @@
   	<xsl:variable name="ItemOID" select="translate($Item/@OID,'.','@')"/>
 
     <xsl:choose>
-      <xsl:when test="$SDVcheck='Y' and $ProfileId!='CRA'">
+      <xsl:when test="$ItemLocked='Y' or ($SDVcheck='Y' and $ProfileId!='CRA')">
+        <!--span for lock icon-->
+        <xsl:element name="span">
+          <xsl:attribute name='class'>imageOnly image16</xsl:attribute>
+          <xsl:if test="$ItemLocked='Y'">
+            <xsl:attribute name="style">background-image: url('<xsl:value-of select="$CurrentApp"/>/templates/default/images/lock_16.png');</xsl:attribute>
+          </xsl:if>
+        </xsl:element>
+        <!--span for SDV icon-->
+        <xsl:element name="span">
+          <xsl:attribute name='class'>imageOnly image16</xsl:attribute>
+          <xsl:if test="$SDVcheck='Y' and $ProfileId!='CRA'">
+            <xsl:attribute name="style">background-image: url('<xsl:value-of select="$CurrentApp"/>/templates/default/images/agt_action_success.png');</xsl:attribute>
+          </xsl:if>
+        </xsl:element>
+        <!--item value as text only-->
+        <xsl:value-of select="$ItemDecode" />
+      </xsl:when>
+      <!--xsl:when test="$SDVcheck='Y' and $ProfileId!='CRA'">
         <xsl:element name="span">
           <xsl:attribute name='class'>imageOnly image16</xsl:attribute>
           <xsl:attribute name="style">background-image: url('<xsl:value-of select="$CurrentApp"/>/templates/default/images/agt_action_success.png');</xsl:attribute>
         </xsl:element>
         <xsl:value-of select="$ItemDecode" />
-      </xsl:when>
+      </xsl:when-->
       <xsl:otherwise>
         <xsl:choose>
           <!--Derived item : no input, just display the raw value-->

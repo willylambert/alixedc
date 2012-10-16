@@ -69,7 +69,10 @@ class uisubject extends CommonFunctions
       //Get Form Data / without design      
       $xml = $this->m_ctrl->bocdiscoo()->getStudyEventForms($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,false,$paginateStart,$paginateEnd);    
       
-      $FormTag = $xml->getElementsByTagName("Form");  
+      $FormTag = $xml->getElementsByTagName("Form");
+      if($FormTag->length==0){
+        $this->addLog(__METHOD__." Form not found. Are the Subject/BLANK and MetaDataVersion documents with matching MetaDataVersionOID available ?", FATAL);
+      }
       $FormTitle = $FormTag->item(0)->getAttribute("Title");
 
       $StudyEventTag = $xml->getElementsByTagName("StudyEvent");  
@@ -82,15 +85,15 @@ class uisubject extends CommonFunctions
         $profiles = $this->m_ctrl->boacl()->getUserProfiles();
         $i = 0;
         
-        while($profiles[$i]['profileId']!='INV' && $i<count($profiles)){
+        while($profiles[$i]['profileId']!="CRT" && $profiles[$i]['profileId']!="INV" && $i<count($profiles)){
           $i++;
         }
         if($i<count($profiles)){
-          //Investigator profile found - used as default site
+          //CRT or INV profile found - used as default site
           $SiteId = $profiles[$i]['siteId'];
           $profile = $profiles[$i];
         }else{
-          $this->addLog("Error : user '". $this->m_ctrl->boacl()->getUserId() ."' not found as Investigator.",FATAL);
+          $this->addLog("Error : user '". $this->m_ctrl->boacl()->getUserId() ."' not found as Technician or Investigator.",FATAL);
         }      
       }else{
         //Access right check      
@@ -121,7 +124,7 @@ class uisubject extends CommonFunctions
       $proc->setParameter('','FormOID',$FormOID);
       $proc->setParameter('','FormRepeatKey',$FormRepeatKey);
       
-      if($profileId!="INV" || $formStatus=="FROZEN"){
+      if(($profileId!="CRT" && $profileId!="INV") || $formStatus=="FROZEN"){
         $ReadOnly = "true";
       }else{        
         $ReadOnly = "false";
@@ -432,8 +435,8 @@ Return the toolbox buttons (post-it for CRA)
     if($profileId=="CRA"){
       $htmlRet .= '<button id="btnAddPostIt" class="ui-state-default ui-corner-all" onclick="displayNewPostIt(\''.$SubjectKey.'\',\''.$StudyEventOID.'\',\''.$StudyEventRepeatKey.'\',\''.$FormOID.'\',\''.$FormRepeatKey.'\');"><img src="'.$this->getCurrentApp(false).'/templates/default/images/postit_14.png" style="float:left; margin-right: 3px;" />Add a post-it</button>';
     }
-    //only investigator could put deviation
-    if($profileId=="INV"){
+    //only CRT and INV could put deviation
+    if($profileId=="CRT" || $profileId=="INV"){
       //and only on specified forms
       if($this->m_ctrl->bodeviations()->formCanHaveDeviation($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey)){
       /*

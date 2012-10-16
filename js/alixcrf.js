@@ -270,7 +270,7 @@ function loadAlixCRFjs(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepe
   initDyn(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepeatKey,FormOID,FormRepeatKey,ProfileId);
   
   //Handle of "Quit without saving"
-  if(ProfileId=='INV'){
+  if(ProfileId=="CRT" || ProfileId=="INV"){
     $("a").click(function(){
       if($(this).attr('href')!="javascript:void(0)" && $(this).attr('href')!="#")
       {
@@ -306,30 +306,72 @@ function loadAlixCRFjs(CurrentApp,SiteId,SubjectKey,StudyEventOID,StudyEventRepe
     });
   }
   
-  //Only investigators can update CRFs values
-  if(ProfileId!='INV' || FormStatus=='FROZEN'){
-    $("td.ItemDataInput input[type=text]").attr("readonly","readonly");
-    $("td.ItemDataInput input[type=radio]").attr("disabled","disabled").after(function() { //we add an hidden field, necessary to update the ItemData in ODM when SDV value is modified
-      var hiddenInput = $(this).clone().removeAttr('disabled').attr('type', 'hidden');
-      $(this).attr('name', $(this).attr('name') +"_display");
-      return hiddenInput;
-    });
-    $("td.ItemDataInput select").attr("disabled","disabled").after(function() { //we add an hidden field, necessary to update the ItemData in ODM when SDV value is modified
-      var attrs = { };
-      $.each($(this)[0].attributes, function(idx, attr) {
-          attrs[attr.nodeName] = attr.nodeValue;
+  //Only CRT and INV can update CRFs values (fields and annotations)
+  if((ProfileId!="CRT" && ProfileId!="INV") || FormStatus=="FROZEN"){
+    try{
+      //the map() are to create inputs, hidden and not disabled, necessary to save SDV data
+      //todo: maybe clean code (readability) with the creation of a new function named "createHiddenFieldsForSDV", maybe called in .map()
+      $("td.ItemDataInput input[type=text]").attr("readonly","readonly").map(function() { //we add an hidden field, necessary to update the ItemData in ODM when SDV value is modified
+        var hiddenInput = $(this).clone().removeAttr('disabled');
+        if(helper.isOldIE(8)){ //existing attribute type cannot be modified with IE<=8
+          var attrs = { };
+          $.each($(this)[0].attributes, function(idx, attr) {
+            if(attr.nodeName!="type"){
+              attrs[attr.nodeName] = attr.nodeValue;
+            }
+          });
+          $(this).attr('name', $(this).attr('name') +"_display");
+          var hiddenInput = $("<input />", attrs).removeAttr('disabled').attr('type', 'hidden');
+          $(this.form).append(hiddenInput); //must be affected to the form
+        }else{
+          hiddenInput.attr('type', 'hidden');
+          $(this).attr('name', $(this).attr('name') +"_display");
+        }
+        $(this.form).append(hiddenInput); //must be affected to the form
       });
-      $(this).attr('name', $(this).attr('name') +"_display");
-      return $("<input />", attrs).removeAttr('disabled').attr('type', 'hidden');
-    });
-    $("td.ItemDataInput textarea").attr("readonly","readonly");
-    
-    $("div[id^=annotation] input[type=radio]").attr("disabled","disabled").after(function() { //we add an hidden field, necessary to update the ItemData in ODM when SDV value is modified
-      var hiddenInput = $(this).clone().removeAttr('disabled').attr('type', 'hidden');
-      $(this).attr('name', $(this).attr('name') +"_display");
-      return hiddenInput;
-    });
-    $("div[id^=annotation] textarea").attr("readonly","readonly");
+      $("td.ItemDataInput input[type=radio]").attr("disabled","disabled").map(function() { //we add an hidden field, necessary to update the ItemData in ODM when SDV value is modified
+        var hiddenInput = $(this).clone().removeAttr('disabled');
+        if(helper.isOldIE(8)){ //existing attribute type cannot be modified with IE<=8
+          var attrs = { };
+          $.each($(this)[0].attributes, function(idx, attr) {
+            if(attr.nodeName!="type"){
+              attrs[attr.nodeName] = attr.nodeValue;
+            }
+          });
+          $(this).attr('name', $(this).attr('name') +"_display");
+          var hiddenInput = $("<input />", attrs).removeAttr('disabled').attr('type', 'hidden');
+          $(this.form).append(hiddenInput); //must be affected to the form
+        }else{
+          hiddenInput.attr('type', 'hidden');
+          $(this).attr('name', $(this).attr('name') +"_display");
+        }
+        $(this.form).append(hiddenInput); //must be affected to the form
+      });
+      $("td.ItemDataInput select").attr("disabled","disabled").map(function() { //we add an hidden field, necessary to update the ItemData in ODM when SDV value is modified
+        var attrs = { };
+        $.each($(this)[0].attributes, function(idx, attr) {
+            attrs[attr.nodeName] = attr.nodeValue;
+        });
+        $(this).attr('name', $(this).attr('name') +"_display");
+        var hiddenInput = $("<input />", attrs).removeAttr('disabled').attr('type', 'hidden');
+        $(this.form).append(hiddenInput); //must be affected to the form
+      });
+      $("td.ItemDataInput textarea").attr("readonly","readonly").map(function() { //we add an hidden field, necessary to update the ItemData in ODM when SDV value is modified
+        var hiddenInput = $(this).clone().removeAttr('disabled');
+        hiddenInput.css({display: "none"});
+        $(this).attr('name', $(this).attr('name') +"_display");
+        $(this.form).append(hiddenInput); //must be affected to the form
+      });
+      //annotations
+      $("div[id^=annotation] input[type=radio]").attr("disabled","disabled").map(function() { //we add an hidden field, necessary to update the ItemData in ODM when SDV value is modified
+        var hiddenInput = $(this).clone().removeAttr('disabled').attr('type', 'hidden');
+        $(this).attr('name', $(this).attr('name') +"_display");
+        $(this.form).append(hiddenInput); //must be affected to the form
+      });
+      $("div[id^=annotation] textarea").attr("readonly","readonly");
+    }catch(e){
+      alert(e.message);
+    }
   }
   
   //CRA can modify post-it values

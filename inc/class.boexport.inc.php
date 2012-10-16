@@ -104,8 +104,51 @@ class boexport extends CommonFunctions
         throw new Exception("ID cannot be empty");
         return;
       }
-    }   
+    }
     
+    //set maintenance mode (save old status)
+    $oldMaintenanceStatus = $this->m_ctrl->boconfig()->getParameter("maintenance");
+    $this->m_ctrl->boconfig()->setParameter("maintenance","Y");
+    
+    //1 to 3 - update the working database for export generation
+    //1- for each collection create a repository and save each document of the collection in this repository
+    //$collections = $this->m_ctrl->socdiscoo()->getCollections();
+    $collections = array("ClinicalData", "MetaDataVersion");
+    foreach($collections as $collection){
+      $path = $this->m_tblConfig['EXPORT_BASE_PATH'] . $collection ."_". date('Ymd');
+      if(!is_dir($path)) mkdir($path);
+      $documents = $this->m_ctrl->socdiscoo()->getDocumentsList($collection);
+      foreach($documents as $document){
+        $doc = $this->m_ctrl->socdiscoo()->getDocument($collection, $document, false);
+        $doc->save($path ."/". $document .".xml");
+      }
+    }
+    
+    //2- change database context => working on EXPORT database
+    $this->m_ctrl->socdiscoo()->setContext("EXPORT");
+    //reset EXPORT database
+    $this->m_ctrl->socdiscoo()->initDB(true,true,true);
+    
+    //3- for each repository load each document in the corresponding collection
+    foreach($collections as $collection){
+      $path = $this->m_tblConfig['EXPORT_BASE_PATH'] . $collection ."_". date('Ymd');
+      if ($handle = opendir($path)) {
+        while (false !== ($entry = readdir($handle))) {
+          if ($entry != "." && $entry != "..") {
+            $filepath = $path ."/". $entry;
+            try{
+              //adding document
+              $fileOID = $this->m_ctrl->socdiscoo()->addDocument($filepath,false,$collection);
+            }catch(Exception $e){
+              $this->addLog(__METHOD__." ".$e->getMessage(), FATAL);
+            }
+          }
+        }
+        closedir($handle);
+      }
+    }
+    
+    //export
     if($type=="config_file"){
       if(isset($this->m_tblConfig['EXPORT']['TYPE'][$id]['index'])){
         $exportIndex = $this->m_tblConfig['EXPORT']['TYPE'][$id]['index'];
@@ -947,6 +990,13 @@ delimiter = ';' MISSOVER DSD lrecl=32767 firstobs=2;";
             VALUES('$id','$dsmbFileName','{$this->m_tblConfig["EXPORT_BASE_PATH"]}','$type',now(),'$uid','{$this->m_user}','{$this->getCurrentApp(true)}')";
   
     $GLOBALS['egw']->db->query($sql);
+    
+    
+    //change database context => working on default database
+    $this->m_ctrl->socdiscoo()->setContext("");
+    
+    //cancel modification of maintenance mode (use old status)
+    $this->m_ctrl->boconfig()->setParameter("maintenance",$oldMaintenanceStatus);
   }
   
   public function getMetaDataStructure(){

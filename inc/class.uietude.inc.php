@@ -33,6 +33,7 @@ class uietude extends CommonFunctions
 	  'annotatedCRF' => True,
 	  'auditTrailInterface' => True,
 		'changePasswordInterface' => True,
+		'configInterface' => True,
 		'dashboardInterface'	=> True,
 		'dbadminInterface'	=> True,
 		'deviationsInterface' => True,
@@ -40,6 +41,7 @@ class uietude extends CommonFunctions
 		'editorInterface' => True,
 		'exportInterface' => True,
 		'lockInterface' => True,
+		'lockdbInterface' => True,
 		'logout' => True,
 		'preferencesInterface' => True,
 		'queriesInterface' => True,
@@ -161,6 +163,19 @@ class uietude extends CommonFunctions
         $this->create_header($bBuffer);
         echo $ui->getInterface();
 		    $this->create_footer($bBuffer);  
+   }
+
+   public function lockdbInterface()
+   {
+        require_once('class.uilockdb.inc.php');
+        global $configEtude;
+        $ui = new uilockdb($configEtude,$this->m_ctrl);
+        
+        $GLOBALS['egw_info']['flags']['app_header'];
+        
+        $this->create_header();
+        echo $ui->getInterface();
+		    $this->create_footer();  
    }
    
    public function dashboardInterface()
@@ -315,9 +330,10 @@ class uietude extends CommonFunctions
     		
         require_once('class.uipassword.inc.php');
         $uiPassword = new uipassword($configEtude,$this->m_ctrl);
-        if($uiPassword->passwordNeedChange()){
+        $sReasonForChange = $uiPassword->passwordNeedChange();
+        if($sReasonForChange!=""){
           $this->create_header();
-          echo $uiPassword->getChangeInterface();
+          echo $uiPassword->getChangeInterface($sReasonForChange);
           $this->create_footer();
         }else{ 
           require_once('class.uidashboard.inc.php');
@@ -341,7 +357,7 @@ class uietude extends CommonFunctions
         $html = $ui->getChangeInterface();
         $this->create_header();
         echo $html;
-        $this->create_footer();                
+        $this->create_footer();
    }
    
    public function subjectInterface()
@@ -443,6 +459,13 @@ class uietude extends CommonFunctions
      
    public function lockInterface()
    {
+        if( !isset($_GET['SubjectKey']) ||
+            !isset($_GET['StudyEventOID']) ||
+            !isset($_GET['StudyEventRepeatKey']) ||
+            !isset($_GET['FormOID']) ||
+            !isset($_GET['FormRepeatKey']) ||
+            !isset($_GET['FormStatus'])) $this->m_ctrl->addLog(__METHOD__ ." Missing keys in ". print_r($_GET, true),FATAL);
+        
         require_once('class.uisubject.inc.php');
         
         $SubjectKey = $_GET['SubjectKey'];
@@ -491,6 +514,23 @@ class uietude extends CommonFunctions
 
         global $configEtude;
         $ui = new uiusers($configEtude,$this->m_ctrl);
+        
+        $this->create_header();
+        echo $ui->getInterface();
+        $this->create_footer();   
+   }
+
+   public function configInterface()
+   {
+        require_once('class.uiconfig.inc.php');
+
+        //Only accessible to admin
+        if(!$GLOBALS['egw_info']['user']['apps']['admin']){
+          $this->addLog("Unauthorized Access to Config Module - Administrator has been notified",FATAL);
+        }
+
+        global $configEtude;
+        $ui = new uiconfig($configEtude,$this->m_ctrl);
         
         $this->create_header();
         echo $ui->getInterface();

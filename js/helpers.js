@@ -76,8 +76,11 @@ var helper = {
       }
       if(response.substr(0,250).indexOf("[Login]", 0) != -1){
         this.showInfoBox("Session closed.",true);
-        alert("Your session has ended. Please sign in again.");
-        window.location.reload();
+        if(this.displayedError!="session"){ //do not bother the user with the same message many times, do not redirect to login many times
+          alert("Your session has ended. Please sign in again.");
+          this.displayedError = "session";
+          window.location.reload();
+        }
       }else{
         this.showInfoBox(msg,true);
         if(bShowData){
