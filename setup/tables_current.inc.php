@@ -210,6 +210,7 @@
       'QUERYTYPE' => array('type' => 'varchar','precision' => '2','nullable' => False),
       'QUERYSTATUS' => array('type' => 'varchar','precision' => '1','nullable' => False),
       'ANSWER' => array('type' => 'longtext'),
+      'LABEL' => array('type' => 'longtext'),
       'ITEMOID' => array('type' => 'varchar','precision' => '50','nullable' => False),
       'SUBJKEY' => array('type' => 'varchar','precision' => '10','nullable' => False),
       'SITEID' => array('type' => 'varchar','precision' => '10','nullable' => False),
