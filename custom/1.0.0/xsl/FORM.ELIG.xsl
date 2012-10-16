@@ -131,7 +131,7 @@ Complete <b>Posology</b> to download dispensation prescription
        <xsl:apply-templates/>
    </xsl:copy>  
    <xsl:if test="(@value='' or not(@value)) and $ProfileId='INV' and $FormStatus!='FROZEN'">
-     <div style="width: 100px; display: inline-block"><input type="button" value="Generate" onclick="randomizeMe()" id="randomize" /><img src="alixedc/templates/default/images/helpers/ajax-loader-small.gif" id="randomize-loading" style="display: none; margin:0px; padding: 0px; height: 14px;"/></div>
+     <div style="width: 100px; display: inline-block"><input type="button" value="Randomize" onclick="randomizeMe()" id="randomize" /><img src="alixedc/templates/default/images/helpers/ajax-loader-small.gif" id="randomize-loading" style="display: none; margin:0px; padding: 0px; height: 14px;"/></div>
    </xsl:if>
 </xsl:template>
 
