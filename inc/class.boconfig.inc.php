@@ -25,11 +25,33 @@ require_once("class.CommonFunctions.php");
 class boconfig extends CommonFunctions
 {  
   //Definition of parameters : identifier, label and acceptable values
-  //All avalable parameter must be defined here
+  //All available parameter must be defined here
   var $parameters = array(
-      "maintenance" => array( "label" => "Maintenance",
-                              "values" => array("Y" => "On",
-                                                "N" => "Off")
+      "maintenance" => array( 
+                            "category" => "Maintenance",
+                            "label" => "Maintenance mode (only the administrator has access)",
+                            "values" => array("Y" => "On",
+                                              "N" => "Off"),
+                            "default" => "N"
+      ),
+      "password_min_length" => array( 
+                            "category" => "Password",
+                            "label" => "Minimum length",
+                            "values" => "",
+                            "default" => "6"
+      ),
+      "password_upper_lower_case" => array( 
+                            "category" => "Password",
+                            "label" => "Must contain at least on upper case and one lower case letter",
+                            "values" => array("Y" => "Yes",
+                                              "N" => "No"),
+                            "default" => "Y"
+      ),
+      "password_change_after" => array( 
+                            "category" => "Password",
+                            "label" => "Expiration delay (days)",
+                            "values" => "",
+                            "default" => "90"
       ),
     );
 
@@ -69,14 +91,36 @@ class boconfig extends CommonFunctions
    * @author TPI
    */
   public function getParameters(){
-    //retriving values of parameters
+    //retrieving values of parameters
     $sql = "SELECT * FROM egw_alix_config WHERE currentapp='". $this->getCurrentApp(true) ."'";
     $GLOBALS['egw']->db->query($sql);
     while($GLOBALS['egw']->db->next_record()){
       $this->parameters[$GLOBALS['egw']->db->f('parameter')]['value'] = $GLOBALS['egw']->db->f('value');
     }
+    //set default settings for unset parameters
+    foreach($this->parameters as $id => $param){
+      if(!isset($param['value']) && $param['default']!=""){
+        $this->parameters[$id]['value'] = $param['default'];
+        $this->setParameter($id, $param['default']);
+      }
+    }
     
     //we return these settings
     return $this->parameters;
-  } 
+  }
+  
+  /**
+   * @desc check if the configuration parameters have to be set for the current application
+   * @return boolean
+   */
+  public function configurationNeeded(){
+    $bRet = false;
+    //look for settings
+    $sql = "SELECT * FROM egw_alix_config WHERE currentapp='". $this->getCurrentApp(true) ."'";
+    $GLOBALS['egw']->db->query($sql);
+    if(!$GLOBALS['egw']->db->next_record()){ //no setting found
+      $bRet = true;
+    }
+    return $bRet;
+  }
 }

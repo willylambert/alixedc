@@ -1815,7 +1815,7 @@ class bocdiscoo extends CommonFunctions
                               let \$ItemDataDecode := alix:getDecode(\$ItemData,\$MetaDataVersion)
                               let \$Annotation := \$SubjectData/../odm:Annotations/odm:Annotation[@ID=\$ItemData/@AnnotationID]
                               let \$ItemDef := \$MetaDataVersion/odm:ItemDef[@OID=\$ItemOID]
-                              let \$Locked := \$MetaLocks/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and (@StudyEventRepeatKey='' or @StudyEventRepeatKey='$StudyEventRepeatKey')]/odm:FormData[@FormOID='$FormOID' and (@FormRepeatKey='' or @FormRepeatKey='$FormRepeatKey')]/odm:ItemGroupData[@ItemGroupOID=\$ItemGroupOID and (@ItemGroupRepeatKey='' or @ItemGroupRepeatKey=\$ItemGroupData/@ItemGroupRepeatKey)]/odm:ItemData[@ItemOID=\$ItemOID]/string(@Locked)
+                              let \$Locked := if(exists(\$MetaLocks/odm:StudyEventData[@StudyEventOID='$StudyEventOID' and (@StudyEventRepeatKey='0' or @StudyEventRepeatKey='$StudyEventRepeatKey')]/odm:FormData[@FormOID='$FormOID' and (@FormRepeatKey='0' or @FormRepeatKey='$FormRepeatKey')]/odm:ItemGroupData[@ItemGroupOID=\$ItemGroupOID and (@ItemGroupRepeatKey='0' or @ItemGroupRepeatKey=\$ItemGroupData/@ItemGroupRepeatKey)]/odm:ItemData[@ItemOID=\$ItemOID])) then 'Y' else 'N'
                               return
                                 <ItemData OID='{\$ItemOID}'
                                       Title='{\$ItemDef/odm:Question/odm:TranslatedText[@xml:lang='{$this->m_lang}']/string()}'

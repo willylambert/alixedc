@@ -62,8 +62,15 @@ class uietude extends CommonFunctions
         
     $GLOBALS['egw_info']['flags']['app_header'] = $this->m_tblConfig['APP_NAME'];
     
-    //Controleur d'instanciation
+    //Controler for instanciation
     $this->m_ctrl = new instanciation();
+    
+    //Blocking access if maintenance
+    if($this->getConfig("maintenance")=="Y"
+      && !$GLOBALS['egw_info']['user']['apps']['admin']
+      ){
+      die("<html><div style='text-align: center; margin-top: 150px;'><img src='phpgwapi/templates/idots/images/alix/alix_logo.png'></div><div style='text-align: left; font: 24px calibri bold; width: 450px; margin: 10px auto;'>The site is currently down for maintenance.<div style=' text-align: left; font: 16px calibri; color: #aaa; margin: 10px auto;'>We expect to be back in about an hour.<br />We apologize for the inconvenience and appreciate your patience.</div></div></html>");
+    }
   }
 
 	/**
@@ -328,21 +335,32 @@ class uietude extends CommonFunctions
         $_SESSION[$this->getCurrentApp(false)]['testmode'] = $testmode;
     		$_SESSION[$this->getCurrentApp(false)]['forcetestmode'] = $forceTestMode;
     		
-        require_once('class.uipassword.inc.php');
-        $uiPassword = new uipassword($configEtude,$this->m_ctrl);
-        $sReasonForChange = $uiPassword->passwordNeedChange();
-        if($sReasonForChange!=""){
-          $this->create_header();
-          echo $uiPassword->getChangeInterface($sReasonForChange);
-          $this->create_footer();
-        }else{ 
-          require_once('class.uidashboard.inc.php');
-          
-          $ui = new uidashboard($configEtude,$this->m_ctrl);
-                  
-          $this->create_header();
-          echo $ui->getInterface();
-          $this->create_footer();
+    		
+    		//Configuration (first connection to currentapp
+        require_once('class.boconfig.inc.php');
+        $boConfig = new boconfig($configEtude,$this->m_ctrl);
+        $bConfigurationNeeded = $boConfig->configurationNeeded();
+    		if($bConfigurationNeeded){
+          $this->configInterface();
+    		}else{
+    		  //Password (need to change)
+          require_once('class.uipassword.inc.php');
+          $uiPassword = new uipassword($configEtude,$this->m_ctrl);
+          $sReasonForChange = $uiPassword->passwordNeedChange();
+          if($sReasonForChange!=""){
+            $this->create_header();
+            echo $uiPassword->getChangeInterface($sReasonForChange);
+            $this->create_footer();
+          }else{
+            //Access to main apge (dashboard)
+            require_once('class.uidashboard.inc.php');
+            
+            $ui = new uidashboard($configEtude,$this->m_ctrl);
+                    
+            $this->create_header();
+            echo $ui->getInterface();
+            $this->create_footer();
+          }
         }
    }    
    

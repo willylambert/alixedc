@@ -74,23 +74,31 @@ var helper = {
       }else{
         response = data.toString();
       }
-      if(response.substr(0,250).indexOf("[Login]", 0) != -1){
-        this.showInfoBox("Session closed.",true);
-        if(this.displayedError!="session"){ //do not bother the user with the same message many times, do not redirect to login many times
-          alert("Your session has ended. Please sign in again.");
-          this.displayedError = "session";
-          window.location.reload();
+      if(response=="MAINTENANCE"){
+        this.showInfoBox("Site is under maintenance",true);
+        if(this.displayedError!="maintenance"){ //do not bother the user with the same message many times
+          alert("The site is currently down for maintenance. Please try again later.");
+          this.displayedError = "maintenance";
         }
       }else{
-        this.showInfoBox(msg,true);
-        if(bShowData){
-          msg += ".\n\n"+ response +"\n\n";
+        if(response.substr(0,250).indexOf("[Login]", 0) != -1){
+          this.showInfoBox("Session closed",true);
+          if(this.displayedError!="session"){ //do not bother the user with the same message many times, do not redirect to login many times
+            alert("Your session has ended. Please sign in again.");
+            this.displayedError = "session";
+            window.location.reload();
+          }
         }else{
-          msg += ".";
+          this.showInfoBox(msg,true);
+          if(bShowData){
+            msg += ".\n\n"+ response +"\n\n";
+          }else{
+            msg += ".";
+          }
+          msg += sMsgError;
+          //alert(msg);
+          this.showPrompt(msg, "function noon(){}", 1);
         }
-        msg += sMsgError;
-        //alert(msg);
-        this.showPrompt(msg, "function noon(){}", 1);
       }
     }
   },

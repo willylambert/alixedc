@@ -112,8 +112,7 @@ class boexport extends CommonFunctions
     
     //1 to 3 - update the working database for export generation
     //1- for each collection create a repository and save each document of the collection in this repository
-    //$collections = $this->m_ctrl->socdiscoo()->getCollections();
-    $collections = array("ClinicalData", "MetaDataVersion");
+    $collections = $this->m_ctrl->socdiscoo()->getCollections();
     foreach($collections as $collection){
       $path = $this->m_tblConfig['EXPORT_BASE_PATH'] . $collection ."_". date('Ymd');
       if(!is_dir($path)) mkdir($path);

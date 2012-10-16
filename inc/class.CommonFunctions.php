@@ -228,4 +228,28 @@ class CommonFunctions{
     ob_end_clean();
     return $content;
   }
+  
+  /**
+   * @desc Get settings values (whether they are in a config.inc.php or in MySQL egw_alix_config)
+   * @param string parameter   
+   * @return mixed
+   * @author TPI
+   */
+  protected function getConfig($parameter){
+    if(isset($this->m_tblConfig[$parameter])){
+      return $parameter;
+    }
+    else{
+      if(!isset($this->m_settings)){ //load settings only once
+        require_once('class.boconfig.inc.php');
+        $boconfig = new boconfig($this->m_tblConfig,$this->m_ctrl);
+        $this->m_settings = $boconfig->getParameters();
+      }
+      if(isset($this->m_settings[$parameter])){
+        return $this->m_settings[$parameter]['value'];
+      }else{
+        $this->addLog("Unknown configuration parameter '$parameter'", ERROR);
+      }
+    }
+  }   
 }

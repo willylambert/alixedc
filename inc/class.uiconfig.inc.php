@@ -55,6 +55,7 @@ class uiconfig extends CommonFunctions
     $params = $this->m_ctrl->boconfig()->getParameters();
     
     $htmlParams = "";
+    $category = "";
     foreach($params as $id => $param){
       if(is_array($param['values'])){
         $input = "<select id='$id' name='$id'>";
@@ -67,6 +68,10 @@ class uiconfig extends CommonFunctions
         $input = "<input id='$id' name='$id' type='text' value=\"". $param['value'] ."\" />";
       }
       
+      if($param['category']!=$category){ //a new title for new category
+        $htmlParams .= "<div class='ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix'><span class='ui-dialog-title'>". $param['category'] ."</span></div>";
+        $category = $param['category'];
+      }
       $htmlParams .= "<div class='configParam'><label for='$label'>". $param['label'] ."</label>$input</div>";
     }
     

@@ -43,10 +43,10 @@ class uipassword extends CommonFunctions
       $sReasonForChange = "Your password has never been changed";
     }
     
-    //If password change is older than tblConfig['PASSWORD']['CHANGE_AFTER'] (see config.inc.php)
-    $nbDaysSinceLastChange = (time() - $GLOBALS['egw_info']['user']['account_lastpwd_change'])/86400; 
-    if($nbDaysSinceLastChange >= $this->m_tblConfig['PASSWORD']['CHANGE_AFTER']){
-      $sReasonForChange = "Your password is older than ". $this->m_tblConfig['PASSWORD']['CHANGE_AFTER'] ." days";    
+    //If password change is older than password_change_after (see configuration)
+    $nbDaysSinceLastChange = (time() - $GLOBALS['egw_info']['user']['account_lastpwd_change'])/86400;
+    if($nbDaysSinceLastChange >= $this->getConfig('password_change_after')){
+      $sReasonForChange = "Your password is older than ". $this->getConfig('password_change_after') ." days";    
     }
     
     return $sReasonForChange;
@@ -91,12 +91,12 @@ class uipassword extends CommonFunctions
   			}
   			
   			//Password min length
-  			if(strlen($n_passwd)<$this->m_tblConfig['PASSWORD']['MIN_LENGTH']){
+  			if(strlen($n_passwd)<$this->getConfig('password_min_length')){
           $errors[] = lang('The min length of the password is 6 characters');
         }
 
         //Password needs at least one upper case letter
-  			if($this->m_tblConfig['PASSWORD']['UPPER_LOWER_CASE']){
+  			if($this->getConfig('password_upper_lower_case')=="Y"){
           if(strtolower($n_passwd) == $n_passwd){
     			  $errors[] = lang('The password needs at least one upper case letter');      
           }
@@ -140,7 +140,7 @@ class uipassword extends CommonFunctions
                     </div>
                     <div style='width: 600px; margin: auto;'>
                       $message
-                      <div style='color: #505001; margin: 10px; padding: 10px; text-align: left; background-color: #fefef5; border: 1px solid #383801; width: 350px;'>Your password must :<br />- be at least 6 characters long<br />- have at least one upper case letter<br />- have at least one lower case letter</div>
+                      <div style='color: #505001; margin: 10px; padding: 10px; text-align: left; background-color: #fefef5; border: 1px solid #383801; width: 350px;'>Your password must :<br />- be at least ". $this->getConfig('password_min_length') ." characters long". ($this->getConfig('password_upper_lower_case')=="Y"?"<br />- have at least one upper case letter<br />- have at least one lower case letter":"") ."</div>
                       <div style='color: #740101;'>$htmlErrors</div>
                       <div class='ui-dialog-content ui-widget-content'>
                         <div id='divFrmPasswd' class='ui-widget'>

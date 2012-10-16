@@ -230,11 +230,6 @@
 
   //Forms for which a deviation can be entered
   //Example : $configEtude['FORM_DEVIATIONS'][] =  array('SEOID'=>'ENROL','SERK'=>'0','FRMOID'=>'FORM.VDT','FRMRK'=>'0');
-  
- //Security                                                
-  $configEtude['PASSWORD']['MIN_LENGTH'] = 6;         
-  $configEtude['PASSWORD']['UPPER_LOWER_CASE'] = false;
-  $configEtude['PASSWORD']['CHANGE_AFTER'] = 900;
 
   //Downloadable docmuments for all countries
   $configEtude['DOCS']['INT'] = array(

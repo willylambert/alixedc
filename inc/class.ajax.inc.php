@@ -70,10 +70,17 @@ class ajax extends CommonFunctions
   {
     global $configEtude;
 
-    //Controleur d'instanciation
+    //Controler for instanciation
     $this->m_ctrl = new instanciation();
 
     CommonFunctions::__construct($configEtude,$this->m_ctrl);
+    
+    //Blocking access if maintenance
+    if($this->getConfig("maintenance")=="Y"
+      && !$GLOBALS['egw_info']['user']['apps']['admin']
+      ){
+      die("MAINTENANCE");
+    }
     
   }		
 
