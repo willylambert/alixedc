@@ -66,14 +66,10 @@ class uietude extends CommonFunctions
     $this->m_ctrl = new instanciation();
     
     //Blocking access if maintenance
-    if(file_exists(EGW_SERVER_ROOT . "/".$GLOBALS['egw_info']['flags']['currentapp']."/maintenance.true")){
-      $_SESSION['maintenancemode'] = true;
-      if(!$GLOBALS['egw_info']['user']['apps']['admin']){
+    if(file_exists(EGW_SERVER_ROOT . "/".$GLOBALS['egw_info']['flags']['currentapp']."/maintenance.true")
+      && !$GLOBALS['egw_info']['user']['apps']['admin']){
         session_destroy();
         die("<html><div style='text-align: center; margin-top: 150px;'><img src='phpgwapi/templates/idots/images/alix/alix_logo.png'></div><div style='text-align: left; font: 24px calibri bold; width: 450px; margin: 10px auto;'>The site is currently down for maintenance.<div style=' text-align: left; font: 16px calibri; color: #aaa; margin: 10px auto;'>We expect to be back in about an hour.<br />We apologize for the inconvenience and appreciate your patience.</div></div></html>");
-      }
-    }elseif($_SESSION['maintenancemode']){
-      $_SESSION['maintenancemode'] = false;
     }
   }
 
@@ -90,7 +86,7 @@ class uietude extends CommonFunctions
 		//parse_navbar();
 		
 		//Notification: Maintenance mode
-		if($_SESSION['maintenancemode']){
+		if(file_exists(EGW_SERVER_ROOT . "/".$GLOBALS['egw_info']['flags']['currentapp']."/maintenance.true")){
       echo "<div style='width:100%;text-align:center;color:white;background-color:green;'><strong>Maintenance mode is activated !</strong>
               <a style='color:white;' href=".$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.configInterface')).">(configuration)</a></div>";
     }
@@ -560,9 +556,10 @@ class uietude extends CommonFunctions
         global $configEtude;
         $ui = new uiconfig($configEtude,$this->m_ctrl);
         
+        $html = $ui->getInterface();
         $this->create_header();
-        echo $ui->getInterface();
-        $this->create_footer();   
+        echo $html;
+        $this->create_footer(); 
    }
 
    public function preferencesInterface()
