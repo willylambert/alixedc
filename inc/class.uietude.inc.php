@@ -66,7 +66,7 @@ class uietude extends CommonFunctions
     $this->m_ctrl = new instanciation();
     
     //Blocking access if maintenance
-    if($this->getConfig("maintenance")=="Y"
+    if(file_exists(EGW_SERVER_ROOT . "/".$GLOBALS['egw_info']['flags']['currentapp']."/maintenance.true")
       && !$GLOBALS['egw_info']['user']['apps']['admin']
       ){
       session_destroy();
