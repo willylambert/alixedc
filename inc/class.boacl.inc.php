@@ -192,6 +192,7 @@ class boacl extends CommonFunctions
              $access = true; 
            }
            break;
+        case "ImportDICOM" : //Import DICOM files
         case "EditDocs" : //editing and modifying content of the database documents and the custom scripts
            if( $GLOBALS['egw_info']['user']['apps']['admin'] || 
               $this->m_ctrl->boacl()->existUserProfileId(array("DM"))){

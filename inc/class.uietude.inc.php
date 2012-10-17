@@ -42,6 +42,7 @@ class uietude extends CommonFunctions
 		'exportInterface' => True,
 		'lockInterface' => True,
 		'lockdbInterface' => True,
+		'importDicomInterface' => True,
 		'logout' => True,
 		'preferencesInterface' => True,
 		'queriesInterface' => True,
@@ -51,7 +52,7 @@ class uietude extends CommonFunctions
 		'subjectListInterface' => True,
 		'subjectPDF' => True,
 		'subjectProfile' => True,
-		'usersInterface' => True
+		'usersInterface' => True,
 		);
 
   public function __construct()
@@ -178,6 +179,19 @@ class uietude extends CommonFunctions
         require_once('class.uilockdb.inc.php');
         global $configEtude;
         $ui = new uilockdb($configEtude,$this->m_ctrl);
+        
+        $GLOBALS['egw_info']['flags']['app_header'];
+        
+        $this->create_header();
+        echo $ui->getInterface();
+		    $this->create_footer();  
+   }
+
+   public function importDicomInterface()
+   {
+        require_once('class.uiimportdicom.inc.php');
+        global $configEtude;
+        $ui = new uiimportdicom($configEtude,$this->m_ctrl);
         
         $GLOBALS['egw_info']['flags']['app_header'];
         

@@ -273,7 +273,7 @@ class uidbadmin extends CommonFunctions{
       $menu .= $this->getSubMenu("Design", $submenu);
     }
 
-    if($this->m_ctrl->boacl()->checkModuleAccess("ExportData||importDoc||LockData"))
+    if($this->m_ctrl->boacl()->checkModuleAccess("ExportData||importDoc||LockData||ImportDICOM"))
     {
       $submenu = "";
       
@@ -293,7 +293,13 @@ class uidbadmin extends CommonFunctions{
         $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.lockdbInterface'),
                                         "Data locks");  
       }
-                                          
+
+      if($this->m_ctrl->boacl()->checkModuleAccess("ImportDICOM"))
+      {
+        $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.importDicomInterface'),
+                                        "Import DICOM files");  
+      }
+                                                
       $menu .= $this->getSubMenu("Clinical data", $submenu);                                                                                                                     
     }
 
