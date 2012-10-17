@@ -28,19 +28,22 @@ class boconfig extends CommonFunctions
   //All available parameter must be defined here
   var $parameters = array(
       "maintenance" => array( 
+                            "location" => "other",
                             "category" => "Maintenance",
                             "label" => "Maintenance mode (only the administrator has access)",
-                            "values" => array("Y" => "On",
-                                              "N" => "Off"),
-                            "default" => "N"
+                            "values" => array("true" => "On",
+                                              "false" => "Off"),
+                            "default" => "false"
       ),
       "password_min_length" => array( 
+                            "location" => "sql",
                             "category" => "Password",
                             "label" => "Minimum length",
                             "values" => "",
                             "default" => "6"
       ),
       "password_upper_lower_case" => array( 
+                            "location" => "sql",
                             "category" => "Password",
                             "label" => "Must contain at least on upper case and one lower case letter",
                             "values" => array("Y" => "Yes",
@@ -48,6 +51,7 @@ class boconfig extends CommonFunctions
                             "default" => "Y"
       ),
       "password_change_after" => array( 
+                            "location" => "sql",
                             "category" => "Password",
                             "label" => "Expiration delay (days)",
                             "values" => "",
@@ -65,23 +69,59 @@ class boconfig extends CommonFunctions
    * @desc Save a parameter value
    * @author TPI
    */
-  public function setParameter($label, $value){
-    $sql = "REPLACE INTO egw_alix_config(currentapp,parameter,value) 
-              VALUES('". $this->getCurrentApp(true) ."','$label','$value')";
-    $GLOBALS['egw']->db->query($sql);
+  public function setParameter($id, $value){
+    switch($this->parameters[$id]['location']){
+      case "sql":
+        $sql = "REPLACE INTO egw_alix_config(currentapp,parameter,value) 
+                  VALUES('". $this->getCurrentApp(true) ."','$id','$value')";
+        $GLOBALS['egw']->db->query($sql);
+        break;
+      case "other":
+        if($id=="maintenance"){
+          $oldValue = $this->getParameter($id);
+          $pathOldValue = EGW_SERVER_ROOT . "/".$GLOBALS['egw_info']['flags']['currentapp']."/maintenance.$oldValue";
+          $pathNewValue = EGW_SERVER_ROOT . "/".$GLOBALS['egw_info']['flags']['currentapp']."/maintenance.$value";
+          if($value!=$oldValue && file_exists($pathOldValue)) unlink($pathOldValue);
+          $size = file_put_contents($pathNewValue, "Maintenance mode activated: $value (". date('Y-m-d H:i:s') ." by ". $this->getUserId() .")");
+          if($size===false){
+            $this->addLog("Couldn't create file '$pathNewValue'", FATAL);
+          }
+        }
+        break;
+      default:
+        $this->addLog("Unknown location for parameter '$id'",ERROR);
+        break;
+    }
   }
   
   /**
    * @desc Get a parameter value
    * @author TPI
    */
-  public function getParameter($label){
+  public function getParameter($id){
     $value = "";
-    $sql = "SELECT value FROM egw_alix_config
-            WHERE currentapp='". $this->getCurrentApp(true) ."' AND parameter='$label'";
-    $GLOBALS['egw']->db->query($sql);
-    if($GLOBALS['egw']->db->next_record()){
-      $value = $GLOBALS['egw']->db->f('value');
+    switch($this->parameters[$id]['location']){
+      case "sql":
+        $sql = "SELECT value FROM egw_alix_config
+                WHERE currentapp='". $this->getCurrentApp(true) ."' AND parameter='$id'";
+        $GLOBALS['egw']->db->query($sql);
+        if($GLOBALS['egw']->db->next_record()){
+          $value = $GLOBALS['egw']->db->f('value');
+        }
+        break;
+      case "other":
+        if($id=="maintenance"){
+          $pathTrue = EGW_SERVER_ROOT . "/".$GLOBALS['egw_info']['flags']['currentapp']."/maintenance.true";
+          if(file_exists($pathTrue)){
+            $value = 'true';
+          }else{
+            $value = 'false';
+          }
+        }
+        break;
+      default:
+        $this->addLog("Unknown location for parameter '$id'",ERROR);
+        break;
     }
     return $value;
   }
@@ -99,9 +139,19 @@ class boconfig extends CommonFunctions
     }
     //set default settings for unset parameters
     foreach($this->parameters as $id => $param){
-      if(!isset($param['value']) && $param['default']!=""){
-        $this->parameters[$id]['value'] = $param['default'];
-        $this->setParameter($id, $param['default']);
+      switch($this->parameters[$id]['location']){
+        case "sql":
+          if(!isset($param['value']) && $param['default']!=""){
+            $this->parameters[$id]['value'] = $param['default'];
+            $this->setParameter($id, $param['default']);
+          }
+          break;
+        case "other":
+          $this->parameters[$id]['value'] = $this->getParameter($id);
+          break;
+        default:
+          $this->addLog("Unknown location for parameter '$id'",ERROR);
+          break;
       }
     }
     
