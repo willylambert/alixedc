@@ -204,13 +204,14 @@ class uidbadmin extends CommonFunctions{
     if($this->m_ctrl->boacl()->checkModuleAccess("viewDocs||importDoc")){
       if($this->m_ctrl->boacl()->checkModuleAccess("viewDocs"))
       {
+        $submenu .= "<div style='color: #fff; background-color: #000;'>Collections</div><div style='border: 1px solid #000; padding: 5px;'>"; 
         $collections = $this->m_ctrl->socdiscoo()->getCollections();
         foreach($collections as $collection){
           $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',
     				                                                                        'container' => $collection,
-                                                                                    'action' => 'viewDocs'),
-                                              "Collection: ".$collection);
+                                                                                    'action' => 'viewDocs'), $collection);
         }
+        $submenu .= "</div>"; 
         $submenu .= $this->createMenuLink(array('menuaction' => $this->getCurrentApp(false).'.uietude.dbadminInterface',  				                                                                      
                                                                                   'action' => 'initDB'),      
                                             "Init XML Database");
