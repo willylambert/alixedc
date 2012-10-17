@@ -84,7 +84,7 @@ class boconfig extends CommonFunctions
           if($value!=$oldValue && file_exists($pathOldValue)) unlink($pathOldValue);
           $size = file_put_contents($pathNewValue, "Maintenance mode activated: $value (". date('Y-m-d H:i:s') ." by ". $this->getUserId() .")");
           if($size===false){
-            $this->addLog("Couldn't create file '$pathNewValue'", FATAL);
+            $this->addLog("Couldn't create file '$pathNewValue'. User www-data should be autorized to write in alixedc directory (g+w www-data:*)", FATAL);
           }
         }
         break;
