@@ -157,15 +157,15 @@ class boacl extends CommonFunctions
   * Add a profile to the ACL table
   * @author wlt
   **/
-  public function addProfile($userId,$siteId,$profileId,$isDefault=false){
+  public function addProfile($egwUserId,$userId,$siteId,$profileId,$isDefault=false){
     $default = "";
     if($isDefault){
       $default = "Y";
     }else{
       $default = "N";
     }
-    $sql = "REPLACE INTO egw_alix_acl(CURRENTAPP,SITEID,USERID,PROFILEID,DEFAULTPROFILE) 
-          VALUES('".$this->getCurrentApp(false)."','$siteId','$userId','$profileId','$default');";
+    $sql = "REPLACE INTO egw_alix_acl(CURRENTAPP,SITEID,EGWUSERID,USERID,PROFILEID,DEFAULTPROFILE) 
+          VALUES('".$this->getCurrentApp(false)."','$siteId','$egwUserId','$userId','$profileId','$default');";
     $GLOBALS['egw']->db->query($sql); 
   }
 

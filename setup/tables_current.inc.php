@@ -3,6 +3,7 @@
 	'egw_alix_acl' => array(
 		'fd' => array(
 			'CURRENTAPP' => array('type' => 'varchar','precision' => '15','nullable' => False),
+			'EGWUSERID' => array('type' => 'int','precision' => '11','nullable' => False),
 			'USERID' => array('type' => 'varchar','precision' => '100','nullable' => False),
 			'SITEID' => array('type' => 'varchar','precision' => '10','nullable' => False),
 			'PROFILEID' => array('type' => 'varchar','precision' => '10','nullable' => False),
