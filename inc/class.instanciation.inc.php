@@ -49,6 +49,7 @@ class instanciation extends CommonFunctions
   protected $m_boexport;
   protected $m_boimport;
   protected $m_bolockdb;
+  protected $m_boimportdicom;
 
   public function __construct()
   {
@@ -302,6 +303,21 @@ class instanciation extends CommonFunctions
     }
     
     return $this->m_boimport;   
+  }
+
+  /*
+  @desc accesseur de l'instance de la classe boimportdicom, permet de ne pas instancier inutilement la classe
+  @return retourne la référence de notre objet boimportdicom
+  */
+  public function boimportdicom()
+  {
+    require_once("class.boimportdicom.inc.php");
+    if(!isset($this->m_boimportdicom)){
+      $this->addLog("uietude->boimportdicom() : instanciation de boimportdicom",TRACE);
+      $this->m_boimportdicom = new boimportdicom($this->m_tblConfig,$this);
+    }
+    
+    return $this->m_boimportdicom;   
   }
 
   /*

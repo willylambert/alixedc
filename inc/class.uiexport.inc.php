@@ -39,7 +39,7 @@ class uiexport extends CommonFunctions{
   }
   
   function getInterface(){
-    $this->addLog("uisubject->getInterface()",TRACE);
+    $this->addLog("uiexport->getInterface()",TRACE);
     
     if(!$this->m_ctrl->boacl()->checkModuleAccess("ExportData")){
       $this->addLog("Unauthorized Access to Export Module - Administrator has been notified",FATAL);
@@ -303,8 +303,7 @@ class uiexport extends CommonFunctions{
       $errors = "<div class='ui-state-error'>$errors</div>";
     }
 
-    $htmlRet = "<SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jquery-1.6.2.min.js') . "'></SCRIPT>
-                <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jquery-ui-1.8.16.custom.min.js') . "'></SCRIPT>
+    $htmlRet = "<SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/jquery-ui-1.8.16.custom.min.js') . "'></SCRIPT>
                 <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$this->getCurrentApp(false).'/js/alixcrf.export.js') . "'></SCRIPT>
 
                 $menu
