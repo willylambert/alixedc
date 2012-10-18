@@ -54,10 +54,11 @@ class bosubjects extends CommonFunctions
   /**
    * return Subjects List
    * @param optional siteFilter if a string, contains the requested patient's SiteID
+   * @param optional throwException if the exception must be raised
    * @return array of SubjectKey
    * @author tpi,wlt
   **/
-  public function getSubjectsList($siteId=false){
+  public function getSubjectsList($siteId=false,$throwException=false){
     $this->addLog(__METHOD__."($siteId)",INFO);
     
     $SitesFilter = $this->getUserSites();
@@ -80,7 +81,7 @@ class bosubjects extends CommonFunctions
                   <SubjectData SubjectKey='{\$SubjectData/@SubjectKey}' />
               }
               </Subjects>";
-    $subjectDatas = $this->m_ctrl->socdiscoo()->query($query);
+    $subjectDatas = $this->m_ctrl->socdiscoo()->query($query,true,false,$throwException);
     
     $tblSubjectKeys = array();
     foreach($subjectDatas[0] as $subjectData) {

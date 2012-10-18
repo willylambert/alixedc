@@ -1360,7 +1360,11 @@ public function checkFormData(){
     }
        
     //retrieving subjects list
-    $tblSubjectKeys = $this->m_ctrl->bosubjects()->getSubjectsList($siteId);
+    try{
+      $tblSubjectKeys = $this->m_ctrl->bosubjects()->getSubjectsList($siteId, true);
+    }catch(Exception $e){
+      die("NOBLANK");
+    }
 
     //pagination
     if(count($tblSubjectKeys)>0 && $limit>0) {
