@@ -52,7 +52,7 @@ class uidashboard extends CommonFunctions
       $action = "curve";
     }
     
-    $topMenu = $this->m_ctrl->etudemenu()->getMenu($SiteId);
+    $topMenu = $this->m_ctrl->etudemenu()->getMenu();
     $dashboardMenu = $this->getMenu();
     
     $htmlRet = $topMenu;

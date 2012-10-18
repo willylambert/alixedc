@@ -26,30 +26,11 @@
 
 <xsl:param name="CurrentApp"/>
 <xsl:param name="METADATAVERSION"/>
-<xsl:param name="UserId"/>
-<xsl:param name="UserInfo"/>
 
 <!--Catch all non treated tags, print them with no treatment-->
 <xsl:template match="*">
 	<xsl:copy>
 		<xsl:copy-of select="@*"/>
-		<xsl:apply-templates/>
-  </xsl:copy>
-</xsl:template>
-
-<!--Add User Info next to the app title -->
-<xsl:template match="div[@id='mysite']">
-	<xsl:copy>
-		<xsl:copy-of select="@*"/>
-		<span id='userInfo'>
-		  [ 
-      <a>
-		    <xsl:attribute name="href">index.php?menuaction=<xsl:value-of select="$CurrentApp"/>.uietude.usersInterface&amp;action=viewUser&amp;userId=<xsl:value-of select="$UserId"/></xsl:attribute>
-        <xsl:value-of select="$UserId"/>
-      </a>
-       ]
-      <xsl:value-of select="$UserInfo"/>
-		</span>
 		<xsl:apply-templates/>
   </xsl:copy>
 </xsl:template>

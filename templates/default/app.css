@@ -24,6 +24,10 @@ body{
   display:none;
 }
 
+#mysite{
+  text-align: center;
+}
+
 .divSidebox 
 {
    position:relative;
@@ -36,14 +40,23 @@ body,td{
 }
 
 #userInfo{
-  margin-right:5px;
+  margin-top: -15px;
+  margin-right: 4px;
   float:right;
   font-weight: normal;
   text-transform: none;
+  background-color: #3c57d4;
+  color: #fff;
+  padding: 2px;
+  font: 11px arial;
+  border-radius: 5px;
 }
 
 #userInfo a{
-  color:white;
+  color: #fff;
+}
+#userInfo a:hover{
+  color: #fff;
 }
 
 .action_message{
@@ -976,14 +989,21 @@ table.ItemGroup{
 
 /* TOOLBAR*/
 
+#toolbar_ico{
+  text-align: center;
+}
+
 #toolbar_ico ul{
   list-style-type: none;
   margin: 0px;
+  
+  display: inline-block;
+  padding: 0px;
 }
 
 #toolbar_ico ul li{
   float:left;
-  width:120px;
+  width:118px;
   text-align:center;
   
   padding-top: 5px;
@@ -991,6 +1011,10 @@ table.ItemGroup{
   background: #FFFFFF url(images/ui-bg_glass_75_f0f0f0_1x400.png) 50% 50%;
   margin: 1px 1px 1px 1px;
 }
+#toolbar_ico ul li.button_icon_only{
+  width: 34px;
+}
+
 #toolbar_ico ul li:hover{
   background: #FFFFFF url(jquery-ui/images/ui-bg_glass_75_e6e6e6_1x400.png) 50% 50%;
   cursor: pointer;

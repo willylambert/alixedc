@@ -29,10 +29,14 @@ class etudemenu extends CommonFunctions
   {	
     CommonFunctions::__construct($configEtude,$ctrlRef);
   }
-/*
-@param string $SiteId Centre du patient - utiliser pour l'affichage des droits de l'utilisateur connecté
-*/	
-  public function getMenu($siteId=""){
+  
+  /**
+   * @desc Generation of the main menu of the application
+   * //@param string $SiteId Centre du patient - utiliser pour l'affichage des droits de l'utilisateur connecté
+   * @return string html
+   */        	
+  //public function getMenu($siteId=""){
+  public function getMenu(){
     
     $user = $this->m_ctrl->boacl()->getUserInfo();
     $profile = $this->m_ctrl->boacl()->getUserProfile("",$siteId);
@@ -109,25 +113,40 @@ class etudemenu extends CommonFunctions
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //Button: Log out
-    $logout = '<a name="logout" href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.logout')).'"><li class="ui-state-default"><img src="'.$this->getCurrentApp(false).'/templates/default/images/logout2.png" alt="" /><div><p>Logout</p></div></li></a>';
+    //$logout = '<a name="logout" href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.logout')).'"><li class="ui-state-default"><img src="'.$this->getCurrentApp(false).'/templates/default/images/logout2.png" alt="" /><div><p>Logout</p></div></li></a>';
+    $logout = '<a name="logout" href="'.$GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uietude.logout')).'"><li class="ui-state-default button_icon_only"><img src="'.$this->getCurrentApp(false).'/templates/default/images/logout2.png" alt="" /></li></a>';
+    
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //UserId Link
+    if($GLOBALS['egw_info']['user']['apps']['admin']){
+      $userLink = "index.php?menuaction=alixedc.uietude.usersInterface&action=viewUser&userId=". $user['login'];
+    }else{
+      $userLink = "index.php?menuaction=alixedc.uietude.preferencesInterface";
+    }
     
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //Final HTML
-    $menu = '<div id="mysite" class="divSideboxHeader" align="center"><span>'. $this->m_tblConfig['APP_NAME'] .'</span></div>
-             <div id="toolbar_ico">         
+    $menu = "<div id='mysite' class='divSideboxHeader'>
+               <div>". $this->m_tblConfig['APP_NAME'] ."</div>
+               <span id='userInfo'>
+          		   [<a href='$userLink'>". $user['login'] ."</a>]
+                 <span style='color: #ccc;'>". $user['fullname'] ."</span> Last login: ". date('j M Y H:i \G\M\T+', $user['lastlogin']) ."". substr(date('O',$user['lastlogin']),2,1) ."
+               </span>
+             </div>
+             <div id='toolbar_ico'>
               <ul>
-                '.$enroll.'
-                '.$subjectsList.'
-                '.$dashboard.'
-                '.$documents.'
-                '.$testmode.'
-                '.$queries.'
-                '.$deviations.'
-                '.$auditTrail.'
-                '.$toolsButtons.'
-                '.$logout.'
+                ".$enroll."
+                ".$subjectsList."
+                ".$dashboard."
+                ".$documents."
+                ".$testmode."
+                ".$queries."
+                ".$deviations."
+                ".$auditTrail."
+                ".$toolsButtons."
+                ".$logout."
               </ul>
-            </div>';
+            </div>";
     
     
     //HOOK => etudemenu_getMenu_htmlContent
