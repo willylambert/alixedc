@@ -27,7 +27,7 @@ function loadAlixCRFusersJS(CurrentApp)
 {
   //Binding buttons
   $("#tblUsers tr").click(function(){
-    newUrl = "index.php?menuaction="+CurrentApp+".uietude.usersInterface&action=viewUser&userId="+$(this).attr("id");
+    newUrl = "index.php?menuaction="+CurrentApp+".uietude.usersInterface&action=viewUser&userId="+$(this).attr("id")+"&egwUserId="+$(this).attr("egwUserId");
     $(location).attr('href',newUrl);  
   }); 
   

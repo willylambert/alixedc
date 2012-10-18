@@ -89,4 +89,31 @@ class bousers extends CommonFunctions
       throw new Exception("Some errors occured while trying to create a new account: <br />". $str);
     }
   }
+  
+  /**
+   * @desc this function check if the username in alix is the same as the username in egroupware : the username in egroupware may have been change => we have to update the username in alix (that is also the userId)
+   * @param $egwUserId egroupware LoginID
+   * @param $userId alix userID (should be the same as $account_lid egroupware LoginID)
+   * @return array[old username, new username]
+   */      
+  public function checkUserId($egwUserId, $userId){
+    //if user has no defined profile in alix => nothing else to check
+    $sql = "SELECT USERID FROM egw_alix_acl WHERE EGWUSERID='". $egwUserId ."'";
+    $GLOBALS['egw']->db->query($sql);
+    if(!$GLOBALS['egw']->db->next_record()){
+      //nothing has to be checked
+      return array($userId,$userId);
+    }else{
+      //get Alix userId
+      $alixUserId = $GLOBALS['egw']->db->f('USERID');
+      //get Egroupware LoginID
+      $account_lid = $GLOBALS['egw']->accounts->id2name($egwUserId);
+      if($account_lid!=$alixUserId){
+        //update alix userId
+        $sql = "UPDATE egw_alix_acl SET USERID='". $account_lid ."' WHERE EGWUSERID='". $egwUserId ."'";
+        $GLOBALS['egw']->db->query($sql);
+      }
+      return array($alixUserId,$account_lid);
+    }
+  }
 }

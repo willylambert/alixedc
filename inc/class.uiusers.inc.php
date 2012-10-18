@@ -147,7 +147,7 @@ class uiusers extends CommonFunctions
 		
     foreach($account_info as $account)
 		{
-		   $htmlUsers .= "<tr id='".$account['account_lid']."'>
+		   $htmlUsers .= "<tr id='".$account['account_lid']."' egwUserId='".$account['account_id']."'>
               					<td class='ui-widget-content'>".$account['account_lid']."</td>
               					<td class='ui-widget-content'>".$account['account_firstname']."</td>
               					<td class='ui-widget-content'>".$account['account_lastname']."</td>
@@ -215,15 +215,33 @@ class uiusers extends CommonFunctions
   * @author wlt
   **/  
   private function getInterfaceProfil(){
+      $message = ""; //a message to display
       
       $userId = "";
       if(isset($_GET["userId"])) $userId = $_GET["userId"];
+      $egwUserId = "";
+      if(isset($_GET["egwUserId"])) $egwUserId = $_GET["egwUserId"];
+      
+        //Check if the username in alix is still the same as the LoginID in egroupware
+      if(isset($_GET["action"]) && $_GET["action"]=="viewUser" && isset($_GET["egwUserId"])){
+        //let's check if the username in alix is still the same as the LoginID in egroupware
+        $userIds = $this->m_ctrl->bousers()->checkUserId($egwUserId, $userId);
+        if(!$userIds){
+          $this->addLog("An error occured while checking username consistency between Alix and eGroupware for user '$alixUserId'.", ERROR);
+        }else{
+          if($userIds[0]!=$userIds[1]){
+            $message = "The login of user '". $userIds[0] ."' has been changed to '". $userIds[1] ."' to keep his Alix account consistent with his eGroupware account.";
+            $userId = $userIds[1];
+          }
+        }
+      }
  
       //Request for creation of a profile
       if(isset($_GET['action']) && $_GET['action']=='addProfile'){
         $bDefault = false;
         if(isset($_POST['default']) && $_POST['default']=="Y") $bDefault = true;
-        $this->m_ctrl->boacl()->addProfile($_POST['userId'],$_POST['siteId'],$_POST['profileId'],$bDefault);
+        $this->m_ctrl->boacl()->addProfile($_POST['egwUserId'],$_POST['userId'],$_POST['siteId'],$_POST['profileId'],$bDefault);
+        $egwUserId = $_POST['egwUserId'];
         $userId = $_POST['userId'];
       } 
  
@@ -244,6 +262,7 @@ class uiusers extends CommonFunctions
       $htmlUser = "
       <div class='ui-grid ui-widget ui-widget-content ui-corner-all'>
 		    <div class='ui-grid-header ui-widget-header ui-corner-top'>User <span style='color: #dd0000;'>$userId</span> profiles list</div>
+        <div class='action_message'>$message</div>
 		    <div style='text-align: left;'><a href='index.php?menuaction=".$this->getCurrentApp(false).".uietude.usersInterface&title=users'>&lt;&lt; back to user list</a></div>
         <table id='tblProfiles' class='ui-grid-content ui-widget-content'>
   			<thead>
@@ -292,6 +311,7 @@ class uiusers extends CommonFunctions
                   	<p class='validateTips'>All form fields are required.</p>
               
                   	<form id='addProfile' action='index.php?menuaction=".$this->getCurrentApp(false).".uietude.usersInterface&action=addProfile' method='post'>
+                    	<input type='hidden' name='egwUserId' value='$egwUserId'/> 
                     	<input type='hidden' name='userId' value='$userId'/> 
                       <fieldset>
                     		<label for='siteId'>Site Identifiant</label>  
