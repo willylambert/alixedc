@@ -1191,6 +1191,17 @@ table.ItemGroup{
   min-width: 150px;
 }
 
+.step{
+  margin:10px;
+  padding:3px;
+  background-color:#f8d47f;
+}
+
+#DICOMimport div{
+  text-align:left;
+}
+
+
 /*********************************** Debug features ***********************************/
 .debug_dump{
   border: 1px solid red;

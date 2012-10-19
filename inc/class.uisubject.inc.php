@@ -85,6 +85,7 @@ class uisubject extends CommonFunctions
         $profiles = $this->m_ctrl->boacl()->getUserProfiles();
         $i = 0;
         
+
         while($profiles[$i]['profileId']!="CRT" && $profiles[$i]['profileId']!="INV" && $i<count($profiles)){
           $i++;
         }
@@ -151,8 +152,8 @@ class uisubject extends CommonFunctions
       }
       $proc->setParameter('','ShowDeviations',$ShowDeviation);
       
-      //HOOK => uisubject_getInterface_xslParameters
-      $this->callHook(__FUNCTION__,"xslParameters",array($FormOID,$proc,$this));
+      //HOOK => uisubject_getInterface_MainXslParameters
+      $this->callHook(__FUNCTION__,"MainXslParameters",array($FormOID,$proc,$this));
 /*
       echo "-------------<br>";
       echo "<pre>";
