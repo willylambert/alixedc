@@ -80,17 +80,18 @@ class uiimportdicom extends CommonFunctions{
     $VisitSelectOptions .= "</select>";
     
     //Build interface for selecting subject and visit
-    $htmlSubjs = "<table>
+    $htmlSubjs = "<table id='step1'>
                       <thead>
-                          <th>&nbsp;</th>
+                          <th><input type='checkbox' name='selectAll_chk' /></th>
                           <th>File</th>
                           <th>Patient Name</th>
                           <th>Sex</th>
                           <th>Birth Date</th>
                           <th>Acquisition Date</th>
-                     </thead>";
+                     </thead>
+                     <tbody>";
     foreach($tblFiles as $filename => $infos){
-      $htmlSubjs .= "<tr>
+      $htmlSubjs .= "<<tr>
                           <td><input type='checkbox' name='{$filename}_chk' /></td>
                           <td>$filename</td>
                           <td><input type='hidden' name='{$filename}_name' value='{$infos['PATIENTNAME']}'/>{$infos['PATIENTNAME']}</td>
@@ -99,7 +100,7 @@ class uiimportdicom extends CommonFunctions{
                           <td><input type='hidden' name='{$filename}_acqdate' value='{$infos['ACQUISITIONDATE']}'/>{$infos['ACQUISITIONDATE']}</td>
                      </tr>";    
     }
-    $htmlSubjs .= "</table>";
+    $htmlSubjs .= "</tbody></table>";
     
     $menu = $this->m_ctrl->etudemenu()->getMenu();
 
@@ -145,7 +146,14 @@ class uiimportdicom extends CommonFunctions{
             </form>
             $htmlImportLog          
   		  </div>
-      </div>";
+      </div>
+      <script>
+        $(\":input[name='selectAll_chk']\").change(
+          function(){
+            $(\"#step tbody :input[type='checkbox']\").
+          }
+        );
+      </script>";
           
     return $html;     
   }
