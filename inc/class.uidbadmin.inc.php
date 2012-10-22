@@ -26,7 +26,6 @@ require_once(EGW_SERVER_ROOT . "/".$GLOBALS['egw_info']['flags']['currentapp']."
 
 class uidbadmin extends CommonFunctions{
  	var $public_functions = array(
-			'getExportFile'	=> True,
 			'getImportFile' => True,
 		);
  
@@ -462,22 +461,6 @@ class uidbadmin extends CommonFunctions{
                 <div><h4>Result : </h4></div><textarea name='xQueryCode' cols='100' rows='50'>$resultMsg</textarea>";
     
     return $htmlRet;      
-  }
-
-  function getExportFile(){
-    //Only accessible to admin
-    if(!$GLOBALS['egw_info']['user']['apps']['admin']){
-      $this->addLog("Unauthorized Access to Admin Module - Administrator has been notified",FATAL);
-    }
-
-    //Only accessible to admin
-    if(!$GLOBALS['egw_info']['user']['apps']['admin']){
-      $this->addLog("Unauthorized Access to Admin Module - Administrator has been notified",FATAL);
-    }
-
-    $exportId = $_GET['exportid'];
-    
-    $this->m_ctrl->boexport()->getExportFile($exportId);
   }
 
     function getImportFile(){

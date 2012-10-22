@@ -337,5 +337,4 @@ class uiexport extends CommonFunctions{
     
     $this->m_ctrl->boexport()->getExportFile($id);
   }
-  
 }

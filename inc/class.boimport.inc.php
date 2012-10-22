@@ -69,7 +69,7 @@ class boimport extends CommonFunctions
                            'ERROR_COUNT' => $GLOBALS['egw']->db->f('ERROR_COUNT'),
                            'IMPORT_FILE' => $GLOBALS['egw']->db->f('IMPORT_FILE'),
                            'REPORT_FILE' => $GLOBALS['egw']->db->f('REPORT_FILE'),
-                           'DATE_IMPORT' => $GLOBALS['egw']->db->f('ERROR_COUNT'),                          
+                           'DATE_IMPORT' => $GLOBALS['egw']->db->f('DATE_IMPORT'),                          
                            );  
     }
     return $tblExport;

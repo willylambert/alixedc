@@ -16,12 +16,14 @@ function getZoomData($uisubject,$SubjectKey,$StudyEventOID,$StudyEventRepeatKey)
         if($file_SubjectKey==$SubjectKey && 
            $file_StudyEventOID==$StudyEventOID && 
            $file_StudyEventRepeatKey==$StudyEventRepeatKey){
-          $files[] = $file;
+          $files[$file] = $file;
         }
   		}
   	}
     closedir($handle);
   }
+  
+  ksort($files);
     
   $zoomData = array();
 

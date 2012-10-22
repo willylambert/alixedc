@@ -26,7 +26,10 @@ require_once("class.instanciation.inc.php");
 require_once(EGW_SERVER_ROOT . "/".$GLOBALS['egw_info']['flags']['currentapp']."/config.inc.php");
 
 class uiimportdicom extends CommonFunctions{
- 
+ 	var $public_functions = array(
+			'getReportFile'	=> True,
+		);
+     
   function __construct()
   {	
     global $configEtude;
@@ -82,7 +85,7 @@ class uiimportdicom extends CommonFunctions{
     //Build interface for selecting subject and visit
     $htmlSubjs = "<table id='step1'>
                       <thead>
-                          <th><input type='checkbox' name='selectAll_chk' /></th>
+                          <th><input type='checkbox' name='selectAll' /></th>
                           <th>File</th>
                           <th>Patient Name</th>
                           <th>Sex</th>
@@ -91,7 +94,7 @@ class uiimportdicom extends CommonFunctions{
                      </thead>
                      <tbody>";
     foreach($tblFiles as $filename => $infos){
-      $htmlSubjs .= "<<tr>
+      $htmlSubjs .= "<tr>
                           <td><input type='checkbox' name='{$filename}_chk' /></td>
                           <td>$filename</td>
                           <td><input type='hidden' name='{$filename}_name' value='{$infos['PATIENTNAME']}'/>{$infos['PATIENTNAME']}</td>
@@ -104,18 +107,19 @@ class uiimportdicom extends CommonFunctions{
     
     $menu = $this->m_ctrl->etudemenu()->getMenu();
 
-    //Ouptut import already done
+    //Ouptut imports already done
     $tblImport = $this->m_ctrl->boimport()->getImportList("DICOM");
     
-    $htmlImportLog = "<br/><br/><table><tr><th>User</th><th>Status</th><th>Errors</th><th>Report File</th></tr>";
+    $htmlImportLog = "<table><tr><th>User</th><th>Date</th><th>Status</th><th>Errors</th><th>Report File</th></tr>";
     
     foreach($tblImport as $import){
       $htmlImportLog .= "
                    <tr>
                     <td>{$import['USER']}</td>
+                    <td>{$import['DATE_IMPORT']}</td>
                     <td>{$import['STATUS']}</td>
                     <td>{$import['ERROR_COUNT']}</td>
-                    <td><a target='new' href='". $GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uidbadmin.getImportFile',
+                    <td><a target='new' href='". $GLOBALS['egw']->link('/index.php',array('menuaction' => $this->getCurrentApp(false).'.uiimportdicom.getReportFile',
                                                                              'importid' => $import['IMPORTID'],
                                                                              'importFileType' => 'REPORT_FILE',
                                                                              )) ."'>{$import['REPORT_FILE']}</a></td>                   
@@ -144,13 +148,15 @@ class uiimportdicom extends CommonFunctions{
               <div class='step'><strong>Step 3 :</strong> Run import</div>
               <input type='submit' value='Import selected files' />  
             </form>
+  		      <div class='step'><strong>Import Log</strong></div>
             $htmlImportLog          
   		  </div>
       </div>
       <script>
-        $(\":input[name='selectAll_chk']\").change(
+        $(\":input[name='selectAll']\").change(
           function(){
-            $(\"#step tbody :input[type='checkbox']\").
+            chkVal = $(\":input[name='selectAll']\").prop('checked');
+            $(\"#step1 tbody input[type='checkbox']\").prop('checked',chkVal);
           }
         );
       </script>";
@@ -172,10 +178,10 @@ class uiimportdicom extends CommonFunctions{
 
       ob_end_flush();
       ob_flush(); 
-      flush();
+
       echo "start of processing...<br/>";
       flush();
-
+      
       //Extraction of selected files
       $tblFilesToImport = array();
       foreach($_POST as $key => $value){
@@ -192,7 +198,11 @@ class uiimportdicom extends CommonFunctions{
         }
       }
       
-      $htmlReport = "<H1>DICOM file import report</H1><br/><br/><br/>
+      ksort($tblFilesToImport);
+      
+      $htmlReport = "<H1>DICOM file import report</H1>
+                     <strong>User : </strong>" . $this->m_user . "<br/>
+                     <strong>Date of import : </strong>" . date("d/m/Y") . "<br/><br/> 
                      <table>
                       <tr><th>Filename</th><th>Patient Name</th><th>Sex</th><th>DOB</th><th>Acquisition date</th><th>Subject ID</th><th>Visit Name</th><th>Status</th></tr>";
       $errorsCount = 0;                         
@@ -230,7 +240,7 @@ class uiimportdicom extends CommonFunctions{
 
       $filename = $this->m_tblConfig['IMPORT_BASE_PATH'] . "dicom_report_".date("Ymd_Hi").".html";
       file_put_contents($filename,$htmlReport);
-       
+      $importUser = $this->m_user; 
       $sql = "INSERT INTO egw_alix_import(USER,STATUS,ERROR_COUNT,REPORT_FILE,IMPORT_TYPE,DATE_IMPORT,currentapp)
               VALUES('$importUser','".($errorsCount==0?'OK':'KO')."','$errorsCount','".basename($filename)."','DICOM',now(),'".$GLOBALS['egw_info']['flags']['currentapp']."')";
     
@@ -239,5 +249,11 @@ class uiimportdicom extends CommonFunctions{
     }else{
       $errors = "Subject and/or Visit is not set. Please verify.";
     }
-  }   
+  }
+  
+  function getReportFile(){
+    $id = $_GET['importid'];
+    
+    $this->m_ctrl->boimportdicom()->getReportFile($id);
+  }     
 }

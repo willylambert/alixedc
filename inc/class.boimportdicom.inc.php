@@ -47,11 +47,12 @@ class boimportdicom extends CommonFunctions
     if ($handle = opendir($importPath)){
       while( $file = readdir($handle) ) {
         if ($file != "." && $file != ".." && !is_dir($importPath."/".$file)){
-    			$files[] = $file;
+    			$files[$file] = $file;
     		}
     	}
       closedir($handle);
     }
+    ksort($files);
     
     //Extraction of DICOM information
     foreach ($files as $file)
@@ -125,5 +126,22 @@ class boimportdicom extends CommonFunctions
       throw new Exception("File $imageFilename.0.jpg is already here");
     }
     unset($dicom); 
+  } 
+
+ 
+  public function getReportFile($importId){    
+        
+    //Recuperation des informations sur le fichier demandé
+    $sql = "SELECT REPORT_FILE,importpath
+            FROM egw_alix_import
+            WHERE IMPORTID='$importId'";
+            
+    $GLOBALS['egw']->db->query($sql);    
+    
+    if($GLOBALS['egw']->db->next_record()){
+      $filename = $this->m_tblConfig['IMPORT_BASE_PATH'] . "/" . $GLOBALS['egw']->db->f('REPORT_FILE');
+    }
+    
+    readfile($filename);
   } 
 }
