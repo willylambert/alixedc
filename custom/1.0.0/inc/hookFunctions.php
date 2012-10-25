@@ -81,8 +81,13 @@ function uisubject_getInterface_xslParameters($FormOID,$xslProc,$uisubject){
       $zoomDatas = getZoomData($uisubject,$_GET['SubjectKey'],$_GET['StudyEventOID'],$_GET['StudyEventRepeatKey']);
       $zoomData = $zoomDatas[0];
       $nbImages = $zoomDatas[1];
+      $pixelSpacingH = $zoomDatas[2];
+      $pixelSpacingV = $zoomDatas[3];
+      
       $xslProc->setParameter('',"ZoomData",$zoomData);
       $xslProc->setParameter('',"ImageNumber",$nbImages);     
+      $xslProc->setParameter('',"PixelSpacingH",$pixelSpacingH);
+      $xslProc->setParameter('',"PixelSpacingV",$pixelSpacingV);
       break;
       
     case 'FORM.ELIG' :

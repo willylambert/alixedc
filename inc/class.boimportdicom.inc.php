@@ -61,11 +61,13 @@ class boimportdicom extends CommonFunctions
     	try
     	{
     		$dicom = Nanodicom::factory($filename, 'simple');
-    		$dicom->parse(array('PatientName','PatientSex','PatientBirthDate','AcquisitionDate'));
+    		$dicom->parse(array('PatientName','PatientSex','PatientBirthDate','AcquisitionDate','PixelSpacing'));
     		$tblRet["$file"] = array("PATIENTNAME"=>$dicom->PatientName,
                                  "PATIENTSEX"=>$dicom->PatientSex,
                                  "PATIENTBIRTHDATE"=>$dicom->PatientBirthDate,
-                                 "ACQUISITIONDATE"=>$dicom->AcquisitionDate);
+                                 "ACQUISITIONDATE"=>$dicom->AcquisitionDate,
+                                 "PIXELSPACING"=>$dicom->PixelSpacing);
+        
         unset($dicom);
     	}
     	catch (Nanodicom_Exception $e)
@@ -91,8 +93,6 @@ class boimportdicom extends CommonFunctions
     
     $filename = $importPath . "/" . $file;
 
-
-    
     //Checking filename parameter
     if(!file_exists($filename)){
       $this->addLog(__METHOD__ . " File $filename does not exists",FATAL);

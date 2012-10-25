@@ -1082,7 +1082,6 @@ delimiter = ';' MISSOVER DSD lrecl=32767 firstobs=2;";
 
       $sql = "REPLACE INTO egw_alix_export_def(exportid,studyeventoid,formoid,itemgroupoid,fields,updateDT) 
                     VALUES('$id','$StudyEventOID','$FormOID','$ItemGroupOID','".json_encode($tblItem)."','$updateDT')";
-
       $GLOBALS['egw']->db->query($sql);
     }
     

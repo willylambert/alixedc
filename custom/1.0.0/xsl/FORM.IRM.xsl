@@ -26,6 +26,9 @@
 
 <xsl:param name="ZoomData"/>
 <xsl:param name="ImageNumber"/>
+<xsl:param name="CurrentApp"/>
+<xsl:param name="PixelSpacingH"/>
+<xsl:param name="PixelSpacingV"/>
 
 <!--Catch all non processed tags, print them with no treatment-->
 <xsl:template match="*">
@@ -36,14 +39,20 @@
 </xsl:template>
 
 <xsl:template match="tr[@name='IRM.OBS']">
-  <tr><td colspan="4"><div id="ajax-zoom">
-    <xsl:if test="$ImageNumber != '0'">
-      Loading...
-    </xsl:if>
-    <xsl:if test="$ImageNumber = '0'">
-      No image to display
-    </xsl:if>
-  </div></td></tr>
+  <tr><td colspan="4" style="text-align:left;">
+    <a href="#" onClick="toggleMeasure()">
+      <img id='toggleRuler'>
+        <xsl:attribute name="src"><xsl:value-of select="$CurrentApp"/>/templates/default/images/ruler.png</xsl:attribute>
+      </img>
+    </a>
+    <div id="ajax-zoom">
+      <xsl:if test="$ImageNumber != '0'">
+        Loading...
+      </xsl:if>
+      <xsl:if test="$ImageNumber = '0'">
+        No image to display
+      </xsl:if>
+    </div></td></tr>
   <xsl:copy>
     <xsl:copy-of select="@*"/>
     <xsl:apply-templates/>
@@ -68,11 +77,52 @@
 	 
   	    // No options, see api jQuery.fn.axZm (options)
         ajaxZoom.opt = {};
+        
+        //Add the ruler
+        $(document).ready(function(){
+          setTimeout(function(){
+            var paper = $("#paper");
+            paper[0].ruler = new Ruler(paper[0],<xsl:value-of select="$PixelSpacingH"/>,<xsl:value-of select="$PixelSpacingV"/>);            
+            //$('#zoomLayer div').hide();
+          },2000);
+        });
+        
+        function toggleMeasure(){
+          currentZindex = $("#paper").css("z-index");
+          if(currentZindex==10){
+            //disable Rule
+            $("#paper").css("z-index","-10");
+          }else{
+            jQuery.fn.axZm.zoomIn({pZoom: 100});        
+            $("#paper").css("z-index","10");            
+          }
+        }
   	 </script>
 	   <!-- Include the loader file -->
 	   <script type="text/javascript" src="/ajaxzoom/axZm/jquery.axZm.loader.js"></script>
+     <script LANGUAGE='JavaScript'>
+       <xsl:attribute name="src"><xsl:value-of select="$CurrentApp"/>/custom/1.0.0/js/raphael-min.js</xsl:attribute> 
+     </script>
+     <script LANGUAGE='JavaScript'>
+       <xsl:attribute name="src"><xsl:value-of select="$CurrentApp"/>/custom/1.0.0/js/ruler.js</xsl:attribute> 
+     </script>
     </xsl:if>
     <xsl:apply-templates/>
+    <div id='paper'></div>
+    <style>
+      #paper { 
+        width: 500px;
+        height: 480px;
+        margin: 20px 50px 20px 50px;
+        background-color: none;
+        color: white;
+        cursor: pointer;
+        position:absolute;
+        top : 32px;
+        left: 10px;
+        z-index:-10;
+      }
+    </style>
   </div>
 </xsl:template>
 
