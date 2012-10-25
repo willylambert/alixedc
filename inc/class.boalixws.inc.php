@@ -74,6 +74,11 @@ class boalixws extends CommonFunctions
 						'signature' => array(array(xmlrpcStruct,xmlrpcStruct)),
 						'docstring' => lang('Test xQuery.')
 					),
+					'testMethod' => array(
+						'function'  => 'testMethod',
+						'signature' => array(array(xmlrpcStruct,xmlrpcStruct)),
+						'docstring' => lang('Test MethodDef.')
+					),
 				);
 				break;
 			
@@ -113,13 +118,13 @@ class boalixws extends CommonFunctions
 	}
   	
 	/**
-	 * Test an xQuery
-	 *
-	 * @params array (docContent => base64 of metadata, shortFileName)
-	 * @return array (importLog => string)
+	 * @desc Test an xQuery (DVP)
+	 * @params array (SubjectKey => string, StudyEventOID, StudyEventRepeatKey => string, FormOID => string, FormRepeatKey => string, ItemGroupOID => string, Value => base64, SoftHard => string, xQuery => base64, xQueryDecode => base64, ErrorMessage => base64)
+	 * @return array (result => string)
+	 * @author TPI	 
 	 */
 	function testXQuery($params)
-	{     
+	{
     //Check user right to import metadata - need to be an admin
     if($GLOBALS['egw_info']['user']['apps']['admin']){
     
@@ -128,7 +133,7 @@ class boalixws extends CommonFunctions
       $StudyEventRepeatKey = $params['StudyEventRepeatKey'];
       $FormOID = $params['FormOID'];
       $FormRepeatKey = $params['FormRepeatKey'];
-      $ItemgroupOID = $params['ItemgroupOID'];
+      $ItemGroupOID = $params['ItemGroupOID'];
       $ItemGroupRepeatKey = $params['ItemGroupRepeatKey'];
       $ItemOID = $params['ItemOID'];
       $Value = base64_decode($params['Value']);
@@ -161,6 +166,58 @@ class boalixws extends CommonFunctions
           //result is an error message
           $strRes = $result;
         }
+      }
+      
+      return array("result"=>$strRes);
+    }else{
+   		$GLOBALS['server']->xmlrpc_error($GLOBALS['xmlrpcerr']['no_access'],$GLOBALS['xmlrpcstr']['no_access']);  
+    }   
+	}
+  	
+	/**
+	 * @desc Test a MethodDef
+	 * @params array (SubjectKey => string, StudyEventOID, StudyEventRepeatKey => string, FormOID => string, FormRepeatKey => string, ItemGroupOID => string, Expression => base64)
+	 * @return array (result => string)
+	 * @author TPI	 
+	 */
+	function testMethod($params)
+	{
+    //Check user right to import metadata - need to be an admin
+    if($GLOBALS['egw_info']['user']['apps']['admin']){
+    
+      $SubjectKey = $params['SubjectKey'];
+      $StudyEventOID = $params['StudyEventOID'];
+      $StudyEventRepeatKey = $params['StudyEventRepeatKey'];
+      $FormOID = $params['FormOID'];
+      $FormRepeatKey = $params['FormRepeatKey'];
+      $ItemGroupOID = $params['ItemGroupOID'];
+      $ItemGroupRepeatKey = $params['ItemGroupRepeatKey'];
+      $ItemOID = $params['ItemOID'];
+      $Expression = base64_decode($params['Expression']);
+      
+      
+      $strRes = "";
+      $result = $this->m_ctrl->bocdiscoo()->RunMethod($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$ItemOID,$Expression);
+      
+      //$result = print_r($result,true);
+      if(is_array($result)){
+        if(isset($result['result'])){
+          $strRes = (string)$result['result'];
+          if($strRes==""){
+            $strRes = "Result is empty.";
+          }
+        }else{
+          if(isset($result['error'])){
+            $strRes = (string)$result['error'];
+            if($strRes==""){
+              $strRes = "Unknown error. (1)";
+            }
+          }else{
+            $strRes = "Unknown error. (2)";
+          }
+        }
+      }else{
+        $strRes = "Unknown error. (3)\n$result";
       }
       
       return array("result"=>$strRes);
