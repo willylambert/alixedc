@@ -327,7 +327,7 @@ class uidbadmin extends CommonFunctions{
   
   private function getSubMenu($title,$html){
     return "
-          <div style='width: 300px; float: left; min-height: 200px; padding: 0px 1px 0px 1px;'>
+          <div style='width: 300px; float: left; min-height: 300px; padding: 0px 1px 0px 1px;'>
             <div class='ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix'>
               <span class='ui-dialog-title'>$title</span>
             </div>
