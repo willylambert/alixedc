@@ -386,6 +386,7 @@ class socdiscoo extends CommonFunctions
   */    
   public function initDB($reloadCollections=false, $reloadIndices=false, $reloadXQLib=false){
     $results = array();
+    $results[] = "BEGIN";
     
     //Create collections
     foreach($this->collections as $col){
@@ -408,6 +409,7 @@ class socdiscoo extends CommonFunctions
     $results = array_merge($results, $this->setIndices($reloadIndices));
     $results = array_merge($results, $this->setXQLib($reloadXQLib));
     
+    $results[] = "END";
     return $results;
   }
   
@@ -467,7 +469,7 @@ class socdiscoo extends CommonFunctions
     
     $strLib = implode("','",$this->m_tblConfig['XQUERY_LIB']);
     
-    /*
+    
     //unloading module
     if($reload){
       $query = "DROP MODULE 'http://www.alix-edc.com/alix'";
@@ -475,7 +477,7 @@ class socdiscoo extends CommonFunctions
         $results[] = "xquery module $strLib dropped";
       }
     }
-    */
+    
     //loading module
     $query = "LOAD MODULE '/var/www/alix/docs/demo/alixedc/xquery/alix.xqlib'";
     if(!sedna_execute($query)){

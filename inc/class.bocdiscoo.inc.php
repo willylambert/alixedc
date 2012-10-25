@@ -321,13 +321,13 @@ class bocdiscoo extends CommonFunctions
             $methodResult = $this->m_ctrl->socdiscoo()->query($testXQuery,true,false,true);
           }catch(exception $e){
             //Error is probably due to the method code. Error is not display to the user, and administrator notified by email 
-            $str = "Derived variable : Xquery error : " . $e->getMessage() . " " . $testXQuery;
+            $str = "Derived variable : xQuery error : " . $e->getMessage() . " " . $testXQuery;
             $this->addLog($str,ERROR);
           }
     
           $lastValue = (string)$method['ItemValue'];
           $computedValue = (string)$methodResult[0]->Result;
-          $this->addLog("bocdiscoo->computeDerivedItem() Method[{$StudyEventOID}][{$FormOID}][{$method['ItemGroupOID']}][{$method['ItemGroupRepeatKey']}]['{$method['ItemOID'] }'] => Result=" . $methodResult[0]->Result, INFO);
+          $this->addLog(__METHOD__ ." Method[{$StudyEventOID}][{$FormOID}][{$method['ItemGroupOID']}][{$method['ItemGroupRepeatKey']}]['{$method['ItemOID'] }'] => Result=" . $methodResult[0]->Result, INFO);
           if($lastValue!=$computedValue){
             if($computedValue==""){
               $dataType = "Any";
@@ -579,6 +579,39 @@ class bocdiscoo extends CommonFunctions
     }
     
     return $errors;
+  }
+  
+  
+  /*
+  * Just a method to test a MethodDef code
+  * Called by boalixws  
+  * @author: tpi
+  */
+  public function RunMethod($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$ItemOID,$Expression)
+  {
+    $this->addLog(__METHOD__ ."($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$ItemGroupOID,$ItemGroupRepeatKey,$ItemOID,\$Expression)", TRACE);
+      
+    $method = array(
+                "ItemOID" => $ItemOID,
+                "ItemGroupRepeatKey" => $ItemGroupRepeatKey,
+                "ItemGroupOID" => $ItemGroupOID,
+                "FormalExpression" => $Expression
+              );
+    
+    $testXQuery = $this->getXQueryConsistency($SubjectKey,$StudyEventOID,$StudyEventRepeatKey,$FormOID,$FormRepeatKey,$method);
+    try{
+      $methodResult = $this->m_ctrl->socdiscoo()->query($testXQuery,true,false,true);
+    }catch(exception $e){
+      //Error is probably due to the method code.
+      $str = "Derived variable : xQuery error : " . $e->getMessage() . " " . $testXQuery;
+      $this->addLog($str,INFO);
+      return array("error" => $str);
+    }
+
+    $computedValue = (string)$methodResult[0]->Result;
+    $this->addLog(__METHOD__ ." Method[{$StudyEventOID}][{$FormOID}][{$method['ItemGroupOID']}][{$method['ItemGroupRepeatKey']}]['{$method['ItemOID'] }'] => Result=" . $methodResult[0]->Result, INFO);
+    return array("result" => $computedValue);
+    
   }
   
   /**
@@ -2225,12 +2258,14 @@ class bocdiscoo extends CommonFunctions
       
       $testExprDecode = str_replace("')","'),' ','¤')",$testExprDecode);
       */
+      /*
       $testExprDecode = "
             <Decode>
             {
               $testExprDecode
             }
             </Decode>";
+      */
     }
     
     //Création de la requête de test pour l'ItemData en cours
@@ -2249,7 +2284,7 @@ class bocdiscoo extends CommonFunctions
       let \$ItemGroupData := \$FormData/odm:ItemGroupData[@ItemGroupOID='{$ctrl['ItemGroupOID']}' and @ItemGroupRepeatKey='{$ctrl['ItemGroupRepeatKey']}']
       let \$ItemData := \$ItemGroupData/odm:*[@ItemOID='{$ctrl['ItemOID']}'][last()]
       let \$value := alix:getRawValue(\$ItemData)
-      let \$decode := alix:getDecode(\$ItemData,\$SubjectData,\$MetaDataVersion)
+      let \$decode := alix:getDecode(\$ItemData,\$MetaDataVersion)
       $lets
       return
         <Ctrl>
