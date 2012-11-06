@@ -57,6 +57,7 @@
           <xsl:if test="$SDVcheck='Y'">
             <xsl:attribute name='checked'>checked</xsl:attribute>  
           </xsl:if>
+          <xsl:attribute name="altbox">Source Data Verification</xsl:attribute>
         </xsl:element>
       </xsl:if>
       <!--input hidden to keep the SDV check value-->

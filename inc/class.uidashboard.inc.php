@@ -213,10 +213,10 @@ class uidashboard extends CommonFunctions
                 </style>";
     
     //Expected first enrolment: January 2011
-    $year = 2010;
-    $month = 1;
-    $duration = 24; //months
-    $subjects = 50; //50 patients in total.
+    $year = 2012;
+    $month = 6;
+    $duration = 12; //months
+    $subjects = 25; //50 patients in total.
     
     $xaxis = "";
     $values = "";

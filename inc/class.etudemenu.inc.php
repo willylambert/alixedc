@@ -98,6 +98,7 @@ class etudemenu extends CommonFunctions
     }elseif($this->m_ctrl->boacl()->existUserProfileId("SPO")){
       $deviations = '<a name="deviations" href="#"><li class="ui-state-default inactiveButton"><img src="'. $this->getCurrentApp(false).'/templates/default/images/file_warning.png" alt=""/><div><p>Deviations</p></div></li></a>';
     }
+    $deviations = "";
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //Button: Audit Trail

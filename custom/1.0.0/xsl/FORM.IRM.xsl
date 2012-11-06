@@ -94,7 +94,7 @@
             $("#paper").css("z-index","-10");
           }else{
             jQuery.fn.axZm.zoomIn({pZoom: 100});        
-            $("#paper").css("z-index","10");            
+            $("#paper").css("z-index","10");
           }
         }
   	 </script>

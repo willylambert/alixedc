@@ -5,7 +5,7 @@ function getZoomData($uisubject,$SubjectKey,$StudyEventOID,$StudyEventRepeatKey)
   require(dirname(__FILE__) . "/../../../lib/nanodicom/nanodicom.php");
   $importPathAnon = $uisubject->m_tblConfig["IMPORT_BASE_PATH"] . "dicom/anonymizedDICOM/";
   
-  $imageDir = $uisubject->m_tblConfig["PATH_TO_AJAXZOOM_PICT"];// . "/dicom";
+  $imageDir = $uisubject->m_tblConfig["PATH_TO_AJAXZOOM_PICT"];
 
   $files = array();
   //Populate $files array
