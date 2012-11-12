@@ -108,7 +108,7 @@ class boexport extends CommonFunctions
     
     //set maintenance mode (save old status)
     $oldMaintenanceStatus = $this->m_ctrl->boconfig()->getParameter("maintenance");
-    $this->m_ctrl->boconfig()->setParameter("maintenance","Y");
+    $this->m_ctrl->boconfig()->setParameter("maintenance","true");
     
     //1 to 3 - update the working database for export generation
     //1- for each collection create a repository and save each document of the collection in this repository
@@ -983,13 +983,16 @@ delimiter = ';' MISSOVER DSD lrecl=32767 firstobs=2;";
     $dsmbFileName = $id."_".date('Y_m_d_H_i').".zip";
     $dsmbFile = $this->m_tblConfig["EXPORT_BASE_PATH"] . $dsmbFileName;
     
-    shell_exec('cd '.$tmp.'/'.$uid.';zip -P '.$uid.' -r '.escapeshellarg($dsmbFile).' ./');
+    $cmd = 'cd '.$tmp.'/'.$uid.';zip -P '.$uid.' -r '.escapeshellarg($dsmbFile).' ./';
+    $res = shell_exec($cmd .' 2>&1');
+    if($res) echo("<br /><div class='debug_dump'><b>Shell response: </b><pre>". $res ."</pre></div>");
     
     $sql = "INSERT INTO egw_alix_export_log(exportid,exportfilename,exportpath,exporttype,exportdate,exportpassword,exportuser,currentapp)
             VALUES('$id','$dsmbFileName','{$this->m_tblConfig["EXPORT_BASE_PATH"]}','$type',now(),'$uid','{$this->m_user}','{$this->getCurrentApp(true)}')";
   
     $GLOBALS['egw']->db->query($sql);
     
+    echo "<br />Done";
     
     //change database context => working on default database
     $this->m_ctrl->socdiscoo()->setContext("");

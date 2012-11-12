@@ -207,6 +207,7 @@ function loadSubjectsGrid(CurrentApp, config, bShowPDF, bShowProfile)
               var myTestObject = eval('(' + data + ')');
             }catch(e){
               alert(e+"\n"+data);
+              //helper.displayError(e,data,true);
             }finally{
               return data;
             }

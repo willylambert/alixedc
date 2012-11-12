@@ -40,10 +40,10 @@ placebo controlled study to assess safety and efficacy of ALIX in 3-25 year old 
   <h1>Please enter your login and password </h1>
   <div class="contenu corner_20">
 
-    <form name="login_form" action="{login_url}" method="post">
+    <form action="{login_url}" method="post">
 		<input type="hidden" name="passwd_type" value="text" />
 		<input type="hidden" name="account_type" value="u" />
-      <p><label>Login :</label><input class="input_text" type="text" id="form_id" name="login" value="{cookie}" /></p>
+      <p><label>Login :</label><input class="input_text" type="text" id="form_id" name="login" value="{cookie}" autocomplete="off" /></p>
       <p><label>Password :</label><input class="input_text" type="password" id="form_pass" name="passwd" onChange="this.form.submit()" value="" /></p>
       <p><label>&nbsp;</label><input type="submit" class="input_submit" id="form_submit" name="form_submit" value="Connection" /></p>
     </form>
@@ -69,7 +69,7 @@ placebo controlled study to assess safety and efficacy of ALIX in 3-25 year old 
 </div>
 
 <div id="toolbar_ico" class="inactif">
-  {information}
+
   <ul>
     <li class="first_item corner_10"><a href="#"><span class="corner_10_top"><img src="phpgwapi/templates/idots/images/alix/user_add_inactif.png" alt="" /></span><p>&nbsp;</p></a></li>
     <li class="item corner_10"><a href="#"><span class="corner_10_top"><img src="phpgwapi/templates/idots/images/alix/user_manage_inactif.png" alt="" /></span><p>&nbsp;</p></a></li>

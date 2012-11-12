@@ -26,6 +26,8 @@
 <xsl:include href="include/alixlib.xsl"/>
 
 <xsl:param name="SEX"/>
+<xsl:param name="AGE"/>
+<xsl:param name="WEIGHT"/>
 
 <!--Catch all non treated tags, print them without treatment-->
 <xsl:template match="*">
@@ -33,38 +35,19 @@
        <xsl:copy-of select="@*"/>
        <xsl:apply-templates/>
    </xsl:copy>
-</xsl:template>    
-
-<!--Disabled BHCG for man -->
-<xsl:template match="input[@name='text_integer_LB@LBSEQ_17' or @name='text_string_LB@LBORRES_17' or @name='text_string_LB@LBORNRHI_17' or @name='text_string_LB@LBORNRLO_17' or @name='text_string_LB@LBORRESU_17']">
-  <xsl:copy>
-    <xsl:if test="$SEX='1'">
-      <xsl:attribute name="disabled">disabled</xsl:attribute>
-    </xsl:if>   
-  <xsl:copy-of select="@*"/>
-  </xsl:copy>
-</xsl:template>      
-
-<xsl:template match="select[@name='select_LB@LBCLSIG_17' or @name ='select_LB@LBORNRCL_17' or @name = 'select_LB@LBORNRCH_17' or @name = 'select_LB@LBNAM_17']">
-  <xsl:copy>
-    <xsl:if test="$SEX='1'">
-      <xsl:attribute name="disabled">disabled</xsl:attribute>
-    </xsl:if> 
-    <xsl:copy-of select="@*"/>
-    <xsl:apply-templates/>
-  </xsl:copy>
 </xsl:template>        
 
 <!--Cath select value for LBTEST and hide dropdown list -->
 <xsl:template match="select[starts-with(@name,'select_LB@LBTEST')]">
    <xsl:value-of select="option[@selected='selected']/text()"/>
-   <!--Pour les besoins de l'enregistrement, un input doit être présent, on le met dans un input hidden-->
+   <!--For saving purpose, an input is needed, it will be hidden-->
    <xsl:element name="input">
     <xsl:attribute name="type">hidden</xsl:attribute>
     <xsl:attribute name="name"><xsl:value-of select="@name"/></xsl:attribute>
     <xsl:attribute name="value"><xsl:value-of select="option[@selected='selected']/@value"/></xsl:attribute>
    </xsl:element>
-</xsl:template>                   
+</xsl:template>     
+             
 
 <!-- Create table to compact list -->
 <xsl:template match="form[@name='LBBIO']">
@@ -223,6 +206,147 @@
           $("input[name='text_mm_LB@LBDTC_"+ ItemGroupRepeatKey +"']").val(action3);
           $("input[name='text_yy_LB@LBDTC_"+ ItemGroupRepeatKey +"']").val(action4);
           $("td[name='LB.LBDTC']").hide();
+        }
+	</script>
+	<script>
+        //Add buttons for Cockroft and MDRD helpers
+        function getCalcImage(onclick){
+          var img = new Image();
+          img.src = "alixedc/templates/default/images/calc.png";
+          img.setAttribute("class", "pointer");
+          img.setAttribute("onclick", onclick);
+          return img;
+        }
+        $(document).ready(function(){
+          //Cockroft
+          $(":[name='text_string_LB@LBORRES_5']").before(getCalcImage("calcCockroft(false);"));
+          $(":[name='text_string_LB@LBORRES_5']").css({width: "50px", marginLeft: "5px"});
+          //MDRD
+          $(":[name='text_string_LB@LBORRES_6']").before(getCalcImage("calcMDRD(false);"));
+          $(":[name='text_string_LB@LBORRES_6']").css({width: "50px", marginLeft: "5px"});
+          
+          //Specifiy units
+          $("#LB\\.LBORRESU_LBBIO_4").html("µMol/L");
+          $("#LB\\.LBORRESU_LBBIO_5").html("mL/min");
+          $("#LB\\.LBORRESU_LBBIO_6").html("mL/min");
+        });
+        //Cockroft
+        function calcCockroft(hideAlert){
+          var age = "<xsl:value-of select="$AGE" />"; // Age
+          var sex = "<xsl:value-of select="$SEX" />"; // M/F
+          var weight = "<xsl:value-of select="$WEIGHT" />"; // Weight in kg
+          var srcInput = document.getElementsByName("text_string_LB@LBORRES_4")[0];
+          var destInput = document.getElementsByName("text_string_LB@LBORRES_5")[0];
+          var separator = "."; // The dot between integers and decimals
+          
+          var Crea = srcInput.value; // Creatinine µmol/L
+          
+          if(Crea==''){
+            if(hideAlert!=true){
+              alert("Creatinine value is unkonwn.");
+            }
+            return false;
+          };
+          if(weight==''){
+            if(hideAlert!=true){
+              alert("Subject's weight is unkonwn.");
+            }
+            return false;
+          };
+          if(sex==''){
+            if(hideAlert!=true){
+              alert("Subject's sex is unkonwn.");
+            }
+            return false;
+          };
+          if(age==''){
+            if(hideAlert!=true){
+              alert("Subject's age is unkonwn.");
+            }
+            return false;
+          };
+          if (Crea!=""){
+              cr = parseInt(Crea);
+              if(sex=='F'){
+                var factor = 1.08;
+               }else{
+                var factor = 1.25;
+               }
+              
+              result = ((140-parseInt(age))*parseInt(weight)/cr)*factor;
+              
+              ajustedResult = (Math.round(result*10)/10);
+              
+              intValue = parseInt(ajustedResult);
+              decValue = String(Math.round((parseFloat(ajustedResult) - parseInt(ajustedResult)) * 10) / 10).substring(2,3);
+              
+              finalValue = intValue;
+              if(decValue!=""){
+                finalValue += separator + decValue;
+              }
+              
+              destInput.value = finalValue;
+              
+              if(hideAlert!=true){
+                alert("Creatinine clearance (Cockroft) : " + finalValue + " mL/min");
+              }
+          }
+        }
+        //MDRD
+        function calcMDRD(hideAlert){
+          var age = "<xsl:value-of select="$AGE" />"; // Age
+          var sex = "<xsl:value-of select="$SEX" />"; // M/F
+          var race = "<xsl:value-of select="$RACE" />"; // ~skin color // AF if Afroamerican
+          var srcInput = document.getElementsByName("text_string_LB@LBORRES_4")[0];
+          var destInput = document.getElementsByName("text_string_LB@LBORRES_6")[0];
+          var separator = "."; // The dot between integers and decimals
+          
+          var Crea = srcInput.value; // Creatinine µmol/L
+          
+          if (Crea==''){
+            if(hideAlert!=true){
+              alert("Creatinine value is unkonwn.");
+            }
+            return false;
+          }
+          if(race==''){
+            if(hideAlert!=true){
+              alert("Subject's ethnic origin is unkonwn.");
+            }
+            return false;
+          };
+          if(sex==''){
+            if(hideAlert!=true){
+              alert("Subject's sex is unkonwn.");
+            }
+            return false;
+          };
+          if(age==''){
+            if(hideAlert!=true){
+              alert("Subject's age is unkonwn.");
+            }
+            return false;
+          };
+          
+          cr = Crea * 0.011312;
+          result = 186.3 * Math.pow(cr,-1.154) * 
+                                Math.pow(age, -0.203) * 
+                                (sex=='F' ? 0.742 : 1.0) * 
+                                (race=='AF' ? 1.212 : 1.0);
+                                
+          intValue = parseInt(result);
+          decValue = String(parseFloat(result) - parseInt(result)).substring(2,3);
+              
+          finalValue = intValue;
+          if(decValue!=""){
+            finalValue += separator + decValue;
+          }
+          
+          destInput.value = finalValue;
+          
+          if(hideAlert!=true){
+            alert("Creatinine clearance (MDRD) : " + finalValue + " mL/min");
+          }
         }
 	</script>
  </div>  

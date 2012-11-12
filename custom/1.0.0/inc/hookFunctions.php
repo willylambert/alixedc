@@ -52,33 +52,44 @@ function uisubject_getInterface_MainXslParameters($FormOID,$xslProc,$uisubject){
 * @author WLT
 **/  
 function uisubject_getInterface_xslParameters($FormOID,$xslProc,$uisubject){
-    
+  $SubjectKey = $_GET['SubjectKey'];
   $profile = $uisubject->m_ctrl->boacl()->getUserProfile();
 
   switch($FormOID){
     case 'FORM.ENROL' : 
       $xslProc->setParameter('','SiteId',$profile['siteId']);
       $xslProc->setParameter('','SiteName',$profile['siteName']);
-      $xslProc->setParameter('','SubjectKey',$_GET['SubjectKey']);      
+      $xslProc->setParameter('','SubjectKey',$SubjectKey);      
       break;
 
     case 'FORM.AE' : 
       $xslProc->setParameter('','FormRepeatKey',$_GET['FormRepeatKey']);
-      $AETERM = $uisubject->m_ctrl->bocdiscoo()->getValue($_GET['SubjectKey'],"AE","0","FORM.AE",$_GET['FormRepeatKey'],"AE","0","AE.AETERM");
+      $AETERM = $uisubject->m_ctrl->bocdiscoo()->getValue($SubjectKey,"AE","0","FORM.AE",$_GET['FormRepeatKey'],"AE","0","AE.AETERM");
       $xslProc->setParameter('','AETERM',$AETERM);
       $xslProc->setParameter('',"currentApp",$GLOBALS['egw_info']['flags']['currentapp']);
       break;                     
 
     case 'FORM.HE' : 
-      $dob = $uisubject->m_ctrl->bocdiscoo()->getValue($_GET['SubjectKey'],"1","0","FORM.IC","0","DM","0","DM.BRTHDTC");
+      $dob = $uisubject->m_ctrl->bocdiscoo()->getValue($SubjectKey,"1","0","FORM.IC","0","DM","0","DM.BRTHDTC");
       $xslProc->setParameter('','BRTHDTC',$dob);
+      break;                 
+
+    case 'FORM.LBBIO' : 
+      $value = $uisubject->m_ctrl->bocdiscoo()->getValue($SubjectKey,"1","0","FORM.IC","0","DM","0","DM.SEX");
+      $xslProc->setParameter('','SEX',$value);
+      $value = $uisubject->m_ctrl->bocdiscoo()->getValue($SubjectKey,"1","0","FORM.IC","0","DM","0","DM.AGE");
+      $xslProc->setParameter('','AGE',$value);
+      $value = $uisubject->m_ctrl->bocdiscoo()->getValue($SubjectKey,"1","0","FORM.VS","0","VS","1","VS.VSORRES");
+      $xslProc->setParameter('','WEIGHT',$value);
+      $value = "OTHER";
+      $xslProc->setParameter('','RACE',$value);
       break;
     
     case 'FORM.IRM' :  
       require_once($uisubject->m_tblConfig["PATH_TO_AJAXZOOM"]."/axZm/zoomInc.inc.php");
       require_once("zoomData.php");
       
-      $zoomDatas = getZoomData($uisubject,$_GET['SubjectKey'],$_GET['StudyEventOID'],$_GET['StudyEventRepeatKey']);
+      $zoomDatas = getZoomData($uisubject,$SubjectKey,$_GET['StudyEventOID'],$_GET['StudyEventRepeatKey']);
       $zoomData = $zoomDatas[0];
       $nbImages = $zoomDatas[1];
       $pixelSpacingH = $zoomDatas[2];
@@ -92,13 +103,13 @@ function uisubject_getInterface_xslParameters($FormOID,$xslProc,$uisubject){
       
     case 'FORM.ELIG' :
     case 'FORM.STDD' :      
-      $siteId = substr($_GET['SubjectKey'],0,2);
-      $subjId = substr($_GET['SubjectKey'],2,2);
+      $siteId = substr($SubjectKey,0,2);
+      $subjId = substr($SubjectKey,2,2);
 
-      $country = $uisubject->m_ctrl->bocdiscoo()->getValue($_GET['SubjectKey'],"1","0","FORM.ENROL","0","ENROL","0","ENROL.COUNTID");  
-      $subjInit = $uisubject->m_ctrl->bocdiscoo()->getValue($_GET['SubjectKey'],"1","0","FORM.ENROL","0","ENROL","0","ENROL.SUBJINIT");
-      $subjWeight = $uisubject->m_ctrl->bocdiscoo()->getValue($_GET['SubjectKey'],$_GET['StudyEventOID'],$_GET['StudyEventRepeatKey'],$_GET['FormOID'],$_GET['FormRepeatKey'],"DA","0","DA.WEIGHT");
-      $poso = $uisubject->m_ctrl->bocdiscoo()->getValue($_GET['SubjectKey'],$_GET['StudyEventOID'],$_GET['StudyEventRepeatKey'],$_GET['FormOID'],$_GET['FormRepeatKey'],"DA","0","DA.DAPOS");
+      $country = $uisubject->m_ctrl->bocdiscoo()->getValue($SubjectKey,"1","0","FORM.ENROL","0","ENROL","0","ENROL.COUNTID");  
+      $subjInit = $uisubject->m_ctrl->bocdiscoo()->getValue($SubjectKey,"1","0","FORM.ENROL","0","ENROL","0","ENROL.SUBJINIT");
+      $subjWeight = $uisubject->m_ctrl->bocdiscoo()->getValue($SubjectKey,$_GET['StudyEventOID'],$_GET['StudyEventRepeatKey'],$_GET['FormOID'],$_GET['FormRepeatKey'],"DA","0","DA.WEIGHT");
+      $poso = $uisubject->m_ctrl->bocdiscoo()->getValue($SubjectKey,$_GET['StudyEventOID'],$_GET['StudyEventRepeatKey'],$_GET['FormOID'],$_GET['FormRepeatKey'],"DA","0","DA.DAPOS");
     
       switch($_GET['StudyEventOID']){
         case '2' : $visit = "D0"; break;
@@ -517,7 +528,9 @@ function etudemenu_getMenu_htmlContent(&$html,$etudemenu){
   $html .= "
     <script>
       var testmode = ". ($_SESSION[$etudemenu->getCurrentApp(false)]['testmode']?'true':'false') .";
-    </script>
+    </script>";
+  return false; //disable tips
+  $html .= "
     <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$etudemenu->getCurrentApp(false).'/custom/'. $etudemenu->m_tblConfig['METADATAVERSION'] .'/js/jquery.jqAltBox.js') . "'></SCRIPT>
     <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$etudemenu->getCurrentApp(false).'/custom/'. $etudemenu->m_tblConfig['METADATAVERSION'] .'/js/menu-tips.js') . "'></SCRIPT>
   ";
