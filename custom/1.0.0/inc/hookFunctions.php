@@ -529,7 +529,7 @@ function etudemenu_getMenu_htmlContent(&$html,$etudemenu){
     <script>
       var testmode = ". ($_SESSION[$etudemenu->getCurrentApp(false)]['testmode']?'true':'false') .";
     </script>";
-  return false; //disable tips
+  //return false; //disable tips
   $html .= "
     <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$etudemenu->getCurrentApp(false).'/custom/'. $etudemenu->m_tblConfig['METADATAVERSION'] .'/js/jquery.jqAltBox.js') . "'></SCRIPT>
     <SCRIPT LANGUAGE='JavaScript' SRC='" . $GLOBALS['egw']->link('/'.$etudemenu->getCurrentApp(false).'/custom/'. $etudemenu->m_tblConfig['METADATAVERSION'] .'/js/menu-tips.js') . "'></SCRIPT>
